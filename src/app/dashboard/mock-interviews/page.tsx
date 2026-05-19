@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Mic, MicOff, ChevronLeft, ChevronRight, StopCircle, CheckCircle2, AlertCircle, Trophy, BarChart2 } from "lucide-react";
+import { Mic, MicOff, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, BarChart2, Mic2, Clock } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 
 export default function MockInterviewPage() {
@@ -217,4 +217,3 @@ export default function MockInterviewPage() {
   );
 }
 
-import { Mic2, Clock } from "lucide-react";

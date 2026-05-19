@@ -26,7 +26,7 @@ import {
 
 export default function PerfectStudentPortal() {
   return (
-    <div className="p-8 space-y-8 font-sans">
+    <div className="min-h-screen bg-[#f8fafc] p-8 space-y-8 font-sans">
       {/* Hero Welcome Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-2xl shadow-slate-200">
          <div className="relative z-10 space-y-6 lg:max-w-2xl">

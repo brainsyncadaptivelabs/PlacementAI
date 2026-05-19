@@ -22,7 +22,7 @@ export default function AuthPage() {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
-        <Tabs defaultValue="login" className="w-full" onValueChange={setActiveTab}>
+        <Tabs value={activeTab} className="w-full" onValueChange={setActiveTab}>
           <div className="flex justify-center mb-4">
             <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1">
               <TabsTrigger value="signup" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Sign Up</TabsTrigger>

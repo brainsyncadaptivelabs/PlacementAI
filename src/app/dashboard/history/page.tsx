@@ -1,8 +1,9 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   Table, 
   TableBody, 
@@ -11,7 +12,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { History, Eye, Download, Trash2, ArrowUpRight } from "lucide-react";
+import { History, Eye, Download, Trash2, ArrowUpRight, CheckCircle2, FileText } from "lucide-react";
 import Link from "next/link";
 
 const resumeHistory = [
@@ -125,5 +126,3 @@ export default function ResumeHistoryPage() {
     </div>
   );
 }
-
-import { FileText } from "lucide-react";

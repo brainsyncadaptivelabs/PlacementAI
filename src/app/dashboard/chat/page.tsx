@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { MessageSquare, Send, Sparkles, User, MoreHorizontal, Copy, ThumbsUp, RefreshCw } from "lucide-react";
+import { Send, Sparkles, User, MoreHorizontal, Copy, ThumbsUp } from "lucide-react";
 
 type Message = {
   id: number;

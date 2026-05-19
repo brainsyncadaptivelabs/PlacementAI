@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Zap, CheckCircle2, AlertCircle, ArrowUpRight, TrendingUp, Sparkles, BookOpen } from "lucide-react";
+import { Zap, ArrowUpRight, TrendingUp, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 export default function SkillGapPage() {

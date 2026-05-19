@@ -15,7 +15,6 @@ import {
   User,
   Settings,
   LogOut,
-  ChevronRight,
   Search,
   Bell,
   History,
@@ -39,6 +38,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
@@ -77,15 +77,13 @@ export function AppSidebar() {
           {navItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
-                asChild
+                render={<Link href={item.url} />}
                 isActive={pathname === item.url}
                 className="hover:bg-slate-100 transition-colors py-6"
                 tooltip={item.title}
               >
-                <Link href={item.url} className="flex items-center gap-3">
-                  <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-slate-500'}`} />
-                  <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-slate-600'}`}>{item.title}</span>
-                </Link>
+                <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-slate-500'}`} />
+                <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-slate-600'}`}>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -97,15 +95,13 @@ export function AppSidebar() {
           {secondaryItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
-                asChild
+                render={<Link href={item.url} />}
                 isActive={pathname === item.url}
                 className="hover:bg-slate-100 transition-colors py-6"
                 tooltip={item.title}
               >
-                <Link href={item.url} className="flex items-center gap-3">
-                  <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-slate-500'}`} />
-                  <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-slate-600'}`}>{item.title}</span>
-                </Link>
+                <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-slate-500'}`} />
+                <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-slate-600'}`}>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -114,11 +110,9 @@ export function AppSidebar() {
       <SidebarFooter className="p-4 border-t border-slate-100">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="hover:bg-red-50 hover:text-red-600 transition-colors py-6">
-              <Link href="/auth" className="flex items-center gap-3">
+            <SidebarMenuButton render={<Link href="/auth" />} className="hover:bg-red-50 hover:text-red-600 transition-colors py-6">
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
-              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

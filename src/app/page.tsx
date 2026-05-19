@@ -1,19 +1,19 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   FileText, 
   Mic, 
   Map, 
-  BarChart3, 
   ArrowRight, 
   CheckCircle, 
   Target, 
   Zap, 
   MessageSquare, 
-  Users, 
   ShieldCheck,
-  Star
+  Star,
+  Sparkles
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -77,8 +77,14 @@ export default function LandingPage() {
                 <div className="flex items-center gap-8 pt-4">
                    <div className="flex -space-x-3">
                       {[1,2,3,4].map(i => (
-                         <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm">
-                            <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="user" />
+                         <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm relative">
+                            <Image 
+                               src={`https://i.pravatar.cc/100?img=${i+10}`} 
+                               alt="user" 
+                               fill 
+                               sizes="40px"
+                               className="object-cover" 
+                            />
                          </div>
                       ))}
                       <div className="w-10 h-10 rounded-full border-2 border-white bg-primary flex items-center justify-center text-white text-[10px] font-bold">+2k</div>
@@ -221,28 +227,26 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                <PricingCard 
                   title="Free"
-                  price="$0"
+                  price="₹0"
                   desc="Perfect for getting started"
                   features={["2 Resume Analyses / mo", "Basic Roadmap", "Community Support", "Basic Chatbot Access"]}
                   cta="Start for Free"
-                  variant="ghost"
                />
                <PricingCard 
                   title="Pro"
-                  price="$19"
+                  price="₹100"
                   desc="Everything you need to succeed"
                   features={["Unlimited Resumes", "Advanced AI Mock Interviews", "Personalized Roadmaps", "24/7 Priority Chatbot", "JD Matching Engine"]}
                   cta="Get Pro Now"
-                  variant="primary"
                   highlight={true}
                />
                <PricingCard 
                   title="Team"
-                  price="$99"
+                  price="Contact Sales"
                   desc="For colleges and bootcamp"
                   features={["Bulk Resume Analysis", "Recruiter Dashboard", "Custom Skill Tracking", "API Access", "Dedicated Manager"]}
                   cta="Contact Sales"
-                  variant="ghost"
+                  showMonthly={false}
                />
             </div>
           </div>
@@ -258,7 +262,7 @@ export default function LandingPage() {
                       <h3 className="text-4xl font-bold font-heading text-slate-900 leading-tight">Democratizing placement prep for every student.</h3>
                       <p className="text-slate-500 font-medium text-lg leading-relaxed">
                         At AI Placement Copilot, we believe every student deserves a fair shot at their dream career, regardless of their background. 
-                        Our team of engineers and recruiters built this platform to bridge the widening gap between traditional education and industry expectations.
+                        Our team of engineers and students built this platform to bridge the widening gap between traditional education and industry expectations.
                       </p>
                       <p className="text-slate-500 font-medium leading-relaxed">
                         We leverage cutting-edge Large Language Models and data science to provide the kind of mentorship that was previously only available to a select few.
@@ -278,7 +282,13 @@ export default function LandingPage() {
                 <div className="lg:w-1/2 w-full grid grid-cols-2 gap-4">
                    <div className="space-y-4 pt-8">
                       <div className="h-64 bg-slate-100 rounded-3xl overflow-hidden relative group">
-                         <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=400" className="object-cover h-full w-full grayscale group-hover:grayscale-0 transition-all duration-500" alt="team" />
+                         <Image 
+                            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=400" 
+                            fill 
+                            sizes="(max-width: 768px) 100vw, 400px"
+                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
+                            alt="team" 
+                         />
                       </div>
                       <div className="h-48 bg-primary rounded-3xl flex items-center justify-center p-8 text-white font-bold text-center leading-tight">
                          Innovation is at our core.
@@ -286,10 +296,16 @@ export default function LandingPage() {
                    </div>
                    <div className="space-y-4">
                       <div className="h-48 bg-secondary rounded-3xl flex items-center justify-center p-8 text-white font-bold text-center leading-tight">
-                         Built by Recruiters.
+                         Built by students for students with love ❤️
                       </div>
                       <div className="h-64 bg-slate-100 rounded-3xl overflow-hidden relative group">
-                         <img src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400" className="object-cover h-full w-full grayscale group-hover:grayscale-0 transition-all duration-500" alt="team" />
+                         <Image 
+                            src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400" 
+                            fill 
+                            sizes="(max-width: 768px) 100vw, 400px"
+                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
+                            alt="team" 
+                         />
                       </div>
                    </div>
                 </div>
@@ -364,8 +380,8 @@ export default function LandingPage() {
   );
 }
 
-function FeatureCard({ icon, title, desc, color }: { icon: any, title: string, desc: string, color: string }) {
-   const colors: any = {
+function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode, title: string, desc: string, color: string }) {
+   const colors: Record<string, string> = {
       blue: "bg-blue-50 text-blue-600 border-blue-100 group-hover:bg-blue-600 group-hover:text-white",
       purple: "bg-purple-50 text-purple-600 border-purple-100 group-hover:bg-purple-600 group-hover:text-white",
       emerald: "bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white",
@@ -393,7 +409,7 @@ function FeatureCard({ icon, title, desc, color }: { icon: any, title: string, d
    );
 }
 
-function StepItem({ number, title, desc, icon }: { number: string, title: string, desc: string, icon: any }) {
+function StepItem({ number, title, desc, icon }: { number: string, title: string, desc: string, icon: React.ReactNode }) {
    return (
       <div className="space-y-6 text-center lg:text-left group relative">
          <div className="flex flex-col lg:flex-row items-center gap-4">
@@ -410,15 +426,15 @@ function StepItem({ number, title, desc, icon }: { number: string, title: string
    );
 }
 
-function PricingCard({ title, price, desc, features, cta, variant, highlight }: { title: string, price: string, desc: string, features: string[], cta: string, variant: string, highlight?: boolean }) {
+function PricingCard({ title, price, desc, features, cta, highlight, showMonthly = true }: { title: string, price: string, desc: string, features: string[], cta: string, highlight?: boolean, showMonthly?: boolean }) {
    return (
       <Card className={`p-8 border-none shadow-xl flex flex-col space-y-8 relative overflow-hidden ${highlight ? 'bg-primary ring-4 ring-primary/20 scale-105 z-10' : 'bg-slate-800'}`}>
          {highlight && <div className="absolute top-4 right-4 bg-white/20 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em]">Popular</div>}
          <div className="space-y-4">
             <h4 className="text-xs font-black uppercase tracking-[0.3em] opacity-60">{title}</h4>
             <div className="flex items-baseline gap-1">
-               <span className="text-5xl font-black">{price}</span>
-               <span className="text-sm font-bold opacity-60">/month</span>
+               <span className={`${price.length > 8 ? 'text-3xl' : 'text-5xl'} font-black`}>{price}</span>
+               {showMonthly && <span className="text-sm font-bold opacity-60">/month</span>}
             </div>
             <p className="text-sm font-medium opacity-80">{desc}</p>
          </div>
@@ -436,5 +452,3 @@ function PricingCard({ title, price, desc, features, cta, variant, highlight }: 
       </Card>
    );
 }
-
-import { Sparkles } from "lucide-react";

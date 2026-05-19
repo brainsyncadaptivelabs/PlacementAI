@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Target, CheckCircle2, AlertCircle, ArrowRight, Zap, Briefcase } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { Target, Zap, Briefcase } from "lucide-react";
 
 export default function JDMatchPage() {
   const [isMatching, setIsMatching] = useState(false);
