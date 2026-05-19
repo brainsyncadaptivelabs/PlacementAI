@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursorrules
+
+# OS Files
+.Spotlight-V100
+.Trashes
+Thumbs.db
+
+# Caches and Tools
+.eslintcache
+.stylelintcache
+.turbo/
+*.log
