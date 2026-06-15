@@ -1,0 +1,100 @@
+package com.aiplacement.backend.service;
+
+import com.aiplacement.backend.dto.user.CompleteProfileRequest;
+import com.aiplacement.backend.dto.user.UserProfileDto;
+import com.aiplacement.backend.entity.Role;
+import com.aiplacement.backend.entity.User;
+import com.aiplacement.backend.repository.UserRepository;
+import com.aiplacement.backend.service.email.EmailService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class ProfileServiceImpl implements ProfileService {
+
+    private final UserRepository userRepository;
+    private final EmailService emailService;
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Override
+    public void completeStudentProfile(CompleteProfileRequest request) {
+        if (request.getCollegeName() == null || request.getCollegeName().isBlank()) throw new IllegalArgumentException("College name is required");
+        if (request.getBranch() == null || request.getBranch().isBlank()) throw new IllegalArgumentException("Branch is required");
+        if (request.getGraduationYear() == null) throw new IllegalArgumentException("Graduation year is required");
+
+        User user = getCurrentUser();
+        user.setRole(Role.STUDENT);
+        user.setCollegeName(request.getCollegeName());
+        user.setBranch(request.getBranch());
+        user.setGraduationYear(request.getGraduationYear());
+        if (request.getLinkedinUrl() != null) user.setLinkedinUrl(request.getLinkedinUrl());
+        if (request.getGithubUrl() != null) user.setGithubUrl(request.getGithubUrl());
+        
+        user.setProfileCompleted(true);
+        userRepository.save(user);
+
+        // Send Student Welcome Email
+        String firstName = user.getFullName().split(" ")[0];
+        emailService.sendStudentWelcomeEmail(user.getEmail(), firstName);
+    }
+
+    @Override
+    public void completeRecruiterProfile(CompleteProfileRequest request) {
+        if (request.getCompanyName() == null || request.getCompanyName().isBlank()) throw new IllegalArgumentException("Company name is required");
+
+        User user = getCurrentUser();
+        user.setRole(Role.RECRUITER);
+        user.setCompanyName(request.getCompanyName());
+        if (request.getCompanyWebsite() != null) user.setCompanyWebsite(request.getCompanyWebsite());
+        if (request.getCompanySize() != null) user.setCompanySize(request.getCompanySize());
+        
+        user.setProfileCompleted(true);
+        userRepository.save(user);
+
+        // Send Recruiter Welcome Email
+        emailService.sendRecruiterWelcomeEmail(user.getEmail(), user.getCompanyName());
+    }
+
+    @Override
+    public UserProfileDto getMyProfile() {
+        User user = getCurrentUser();
+        return UserProfileDto.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .collegeName(user.getCollegeName())
+                .branch(user.getBranch())
+                .graduationYear(user.getGraduationYear())
+                .linkedinUrl(user.getLinkedinUrl())
+                .githubUrl(user.getGithubUrl())
+                .companyName(user.getCompanyName())
+                .companyWebsite(user.getCompanyWebsite())
+                .companySize(user.getCompanySize())
+                .profileCompleted(user.isProfileCompleted())
+                .profileImage(user.getProfileImage())
+                .plan(user.getPlan())
+                .paymentStatus(user.getPaymentStatus())
+                .build();
+    }
+
+    @Override
+    public void updateProfile(CompleteProfileRequest request) {
+        User user = getCurrentUser();
+        if (request.getCollegeName() != null) user.setCollegeName(request.getCollegeName());
+        if (request.getBranch() != null) user.setBranch(request.getBranch());
+        if (request.getGraduationYear() != null) user.setGraduationYear(request.getGraduationYear());
+        if (request.getLinkedinUrl() != null) user.setLinkedinUrl(request.getLinkedinUrl());
+        if (request.getGithubUrl() != null) user.setGithubUrl(request.getGithubUrl());
+        if (request.getCompanyName() != null) user.setCompanyName(request.getCompanyName());
+        if (request.getCompanyWebsite() != null) user.setCompanyWebsite(request.getCompanyWebsite());
+        if (request.getCompanySize() != null) user.setCompanySize(request.getCompanySize());
+        userRepository.save(user);
+    }
+}

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: ai-placement-backend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: ai-placement-backend
+
+  template:
+    metadata:
+      labels:
+        app: ai-placement-backend
+
+    spec:
+      containers:
+
+        - name: ai-placement-backend
+
+          image: placementai-backend:latest
+
+          ports:
+            - containerPort: 8080

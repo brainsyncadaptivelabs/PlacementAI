@@ -1,0 +1,102 @@
+# ======================
+
+# ENV FILES
+
+# ======================
+
+.env
+.env.local
+.env.development
+.env.production
+*_env*.zip
+
+# Keep example file
+
+!.env.example
+
+# ======================
+
+# OS FILES
+
+# ======================
+
+.DS_Store
+Thumbs.db
+
+# ======================
+
+# NODE
+
+# ======================
+
+node_modules/
+.next/
+out/
+build/
+
+# ======================
+
+# JAVA
+
+# ======================
+
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/*.jar
+
+# ======================
+
+# IDE
+
+# ======================
+
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ======================
+
+# DOCKER
+
+# ======================
+
+.docker/
+
+# ======================
+
+# LOGS
+
+# ======================
+
+logs/
+*.log
+
+# ======================
+
+# TEMP / UPLOADS
+
+# ======================
+
+temp/
+uploads/
+
+# ======================
+
+# CACHE
+
+# ======================
+
+.cache/
+
+# ======================
+
+# SPRING
+
+# ======================
+
+application-local.properties
+application-secret.properties

@@ -1,0 +1,32 @@
+[
+    {
+        "url": "/api/v1/dashboard/stats",
+        "method": "GET",
+        "avg_ms": 248.9268333333333,
+        "max_ms": 659.3392999999999
+    },
+    {
+        "url": "/api/v1/user/profile",
+        "method": "GET",
+        "avg_ms": 20.880133333333333,
+        "max_ms": 29.355099999999993
+    },
+    {
+        "url": "/api/v1/chat/ask",
+        "method": "POST",
+        "avg_ms": 2097.2235000000005,
+        "max_ms": 2238.5274
+    },
+    {
+        "url": "/api/v1/roadmap/generate",
+        "method": "POST",
+        "avg_ms": 49.90313333333385,
+        "max_ms": 59.255799999999
+    },
+    {
+        "url": "/api/v1/jd/match",
+        "method": "POST",
+        "avg_ms": 40.251200000000004,
+        "max_ms": 48.329900000000634
+    }
+]

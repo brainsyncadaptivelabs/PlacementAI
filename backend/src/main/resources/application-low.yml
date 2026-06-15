@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  cache:
+    redis:
+      time-to-live: 1800000
+
+chatbot:
+  context-size: 5
+  max-tokens: 500
+  truncate-limit: 300

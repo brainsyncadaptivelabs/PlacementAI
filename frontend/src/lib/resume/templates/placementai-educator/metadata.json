@@ -1,0 +1,8 @@
+{
+  "id": "placementai-educator",
+  "name": "PlacementAI Educator",
+  "category": "ATS Friendly",
+  "editable": true,
+  "atsScore": 94,
+  "thumbnail": "/templates/educator-thumbnail.png"
+}

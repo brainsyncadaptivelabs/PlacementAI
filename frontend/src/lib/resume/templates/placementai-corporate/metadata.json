@@ -1,0 +1,8 @@
+{
+  "id": "placementai-corporate",
+  "name": "PlacementAI Corporate",
+  "category": "Company Based",
+  "editable": true,
+  "atsScore": 96,
+  "thumbnail": "/templates/corporate-thumbnail.png"
+}

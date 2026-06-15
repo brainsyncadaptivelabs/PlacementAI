@@ -1,0 +1,20 @@
+package com.aiplacement.backend.dto.history;
+
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+
+public class AtsHistoryDto {
+
+    private Integer atsScore;
+
+    private String bestRole;
+
+    private LocalDateTime createdAt;
+}
