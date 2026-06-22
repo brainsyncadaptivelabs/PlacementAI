@@ -59,7 +59,7 @@ export default function ResumeBuilderPortal() {
     const reg = TEMPLATE_REGISTRY[templateId] || TEMPLATE_REGISTRY["placementai-educator"];
 
     // The data is natively JSON now due to Supabase JSONB
-    let parsedState: ResumeState = resume.resume_data || { ...reg.initialState };
+    const parsedState: ResumeState = resume.resume_data || { ...reg.initialState };
 
     // Set draft data in local storage
     localStorage.setItem("placementai_resume_draft", JSON.stringify(parsedState));

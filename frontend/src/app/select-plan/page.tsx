@@ -113,7 +113,7 @@ export default function SelectPlanPage() {
           console.error("[PlanSelection] Error setting free plan:", err);
         }
         console.log("[PlanSelection] Free plan activated, redirecting...");
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
         return;
       } else {
         const response = await api.post("/payment/create-order", { plan: planName });
@@ -153,7 +153,7 @@ export default function SelectPlanPage() {
               console.log("[PlanSelection] Verification successful, redirecting...");
               setNotification({ message: "Payment verified! Your subscription is active.", type: 'success' });
               setTimeout(() => {
-                window.location.href = "/success";
+                router.push("/success");
               }, 1500);
             } catch (err) {
               console.error("[PlanSelection] Verification failed:", err);
@@ -185,7 +185,7 @@ export default function SelectPlanPage() {
       if (status === 401) {
         setNotification({ message: "Session expired. Redirecting to login...", type: 'error' });
         setTimeout(() => {
-          window.location.href = "/auth";
+          router.push("/auth");
         }, 2000);
       } else {
         setNotification({ message: `Activation failed: ${errorMessage}`, type: 'error' });
@@ -300,7 +300,7 @@ export default function SelectPlanPage() {
                       console.log("[DemoPayment] Verification successful, redirecting...");
                       setNotification({ message: "Mock payment verified! Your subscription is active.", type: 'success' });
                       setTimeout(() => {
-                        window.location.href = "/success";
+                        router.push("/success");
                       }, 1500);
                     } catch (err) {
                       console.error("[DemoPayment] Verification failed:", err);
