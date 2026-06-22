@@ -119,8 +119,8 @@ export default function TemplateGalleryPage() {
           </div>
         </div>
 
-        {/* Grid of Templates - Responsive Auto-Fill Grid */}
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8 items-start justify-items-center w-full">
+        {/* Grid of Templates - Optimized 4 per row grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start justify-items-center w-full">
           {filteredTemplates.map((tpl) => {
             const isSelected = loadingTemplate === tpl.id;
             const reg = TEMPLATE_REGISTRY[tpl.id];
@@ -160,15 +160,15 @@ export default function TemplateGalleryPage() {
                       <div 
                         className="shrink-0 transition-transform duration-700 md:group-hover/preview:scale-105 pointer-events-none"
                         style={{
-                          width: "500px",
-                          transform: "scale(0.6)",
-                          transformOrigin: "top center",
+                          width: "950px",
+                          transform: "scale(0.35)",
+                          transformOrigin: "top left",
                         }}
                       >
                         {Renderer ? (
-                          <Renderer data={reg.initialState} previewMode={true} />
+                          <Renderer data={reg.initialState} previewMode={false} />
                         ) : (
-                          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-black">
+                          <div className="w-[950px] h-[1120px] bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-black">
                             RENDERING...
                           </div>
                         )}

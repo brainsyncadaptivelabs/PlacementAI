@@ -41,7 +41,7 @@ export default function RoadmapPage() {
         resumeText: resumeText,
         careerGoal: careerGoal
       });
-      setRoadmap(response.data);
+      setRoadmap(response.data as RoadmapItem);
       
       // Save to localStorage so that the dashboard widget can render it dynamically
       localStorage.setItem("user_roadmap", JSON.stringify(response.data));

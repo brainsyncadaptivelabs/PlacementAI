@@ -1,0 +1,17 @@
+{
+  "id": "deedy",
+  "name": "Deedy Resume",
+  "author": "PlacementAI",
+  "description": "A modern, clean two-column resume template based on the popular Deedy CV.",
+  "tags": ["modern", "two-column", "software-engineering"],
+  "features": ["photo-support", "compact", "ats-friendly"],
+  "isAtsFriendly": true,
+  "defaultTheme": {
+    "primaryColor": "#333333",
+    "secondaryColor": "#777777",
+    "backgroundColor": "#ffffff",
+    "textColor": "#222222",
+    "fontFamily": "'Lato', sans-serif",
+    "fontSize": "11pt"
+  }
+}

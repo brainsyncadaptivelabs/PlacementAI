@@ -5,37 +5,30 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Loader2, Plus, Edit2, Trash2, FileText, CheckCircle2 } from "lucide-react";
-import api from "@/lib/api";
 import { ACTIVE_TEMPLATES, TEMPLATE_REGISTRY } from "@/lib/resume/templates/templates";
-import { ResumeState } from "@/lib/resume/templates/placementai-classic/schema";
+import { ResumeState } from "@/lib/resume/templates/placementai-educator/schema";
+import { ResumeService } from "@/services/resume.service";
+import { useAuth } from "@/hooks/use-auth";
 
 interface ResumeDto {
-  id: number;
+  id: string;
   title: string;
-  templateName: string;
-  fullName: string;
-  email: string;
-  phone: string;
-  linkedin: string;
-  github: string;
-  summary: string;
-  skills: string;
-  projects: string;
-  experience: string;
-  certifications: string;
-  education: string;
+  template_id: string;
+  resume_data: any;
 }
 
 export default function ResumeBuilderPortal() {
   const router = useRouter();
+  const { user } = useAuth();
   const [resumes, setResumes] = useState<ResumeDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchResumes = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      const response = await api.get("/resume-builder");
-      setResumes(response.data);
+      const response = await ResumeService.getAllResumes(user.id);
+      setResumes(response as ResumeDto[]);
     } catch (err) {
       console.error("Failed to fetch resumes", err);
     } finally {
@@ -45,14 +38,14 @@ export default function ResumeBuilderPortal() {
 
   useEffect(() => {
     fetchResumes();
-  }, []);
+  }, [user]);
 
-  const handleDelete = async (e: React.MouseEvent, id: number) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (!confirm("Are you sure you want to delete this resume?")) return;
     setLoading(true);
     try {
-      await api.delete(`/resume-builder/${id}`);
+      await ResumeService.deleteResume(id);
       fetchResumes();
     } catch (err) {
       console.error("Failed to delete resume", err);
@@ -62,31 +55,11 @@ export default function ResumeBuilderPortal() {
   };
 
   const handleEditResume = (resume: ResumeDto) => {
-    const templateId = resume.templateName || "placementai-classic";
-    const reg = TEMPLATE_REGISTRY[templateId] || TEMPLATE_REGISTRY["placementai-classic"];
+    const templateId = resume.template_id || "placementai-educator";
+    const reg = TEMPLATE_REGISTRY[templateId] || TEMPLATE_REGISTRY["placementai-educator"];
 
-    // Parse the DB fields back into structured JSON state
-    let parsedState: ResumeState = { ...reg.initialState };
-    try {
-      parsedState = {
-        personalInfo: {
-          name: resume.fullName || "",
-          email: resume.email || "",
-          phone: resume.phone || "",
-          linkedin: resume.linkedin || "",
-          github: resume.github || "",
-          leetcode: ""
-        },
-        summary: resume.summary || "",
-        skills: resume.skills ? (resume.skills.startsWith("[") ? JSON.parse(resume.skills) : [resume.skills]) : [],
-        experience: resume.experience ? (resume.experience.startsWith("[") ? JSON.parse(resume.experience) : []) : [],
-        projects: resume.projects ? (resume.projects.startsWith("[") ? JSON.parse(resume.projects) : []) : [],
-        education: resume.education ? (resume.education.startsWith("[") ? JSON.parse(resume.education) : []) : [],
-        certifications: resume.certifications ? (resume.certifications.startsWith("[") ? JSON.parse(resume.certifications) : []) : []
-      };
-    } catch (e) {
-      console.error("Error parsing DB fields to ResumeState", e);
-    }
+    // The data is natively JSON now due to Supabase JSONB
+    let parsedState: ResumeState = resume.resume_data || { ...reg.initialState };
 
     // Set draft data in local storage
     localStorage.setItem("placementai_resume_draft", JSON.stringify(parsedState));
@@ -136,9 +109,12 @@ export default function ResumeBuilderPortal() {
           </div>
         ) : (
           resumes.map((resume) => {
-            const template = ACTIVE_TEMPLATES.find(t => t.id === resume.templateName);
+            const template = ACTIVE_TEMPLATES.find(t => t.id === resume.template_id);
             const templateName = template ? template.name : "Custom Template";
             const atsScore = template ? template.atsScore : 90;
+            
+            const fullName = resume.resume_data?.personalInfo?.name || "Candidate";
+            const summary = resume.resume_data?.summary || "No summary provided.";
 
             return (
               <Card 
@@ -176,11 +152,11 @@ export default function ResumeBuilderPortal() {
                 </CardHeader>
                 <CardContent className="py-2">
                   <div className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
-                    {resume.summary || "No summary profile provided."}
+                    {summary}
                   </div>
                 </CardContent>
                 <CardFooter className="border-t border-slate-50/50 bg-slate-50/30 flex justify-between items-center py-3.5 rounded-b-2xl px-6">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{resume.fullName || "Candidate"}</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{fullName}</span>
                   <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100/30">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>ATS Score: {atsScore}</span>

@@ -1,0 +1,81 @@
+.deedy-container {
+  font-family: var(--resume-font);
+  font-size: var(--resume-font-size);
+  color: var(--resume-text);
+  line-height: 1.4;
+  display: flex;
+  padding: 15mm;
+  gap: 8mm;
+  height: 100%;
+}
+
+.deedy-left {
+  width: 35%;
+  border-right: 1px solid #eeeeee;
+  padding-right: 8mm;
+}
+
+.deedy-right {
+  width: 65%;
+}
+
+.deedy-header h1 {
+  font-size: 28pt;
+  font-weight: 300;
+  color: var(--resume-primary);
+  margin-bottom: 2mm;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.deedy-header h2 {
+  font-size: 14pt;
+  font-weight: 300;
+  color: var(--resume-secondary);
+  margin-bottom: 4mm;
+}
+
+.deedy-section-title {
+  font-size: 14pt;
+  color: var(--resume-primary);
+  text-transform: uppercase;
+  margin-top: 6mm;
+  margin-bottom: 2mm;
+  font-weight: 600;
+}
+
+.deedy-item-title {
+  font-size: 12pt;
+  font-weight: 600;
+  color: var(--resume-primary);
+}
+
+.deedy-item-subtitle {
+  font-size: 10pt;
+  font-weight: 400;
+  color: var(--resume-secondary);
+  margin-bottom: 1mm;
+}
+
+.deedy-date {
+  font-size: 9pt;
+  color: var(--resume-secondary);
+  text-align: right;
+}
+
+.deedy-list {
+  padding-left: 4mm;
+  margin-top: 1mm;
+  margin-bottom: 4mm;
+}
+
+.deedy-list li {
+  margin-bottom: 1mm;
+  font-size: 10pt;
+}
+
+.deedy-contact-item {
+  font-size: 10pt;
+  margin-bottom: 1mm;
+  color: var(--resume-secondary);
+}

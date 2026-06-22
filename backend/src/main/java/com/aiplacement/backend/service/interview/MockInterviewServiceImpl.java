@@ -6,7 +6,6 @@ import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.interview.InterviewFeedback;
 import com.aiplacement.backend.entity.interview.InterviewQuestion;
 import com.aiplacement.backend.entity.interview.MockInterview;
-import com.aiplacement.backend.repository.InterviewRecordRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.interview.MockInterviewRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -35,7 +34,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     @Override
     public MockInterviewResponseDto generateMockInterview(MockInterviewRequestDto request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String prompt = """

@@ -34,16 +34,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TEMPLATE_REGISTRY, ACTIVE_TEMPLATES, compileLatex } from "@/lib/resume/templates/templates";
-import { ResumeState, initialClassicState } from "@/lib/resume/templates/placementai-classic/schema";
-import api from "@/lib/api";
+import { ResumeState, initialEducatorState } from "@/lib/resume/templates/placementai-educator/schema";
+import { ResumeService } from "@/services/resume.service";
+import { useAuth } from "@/hooks/use-auth";
+import { StorageService } from "@/services/storage.service";
 
 function ResumeEditor() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const templateId = searchParams.get("template") || "placementai-classic";
+  const { user } = useAuth();
+  const templateId = searchParams.get("template") || "placementai-educator";
   const resumeId = searchParams.get("id");
 
-  const registry = TEMPLATE_REGISTRY[templateId] || TEMPLATE_REGISTRY["placementai-classic"];
+  const registry = TEMPLATE_REGISTRY[templateId] || TEMPLATE_REGISTRY["placementai-educator"];
   const RendererComponent = registry.renderer;
 
   // Editor State
@@ -107,7 +110,7 @@ function ResumeEditor() {
   const [focusMode, setFocusMode] = useState<boolean>(false);
 
   // Autosave status
-  const [saveStatus, setSaveStatus] = useState<"Saved" | "Saving..." | "Unsaved Changes">("Saved");
+  const [saveStatus, setSaveStatus] = useState<"Saved" | "Saving..." | "Unsaved Changes" | "Error: Unauthenticated">("Saved");
 
   // Scroll to top when template or resume changes
   useEffect(() => {
@@ -121,30 +124,12 @@ function ResumeEditor() {
     const fetchDbResume = async () => {
       if (!resumeId) return;
       try {
-        const response = await api.get(`/resume-builder/${resumeId}`);
-        const dto = response.data;
-        setResumeTitle(dto.title || "My Professional Resume");
+        const resume = await ResumeService.getResume(resumeId as string);
+        setResumeTitle(resume.title || "My Professional Resume");
 
         let dbState: ResumeState = { ...registry.initialState };
-        try {
-          dbState = {
-            personalInfo: {
-              name: dto.fullName || "",
-              email: dto.email || "",
-              phone: dto.phone || "",
-              linkedin: dto.linkedin || "",
-              github: dto.github || "",
-              leetcode: ""
-            },
-            summary: dto.summary || "",
-            skills: dto.skills ? (dto.skills.startsWith("[") ? JSON.parse(dto.skills) : [dto.skills]) : [],
-            experience: dto.experience ? (dto.experience.startsWith("[") ? JSON.parse(dto.experience) : []) : [],
-            projects: dto.projects ? (dto.projects.startsWith("[") ? JSON.parse(dto.projects) : []) : [],
-            education: dto.education ? (dto.education.startsWith("[") ? JSON.parse(dto.education) : []) : [],
-            certifications: dto.certifications ? (dto.certifications.startsWith("[") ? JSON.parse(dto.certifications) : []) : []
-          };
-        } catch (e) {
-          console.error("Failed parsing DTO lists, fallback to template values", e);
+        if (resume.resume_data) {
+           dbState = resume.resume_data as unknown as ResumeState;
         }
 
         setState(dbState);
@@ -390,22 +375,11 @@ function ResumeEditor() {
           return;
         }
         try {
-          const payload = {
+          await ResumeService.updateResume(resumeId as string, {
             title: resumeTitle,
-            templateName: templateId,
-            fullName: state.personalInfo.name,
-            email: state.personalInfo.email,
-            phone: state.personalInfo.phone,
-            linkedin: state.personalInfo.linkedin,
-            github: state.personalInfo.github,
-            summary: state.summary,
-            skills: JSON.stringify(state.skills),
-            projects: JSON.stringify(state.projects),
-            experience: JSON.stringify(state.experience),
-            education: JSON.stringify(state.education),
-            certifications: JSON.stringify(state.certifications)
-          };
-          await api.put(`/resume-builder/${resumeId}`, payload);
+            template_id: templateId,
+            resume_data: state as any
+          });
           setSaveStatus("Saved");
         } catch (err) {
           console.error("Failed saving to DB in background", err);
@@ -624,7 +598,61 @@ function ResumeEditor() {
   };
 
   const handlePrintPdf = () => {
+    const originalTitle = document.title;
+    document.title = `${resumeTitle.replace(/\s+/g, "_")}_Resume`;
+
+    // Clone the print root
+    const printRoot = document.getElementById("resume-print-root");
+    if (!printRoot) return;
+    
+    const printClone = printRoot.cloneNode(true) as HTMLElement;
+    printClone.id = "active-print-clone";
+    printClone.style.display = "block";
+    
+    // Hide the React root temporarily
+    const reactRoot = document.body.firstElementChild as HTMLElement;
+    if (reactRoot) reactRoot.style.display = "none";
+    
+    document.body.appendChild(printClone);
+    
     window.print();
+    
+    // Cleanup
+    document.title = originalTitle;
+    document.body.removeChild(printClone);
+    if (reactRoot) reactRoot.style.display = "";
+  };
+
+  const handleSaveToCloud = async () => {
+    if (!user) {
+      setSaveStatus("Error: Unauthenticated");
+      return;
+    }
+    setSaveStatus("Saving...");
+    try {
+      if (!resumeId) {
+        const response = await ResumeService.createResume({
+          user_id: user.id,
+          title: resumeTitle,
+          template_id: templateId,
+          resume_data: state as any,
+          is_public: false
+        });
+        const newId = response.id;
+        setSaveStatus("Saved");
+        router.push(`/dashboard/resume-builder/editor?template=${templateId}&id=${newId}`);
+      } else {
+        await ResumeService.updateResume(resumeId as string, {
+          title: resumeTitle,
+          template_id: templateId,
+          resume_data: state as any
+        });
+        setSaveStatus("Saved");
+      }
+    } catch (err) {
+      console.error("Failed saving to cloud", err);
+      setSaveStatus("Unsaved Changes");
+    }
   };
 
   // AI Suggestions triggering
@@ -878,6 +906,15 @@ Risk: <e.g., Low or None>
             <div className="flex items-center gap-2">
               <Button 
                 variant="ghost"
+                onClick={handleSaveToCloud} 
+                className="h-9 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-900/30 text-xs font-bold px-3 gap-1.5"
+              >
+                <Save className="w-4 h-4" />
+                Save to Cloud
+              </Button>
+
+              <Button 
+                variant="ghost"
                 onClick={() => setShowVersionModal(true)} 
                 className="h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 gap-1.5"
               >
@@ -891,17 +928,19 @@ Risk: <e.g., Low or None>
                   <Download className="w-4 h-4" />
                   Export
                 </Button>
-                <div className="absolute right-0 top-full mt-1.5 w-40 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-1 hidden group-hover:block z-50">
-                  <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 flex items-center justify-between">
-                    <span>PDF</span>
-                    <span className="bg-indigo-900/50 text-indigo-300 border border-indigo-700/30 px-1.5 py-0.5 rounded text-[8px] uppercase">Best</span>
-                  </button>
-                  <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
-                    Word (.doc)
-                  </button>
-                  <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
-                    LaTeX (.tex)
-                  </button>
+                <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
+                  <div className="w-40 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-1">
+                    <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 flex items-center justify-between">
+                      <span>PDF</span>
+                      <span className="bg-indigo-900/50 text-indigo-300 border border-indigo-700/30 px-1.5 py-0.5 rounded text-[8px] uppercase">Best</span>
+                    </button>
+                    <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
+                      Word (.doc)
+                    </button>
+                    <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
+                      LaTeX (.tex)
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -1024,6 +1063,16 @@ Risk: <e.g., Low or None>
               AI Coach
             </Button>
 
+            {/* Save to Cloud Button */}
+            <Button
+              variant="outline"
+              onClick={handleSaveToCloud}
+              className="rounded-lg border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-[11px] font-bold gap-1.5 h-9 px-3"
+            >
+              <Save className="w-3.5 h-3.5" />
+              Save to Cloud
+            </Button>
+
             {/* Focus Mode toggle */}
             <Button 
               variant="outline" 
@@ -1040,16 +1089,18 @@ Risk: <e.g., Low or None>
                 <Download className="w-3.5 h-3.5" />
                 Export
               </Button>
-              <div className="absolute right-0 top-full mt-1.5 w-40 bg-white border border-slate-100 rounded-xl shadow-xl py-1 hidden group-hover:block z-50">
-                <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between">
-                  <span>PDF (Recommended)</span>
-                </button>
-                <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                  Word (.doc)
-                </button>
-                <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                  LaTeX (.tex)
-                </button>
+              <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
+                <div className="w-40 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
+                  <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between">
+                    <span>PDF (Recommended)</span>
+                  </button>
+                  <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                    Word (.doc)
+                  </button>
+                  <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                    LaTeX (.tex)
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1996,22 +2047,26 @@ Risk: <e.g., Low or None>
       {/* Global printable style overlay matching Helvetica */}
       <style jsx global>{`
         @media print {
-          body > *:not(#resume-print-root) {
-            display: none !important;
+          @page {
+            margin: 0;
+            size: A4;
           }
-          #resume-print-root {
+          body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          #active-print-clone {
             display: block !important;
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 950px !important;
-            margin: 0 !important;
-            padding: 0 !important;
+            width: 100% !important;
             background: white !important;
           }
           .print-page {
-            width: 950px !important;
-            min-height: 1120px !important;
+            width: 100% !important;
+            min-height: 297mm !important; /* A4 height */
             page-break-after: always !important;
             break-inside: avoid !important;
             overflow: hidden !important;
@@ -2025,7 +2080,8 @@ Risk: <e.g., Low or None>
           .print-page > div {
             width: 100% !important;
             height: 100% !important;
-            transform: none !important;
+            transform: scale(0.85) !important;
+            transform-origin: top left !important;
           }
         }
       `}</style>

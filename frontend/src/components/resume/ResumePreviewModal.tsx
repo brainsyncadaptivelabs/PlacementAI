@@ -184,10 +184,11 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
             style={{ 
               transform: `scale(${zoom / 100})`, 
               transformOrigin: "top center",
-              width: "900px",
+              width: "950px",
+              minHeight: "1120px",
               transition: "transform 0.2s ease"
             }}
-            className="bg-white shadow-[0_20px_80px_rgba(0,0,0,0.12)] shrink-0 mb-10 mx-auto aspect-[1/1.414] overflow-hidden flex justify-center items-start"
+            className="bg-white shadow-[0_20px_80px_rgba(0,0,0,0.12)] shrink-0 mb-10 mx-auto flex justify-center items-start"
           >
             {apiPreviewUrl && !failedPreviewFetch ? (
               <img 

@@ -30,7 +30,7 @@ export default function MockInterviewSessionPage() {
       </div>
       <ConversationProvider>
         <InterviewSession 
-          userName={user?.name || "Candidate"} 
+          userName={user?.fullName || "Candidate"} 
           interviewData={{ role, questions, experienceLevel }} 
         />
       </ConversationProvider>

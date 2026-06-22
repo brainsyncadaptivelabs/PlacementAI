@@ -11,6 +11,7 @@ export interface TemplateMetadata {
   id: string;
   name: string;
   category: string;
+  atsScore?: number;
   editable: boolean;
   comingSoon?: boolean;
 }
@@ -20,18 +21,74 @@ export const ACTIVE_TEMPLATES: TemplateMetadata[] = [
     id: "placementai-educator",
     name: "Professional Resume",
     category: "ATS Friendly",
+    atsScore: 95,
     editable: true
   },
   {
     id: "placementai-corporate",
     name: "Two Column Resume",
     category: "Company Based",
+    atsScore: 88,
     editable: true
-  }
+  },
+  { id: "01_internship_focused", name: "Internship Focused", category: "ATS Friendly", atsScore: 92, editable: true },
+  { id: "02_advanced_java_swe", name: "Advanced Java SWE", category: "ATS Friendly", atsScore: 94, editable: true },
+  { id: "03_deedy_resume", name: "Deedy Resume", category: "ATS Friendly", atsScore: 89, editable: true },
+  { id: "04_developer_template_a", name: "Developer Template A", category: "ATS Friendly", atsScore: 91, editable: true },
+  { id: "05_developer_template_b", name: "Developer Template B", category: "ATS Friendly", atsScore: 90, editable: true },
+  { id: "06_software_architect", name: "Software Architect", category: "ATS Friendly", atsScore: 96, editable: true },
+  { id: "07_sourabh_bajaj", name: "Sourabh Bajaj", category: "ATS Friendly", atsScore: 93, editable: true },
+  { id: "08_fullstack_template", name: "Fullstack Template", category: "ATS Friendly", atsScore: 95, editable: true },
+  { id: "09_harvard_resume", name: "Harvard Resume", category: "ATS Friendly", atsScore: 98, editable: true },
+  { id: "10_faangpath_resume", name: "FAANGPath Resume", category: "ATS Friendly", atsScore: 97, editable: true },
+  { id: "11_modern_developer", name: "Modern Developer", category: "ATS Friendly", atsScore: 91, editable: true },
+  { id: "12_eurocv", name: "EuroCV", category: "ATS Friendly", atsScore: 85, editable: true },
+  { id: "13_jake_ryan", name: "Jake Ryan", category: "ATS Friendly", atsScore: 96, editable: true },
+  { id: "14_sourabh_bajaj_alt", name: "Sourabh Bajaj Alt", category: "ATS Friendly", atsScore: 92, editable: true },
+  { id: "15_moderncv_style", name: "ModernCV Style", category: "ATS Friendly", atsScore: 88, editable: true },
+  { id: "16_awesome_cv", name: "Awesome CV", category: "ATS Friendly", atsScore: 94, editable: true },
+  { id: "17_deedy_onepage", name: "Deedy Onepage", category: "ATS Friendly", atsScore: 90, editable: true }
 ];
 
+const genericRawTex = `\\documentclass[11pt]{article}
+\\usepackage[margin=0.75in]{geometry}
+\\usepackage{enumitem}
+\\usepackage[hidelinks]{hyperref}
+\\begin{document}
+
+\\begin{center}
+{\\LARGE {{name}}}\\\\
+{{email}} | {{phone}} | \\href{https://{{linkedin}}}{LinkedIn} | \\href{https://{{github}}}{GitHub}
+\\end{center}
+
+\\section*{Summary}
+{{summary}}
+
+\\section*{Education}
+\\begin{itemize}[leftmargin=*]
+{{education}}
+\\end{itemize}
+
+\\section*{Skills}
+\\begin{itemize}[leftmargin=*]
+{{skills}}
+\\end{itemize}
+
+\\section*{Experience}
+{{experience}}
+
+\\section*{Projects}
+{{projects}}
+
+\\section*{Certifications}
+\\begin{itemize}[leftmargin=*]
+{{certifications}}
+\\end{itemize}
+
+\\end{document}`;
+
 export const TEMPLATE_REGISTRY: Record<string, {
-  renderer: React.ComponentType<{ data: ResumeState; previewMode?: boolean }>;
+  renderer: React.ComponentType<{ data: ResumeState; previewMode?: boolean; highlightSection?: string }>;
   preview: React.ComponentType;
   initialState: ResumeState;
   rawTex: string;
@@ -235,7 +292,24 @@ export const TEMPLATE_REGISTRY: Record<string, {
 \\end{itemize}
 
 \\end{document}`
-  }
+  },
+  "01_internship_focused": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "02_advanced_java_swe": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "03_deedy_resume": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "04_developer_template_a": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "05_developer_template_b": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "06_software_architect": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "07_sourabh_bajaj": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "08_fullstack_template": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "09_harvard_resume": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "10_faangpath_resume": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "11_modern_developer": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "12_eurocv": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "13_jake_ryan": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "14_sourabh_bajaj_alt": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "15_moderncv_style": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "16_awesome_cv": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
+  "17_deedy_onepage": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex }
 };
 
 export function escapeLatex(text: string): string {
