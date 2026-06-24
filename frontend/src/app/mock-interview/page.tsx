@@ -46,7 +46,7 @@ export default function MockInterviewLandingPage() {
         {features.map((feature, index) => (
           <Card key={index} className="flex flex-col hover:shadow-lg transition-shadow border-2">
             <CardHeader className="items-center text-center pb-2">
-              <div className="mb-4 p-3 rounded-2xl bg-slate-50">
+              <div className="mb-4 p-3 rounded-2xl bg-muted">
                 {feature.icon}
               </div>
               <CardTitle className="text-2xl">{feature.title}</CardTitle>

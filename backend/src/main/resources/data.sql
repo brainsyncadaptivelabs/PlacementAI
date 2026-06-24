@@ -1,3 +1,11 @@
+-- Insert dummy user (id = 1)
+INSERT INTO users (id, full_name, email, password, role, profile_completed)
+VALUES (1, 'Admin', 'admin@example.com', '$2a$10$xyz', 'ADMIN', false);
+
+-- Insert dummy mock interview (id = 1)
+INSERT INTO mock_interviews (id, role, experience_level, company, topic, user_id, created_at)
+VALUES (1, 'Software Engineer', 'Entry', 'Google', 'Java', 1, CURRENT_TIMESTAMP);
+
 -- Sample Interview Questions
 INSERT INTO interview_questions (question_text, mock_interview_id) VALUES ('What is the difference between an abstract class and an interface in Java?', 1);
 INSERT INTO interview_questions (question_text, mock_interview_id) VALUES ('Explain the concept of Dependency Injection in Spring Framework.', 1);

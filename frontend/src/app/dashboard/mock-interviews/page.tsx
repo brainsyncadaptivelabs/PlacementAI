@@ -42,7 +42,7 @@ export default function MockInterviewPage() {
         </div>
         <div className="space-y-2">
           <h1 className="text-3xl font-bold font-heading">AI Mock Interview</h1>
-          <p className="text-slate-500 max-w-md mx-auto">Practice with our AI and get real-time feedback on your technical and communication skills.</p>
+          <p className="text-muted-foreground max-w-md mx-auto">Practice with our AI and get real-time feedback on your technical and communication skills.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-lg">
           <Card 
@@ -50,14 +50,14 @@ export default function MockInterviewPage() {
             onClick={() => setRole("Java Developer")}
           >
             <h3 className="font-bold mb-1">Technical Interview</h3>
-            <p className="text-xs text-slate-500">Java Developer Role • 10 Questions</p>
+            <p className="text-xs text-muted-foreground">Java Developer Role • 10 Questions</p>
           </Card>
           <Card 
             className={`p-6 cursor-pointer hover:border-primary transition-colors border-2 text-left ${role === "HR Behavioral" ? "border-primary bg-primary/5" : "border-transparent"}`}
             onClick={() => setRole("HR Behavioral")}
           >
             <h3 className="font-bold mb-1">HR Interview</h3>
-            <p className="text-xs text-slate-500">Behavioral Questions • 5 Questions</p>
+            <p className="text-xs text-muted-foreground">Behavioral Questions • 5 Questions</p>
           </Card>
         </div>
         <Button onClick={() => startInterview(role)} size="lg" className="px-12 py-6 text-lg" disabled={isLoading}>
@@ -78,12 +78,12 @@ export default function MockInterviewPage() {
               </Button>
               <div className="h-4 w-px bg-slate-200" />
               <div className="flex flex-col">
-                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Technical Interview</span>
+                 <span className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wider">Technical Interview</span>
                  <span className="text-sm font-semibold">{role}</span>
               </div>
            </div>
            <div className="flex items-center gap-6">
-              <div className="flex items-center gap-2 text-slate-600 bg-slate-100 px-3 py-1 rounded-full text-sm font-medium">
+              <div className="flex items-center gap-2 text-muted-foreground bg-muted px-3 py-1 rounded-full text-sm font-medium">
                  <Clock className="w-4 h-4" /> 00:12:45
               </div>
               <Button variant="destructive" size="sm" onClick={() => setView("feedback")} className="bg-red-500 hover:bg-red-600">
@@ -92,17 +92,17 @@ export default function MockInterviewPage() {
            </div>
         </div>
 
-        <Card className="border-none shadow-xl bg-white overflow-hidden min-h-[400px] flex flex-col">
-           <div className="p-6 border-b border-slate-50 bg-slate-50/30">
+        <Card className="border-none shadow-xl bg-card overflow-hidden min-h-[400px] flex flex-col">
+           <div className="p-6 border-b border-border bg-muted/30">
               <span className="text-xs font-bold text-primary mb-2 block">Question {currentQuestionIndex + 1} / {questions.length}</span>
-              <h2 className="text-xl font-bold text-slate-800 leading-relaxed">
+              <h2 className="text-xl font-bold text-foreground leading-relaxed">
                 {questions[currentQuestionIndex]}
               </h2>
            </div>
            <CardContent className="flex-1 p-8 flex flex-col">
               <div className="flex-1 flex flex-col space-y-4">
                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-semibold text-slate-500">Your Answer</label>
+                    <label className="text-sm font-semibold text-muted-foreground">Your Answer</label>
                     {isRecording && (
                        <span className="flex items-center gap-2 text-red-500 text-xs font-bold animate-pulse">
                           <div className="w-2 h-2 rounded-full bg-red-500" /> LISTENING...
@@ -111,7 +111,7 @@ export default function MockInterviewPage() {
                  </div>
                  <Textarea 
                     placeholder="Start typing or speak your answer..." 
-                    className="flex-1 min-h-[200px] border-none bg-slate-50/50 p-6 text-lg focus-visible:ring-primary/20 resize-none shadow-inner"
+                    className="flex-1 min-h-[200px] border-none bg-muted/50 p-6 text-lg focus-visible:ring-primary/20 resize-none shadow-inner"
                  />
               </div>
               <div className="pt-8 flex items-center justify-between">
@@ -178,16 +178,16 @@ export default function MockInterviewPage() {
                    </svg>
                    <div className="absolute inset-0 flex flex-col items-center justify-center">
                       <span className="text-4xl font-black text-primary">76</span>
-                      <span className="text-[10px] font-bold text-slate-400">/100</span>
+                      <span className="text-[10px] font-bold text-muted-foreground/70">/100</span>
                    </div>
                 </div>
                 <div className="space-y-1">
                    <h2 className="text-xl font-bold font-heading">Good Effort!</h2>
-                   <p className="text-sm text-slate-500">You&apos;ve shown strong technical knowledge.</p>
+                   <p className="text-sm text-muted-foreground">You&apos;ve shown strong technical knowledge.</p>
                 </div>
                 <div className="flex gap-2 pt-2">
                    <Button size="sm" className="bg-primary px-6">Feedback</Button>
-                   <Button size="sm" variant="ghost" className="text-slate-500">Suggested Answer</Button>
+                   <Button size="sm" variant="ghost" className="text-muted-foreground">Suggested Answer</Button>
                 </div>
              </div>
              <CardContent className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-8">
@@ -196,11 +196,11 @@ export default function MockInterviewPage() {
                       <CheckCircle2 className="w-4 h-4" /> What you did well
                    </h3>
                    <ul className="space-y-3">
-                      <li className="text-sm text-slate-600 flex gap-2">
+                      <li className="text-sm text-muted-foreground flex gap-2">
                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
                          Good explanation of core concepts
                       </li>
-                      <li className="text-sm text-slate-600 flex gap-2">
+                      <li className="text-sm text-muted-foreground flex gap-2">
                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
                          Clear and structured answer flow
                       </li>
@@ -211,15 +211,15 @@ export default function MockInterviewPage() {
                       <AlertCircle className="w-4 h-4" /> What you can improve
                    </h3>
                    <ul className="space-y-3">
-                      <li className="text-sm text-slate-600 flex gap-2">
+                      <li className="text-sm text-muted-foreground flex gap-2">
                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
                          Add more real-world examples
                       </li>
-                      <li className="text-sm text-slate-600 flex gap-2">
+                      <li className="text-sm text-muted-foreground flex gap-2">
                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
                          Improve depth in technical details
                       </li>
-                      <li className="text-sm text-slate-600 flex gap-2">
+                      <li className="text-sm text-muted-foreground flex gap-2">
                          <div className="w-1.5 h-1.5 rounded-full bg-slate-300 mt-1.5 shrink-0" />
                          Work on communication & clarity
                       </li>
@@ -243,7 +243,7 @@ export default function MockInterviewPage() {
                   { label: "Problem Solving", score: 78 },
                 ].map((m) => (
                   <div key={m.label} className="space-y-2">
-                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
+                     <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground">
                         <span>{m.label}</span>
                         <span>{m.score}/100</span>
                      </div>

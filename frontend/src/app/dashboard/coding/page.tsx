@@ -182,16 +182,16 @@ export default function CodingPracticePage() {
     <div className="p-8 max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold font-heading text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold font-heading text-foreground flex items-center gap-2">
             <Code2 className="w-6 h-6 text-primary" /> Interactive Coding
           </h1>
-          <p className="text-slate-500">Write code and interact with it in real-time.</p>
+          <p className="text-muted-foreground">Write code and interact with it in real-time.</p>
         </div>
         <div className="flex items-center gap-4">
           <select 
             value={activeLang} 
             onChange={handleLanguageChange}
-            className="h-10 px-3 rounded-md border border-slate-200 bg-white text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="h-10 px-3 rounded-md border border-border bg-card text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20"
             disabled={isExecuting}
           >
             <option value="javascript">JavaScript (Node.js)</option>
@@ -215,7 +215,7 @@ export default function CodingPracticePage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[600px]">
         {/* Editor Area */}
         <Card className="border-none shadow-sm flex flex-col overflow-hidden">
-          <CardHeader className="p-4 border-b border-slate-100 bg-slate-50">
+          <CardHeader className="p-4 border-b border-border bg-muted">
             <CardTitle className="text-sm font-bold flex justify-between items-center">
               <span>{languageSnippets[activeLang].filename}</span>
             </CardTitle>
@@ -253,7 +253,7 @@ export default function CodingPracticePage() {
           >
             <div className="flex-1">
                {terminalOutput.length === 0 && !isExecuting && (
-                  <div className="text-slate-500 h-full flex items-center justify-center italic">
+                  <div className="text-muted-foreground h-full flex items-center justify-center italic">
                      Run your code to interact with the terminal.
                   </div>
                )}
@@ -261,8 +261,8 @@ export default function CodingPracticePage() {
                   <span key={i} className={
                      line.type === 'err' ? 'text-red-400' :
                      line.type === 'in' ? 'text-emerald-400' :
-                     line.type === 'sys' ? 'text-slate-500 italic' :
-                     'text-slate-300'
+                     line.type === 'sys' ? 'text-muted-foreground italic' :
+                     'text-muted-foreground/50'
                   } style={{ whiteSpace: 'pre-wrap' }}>
                      {line.text}
                   </span>

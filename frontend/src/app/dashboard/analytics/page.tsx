@@ -53,8 +53,8 @@ export default function AnalyticsPage() {
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold font-heading text-slate-900">Your Progress Overview</h1>
-        <select className="bg-white border border-slate-200 rounded-md px-3 py-1.5 text-sm font-medium focus:ring-primary">
+        <h1 className="text-2xl font-bold font-heading text-foreground">Your Progress Overview</h1>
+        <select className="bg-card border border-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-primary">
             <option>This Month</option>
             <option>Last Month</option>
             <option>Year to Date</option>
@@ -65,7 +65,7 @@ export default function AnalyticsPage() {
           {stats.map((stat: any, i: number) => {
              const Icon = iconMap[stat.icon] || Star;
              return (
-                <Card key={i} className="border-none shadow-sm overflow-hidden bg-white">
+                <Card key={i} className="border-none shadow-sm overflow-hidden bg-card">
                    <CardContent className="p-6 space-y-4">
                       <div className="flex items-center justify-between">
                          <div className={`p-2 rounded-lg ${stat.color} bg-opacity-10`}>
@@ -77,8 +77,8 @@ export default function AnalyticsPage() {
                          </span>
                       </div>
                       <div className="space-y-1">
-                         <p className="text-3xl font-black text-slate-900 tracking-tight">{stat.value}</p>
-                         <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.label}</p>
+                         <p className="text-3xl font-black text-foreground tracking-tight">{stat.value}</p>
+                         <p className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">{stat.label}</p>
                       </div>
                    </CardContent>
                 </Card>
@@ -86,8 +86,8 @@ export default function AnalyticsPage() {
           })}
       </div>
 
-      <Card className="border-none shadow-sm bg-white overflow-hidden">
-         <CardHeader className="p-6 border-b border-slate-50">
+      <Card className="border-none shadow-sm bg-card overflow-hidden">
+         <CardHeader className="p-6 border-b border-border">
             <CardTitle className="text-lg font-bold font-heading">Progress Over Time</CardTitle>
          </CardHeader>
          <CardContent className="p-6">
@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
             <div className="flex justify-center gap-8 pt-6">
                <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full bg-primary" />
-                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Average Score</span>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Average Score</span>
                </div>
             </div>
          </CardContent>

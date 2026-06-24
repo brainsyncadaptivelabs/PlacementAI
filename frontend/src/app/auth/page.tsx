@@ -106,13 +106,13 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-muted flex items-center justify-center p-4">
       <div className="max-w-md w-full relative z-10">
         <div className="text-center mb-8">
           <Link href="/">
-            <h1 className="text-3xl font-extrabold text-slate-900 font-heading tracking-tighter">PlacementAI</h1>
+            <h1 className="text-3xl font-extrabold text-foreground font-heading tracking-tighter">PlacementAI</h1>
           </Link>
-          <p className="text-slate-500 mt-2 font-medium">Your intelligent career copilot.</p>
+          <p className="text-muted-foreground mt-2 font-medium">Your intelligent career copilot.</p>
         </div>
 
         <AnimatePresence mode="wait">
@@ -145,12 +145,12 @@ export default function AuthPage() {
           )}
         </AnimatePresence>
 
-        <Card className="border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl overflow-hidden">
+        <Card className="border-border shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-2xl overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="px-6 pt-6 pb-2">
-              <TabsList className="grid w-full grid-cols-2 p-1 bg-slate-100/80 rounded-xl h-12">
-                <TabsTrigger value="login" className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Login</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-lg text-sm font-bold data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Sign Up</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 p-1 bg-muted/80 rounded-xl h-12">
+                <TabsTrigger value="login" className="rounded-lg text-sm font-bold data-[state=active]:bg-card data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Login</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-lg text-sm font-bold data-[state=active]:bg-card data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Sign Up</TabsTrigger>
               </TabsList>
             </div>
 
@@ -159,7 +159,7 @@ export default function AuthPage() {
               <form onSubmit={handleLogin}>
                 <CardHeader className="pt-2 px-6 pb-4">
                   <CardTitle className="text-xl font-bold font-heading">Welcome Back</CardTitle>
-                  <CardDescription className="text-slate-500 font-medium">Enter your credentials to access your dashboard.</CardDescription>
+                  <CardDescription className="text-muted-foreground font-medium">Enter your credentials to access your dashboard.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 px-6">
                   <div className="space-y-2">
@@ -169,7 +169,7 @@ export default function AuthPage() {
                       type="email" 
                       placeholder="john.doe@example.com" 
                       required 
-                      className="rounded-xl h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                      className="rounded-xl h-11 bg-muted border-border focus:bg-card transition-colors"
                       value={loginData.email}
                       onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                     />
@@ -182,7 +182,7 @@ export default function AuthPage() {
                       id="login-password" 
                       type="password" 
                       required 
-                      className="rounded-xl h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                      className="rounded-xl h-11 bg-muted border-border focus:bg-card transition-colors"
                       value={loginData.password}
                       onChange={(e) => setLoginData({...loginData, password: e.target.value})}
                     />
@@ -195,10 +195,10 @@ export default function AuthPage() {
                   
                   <div className="relative w-full my-2">
                     <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t border-slate-200" />
+                      <span className="w-full border-t border-border" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-white px-2 text-slate-500 font-bold tracking-wider">Or continue with</span>
+                      <span className="bg-card px-2 text-muted-foreground font-bold tracking-wider">Or continue with</span>
                     </div>
                   </div>
                   
@@ -206,7 +206,7 @@ export default function AuthPage() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="h-11 rounded-xl bg-white border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                      className="h-11 rounded-xl bg-card border-border text-foreground hover:bg-muted font-semibold"
                       onClick={() => handleOAuth('google')}
                       disabled={loading}
                     >
@@ -216,7 +216,7 @@ export default function AuthPage() {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="h-11 rounded-xl bg-white border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold"
+                      className="h-11 rounded-xl bg-card border-border text-foreground hover:bg-muted font-semibold"
                       onClick={() => handleOAuth('github')}
                       disabled={loading}
                     >
@@ -235,7 +235,7 @@ export default function AuthPage() {
               <form onSubmit={handleSignup}>
                 <CardHeader className="pt-2 px-6 pb-4">
                   <CardTitle className="text-xl font-bold font-heading">Create Account</CardTitle>
-                  <CardDescription className="text-slate-500 font-medium">Join PlacementAI to supercharge your career.</CardDescription>
+                  <CardDescription className="text-muted-foreground font-medium">Join PlacementAI to supercharge your career.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4 px-6">
                   <div className="space-y-2">
@@ -244,7 +244,7 @@ export default function AuthPage() {
                       id="signup-name" 
                       placeholder="John Doe" 
                       required 
-                      className="rounded-xl h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                      className="rounded-xl h-11 bg-muted border-border focus:bg-card transition-colors"
                       value={signupData.fullName}
                       onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
                     />
@@ -256,7 +256,7 @@ export default function AuthPage() {
                       type="email" 
                       placeholder="john.doe@example.com" 
                       required 
-                      className="rounded-xl h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                      className="rounded-xl h-11 bg-muted border-border focus:bg-card transition-colors"
                       value={signupData.email}
                       onChange={(e) => setSignupData({...signupData, email: e.target.value})}
                     />
@@ -268,7 +268,7 @@ export default function AuthPage() {
                         id="signup-password" 
                         type="password" 
                         required 
-                        className="rounded-xl h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                        className="rounded-xl h-11 bg-muted border-border focus:bg-card transition-colors"
                         value={signupData.password}
                         onChange={(e) => setSignupData({...signupData, password: e.target.value})}
                       />
@@ -279,7 +279,7 @@ export default function AuthPage() {
                         id="signup-confirm" 
                         type="password" 
                         required 
-                        className="rounded-xl h-11 bg-slate-50 border-slate-200 focus:bg-white transition-colors"
+                        className="rounded-xl h-11 bg-muted border-border focus:bg-card transition-colors"
                         value={signupData.confirmPassword}
                         onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
                       />

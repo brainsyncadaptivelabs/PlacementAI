@@ -23,7 +23,7 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
 
   return (
     <div 
-      className={`bg-white text-slate-900 font-sans leading-tight selection:bg-indigo-100 flex ${
+      className={`bg-card text-foreground font-sans leading-tight selection:bg-indigo-100 flex ${
         previewMode ? "p-3.5 text-[9.5px]" : "p-[24px] text-[13px]"
       }`}
       style={{
@@ -51,7 +51,7 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
         {summary && (
           <div style={highlightStyle("summary")} data-block="summary">
             <h2 className="text-indigo-600 font-black uppercase tracking-widest text-[10px] mb-1.5">Professional Summary</h2>
-            <p className="text-slate-700 text-justify leading-relaxed font-medium text-[11px]">{summary}</p>
+            <p className="text-foreground text-justify leading-relaxed font-medium text-[11px]">{summary}</p>
           </div>
         )}
 
@@ -61,16 +61,16 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
             <h2 className="text-indigo-600 font-black uppercase tracking-widest text-[10px] mb-2" data-block="experience-header">Experience</h2>
             <div className={previewMode ? "space-y-2.5" : "space-y-4"}>
               {experience.map((exp) => (
-                <div key={exp.id} data-block="experience-item" className={`relative border-l-2 border-slate-100 ${previewMode ? "pl-2.5" : "pl-4"}`}>
+                <div key={exp.id} data-block="experience-item" className={`relative border-l-2 border-border ${previewMode ? "pl-2.5" : "pl-4"}`}>
                   <div className="absolute w-2.5 h-2.5 bg-indigo-600 rounded-full -left-[6px] top-1 ring-4 ring-white" />
                   <div className="flex justify-between items-baseline mb-0.5">
                     <span className={`font-bold text-slate-950 ${previewMode ? "text-[12px]" : "text-[14px]"}`}>{exp.role}</span>
-                    <span className="font-bold text-slate-400 text-[9px] uppercase tracking-wider">{exp.duration}</span>
+                    <span className="font-bold text-muted-foreground/70 text-[9px] uppercase tracking-wider">{exp.duration}</span>
                   </div>
                   <div className={`font-bold text-indigo-500 mb-1 ${previewMode ? "text-[10px]" : "text-[11px]"}`}>{exp.company}</div>
                   <ul className="space-y-1">
                     {exp.description.split("\n").filter(line => line.trim().length > 0).map((bullet, idx) => (
-                      <li key={idx} className={`text-slate-600 leading-snug flex items-start gap-2 ${previewMode ? "text-[10px]" : "text-[11px]"}`}>
+                      <li key={idx} className={`text-muted-foreground leading-snug flex items-start gap-2 ${previewMode ? "text-[10px]" : "text-[11px]"}`}>
                         <span className="text-indigo-300 mt-1 shrink-0 text-[7px]">●</span>
                         <span>{bullet.trim()}</span>
                       </li>
@@ -88,14 +88,14 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
             <h2 className="text-indigo-600 font-black uppercase tracking-widest text-[10px] mb-2.5" data-block="education-header">Education</h2>
             <div className="space-y-3">
               {education.map((edu) => (
-                <div key={edu.id} data-block="education-item" className="relative pl-4 border-l-2 border-slate-100">
+                <div key={edu.id} data-block="education-item" className="relative pl-4 border-l-2 border-border">
                   <div className="absolute w-2.5 h-2.5 bg-indigo-600 rounded-full -left-[6px] top-1 ring-4 ring-white" />
                   <div className="font-bold text-slate-950 text-[14px]">{edu.degree}</div>
                   <div className="flex justify-between items-baseline">
                     <span className="font-bold text-indigo-500 text-[11px]">{edu.institution}</span>
-                    <span className="font-bold text-slate-400 text-[9px] uppercase tracking-wider">{edu.duration}</span>
+                    <span className="font-bold text-muted-foreground/70 text-[9px] uppercase tracking-wider">{edu.duration}</span>
                   </div>
-                  {edu.details && <div className="text-slate-600 text-[10px] mt-0.5 italic">{edu.details}</div>}
+                  {edu.details && <div className="text-muted-foreground text-[10px] mt-0.5 italic">{edu.details}</div>}
                 </div>
               ))}
             </div>
@@ -104,13 +104,13 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
       </div>
 
       {/* RIGHT COLUMN (32%) - Sidebar */}
-      <div className={`w-[32%] bg-slate-50/50 flex flex-col border border-slate-100 self-start min-h-0 ${
+      <div className={`w-[32%] bg-muted/50 flex flex-col border border-border self-start min-h-0 ${
         previewMode ? "rounded-lg p-2.5 gap-4" : "rounded-2xl p-5 gap-6"
       }`} style={{ breakInside: "avoid" }}>
         {/* Contact Info */}
         <div style={highlightStyle("personal")} data-block="personal" className="break-inside-avoid">
           <h2 className="text-indigo-600 font-black uppercase tracking-widest text-[10px] mb-3">Contact</h2>
-          <div className="space-y-2 text-[11px] font-bold text-slate-600">
+          <div className="space-y-2 text-[11px] font-bold text-muted-foreground">
             {personalInfo.email && <div className="truncate flex items-center gap-2"><span className="text-indigo-400 text-[8px]">✉</span>{personalInfo.email}</div>}
             {personalInfo.phone && <div className="flex items-center gap-2"><span className="text-indigo-400 text-[8px]">📞</span>{personalInfo.phone}</div>}
             {personalInfo.linkedin && <div className="truncate flex items-center gap-2"><span className="text-indigo-400 text-[8px]">🔗</span>{personalInfo.linkedin}</div>}
@@ -124,7 +124,7 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
             <h2 className="text-indigo-600 font-black uppercase tracking-widest text-[10px] mb-3">Expertise</h2>
             <div className="flex flex-wrap gap-1.5">
               {skills.map((skill, index) => (
-                <div key={index} className="bg-white border border-slate-200 px-2.5 py-1 rounded-md text-[10px] font-bold text-slate-700 shadow-sm">
+                <div key={index} className="bg-card border border-border px-2.5 py-1 rounded-md text-[10px] font-bold text-foreground shadow-sm">
                   {skill}
                 </div>
               ))}
@@ -139,9 +139,9 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
             <div className="space-y-3">
               {projects.map((proj) => (
                 <div key={proj.id} data-block="projects-item">
-                  <div className="font-bold text-slate-900 text-[12px] mb-0.5">{proj.name}</div>
-                  <div className="text-[9px] text-slate-500 font-bold mb-1 uppercase tracking-tight">{proj.duration}</div>
-                  <p className="text-[10px] text-slate-600 leading-snug font-medium line-clamp-2">{proj.description.split("\n")[0]}</p>
+                  <div className="font-bold text-foreground text-[12px] mb-0.5">{proj.name}</div>
+                  <div className="text-[9px] text-muted-foreground font-bold mb-1 uppercase tracking-tight">{proj.duration}</div>
+                  <p className="text-[10px] text-muted-foreground leading-snug font-medium line-clamp-2">{proj.description.split("\n")[0]}</p>
                 </div>
               ))}
             </div>
@@ -154,7 +154,7 @@ export default function EducatorRenderer({ data, previewMode = false, highlightS
             <h2 className="text-indigo-600 font-black uppercase tracking-widest text-[10px] mb-3">Honors</h2>
             <ul className="space-y-1.5">
               {certifications.map((cert, index) => (
-                <li key={index} className="text-slate-600 text-[10px] font-bold flex items-start gap-2 leading-tight">
+                <li key={index} className="text-muted-foreground text-[10px] font-bold flex items-start gap-2 leading-tight">
                   <span className="text-indigo-400 mt-1 shrink-0 text-[8px]">★</span>
                   <span>{cert}</span>
                 </li>

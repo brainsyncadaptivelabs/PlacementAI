@@ -115,43 +115,43 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
         <DialogTitle className="sr-only">Resume Preview</DialogTitle>
         
         {/* Sticky Toolbar */}
-        <div className="sticky top-0 z-[100] h-[72px] bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0">
+        <div className="sticky top-0 z-[100] h-[72px] bg-card border-b border-border flex items-center justify-between px-6 shrink-0">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={onClose} className="text-slate-500 hover:text-slate-900 px-2 font-bold">
+            <Button variant="ghost" onClick={onClose} className="text-muted-foreground hover:text-foreground px-2 font-bold">
                <ChevronLeft className="w-5 h-5 mr-1" /> Back
             </Button>
             <div className="h-6 w-px bg-slate-200" />
             <div className="bg-indigo-100 p-1.5 rounded-lg">
               <FileText className="w-4 h-4 text-indigo-600" />
             </div>
-            <div className="text-sm font-black text-slate-900">
+            <div className="text-sm font-black text-foreground">
               {template.initialState.personalInfo.name}
             </div>
           </div>
           
           {/* Zoom Controls */}
           <div className="flex items-center gap-6">
-            <div className="flex items-center bg-slate-50 rounded-lg p-1 border border-slate-200">
-              <Button variant="ghost" size="icon" onClick={handleZoomOut} className="h-8 w-8 hover:bg-white hover:shadow-sm rounded-md"><ZoomOut className="w-4 h-4 text-slate-600" /></Button>
-              <div className="px-4 flex items-center justify-center text-xs font-bold text-slate-700 min-w-[60px] tabular-nums">{zoom}%</div>
-              <Button variant="ghost" size="icon" onClick={handleZoomIn} className="h-8 w-8 hover:bg-white hover:shadow-sm rounded-md"><ZoomIn className="w-4 h-4 text-slate-600" /></Button>
+            <div className="flex items-center bg-muted rounded-lg p-1 border border-border">
+              <Button variant="ghost" size="icon" onClick={handleZoomOut} className="h-8 w-8 hover:bg-card hover:shadow-sm rounded-md"><ZoomOut className="w-4 h-4 text-muted-foreground" /></Button>
+              <div className="px-4 flex items-center justify-center text-xs font-bold text-foreground min-w-[60px] tabular-nums">{zoom}%</div>
+              <Button variant="ghost" size="icon" onClick={handleZoomIn} className="h-8 w-8 hover:bg-card hover:shadow-sm rounded-md"><ZoomIn className="w-4 h-4 text-muted-foreground" /></Button>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleFitWidth} className="h-10 px-4 rounded-lg border-slate-200 hover:bg-slate-50 font-bold text-slate-700 text-xs shadow-sm">
+              <Button variant="outline" size="sm" onClick={handleFitWidth} className="h-10 px-4 rounded-lg border-border hover:bg-muted font-bold text-foreground text-xs shadow-sm">
                 Fit Width
               </Button>
-              <Button variant="outline" size="sm" onClick={handleFitPage} className="h-10 px-4 rounded-lg border-slate-200 hover:bg-slate-50 font-bold text-slate-700 text-xs shadow-sm">
+              <Button variant="outline" size="sm" onClick={handleFitPage} className="h-10 px-4 rounded-lg border-border hover:bg-muted font-bold text-foreground text-xs shadow-sm">
                 Fit Page
               </Button>
               <Button 
                 variant="outline" 
                 size="icon" 
                 onClick={() => setIsFullscreen(!isFullscreen)} 
-                className="h-10 w-10 rounded-lg border-slate-200 hover:bg-slate-55 shadow-sm"
+                className="h-10 w-10 rounded-lg border-border hover:bg-slate-55 shadow-sm"
                 title="Fullscreen"
               >
-                {isFullscreen ? <Minimize2 className="w-4 h-4 text-slate-600" /> : <Maximize className="w-4 h-4 text-slate-600" />}
+                {isFullscreen ? <Minimize2 className="w-4 h-4 text-muted-foreground" /> : <Maximize className="w-4 h-4 text-muted-foreground" />}
               </Button>
             </div>
           </div>
@@ -163,7 +163,7 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
             >
               Use Template
             </Button>
-            <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors">
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-10 w-10 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
               <X className="w-5 h-5" />
             </Button>
           </div>
@@ -175,7 +175,7 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
           ref={containerRef}
         >
           {/* Page indicator at top right */}
-          <div className="absolute top-6 right-6 text-slate-400 text-xs font-semibold select-none z-50">
+          <div className="absolute top-6 right-6 text-muted-foreground/70 text-xs font-semibold select-none z-50">
             Page {currentPage} of 1
           </div>
 
@@ -188,7 +188,7 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
               minHeight: "1120px",
               transition: "transform 0.2s ease"
             }}
-            className="bg-white shadow-[0_20px_80px_rgba(0,0,0,0.12)] shrink-0 mb-10 mx-auto flex justify-center items-start"
+            className="bg-card shadow-[0_20px_80px_rgba(0,0,0,0.12)] shrink-0 mb-10 mx-auto flex justify-center items-start"
           >
             {apiPreviewUrl && !failedPreviewFetch ? (
               <img 
@@ -199,7 +199,7 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
             ) : Renderer ? (
               <Renderer data={template.initialState} previewMode={false} />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-white">
+              <div className="w-full h-full flex items-center justify-center bg-card">
                 <Loader2 className="w-12 h-12 text-indigo-650 animate-spin" />
               </div>
             )}

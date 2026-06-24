@@ -68,8 +68,8 @@ export default function PerfectAdminPortal() {
       {/* Top Navbar Simulation */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight font-heading">Control Center</h1>
-          <p className="text-slate-500 font-medium">System-wide monitoring and administrative oversight.</p>
+          <h1 className="text-3xl font-black text-foreground tracking-tight font-heading">Control Center</h1>
+          <p className="text-muted-foreground font-medium">System-wide monitoring and administrative oversight.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex -space-x-2">
@@ -78,7 +78,7 @@ export default function PerfectAdminPortal() {
             ))}
             <div className="w-8 h-8 rounded-full border-2 border-white bg-primary flex items-center justify-center text-[10px] text-white font-bold">+5</div>
           </div>
-          <Button variant="outline" className="border-slate-200 bg-white shadow-sm font-bold" onClick={fetchAdminData}>
+          <Button variant="outline" className="border-border bg-card shadow-sm font-bold" onClick={fetchAdminData}>
             <RefreshCw className="w-4 h-4 mr-2" /> Live Updates
           </Button>
           <Button className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 font-bold px-6">
@@ -98,12 +98,12 @@ export default function PerfectAdminPortal() {
                   <div className={`p-3 rounded-2xl ${m.bg} ${m.color} group-hover:scale-110 transition-transform`}>
                     <Icon className="w-6 h-6" />
                   </div>
-                  <Badge className={m.trend.startsWith('+') ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}>
+                  <Badge className={m.trend.startsWith('+') ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-foreground'}>
                     {m.trend}
                   </Badge>
                 </div>
-                <p className="text-3xl font-black text-slate-900">{m.value}</p>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] mt-1">{m.label}</p>
+                <p className="text-3xl font-black text-foreground">{m.value}</p>
+                <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-[0.2em] mt-1">{m.label}</p>
               </CardContent>
             </Card>
           );
@@ -120,7 +120,7 @@ export default function PerfectAdminPortal() {
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" className="text-xs font-bold">Week</Button>
-              <Button variant="outline" size="sm" className="text-xs font-bold bg-slate-50 border-none">Month</Button>
+              <Button variant="outline" size="sm" className="text-xs font-bold bg-muted border-none">Month</Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -162,7 +162,7 @@ export default function PerfectAdminPortal() {
                       { name: "AI Inference Engine", status: "98.2%", load: "68%" },
                       { name: "Auth Database", status: "100%", load: "12%" },
                    ].map((s, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10">
+                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-card/5 border border-white/10">
                          <div>
                             <p className="text-xs font-bold">{s.name}</p>
                             <p className="text-[10px] text-white/50">{s.status} uptime</p>
@@ -174,7 +174,7 @@ export default function PerfectAdminPortal() {
                       </div>
                    ))}
                 </div>
-                <Button variant="outline" className="w-full border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold h-12">
+                <Button variant="outline" className="w-full border-white/10 bg-card/5 hover:bg-card/10 text-white font-bold h-12">
                    Open Debugger
                 </Button>
              </div>
@@ -183,8 +183,8 @@ export default function PerfectAdminPortal() {
 
           <Card className="border-none shadow-sm p-6">
              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-sm font-bold uppercase tracking-widest text-slate-400">Security Logs</h3>
-                <Lock className="w-4 h-4 text-slate-300" />
+                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/70">Security Logs</h3>
+                <Lock className="w-4 h-4 text-muted-foreground/50" />
              </div>
              <div className="space-y-4">
                 {[
@@ -195,8 +195,8 @@ export default function PerfectAdminPortal() {
                    <div key={i} className="flex gap-4 items-start">
                       <div className={`w-1 h-8 rounded-full ${l.type === 'WARN' ? 'bg-amber-500' : 'bg-blue-500'}`} />
                       <div>
-                         <p className="text-xs font-bold text-slate-900">{l.event}</p>
-                         <p className="text-[10px] text-slate-500 uppercase font-bold mt-0.5">{l.time}</p>
+                         <p className="text-xs font-bold text-foreground">{l.event}</p>
+                         <p className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">{l.time}</p>
                       </div>
                    </div>
                 ))}
@@ -206,8 +206,8 @@ export default function PerfectAdminPortal() {
       </div>
 
       {/* Recruiter Verification Queue */}
-      <Card className="border-none shadow-sm bg-white overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 bg-slate-50/30">
+      <Card className="border-none shadow-sm bg-card overflow-hidden">
+        <CardHeader className="flex flex-row items-center justify-between border-b border-border bg-muted/30">
           <div>
             <CardTitle className="text-lg font-bold font-heading">Verification Queue</CardTitle>
             <CardDescription>Recruiters awaiting platform access approval</CardDescription>
@@ -219,7 +219,7 @@ export default function PerfectAdminPortal() {
         </CardHeader>
         <div className="p-0">
           <table className="w-full text-left">
-            <thead className="bg-slate-50/50 text-[10px] uppercase font-black text-slate-400 tracking-[0.2em]">
+            <thead className="bg-muted/50 text-[10px] uppercase font-black text-muted-foreground/70 tracking-[0.2em]">
               <tr>
                 <th className="px-8 py-4">Company Name</th>
                 <th className="px-8 py-4">Point of Contact</th>
@@ -234,16 +234,16 @@ export default function PerfectAdminPortal() {
                 { name: "Zepto", contact: "Aadit P.", ind: "Quick Commerce", doc: "Pending" },
                 { name: "Cred", contact: "Kunal S.", ind: "Fintech", doc: "Uploaded" },
               ].map((r, i) => (
-                <tr key={i} className="group hover:bg-slate-50/80 transition-colors">
+                <tr key={i} className="group hover:bg-muted/80 transition-colors">
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-slate-400">{r.name[0]}</div>
-                      <p className="text-sm font-black text-slate-900">{r.name}</p>
+                      <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center font-black text-muted-foreground/70">{r.name[0]}</div>
+                      <p className="text-sm font-black text-foreground">{r.name}</p>
                     </div>
                   </td>
-                  <td className="px-8 py-6 text-sm font-bold text-slate-600">{r.contact}</td>
+                  <td className="px-8 py-6 text-sm font-bold text-muted-foreground">{r.contact}</td>
                   <td className="px-8 py-6">
-                    <Badge variant="outline" className="bg-white font-bold">{r.ind}</Badge>
+                    <Badge variant="outline" className="bg-card font-bold">{r.ind}</Badge>
                   </td>
                   <td className="px-8 py-6">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${r.doc === 'Verified' ? 'text-emerald-500' : 'text-amber-500'}`}>
@@ -252,7 +252,7 @@ export default function PerfectAdminPortal() {
                   </td>
                   <td className="px-8 py-6 text-right">
                     <div className="flex justify-end gap-2">
-                       <Button size="sm" variant="ghost" className="text-xs font-bold text-slate-400 hover:text-red-500">Reject</Button>
+                       <Button size="sm" variant="ghost" className="text-xs font-bold text-muted-foreground/70 hover:text-red-500">Reject</Button>
                        <Button size="sm" className="bg-primary hover:bg-primary/90 font-bold text-xs">Approve</Button>
                     </div>
                   </td>

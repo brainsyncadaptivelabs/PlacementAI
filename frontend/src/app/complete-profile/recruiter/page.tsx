@@ -39,7 +39,7 @@ export default function CompleteRecruiterProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl -z-10" />
 
@@ -56,7 +56,7 @@ export default function CompleteRecruiterProfile() {
                 <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold">!</div>
                 <span className="text-sm font-medium tracking-tight truncate max-w-[200px]">{error}</span>
               </div>
-              <button type="button" onClick={() => setError("")} className="text-slate-400 hover:text-white transition-colors">
+              <button type="button" onClick={() => setError("")} className="text-muted-foreground/70 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -65,25 +65,25 @@ export default function CompleteRecruiterProfile() {
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
-        <h2 className="text-3xl font-black text-slate-900 font-heading">Complete Company Profile</h2>
-        <p className="mt-2 text-sm text-slate-500 font-medium">Let&apos;s set up your recruitment workspace.</p>
+        <h2 className="text-3xl font-black text-foreground font-heading">Complete Company Profile</h2>
+        <p className="mt-2 text-sm text-muted-foreground font-medium">Let&apos;s set up your recruitment workspace.</p>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm">
+        <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm">
           <CardContent className="pt-8 px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1">
-                <Label htmlFor="companyName" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Company Name *</Label>
-                <Input id="companyName" required className="h-12 bg-slate-50" value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} />
+                <Label htmlFor="companyName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Company Name *</Label>
+                <Input id="companyName" required className="h-12 bg-muted" value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="companyWebsite" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Company Website (Optional)</Label>
-                <Input id="companyWebsite" type="url" className="h-12 bg-slate-50" value={formData.companyWebsite} onChange={(e) => setFormData({...formData, companyWebsite: e.target.value})} />
+                <Label htmlFor="companyWebsite" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Company Website (Optional)</Label>
+                <Input id="companyWebsite" type="url" className="h-12 bg-muted" value={formData.companyWebsite} onChange={(e) => setFormData({...formData, companyWebsite: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="companySize" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Company Size (Optional)</Label>
-                <Input id="companySize" placeholder="e.g. 1-50, 50-200" className="h-12 bg-slate-50" value={formData.companySize} onChange={(e) => setFormData({...formData, companySize: e.target.value})} />
+                <Label htmlFor="companySize" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Company Size (Optional)</Label>
+                <Input id="companySize" placeholder="e.g. 1-50, 50-200" className="h-12 bg-muted" value={formData.companySize} onChange={(e) => setFormData({...formData, companySize: e.target.value})} />
               </div>
               <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-bold bg-emerald-600 hover:bg-emerald-700 shadow-lg mt-4 text-white">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save & Continue"}

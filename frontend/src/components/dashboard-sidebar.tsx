@@ -70,7 +70,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar className="bg-white">
+    <Sidebar className="bg-sidebar border-r border-border">
       <SidebarHeader className="h-[80px] w-full flex items-center justify-center shrink-0 p-0">
         <Link 
           href="/dashboard" 
@@ -79,7 +79,7 @@ export function AppSidebar() {
           <div className="w-[54px] h-[54px] bg-primary rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20 shrink-0">
             <span className="text-2xl">A</span>
           </div>
-          <span className="font-heading font-semibold text-[30px] tracking-tighter text-slate-900 leading-none whitespace-nowrap">
+          <span className="font-heading font-semibold text-[30px] tracking-tighter text-foreground leading-none whitespace-nowrap">
             AI Placement
           </span>
         </Link>
@@ -91,17 +91,17 @@ export function AppSidebar() {
               <SidebarMenuButton
                 render={<Link href={item.url} />}
                 isActive={pathname === item.url}
-                className="hover:bg-slate-100 transition-colors py-6"
+                className="hover:bg-muted transition-colors py-6"
                 tooltip={item.title}
               >
-                <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-slate-500'}`} />
-                <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-slate-600'}`}>{item.title}</span>
+                <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
         <div className="mt-8 mb-2 px-3">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Account</span>
+          <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Account</span>
         </div>
         <SidebarMenu>
           {secondaryItems.map((item) => (
@@ -109,11 +109,11 @@ export function AppSidebar() {
               <SidebarMenuButton
                 render={<Link href={item.url} />}
                 isActive={pathname === item.url}
-                className="hover:bg-slate-100 transition-colors py-6"
+                className="hover:bg-muted transition-colors py-6"
                 tooltip={item.title}
               >
-                <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-slate-500'}`} />
-                <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-slate-600'}`}>{item.title}</span>
+                <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-muted-foreground'}`} />
+                <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
@@ -122,7 +122,7 @@ export function AppSidebar() {
       <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/auth" />} className="hover:bg-red-50 hover:text-red-600 transition-colors py-6">
+            <SidebarMenuButton render={<Link href="/auth" />} className="hover:bg-destructive/10 hover:text-destructive transition-colors py-6">
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
             </SidebarMenuButton>
@@ -143,7 +143,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   if (isWorkspaceMode) {
     return (
-      <div className="min-h-screen w-full bg-[#f8fafc]">
+      <div className="min-h-screen w-full bg-background">
         {children}
       </div>
     );
@@ -151,30 +151,30 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-slate-50">
+      <div className="flex min-h-screen w-full bg-background">
         <AppSidebar />
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Topbar */}
           {!isChatMode && (
-            <header className="h-16 flex items-center justify-between px-8 bg-white shrink-0 sticky top-0 z-30">
+            <header className="h-16 flex items-center justify-between px-8 bg-background border-b border-border/40 shrink-0 sticky top-0 z-30">
               <div className="flex items-center gap-4 flex-1">
                 <SidebarTrigger className="md:hidden" />
-                <div className="group relative flex items-center bg-white/82 backdrop-blur-[16px] rounded-[18px] px-[18px] h-[54px] border border-black/[0.04] shadow-[0_8px_28px_rgba(0,0,0,0.05)] hover:-translate-y-[1px] focus-within:scale-[1.015] focus-within:shadow-[0_8px_28px_rgba(0,0,0,0.05),0_0_0_4px_rgba(99,102,241,0.08)] transition-all duration-250 ease-in-out w-full max-w-full md:max-w-[380px] lg:max-w-[480px] shrink-0">
-                  <Search className="w-[18px] h-[18px] text-[#94A3B8] opacity-65 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 shrink-0" />
+                <div className="group relative flex items-center bg-card/80 backdrop-blur-[16px] rounded-[18px] px-[18px] h-[54px] border border-border/50 shadow-sm hover:-translate-y-[1px] focus-within:scale-[1.015] focus-within:shadow-[0_8px_28px_rgba(0,0,0,0.05),0_0_0_4px_rgba(99,102,241,0.08)] transition-all duration-250 ease-in-out w-full max-w-full md:max-w-[380px] lg:max-w-[480px] shrink-0">
+                  <Search className="w-[18px] h-[18px] text-muted-foreground opacity-65 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 shrink-0" />
                   <input 
                     type="text" 
                     placeholder="Search resumes, ATS, roadmap..." 
-                    className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 pl-3 text-[15px] font-medium text-[#111827] placeholder-[#94A3B8] outline-none"
+                    className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 pl-3 text-[15px] font-medium text-foreground placeholder-muted-foreground outline-none"
                   />
-                  <div className="hidden md:flex items-center gap-1 px-1.5 py-0.5 bg-slate-100 rounded-md text-[10px] font-bold text-slate-400 select-none font-sans whitespace-nowrap shrink-0">
+                  <div className="hidden md:flex items-center gap-1 px-1.5 py-0.5 bg-muted rounded-md text-[10px] font-bold text-muted-foreground/70 select-none font-sans whitespace-nowrap shrink-0">
                     <span>Ctrl</span><span>K</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-4">
-                 <Button variant="ghost" size="icon" className="relative text-slate-500 hover:bg-slate-100 rounded-xl transition-colors">
+                 <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors">
                     <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
                  </Button>
                  <UserNav />
               </div>

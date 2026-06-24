@@ -2,6 +2,7 @@
 
 import type React from "react";
 import { AuthProvider } from "@/providers/auth-provider";
+import { ThemeProvider } from "next-themes";
 
 export default function Providers({
   children,
@@ -9,8 +10,10 @@ export default function Providers({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
-      {children}
-    </AuthProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <AuthProvider>
+        {children}
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

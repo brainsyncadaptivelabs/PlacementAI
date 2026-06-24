@@ -55,7 +55,7 @@ class SafeMarkdownBoundary extends React.Component<
         .replace(/\n\s*\n/g, "\n\n");
       return (
         <div 
-          className="font-sans text-slate-800 leading-[1.9] text-[16px]"
+          className="font-sans text-foreground leading-[1.9] text-[16px]"
           style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
         >
           {cleanText}
@@ -119,21 +119,21 @@ const MessageItem = memo(({
   return (
     <div className="w-full flex justify-center mb-6 last:mb-0 animate-message">
       <div className={`w-full max-w-[1800px] px-6 flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-primary border-primary/10 text-white' : 'bg-slate-100 border-slate-200 text-slate-600'}`}>
+        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-primary border-primary/10 text-white' : 'bg-muted border-border text-muted-foreground'}`}>
           {isAi ? (
             <Sparkles className="w-4.5 h-4.5 text-white" />
           ) : (
-            <User className="w-4.5 h-4.5 text-slate-600" />
+            <User className="w-4.5 h-4.5 text-muted-foreground" />
           )}
         </Avatar>
         
         <div className={`flex flex-col ${isAi ? 'items-start w-[92%]' : 'items-end max-w-[70%]'} min-w-0 flex-1`}>
           {/* Metadata */}
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wider">
               {isAi ? 'Career Assistant' : 'You'}
             </span>
-            <span className="text-[10px] text-slate-300 font-medium">
+            <span className="text-[10px] text-muted-foreground/50 font-medium">
               {msg.time}
             </span>
           </div>
@@ -142,7 +142,7 @@ const MessageItem = memo(({
           <div 
             className={`message-content ${
               isAi 
-                ? 'bg-transparent text-slate-800 border-none shadow-none' 
+                ? 'bg-transparent text-foreground border-none shadow-none' 
                 : 'bg-slate-900 text-white shadow-sm'
             } w-full`}
             style={{ 
@@ -193,20 +193,20 @@ const MessageItem = memo(({
                             </pre>
                           </div>
                         ) : (
-                          <code className="bg-slate-100 px-2 py-0.5 rounded-md text-primary font-mono text-[0.9em] font-medium" {...props}>{children}</code>
+                          <code className="bg-muted px-2 py-0.5 rounded-md text-primary font-mono text-[0.9em] font-medium" {...props}>{children}</code>
                         );
                       },
                       blockquote: ({children}) => <blockquote style={{ borderLeft: '4px solid #e2e8f0', paddingLeft: '16px', fontStyle: 'italic', margin: '12px 0', color: '#64748b' }}>{children}</blockquote>,
                       table: ({children}) => (
-                        <div className="overflow-x-auto my-4 border border-slate-200 rounded-lg">
+                        <div className="overflow-x-auto my-4 border border-border rounded-lg">
                           <table className="min-w-full divide-y divide-slate-200">{children}</table>
                         </div>
                       ),
-                      thead: ({children}) => <thead className="bg-slate-50">{children}</thead>,
-                      tbody: ({children}) => <tbody className="divide-y divide-slate-200 bg-white">{children}</tbody>,
+                      thead: ({children}) => <thead className="bg-muted">{children}</thead>,
+                      tbody: ({children}) => <tbody className="divide-y divide-slate-200 bg-card">{children}</tbody>,
                       tr: ({children}) => <tr>{children}</tr>,
-                      th: ({children}) => <th className="px-4 py-2 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">{children}</th>,
-                      td: ({children}) => <td className="px-4 py-2 text-sm text-slate-600">{children}</td>
+                      th: ({children}) => <th className="px-4 py-2 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{children}</th>,
+                      td: ({children}) => <td className="px-4 py-2 text-sm text-muted-foreground">{children}</td>
                     }}
                   >
                     {msg.content + (isGenerating ? " ▋" : "")}
@@ -231,7 +231,7 @@ const MessageItem = memo(({
                 onClick={handleCopy}
                 title="Copy response"
                 className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${
-                  copied ? 'text-green-600 bg-green-50' : 'text-slate-400 hover:text-primary hover:bg-slate-100'
+                  copied ? 'text-green-600 bg-green-50' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
                 }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -241,17 +241,17 @@ const MessageItem = memo(({
                 <button 
                   onClick={() => onRegenerate(msg.content)}
                   title="Regenerate response"
-                  className="p-1.5 rounded-md text-slate-400 hover:text-primary hover:bg-slate-100 transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
+                  className="p-1.5 rounded-md text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Regenerate
                 </button>
               )}
               <div className="w-px h-3 bg-slate-200 mx-1" />
-              <button className="p-1.5 rounded-md text-slate-400 hover:text-green-600 hover:bg-slate-100 transition-all" title="Like response">
+              <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-green-600 hover:bg-muted transition-all" title="Like response">
                 <ThumbsUp className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1.5 rounded-md text-slate-400 hover:text-red-500 hover:bg-slate-100 transition-all" title="Dislike response">
+              <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-500 hover:bg-muted transition-all" title="Dislike response">
                 <ThumbsDown className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -658,7 +658,7 @@ export default function ChatPage() {
 
   if (userLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-white">
+      <div className="flex items-center justify-center h-full bg-card">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
       </div>
     );
@@ -670,10 +670,10 @@ export default function ChatPage() {
     <div className="h-screen min-h-screen flex flex-col bg-[#f8fafc] relative overflow-hidden">
       
       {/* Sticky Header (64px) */}
-      <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-30">
+      <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-30">
         <div className="flex items-center gap-3">
-          <SidebarTrigger className="md:hidden mr-1 text-slate-600 hover:text-slate-800" />
-          <h1 className="text-[16px] font-bold text-slate-800 tracking-tight">Career Assistant</h1>
+          <SidebarTrigger className="md:hidden mr-1 text-muted-foreground hover:text-foreground" />
+          <h1 className="text-[16px] font-bold text-foreground tracking-tight">Career Assistant</h1>
           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-100">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider">AI Online</span>
@@ -690,12 +690,12 @@ export default function ChatPage() {
           <button 
             onClick={handleClearChat}
             title="Clear Conversation"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-500 hover:text-red-500 hover:bg-slate-50 transition-all text-xs font-semibold"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border text-muted-foreground hover:text-red-500 hover:bg-muted transition-all text-xs font-semibold"
           >
             <Trash2 className="w-4 h-4" />
             <span>Clear Chat</span>
           </button>
-          <button className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
+          <button className="p-2 rounded-xl text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted transition-colors">
             <MoreHorizontal className="w-5 h-5" />
           </button>
         </div>
@@ -713,10 +713,10 @@ export default function ChatPage() {
              <div className="w-16 h-16 rounded-[24px] bg-primary/10 flex items-center justify-center text-primary mb-6 shadow-xl shadow-primary/5">
                 <Sparkles className="w-8 h-8" />
              </div>
-             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">👋 Welcome to PlacementAI</h2>
-             <div className="text-left bg-white border border-slate-200/60 p-6 rounded-2xl shadow-md max-w-sm w-full mt-4 transform transition-all duration-300 hover:scale-[1.02]">
-                <p className="font-semibold text-slate-700 mb-3 text-base">Ask anything about:</p>
-                <ul className="space-y-2.5 text-slate-600 font-medium">
+             <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-2">👋 Welcome to PlacementAI</h2>
+             <div className="text-left bg-card border border-border/60 p-6 rounded-2xl shadow-md max-w-sm w-full mt-4 transform transition-all duration-300 hover:scale-[1.02]">
+                <p className="font-semibold text-foreground mb-3 text-base">Ask anything about:</p>
+                <ul className="space-y-2.5 text-muted-foreground font-medium">
                   <li className="flex items-center gap-2 text-sm">• Resume</li>
                   <li className="flex items-center gap-2 text-sm">• ATS</li>
                   <li className="flex items-center gap-2 text-sm">• Interviews</li>
@@ -746,11 +746,11 @@ export default function ChatPage() {
       </main>
 
       {/* Sticky Bottom Input Area */}
-      <div className="w-full shrink-0 border-t border-slate-100 bg-white py-4 shadow-lg shadow-slate-100/40">
+      <div className="w-full shrink-0 border-t border-border bg-card py-4 shadow-lg shadow-slate-100/40">
         <div className="max-w-[820px] mx-auto px-6 relative">
-          <div className="relative flex items-end bg-slate-50 border border-slate-200/80 rounded-[24px] focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-200/50 transition-all p-1.5 pl-4 pr-3 min-h-[56px]">
+          <div className="relative flex items-end bg-muted border border-border/80 rounded-[24px] focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-200/50 transition-all p-1.5 pl-4 pr-3 min-h-[56px]">
             {/* Attach button */}
-            <button className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 transition-colors shrink-0 mb-0.5">
+            <button className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-slate-200/50 transition-colors shrink-0 mb-0.5">
               <Paperclip className="w-5 h-5" />
             </button>
             
@@ -766,7 +766,7 @@ export default function ChatPage() {
                 }
               }}
               placeholder={messages.length > 0 ? "Ask another question…" : "Message Career Assistant..."} 
-              className="flex-1 bg-transparent border-none focus:ring-0 py-2.5 px-3 text-[16px] text-slate-800 placeholder:text-slate-450 resize-none min-h-[40px] leading-relaxed align-bottom focus:outline-none"
+              className="flex-1 bg-transparent border-none focus:ring-0 py-2.5 px-3 text-[16px] text-foreground placeholder:text-slate-450 resize-none min-h-[40px] leading-relaxed align-bottom focus:outline-none"
               rows={1}
               disabled={!generationComplete}
             />
@@ -778,7 +778,7 @@ export default function ChatPage() {
                 className="w-9 h-9 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-sm shrink-0 mb-0.5 transition-all"
                 title="Stop generating"
               >
-                <div className="w-3.5 h-3.5 bg-white rounded-xs" />
+                <div className="w-3.5 h-3.5 bg-card rounded-xs" />
               </button>
             ) : (
               <button 
@@ -787,7 +787,7 @@ export default function ChatPage() {
                 className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 mb-0.5 ${
                   input.trim() && generationComplete 
                   ? 'bg-black text-white hover:bg-zinc-800 shadow-sm' 
-                  : 'bg-slate-100 text-slate-300'
+                  : 'bg-muted text-muted-foreground/50'
                 }`}
               >
                 <Send className="w-4 h-4" />
@@ -807,7 +807,7 @@ export default function ChatPage() {
                  <button 
                    key={p}
                    onClick={() => setInput(p)}
-                   className="text-xs font-semibold text-slate-600 bg-white border border-slate-200/80 px-4 py-2 rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                   className="text-xs font-semibold text-muted-foreground bg-card border border-border/80 px-4 py-2 rounded-2xl hover:bg-muted hover:border-slate-300 transition-all shadow-sm"
                  >
                     {p}
                  </button>
@@ -815,7 +815,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          <div className="text-[11px] text-slate-400 text-center mt-2.5">
+          <div className="text-[11px] text-muted-foreground/70 text-center mt-2.5">
             PlacementAI can make mistakes. Consider checking important information.
           </div>
         </div>

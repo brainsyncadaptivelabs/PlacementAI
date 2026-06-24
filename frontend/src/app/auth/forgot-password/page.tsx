@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       <AnimatePresence mode="wait">
         {(error || success) && (
           <motion.div 
@@ -151,7 +151,7 @@ export default function ForgotPasswordPage() {
                   {error || success}
                 </span>
               </div>
-              <button onClick={() => { setError(""); setSuccess(""); }} className="text-slate-400 hover:text-white transition-colors">
+              <button onClick={() => { setError(""); setSuccess(""); }} className="text-muted-foreground/70 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -173,7 +173,7 @@ export default function ForgotPasswordPage() {
               <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={() => step > 1 ? setStep(step - 1) : router.push("/auth")}>
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Step {step} of 3</span>
+              <span className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">Step {step} of 3</span>
             </div>
             <CardTitle className="text-2xl font-bold font-heading">
               {step === 1 && "Forgot Password?"}
@@ -191,7 +191,7 @@ export default function ForgotPasswordPage() {
             {step === 1 && (
               <form onSubmit={handleSendOtp} className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="email" className="text-xs font-bold uppercase text-slate-500 ml-1 tracking-wider">Email Address</Label>
+                  <Label htmlFor="email" className="text-xs font-bold uppercase text-muted-foreground ml-1 tracking-wider">Email Address</Label>
                   <Input id="email" type="email" placeholder="name@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" />
                 </div>
                 <Button type="submit" className="w-full h-11 bg-primary hover:bg-primary/90 font-bold shadow-lg shadow-primary/20" disabled={loading}>
@@ -204,8 +204,8 @@ export default function ForgotPasswordPage() {
               <form onSubmit={handleVerifyOtp} className="space-y-4">
                 <div className="grid gap-2">
                   <div className="flex items-center justify-between px-1">
-                    <Label htmlFor="otp" className="text-xs font-bold uppercase text-slate-500 tracking-wider">Verification Code</Label>
-                    <span className={`text-xs font-bold ${timer < 60 ? "text-red-500" : "text-slate-400"}`}>
+                    <Label htmlFor="otp" className="text-xs font-bold uppercase text-muted-foreground tracking-wider">Verification Code</Label>
+                    <span className={`text-xs font-bold ${timer < 60 ? "text-red-500" : "text-muted-foreground/70"}`}>
                       Expires in {formatTime(timer)}
                     </span>
                   </div>
@@ -215,7 +215,7 @@ export default function ForgotPasswordPage() {
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify OTP"}
                 </Button>
                 <div className="text-center">
-                  <button type="button" onClick={handleResendOtp} disabled={!canResend || loading} className={`text-xs font-bold uppercase tracking-widest ${canResend ? "text-primary hover:underline" : "text-slate-300 cursor-not-allowed"}`}>
+                  <button type="button" onClick={handleResendOtp} disabled={!canResend || loading} className={`text-xs font-bold uppercase tracking-widest ${canResend ? "text-primary hover:underline" : "text-muted-foreground/50 cursor-not-allowed"}`}>
                     Resend OTP {!canResend && `(${resendTimer}s)`}
                   </button>
                 </div>
@@ -239,8 +239,8 @@ export default function ForgotPasswordPage() {
             )}
           </CardContent>
           
-          <CardFooter className="justify-center border-t bg-slate-50/50 py-4 rounded-b-xl">
-            <p className="text-xs text-slate-500">
+          <CardFooter className="justify-center border-t bg-muted/50 py-4 rounded-b-xl">
+            <p className="text-xs text-muted-foreground">
               Remembered your password? <Link href="/auth" className="text-primary hover:underline font-bold">Sign In</Link>
             </p>
           </CardFooter>

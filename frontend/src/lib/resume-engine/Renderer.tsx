@@ -13,7 +13,7 @@ export const TemplateRenderer: React.FC<RendererProps> = ({ templateId, resumeDa
 
   if (!template) {
     return (
-      <div className="flex items-center justify-center h-full w-full bg-slate-100 text-slate-500 font-medium p-8 text-center rounded-xl border-2 border-dashed border-slate-300">
+      <div className="flex items-center justify-center h-full w-full bg-muted text-muted-foreground font-medium p-8 text-center rounded-xl border-2 border-dashed border-slate-300">
         Template &ldquo;{templateId}&rdquo; not found in registry.
       </div>
     );

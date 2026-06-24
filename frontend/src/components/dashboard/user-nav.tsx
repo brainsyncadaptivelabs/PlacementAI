@@ -83,7 +83,7 @@ export function UserNav() {
     ).toUpperCase();
   };
 
-  if (loading) return <div className="w-10 h-10 rounded-full bg-slate-100 animate-pulse" />;
+  if (loading) return <div className="w-10 h-10 rounded-full bg-muted animate-pulse" />;
 
   return (
     <div className="relative" ref={menuRef}>
@@ -93,10 +93,10 @@ export function UserNav() {
         onClick={() => setIsOpen(!isOpen)}
       >
         <div className="text-right hidden sm:block">
-          <p className="text-sm font-bold text-slate-900 leading-none group-hover:text-primary transition-colors">
+          <p className="text-sm font-bold text-foreground leading-none group-hover:text-primary transition-colors">
             {user?.fullName || "User"}
           </p>
-          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
+          <p className="text-[10px] font-bold text-muted-foreground/70 mt-1 uppercase tracking-widest">
             {user?.plan || "Free"} Plan
           </p>
         </div>
@@ -131,31 +131,31 @@ export function UserNav() {
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            className="absolute right-0 mt-3 w-auto min-w-[160px] bg-white border border-neutral-100 rounded-xl shadow-md z-50 overflow-hidden"
+            className="absolute right-0 mt-3 w-auto min-w-[160px] bg-card border border-border rounded-xl shadow-md z-50 overflow-hidden"
           >
             <div className="p-1.5 flex flex-col gap-0.5">
               <Link 
                 href="/select-plan"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-slate-50 transition-all group whitespace-nowrap min-w-max"
+                className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
               >
-                <div className="flex items-center gap-3 text-slate-700">
-                  <CreditCard className="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" />
+                <div className="flex items-center gap-3 text-foreground">
+                  <CreditCard className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
                   <span className="text-sm font-semibold">Plans</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
               </Link>
 
               <Link 
                 href="/dashboard/profile"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-slate-50 transition-all group whitespace-nowrap min-w-max"
+                className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
               >
-                <div className="flex items-center gap-3 text-slate-700">
-                  <User className="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" />
+                <div className="flex items-center gap-3 text-foreground">
+                  <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
                   <span className="text-sm font-semibold">Profile</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
               </Link>
 
               <button 
@@ -163,13 +163,13 @@ export function UserNav() {
                   fileInputRef.current?.click();
                   setIsOpen(false);
                 }}
-                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-slate-50 transition-all group whitespace-nowrap min-w-max"
+                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
               >
-                <div className="flex items-center gap-3 text-slate-700">
-                  <Camera className="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" />
+                <div className="flex items-center gap-3 text-foreground">
+                  <Camera className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
                   <span className="text-sm font-semibold">Change Photo</span>
                 </div>
-                <ChevronRight className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
               </button>
             </div>
           </motion.div>

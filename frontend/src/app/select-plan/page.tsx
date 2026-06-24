@@ -29,7 +29,7 @@ const plans = [
     buttonText: "Continue with Free",
     popular: false,
     icon: Compass,
-    color: "bg-slate-100 text-slate-600"
+    color: "bg-muted text-muted-foreground"
   },
   {
     name: "BASIC",
@@ -196,14 +196,14 @@ export default function SelectPlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-16 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-muted py-16 px-4 relative overflow-hidden">
       {/* Back to Dashboard Navigation */}
       <button
         onClick={() => router.push("/dashboard")}
-        className="fixed top-6 left-6 z-[100] flex items-center gap-2 h-[44px] px-[18px] rounded-[14px] bg-white/75 backdrop-blur-[16px] shadow-[0_8px_24px_rgba(0,0,0,0.05)] border-none hover:-translate-x-0.5 transition-all duration-[250ms] group outline-none"
+        className="fixed top-6 left-6 z-[100] flex items-center gap-2 h-[44px] px-[18px] rounded-[14px] bg-card/75 backdrop-blur-[16px] shadow-[0_8px_24px_rgba(0,0,0,0.05)] border-none hover:-translate-x-0.5 transition-all duration-[250ms] group outline-none"
       >
-        <ArrowLeft className="w-4 h-4 text-slate-700" />
-        <span className="text-sm font-bold text-slate-700 hidden md:inline">Dashboard</span>
+        <ArrowLeft className="w-4 h-4 text-foreground" />
+        <span className="text-sm font-bold text-foreground hidden md:inline">Dashboard</span>
       </button>
 
       {/* Professional Toast Notification */}
@@ -254,30 +254,30 @@ export default function SelectPlanPage() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 space-y-6"
+              className="bg-card rounded-3xl p-8 max-w-md w-full shadow-2xl border border-border space-y-6"
             >
               <div className="text-center space-y-2">
                 <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center mx-auto">
                   <AlertCircle className="w-6 h-6 animate-pulse" />
                 </div>
-                <h3 className="text-xl font-bold font-heading text-slate-900">Razorpay Demo Mode</h3>
-                <p className="text-sm text-slate-500">
+                <h3 className="text-xl font-bold font-heading text-foreground">Razorpay Demo Mode</h3>
+                <p className="text-sm text-muted-foreground">
                   No real Razorpay credentials are configured. You can simulate a successful checkout for testing.
                 </p>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-xs text-slate-600 font-medium">
+              <div className="bg-muted p-4 rounded-2xl border border-border space-y-2 text-xs text-muted-foreground font-medium">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Plan:</span>
-                  <span className="font-bold text-slate-900">{demoPayment.planName}</span>
+                  <span className="text-muted-foreground/70">Plan:</span>
+                  <span className="font-bold text-foreground">{demoPayment.planName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Amount:</span>
-                  <span className="font-bold text-slate-900">₹{demoPayment.amount / 100}</span>
+                  <span className="text-muted-foreground/70">Amount:</span>
+                  <span className="font-bold text-foreground">₹{demoPayment.amount / 100}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Order ID:</span>
-                  <span className="font-mono text-slate-900">{demoPayment.orderId}</span>
+                  <span className="text-muted-foreground/70">Order ID:</span>
+                  <span className="font-mono text-foreground">{demoPayment.orderId}</span>
                 </div>
               </div>
 
@@ -314,7 +314,7 @@ export default function SelectPlanPage() {
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full py-6 font-bold rounded-xl border-slate-200"
+                  className="w-full py-6 font-bold rounded-xl border-border"
                   onClick={() => {
                     setDemoPayment(null);
                     setLoading(null);
@@ -330,8 +330,8 @@ export default function SelectPlanPage() {
 
       <div className="max-w-6xl mx-auto space-y-12">
         <div className="text-center space-y-4">
-          <h1 className="text-4xl font-black text-slate-900 font-heading tracking-tight">Choose Your Success Plan</h1>
-          <p className="text-slate-500 max-w-2xl mx-auto font-medium">
+          <h1 className="text-4xl font-black text-foreground font-heading tracking-tight">Choose Your Success Plan</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto font-medium">
             Select the plan that fits your career goals. Unlock powerful AI tools to accelerate your placement journey.
           </p>
         </div>
@@ -341,7 +341,7 @@ export default function SelectPlanPage() {
             <Card 
               key={plan.name} 
               className={`relative border-2 transition-all duration-300 hover:shadow-2xl flex flex-col ${
-                plan.popular ? "border-primary scale-105 shadow-xl z-10 bg-white" : "border-transparent hover:border-slate-200 bg-white"
+                plan.popular ? "border-primary scale-105 shadow-xl z-10 bg-card" : "border-transparent hover:border-border bg-card"
               }`}
             >
               {plan.popular && (
@@ -356,8 +356,8 @@ export default function SelectPlanPage() {
                 </div>
                 <CardTitle className="text-xl font-bold font-heading">{plan.name}</CardTitle>
                 <div className="mt-4 flex items-baseline justify-center gap-1">
-                  <span className="text-4xl font-black text-slate-900">{plan.price}</span>
-                  <span className="text-slate-400 font-bold text-sm">/month</span>
+                  <span className="text-4xl font-black text-foreground">{plan.price}</span>
+                  <span className="text-muted-foreground/70 font-bold text-sm">/month</span>
                 </div>
                 <CardDescription className="pt-2 font-medium">{plan.description}</CardDescription>
               </CardHeader>
@@ -365,7 +365,7 @@ export default function SelectPlanPage() {
               <CardContent className="flex-1">
                 <ul className="space-y-4 pt-6">
                   {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-3 text-sm font-semibold text-slate-600">
+                    <li key={feature} className="flex items-start gap-3 text-sm font-semibold text-muted-foreground">
                       <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
                         <Check className="w-3 h-3 stroke-[3]" />
                       </div>
@@ -397,7 +397,7 @@ export default function SelectPlanPage() {
         </div>
 
         <div className="text-center pt-8">
-           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+           <p className="text-xs text-muted-foreground/70 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
               <ShieldCheck className="w-4 h-4" /> Secure Payment via Razorpay
            </p>
         </div>

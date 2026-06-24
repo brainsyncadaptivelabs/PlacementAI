@@ -22,13 +22,13 @@ export default function JDMatchPage() {
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold font-heading text-slate-900">Job Description Matching</h1>
-        <p className="text-slate-500">Paste a Job Description to see how well your resume matches the requirements.</p>
+        <h1 className="text-2xl font-bold font-heading text-foreground">Job Description Matching</h1>
+        <p className="text-muted-foreground">Paste a Job Description to see how well your resume matches the requirements.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-         <Card className="border-none shadow-sm bg-white overflow-hidden">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+         <Card className="border-none shadow-sm bg-card overflow-hidden">
+            <CardHeader className="bg-muted/50 border-b border-border">
                <CardTitle className="text-base font-bold font-heading flex items-center gap-2">
                   <Briefcase className="w-5 h-5 text-primary" /> Job Description
                </CardTitle>
@@ -36,7 +36,7 @@ export default function JDMatchPage() {
             <CardContent className="p-6 space-y-4">
                <Textarea 
                  placeholder="Paste the Job Description here..." 
-                 className="min-h-[300px] border-slate-200 focus-visible:ring-primary/20 resize-none"
+                 className="min-h-[300px] border-border focus-visible:ring-primary/20 resize-none"
                />
                <Button 
                  onClick={handleMatch} 
@@ -50,7 +50,7 @@ export default function JDMatchPage() {
 
          {isResultReady ? (
             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-               <Card className="border-none shadow-xl bg-white overflow-hidden">
+               <Card className="border-none shadow-xl bg-card overflow-hidden">
                   <div className="p-8 flex flex-col items-center text-center space-y-4 bg-primary/5">
                      <div className="relative w-28 h-28">
                         <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
@@ -74,11 +74,11 @@ export default function JDMatchPage() {
                         </div>
                      </div>
                      <h3 className="text-xl font-bold font-heading">Strong Match!</h3>
-                     <p className="text-sm text-slate-500">Your resume is a good fit, but some key skills are missing.</p>
+                     <p className="text-sm text-muted-foreground">Your resume is a good fit, but some key skills are missing.</p>
                   </div>
                   <CardContent className="p-6 space-y-6">
                      <div className="space-y-3">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Matching Skills</h4>
+                        <h4 className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">Matching Skills</h4>
                         <div className="flex flex-wrap gap-2">
                            {["React", "Node.js", "TypeScript", "Tailwind CSS", "AWS"].map(s => (
                               <Badge key={s} className="bg-green-50 text-green-700 border-green-100 hover:bg-green-100">{s}</Badge>
@@ -86,7 +86,7 @@ export default function JDMatchPage() {
                         </div>
                      </div>
                      <div className="space-y-3">
-                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Missing Skills</h4>
+                        <h4 className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">Missing Skills</h4>
                         <div className="flex flex-wrap gap-2">
                            {["Docker", "Kubernetes", "GraphQL", "Redis"].map(s => (
                               <Badge key={s} className="bg-red-50 text-red-700 border-red-100 hover:bg-red-100">{s}</Badge>
@@ -103,17 +103,17 @@ export default function JDMatchPage() {
                      </div>
                      <div className="space-y-2">
                         <h4 className="font-bold">Optimization Tips</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed">Add &apos;Docker&apos; and &apos;GraphQL&apos; to your skills section. The JD mentions them 3+ times. Also, emphasize your experience with AWS deployment.</p>
+                        <p className="text-xs text-muted-foreground/70 leading-relaxed">Add &apos;Docker&apos; and &apos;GraphQL&apos; to your skills section. The JD mentions them 3+ times. Also, emphasize your experience with AWS deployment.</p>
                      </div>
                   </div>
                </Card>
             </div>
          ) : (
-            <Card className="border-none shadow-sm bg-slate-100/50 border-2 border-dashed border-slate-200 flex flex-col items-center justify-center p-12 text-center space-y-4">
-               <Target className="w-12 h-12 text-slate-300" />
+            <Card className="border-none shadow-sm bg-muted/50 border-2 border-dashed border-border flex flex-col items-center justify-center p-12 text-center space-y-4">
+               <Target className="w-12 h-12 text-muted-foreground/50" />
                <div className="space-y-1">
-                  <h3 className="font-bold text-slate-400">Match Results</h3>
-                  <p className="text-sm text-slate-400">Results will appear here after you paste a JD and click analyze.</p>
+                  <h3 className="font-bold text-muted-foreground/70">Match Results</h3>
+                  <p className="text-sm text-muted-foreground/70">Results will appear here after you paste a JD and click analyze.</p>
                </div>
             </Card>
          )}

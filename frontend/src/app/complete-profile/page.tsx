@@ -63,7 +63,7 @@ export default function CompleteProfilePage() {
   if (!role) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Toast Notification */}
       <AnimatePresence mode="wait">
         {(error || success) && (
@@ -87,7 +87,7 @@ export default function CompleteProfilePage() {
               <button 
                 type="button"
                 onClick={() => { setError(""); setSuccess(""); }}
-                className="text-slate-400 hover:text-white transition-colors"
+                className="text-muted-foreground/70 hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -166,7 +166,7 @@ export default function CompleteProfilePage() {
             </CardContent>
           </form>
           <CardFooter className="justify-center">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Need help? <Link href="/contact" className="text-primary hover:underline font-medium">Contact Support</Link>
             </p>
           </CardFooter>

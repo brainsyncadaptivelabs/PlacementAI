@@ -73,7 +73,7 @@ export default function RoadmapPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
-        <p className="text-slate-500 font-medium italic">Our AI is crafting your personalized career path...</p>
+        <p className="text-muted-foreground font-medium italic">Our AI is crafting your personalized career path...</p>
       </div>
     );
   }
@@ -85,8 +85,8 @@ export default function RoadmapPage() {
           <FileText className="w-10 h-10 text-red-400" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-slate-900">Oops! {error}</h1>
-          <p className="text-slate-500">We need your resume to understand your background and provide the best guidance.</p>
+          <h1 className="text-2xl font-bold text-foreground">Oops! {error}</h1>
+          <p className="text-muted-foreground">We need your resume to understand your background and provide the best guidance.</p>
         </div>
         <Button onClick={() => window.location.href='/dashboard/ats'} size="lg">Go to Resume Upload</Button>
       </div>
@@ -97,21 +97,21 @@ export default function RoadmapPage() {
     <div className="p-8 max-w-5xl mx-auto space-y-8">
       {/* Title Header */}
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold font-heading text-slate-900">Your Personalized Roadmap</h1>
-        <p className="text-sm text-slate-500 font-medium">
+        <h1 className="text-2xl font-bold font-heading text-foreground">Your Personalized Roadmap</h1>
+        <p className="text-sm text-muted-foreground font-medium">
           Input your target job role/career goal to generate an AI-customized learning journey.
         </p>
       </div>
 
       {/* Target Requirements Input Card */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end bg-white p-6 rounded-2xl border border-slate-100 shadow-sm w-full">
+      <div className="flex flex-col sm:flex-row gap-4 items-end bg-card p-6 rounded-2xl border border-border shadow-sm w-full">
         <div className="flex-1 space-y-2">
-          <label className="text-xs font-black uppercase tracking-wider text-slate-400">Target Career Goal / Job Role</label>
+          <label className="text-xs font-black uppercase tracking-wider text-muted-foreground/70">Target Career Goal / Job Role</label>
           <input 
             type="text" 
             value={careerGoal} 
             onChange={(e) => setCareerGoal(e.target.value)} 
-            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-semibold text-slate-800"
+            className="w-full bg-muted border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary font-semibold text-foreground"
             placeholder="e.g. Frontend Engineer, Android Developer, Data Scientist"
           />
         </div>
@@ -123,8 +123,8 @@ export default function RoadmapPage() {
 
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card className="border-none shadow-sm bg-white overflow-hidden">
-             <div className="p-6 border-b border-slate-50 bg-slate-50/50 font-bold text-slate-900">Recommended Skills</div>
+          <Card className="border-none shadow-sm bg-card overflow-hidden">
+             <div className="p-6 border-b border-border bg-muted/50 font-bold text-foreground">Recommended Skills</div>
              <CardContent className="p-6">
                 <div className="flex flex-wrap gap-2">
                    {roadmap?.recommendedSkills.map(skill => (
@@ -134,12 +134,12 @@ export default function RoadmapPage() {
              </CardContent>
           </Card>
           
-          <Card className="border-none shadow-sm bg-white overflow-hidden">
-             <div className="p-6 border-b border-slate-50 bg-slate-50/50 font-bold text-slate-900">Project Suggestions</div>
+          <Card className="border-none shadow-sm bg-card overflow-hidden">
+             <div className="p-6 border-b border-border bg-muted/50 font-bold text-foreground">Project Suggestions</div>
              <CardContent className="p-6">
                 <ul className="space-y-3">
                    {roadmap?.projectSuggestions.map((project, i) => (
-                     <li key={i} className="text-sm text-slate-600 flex gap-2">
+                     <li key={i} className="text-sm text-muted-foreground flex gap-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
                         {project}
                      </li>
@@ -151,23 +151,23 @@ export default function RoadmapPage() {
 
         <div className="relative pt-4 pl-4">
            {/* Vertical Line */}
-           <div className="absolute left-10 top-8 bottom-8 w-0.5 bg-slate-100" />
+           <div className="absolute left-10 top-8 bottom-8 w-0.5 bg-muted" />
 
            <div className="space-y-12 relative">
               {roadmap?.learningPath.map((item, index) => (
                 <div key={index} className="flex items-start gap-8 group">
                    <div className="relative z-10">
-                      <div className="w-12 h-12 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center font-bold text-lg border-4 border-white shadow-sm transition-all group-hover:scale-110">
+                      <div className="w-12 h-12 rounded-full bg-muted text-muted-foreground/70 flex items-center justify-center font-bold text-lg border-4 border-white shadow-sm transition-all group-hover:scale-110">
                          {index + 1}
                       </div>
                    </div>
                    <Card className="flex-1 border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer">
                       <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                          <div className="space-y-3 flex-1">
-                            <h3 className="font-bold text-lg text-slate-800">{item}</h3>
-                            <p className="text-xs text-slate-500">Step {index + 1} of your personalized growth plan.</p>
+                            <h3 className="font-bold text-lg text-foreground">{item}</h3>
+                            <p className="text-xs text-muted-foreground">Step {index + 1} of your personalized growth plan.</p>
                          </div>
-                         <Button variant="ghost" size="icon" className="text-slate-300 group-hover:text-primary group-hover:bg-primary/5">
+                         <Button variant="ghost" size="icon" className="text-muted-foreground/50 group-hover:text-primary group-hover:bg-primary/5">
                             <ChevronRight className="w-6 h-6" />
                          </Button>
                       </CardContent>

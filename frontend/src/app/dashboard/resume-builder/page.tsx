@@ -81,8 +81,8 @@ export default function ResumeBuilderPortal() {
     <div className="p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-300">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Resume Builder</h1>
-          <p className="text-slate-500 mt-1">Create and manage high-fidelity professional resumes with AI feedback.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Resume Builder</h1>
+          <p className="text-muted-foreground mt-1">Create and manage high-fidelity professional resumes with AI feedback.</p>
         </div>
         <Button 
           onClick={() => router.push("/dashboard/resume-builder/templates")} 
@@ -94,12 +94,12 @@ export default function ResumeBuilderPortal() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {resumes.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center p-16 bg-white rounded-2xl border border-slate-100 shadow-sm text-center">
+          <div className="col-span-full flex flex-col items-center justify-center p-16 bg-card rounded-2xl border border-border shadow-sm text-center">
             <div className="w-14 h-14 bg-indigo-50 text-indigo-650 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
               <FileText className="w-7 h-7" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900">No resumes created yet</h3>
-            <p className="text-slate-400 mt-1 max-w-xs">Start building your first job-winning professional resume today.</p>
+            <h3 className="text-lg font-bold text-foreground">No resumes created yet</h3>
+            <p className="text-muted-foreground/70 mt-1 max-w-xs">Start building your first job-winning professional resume today.</p>
             <Button 
               onClick={() => router.push("/dashboard/resume-builder/templates")} 
               className="mt-6 rounded-xl bg-slate-900 text-white font-bold px-6 py-4 text-xs hover:bg-indigo-650 transition-colors"
@@ -120,11 +120,11 @@ export default function ResumeBuilderPortal() {
               <Card 
                 key={resume.id} 
                 onClick={() => handleEditResume(resume)}
-                className="group border border-slate-100 hover:border-indigo-150 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.04)] transition-all duration-300 rounded-2xl cursor-pointer bg-white relative flex flex-col justify-between"
+                className="group border border-border hover:border-indigo-150 hover:-translate-y-1 hover:shadow-[0_12px_28px_rgba(0,0,0,0.04)] transition-all duration-300 rounded-2xl cursor-pointer bg-card relative flex flex-col justify-between"
               >
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-indigo-650 transition-colors leading-tight">
+                    <CardTitle className="text-lg font-bold text-foreground group-hover:text-indigo-650 transition-colors leading-tight">
                       {resume.title || "Untitled Resume"}
                     </CardTitle>
                     <div className="flex gap-1" onClick={e => e.stopPropagation()}>
@@ -132,7 +132,7 @@ export default function ResumeBuilderPortal() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleEditResume(resume)}
-                        className="w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-50"
+                        className="w-8 h-8 rounded-lg text-muted-foreground/70 hover:text-foreground hover:bg-muted"
                       >
                         <Edit2 className="w-4 h-4" />
                       </Button>
@@ -140,23 +140,23 @@ export default function ResumeBuilderPortal() {
                         variant="ghost" 
                         size="icon" 
                         onClick={(e) => handleDelete(e, resume.id)}
-                        className="w-8 h-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
+                        className="w-8 h-8 rounded-lg text-muted-foreground/70 hover:text-red-500 hover:bg-red-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
-                  <CardDescription className="text-xs font-semibold text-slate-400 flex items-center gap-1.5 mt-0.5">
+                  <CardDescription className="text-xs font-semibold text-muted-foreground/70 flex items-center gap-1.5 mt-0.5">
                     <span>Template: {templateName}</span>
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="py-2">
-                  <div className="text-xs font-medium text-slate-500 line-clamp-2 leading-relaxed">
+                  <div className="text-xs font-medium text-muted-foreground line-clamp-2 leading-relaxed">
                     {summary}
                   </div>
                 </CardContent>
-                <CardFooter className="border-t border-slate-50/50 bg-slate-50/30 flex justify-between items-center py-3.5 rounded-b-2xl px-6">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{fullName}</span>
+                <CardFooter className="border-t border-border/50 bg-muted/30 flex justify-between items-center py-3.5 rounded-b-2xl px-6">
+                  <span className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">{fullName}</span>
                   <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-100/30">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>ATS Score: {atsScore}</span>

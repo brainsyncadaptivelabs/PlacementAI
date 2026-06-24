@@ -41,7 +41,7 @@ export default function CompleteStudentProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10" />
 
@@ -58,7 +58,7 @@ export default function CompleteStudentProfile() {
                 <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold">!</div>
                 <span className="text-sm font-medium tracking-tight truncate max-w-[200px]">{error}</span>
               </div>
-              <button type="button" onClick={() => setError("")} className="text-slate-400 hover:text-white transition-colors">
+              <button type="button" onClick={() => setError("")} className="text-muted-foreground/70 hover:text-white transition-colors">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -67,35 +67,35 @@ export default function CompleteStudentProfile() {
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8">
-        <h2 className="text-3xl font-black text-slate-900 font-heading">Complete Your Student Profile</h2>
-        <p className="mt-2 text-sm text-slate-500 font-medium">Just a few more details to personalize your experience.</p>
+        <h2 className="text-3xl font-black text-foreground font-heading">Complete Your Student Profile</h2>
+        <p className="mt-2 text-sm text-muted-foreground font-medium">Just a few more details to personalize your experience.</p>
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Card className="border-none shadow-2xl bg-white/80 backdrop-blur-sm">
+        <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm">
           <CardContent className="pt-8 px-8 pb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1">
-                <Label htmlFor="collegeName" className="text-xs font-bold text-slate-500 uppercase tracking-wider">College Name *</Label>
-                <Input id="collegeName" required className="h-12 bg-slate-50" value={formData.collegeName} onChange={(e) => setFormData({...formData, collegeName: e.target.value})} />
+                <Label htmlFor="collegeName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">College Name *</Label>
+                <Input id="collegeName" required className="h-12 bg-muted" value={formData.collegeName} onChange={(e) => setFormData({...formData, collegeName: e.target.value})} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label htmlFor="branch" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Branch *</Label>
-                  <Input id="branch" required className="h-12 bg-slate-50" value={formData.branch} onChange={(e) => setFormData({...formData, branch: e.target.value})} />
+                  <Label htmlFor="branch" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Branch *</Label>
+                  <Input id="branch" required className="h-12 bg-muted" value={formData.branch} onChange={(e) => setFormData({...formData, branch: e.target.value})} />
                 </div>
                 <div className="space-y-1">
-                  <Label htmlFor="graduationYear" className="text-xs font-bold text-slate-500 uppercase tracking-wider">Grad. Year *</Label>
-                  <Input id="graduationYear" type="number" required className="h-12 bg-slate-50" value={formData.graduationYear} onChange={(e) => setFormData({...formData, graduationYear: parseInt(e.target.value)})} />
+                  <Label htmlFor="graduationYear" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Grad. Year *</Label>
+                  <Input id="graduationYear" type="number" required className="h-12 bg-muted" value={formData.graduationYear} onChange={(e) => setFormData({...formData, graduationYear: parseInt(e.target.value)})} />
                 </div>
               </div>
               <div className="space-y-1">
-                <Label htmlFor="linkedinUrl" className="text-xs font-bold text-slate-500 uppercase tracking-wider">LinkedIn URL (Optional)</Label>
-                <Input id="linkedinUrl" type="url" className="h-12 bg-slate-50" value={formData.linkedinUrl} onChange={(e) => setFormData({...formData, linkedinUrl: e.target.value})} />
+                <Label htmlFor="linkedinUrl" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">LinkedIn URL (Optional)</Label>
+                <Input id="linkedinUrl" type="url" className="h-12 bg-muted" value={formData.linkedinUrl} onChange={(e) => setFormData({...formData, linkedinUrl: e.target.value})} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="githubUrl" className="text-xs font-bold text-slate-500 uppercase tracking-wider">GitHub URL (Optional)</Label>
-                <Input id="githubUrl" type="url" className="h-12 bg-slate-50" value={formData.githubUrl} onChange={(e) => setFormData({...formData, githubUrl: e.target.value})} />
+                <Label htmlFor="githubUrl" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GitHub URL (Optional)</Label>
+                <Input id="githubUrl" type="url" className="h-12 bg-muted" value={formData.githubUrl} onChange={(e) => setFormData({...formData, githubUrl: e.target.value})} />
               </div>
               <Button type="submit" disabled={loading} className="w-full h-12 text-lg font-bold bg-primary hover:bg-primary/90 shadow-lg mt-4">
                 {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Save & Continue"}

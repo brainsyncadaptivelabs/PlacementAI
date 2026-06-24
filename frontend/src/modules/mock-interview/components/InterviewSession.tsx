@@ -356,7 +356,7 @@ export const InterviewSession = ({
           </CardHeader>
           <CardContent className="space-y-4 p-0">
             <textarea
-              className="w-full min-h-[100px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white text-foreground"
+              className="w-full min-h-[100px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-card text-foreground"
               placeholder="Your answer will appear here as you speak, or you can type directly..."
               value={typedAnswer}
               onChange={(e) => setTypedAnswer(e.target.value)}

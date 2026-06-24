@@ -839,7 +839,7 @@ Risk: <e.g., Low or None>
   };
 
   return (
-    <div className="h-screen flex flex-col bg-slate-50 overflow-hidden font-sans relative selection:bg-indigo-150">
+    <div className="h-screen flex flex-col bg-muted overflow-hidden font-sans relative selection:bg-indigo-150">
       
       {/* 1. FOCUS MODE (Fullscreen Preview) */}
       {focusMode && (
@@ -850,7 +850,7 @@ Risk: <e.g., Low or None>
               <span className="text-sm font-black tracking-wider uppercase text-indigo-400">
                 Focus Mode
               </span>
-              <span className="text-[10px] font-extrabold text-slate-400 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded uppercase">
+              <span className="text-[10px] font-extrabold text-muted-foreground/70 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded uppercase">
                 {pages.length} Pages
               </span>
             </div>
@@ -862,14 +862,14 @@ Risk: <e.g., Low or None>
                   variant="ghost" 
                   size="icon" 
                   onClick={handleZoomOut} 
-                  className="h-8 w-8 rounded text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="h-8 w-8 rounded text-muted-foreground/70 hover:text-white hover:bg-slate-800"
                 >
                   <ZoomOut className="w-4 h-4" />
                 </Button>
                 <select
                   value={`${Math.round(zoom * 100)}%`}
                   onChange={(e) => setZoom(parseFloat(e.target.value) / 100)}
-                  className="text-xs font-bold text-slate-300 bg-transparent border-none focus:outline-none focus:ring-0 w-16 text-center cursor-pointer"
+                  className="text-xs font-bold text-muted-foreground/50 bg-transparent border-none focus:outline-none focus:ring-0 w-16 text-center cursor-pointer"
                 >
                   <option value="75%" className="bg-slate-900 text-white">75%</option>
                   <option value="100%" className="bg-slate-900 text-white">100%</option>
@@ -880,7 +880,7 @@ Risk: <e.g., Low or None>
                   variant="ghost" 
                   size="icon" 
                   onClick={handleZoomIn} 
-                  className="h-8 w-8 rounded text-slate-400 hover:text-white hover:bg-slate-800"
+                  className="h-8 w-8 rounded text-muted-foreground/70 hover:text-white hover:bg-slate-800"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </Button>
@@ -889,7 +889,7 @@ Risk: <e.g., Low or None>
                 variant="ghost" 
                 size="sm" 
                 onClick={handleFitWidth} 
-                className="text-xs font-bold h-9 text-slate-400 hover:text-white rounded-lg px-3 hover:bg-slate-800"
+                className="text-xs font-bold h-9 text-muted-foreground/70 hover:text-white rounded-lg px-3 hover:bg-slate-800"
               >
                 Fit Width
               </Button>
@@ -897,7 +897,7 @@ Risk: <e.g., Low or None>
                 variant="ghost" 
                 size="sm" 
                 onClick={handleFitPage} 
-                className="text-xs font-bold h-9 text-slate-400 hover:text-white rounded-lg px-3 hover:bg-slate-800"
+                className="text-xs font-bold h-9 text-muted-foreground/70 hover:text-white rounded-lg px-3 hover:bg-slate-800"
               >
                 Fit Page
               </Button>
@@ -916,7 +916,7 @@ Risk: <e.g., Low or None>
               <Button 
                 variant="ghost"
                 onClick={() => setShowVersionModal(true)} 
-                className="h-9 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 gap-1.5"
+                className="h-9 rounded-lg text-muted-foreground/70 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 gap-1.5"
               >
                 <Save className="w-4 h-4" />
                 Save
@@ -947,7 +947,7 @@ Risk: <e.g., Low or None>
               <Button 
                 variant="outline" 
                 onClick={() => setFocusMode(false)} 
-                className="h-9 rounded-lg border-slate-850 text-slate-300 hover:bg-slate-800 text-xs font-bold gap-1.5 bg-transparent"
+                className="h-9 rounded-lg border-slate-850 text-muted-foreground/50 hover:bg-slate-800 text-xs font-bold gap-1.5 bg-transparent"
               >
                 <Minimize2 className="w-4 h-4" />
                 Exit Focus
@@ -970,7 +970,7 @@ Risk: <e.g., Low or None>
                     position: "relative",
                     overflow: "visible"
                   }}
-                  className="shadow-[0_24px_64px_rgba(0,0,0,0.6)] border border-slate-800 bg-white overflow-hidden"
+                  className="shadow-[0_24px_64px_rgba(0,0,0,0.6)] border border-slate-800 bg-card overflow-hidden"
                 >
                   <div 
                     style={{
@@ -999,18 +999,18 @@ Risk: <e.g., Low or None>
 
       {/* Top action/score header bar - Sticky */}
       {!focusMode && (
-        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-white border-b border-slate-200 z-40">
+        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-card border-b border-border z-40">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/resume-builder")} className="rounded-lg hover:bg-slate-100 h-9 px-2">
-              <ArrowLeft className="w-4 h-4 text-slate-700 mr-1" />
-              <span className="text-xs font-bold text-slate-700">Back</span>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/resume-builder")} className="rounded-lg hover:bg-muted h-9 px-2">
+              <ArrowLeft className="w-4 h-4 text-foreground mr-1" />
+              <span className="text-xs font-bold text-foreground">Back</span>
             </Button>
             <div className="h-6 w-px bg-slate-200 mx-1" />
             <input 
               type="text" 
               value={resumeTitle}
               onChange={(e) => setResumeTitle(e.target.value)}
-              className="text-sm font-bold text-slate-900 leading-none bg-transparent border-none focus:outline-none focus:ring-0 p-0"
+              className="text-sm font-bold text-foreground leading-none bg-transparent border-none focus:outline-none focus:ring-0 p-0"
             />
             <div className="flex items-center gap-2">
               <span className={`text-[10px] font-bold ${saveStatus === "Saved" ? "text-emerald-600" : "text-amber-500"}`}>
@@ -1022,13 +1022,13 @@ Risk: <e.g., Low or None>
           {/* Actions header group */}
           <div className="flex items-center gap-2">
             {/* History Undo/Redo */}
-            <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-200 p-0.5 rounded-lg mr-2">
+            <div className="flex items-center gap-0.5 bg-muted border border-border p-0.5 rounded-lg mr-2">
               <Button 
                 variant="ghost" 
                 size="icon" 
                 onClick={handleUndo} 
                 disabled={historyIndex === 0} 
-                className="h-7 w-7 rounded text-slate-500 disabled:opacity-40"
+                className="h-7 w-7 rounded text-muted-foreground disabled:opacity-40"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
               </Button>
@@ -1037,7 +1037,7 @@ Risk: <e.g., Low or None>
                 size="icon" 
                 onClick={handleRedo} 
                 disabled={historyIndex === history.length - 1} 
-                className="h-7 w-7 rounded text-slate-500 disabled:opacity-40"
+                className="h-7 w-7 rounded text-muted-foreground disabled:opacity-40"
               >
                 <RotateCw className="w-3.5 h-3.5" />
               </Button>
@@ -1046,7 +1046,7 @@ Risk: <e.g., Low or None>
             <Button 
               variant="outline" 
               onClick={() => setShowVersionModal(true)} 
-              className="rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 text-[11px] font-bold h-9 px-3"
+              className="rounded-lg border-border text-foreground hover:bg-muted text-[11px] font-bold h-9 px-3"
             >
               Versions ({versions.length})
             </Button>
@@ -1056,7 +1056,7 @@ Risk: <e.g., Low or None>
               id="ai-coach-toggle-btn"
               onClick={() => setAiExpanded(!aiExpanded)} 
               className={`rounded-lg text-[11px] font-bold gap-1.5 h-9 px-3 ${
-                aiExpanded ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
+                aiExpanded ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-card border border-border text-foreground hover:bg-muted"
               }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
@@ -1077,7 +1077,7 @@ Risk: <e.g., Low or None>
             <Button 
               variant="outline" 
               onClick={toggleFocusMode} 
-              className="rounded-lg border-slate-200 text-slate-700 hover:bg-slate-50 text-[11px] font-bold gap-1.5 h-9 px-3"
+              className="rounded-lg border-border text-foreground hover:bg-muted text-[11px] font-bold gap-1.5 h-9 px-3"
             >
               <Maximize2 className="w-3.5 h-3.5" />
               Focus Mode
@@ -1090,14 +1090,14 @@ Risk: <e.g., Low or None>
                 Export
               </Button>
               <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
-                <div className="w-40 bg-white border border-slate-100 rounded-xl shadow-xl py-1">
-                  <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 flex items-center justify-between">
+                <div className="w-40 bg-card border border-border rounded-xl shadow-xl py-1">
+                  <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-foreground hover:bg-muted flex items-center justify-between">
                     <span>PDF (Recommended)</span>
                   </button>
-                  <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                  <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted">
                     Word (.doc)
                   </button>
-                  <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                  <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted">
                     LaTeX (.tex)
                   </button>
                 </div>
@@ -1112,9 +1112,9 @@ Risk: <e.g., Low or None>
         <div className="flex-1 flex gap-4 p-4 h-[calc(100vh-56px)] overflow-hidden w-full bg-[#f8fafc] max-w-none">
           
           {/* 1. EDITOR PANEL: Left 25% on desktop (lg), 40% on tablet (md), 100% on mobile */}
-          <div className="w-full md:w-[40%] lg:w-[25%] h-full bg-white border border-slate-200 rounded-2xl flex flex-col overflow-hidden shrink-0 z-10 shadow-sm">
+          <div className="w-full md:w-[40%] lg:w-[25%] h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden shrink-0 z-10 shadow-sm">
             {/* Section tabs */}
-            <div className="p-3 bg-slate-50/50 border-b border-slate-100">
+            <div className="p-3 bg-muted/50 border-b border-border">
               <div className="grid grid-cols-3 gap-1 bg-slate-200/50 p-1 rounded-xl">
                 {(["personal", "summary", "skills", "experience", "projects", "education"] as const).map(section => (
                   <button
@@ -1122,8 +1122,8 @@ Risk: <e.g., Low or None>
                     onClick={() => setActiveSection(section)}
                     className={`py-1.5 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
                       activeSection === section 
-                        ? "bg-white text-slate-900 shadow-sm" 
-                        : "text-slate-500 hover:text-slate-800"
+                        ? "bg-card text-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {section === "personal" ? "Info" : section}
@@ -1147,7 +1147,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, name: e.target.value }
                       })}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-border"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1160,7 +1160,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, email: e.target.value }
                       })}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-border"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1173,7 +1173,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, phone: e.target.value }
                       })}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-border"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1186,7 +1186,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, linkedin: e.target.value }
                       })}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-border"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1199,7 +1199,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, github: e.target.value }
                       })}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-border"
                     />
                   </div>
                   <div className="space-y-1">
@@ -1212,7 +1212,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, leetcode: e.target.value }
                       })}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-border"
                     />
                   </div>
                 </div>
@@ -1222,7 +1222,7 @@ Risk: <e.g., Low or None>
               {activeSection === "summary" && (
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-slate-400 font-medium mb-1">
+                    <div className="flex justify-between text-xs text-muted-foreground/70 font-medium mb-1">
                       <Label htmlFor="summary">Summary Details</Label>
                       <span>{state.summary.length} characters</span>
                     </div>
@@ -1235,7 +1235,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         summary: e.target.value
                       })}
-                      className="rounded-xl border-slate-200 resize-none leading-relaxed"
+                      className="rounded-xl border-border resize-none leading-relaxed"
                     />
                   </div>
                 </div>
@@ -1254,7 +1254,7 @@ Risk: <e.g., Low or None>
                           nextSkills[index] = e.target.value;
                           updateState({ ...state, skills: nextSkills });
                         }}
-                        className="rounded-xl border-slate-200"
+                        className="rounded-xl border-border"
                       />
                       <Button
                         variant="ghost"
@@ -1263,7 +1263,7 @@ Risk: <e.g., Low or None>
                           const nextSkills = state.skills.filter((_, idx) => idx !== index);
                           updateState({ ...state, skills: nextSkills });
                         }}
-                        className="text-slate-400 hover:text-red-500 rounded-xl"
+                        className="text-muted-foreground/70 hover:text-red-500 rounded-xl"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -1272,7 +1272,7 @@ Risk: <e.g., Low or None>
                   <Button
                     onClick={() => updateState({ ...state, skills: [...state.skills, ""] })}
                     variant="outline"
-                    className="w-full rounded-xl border-dashed border-slate-200 text-xs font-bold gap-1.5"
+                    className="w-full rounded-xl border-dashed border-border text-xs font-bold gap-1.5"
                   >
                     <Plus className="w-4 h-4" /> Add Skill Category
                   </Button>
@@ -1283,7 +1283,7 @@ Risk: <e.g., Low or None>
               {activeSection === "experience" && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Jobs List</h3>
+                    <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Jobs List</h3>
                     <Button onClick={() => addNewItem("experience")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-8 text-[10px]">
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Job
                     </Button>
@@ -1293,25 +1293,25 @@ Risk: <e.g., Low or None>
                     const isCollapsed = collapsedBlocks[exp.id] ?? false;
 
                     return (
-                      <div key={exp.id} className="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
+                      <div key={exp.id} className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
                         <div 
                           onClick={() => toggleCollapse(exp.id)}
-                          className="bg-slate-50/50 px-3 py-2.5 border-b border-slate-100 flex justify-between items-center cursor-pointer select-none"
+                          className="bg-muted/50 px-3 py-2.5 border-b border-border flex justify-between items-center cursor-pointer select-none"
                         >
-                          <div className="font-extrabold text-slate-900 text-xs truncate max-w-[150px]">
+                          <div className="font-extrabold text-foreground text-xs truncate max-w-[150px]">
                             {exp.company || "Company"}
                           </div>
                           <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" onClick={() => moveItem("experience", index, "up")} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => moveItem("experience", index, "up")} className="h-6 w-6 rounded text-muted-foreground">
                               <ChevronUp className="w-3.5 h-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => moveItem("experience", index, "down")} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => moveItem("experience", index, "down")} className="h-6 w-6 rounded text-muted-foreground">
                               <ChevronDown className="w-3.5 h-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => duplicateItem("experience", index)} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => duplicateItem("experience", index)} className="h-6 w-6 rounded text-muted-foreground">
                               <Copy className="w-3 h-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteItem("experience", index)} className="h-6 w-6 rounded text-slate-400 hover:text-red-500">
+                            <Button variant="ghost" size="icon" onClick={() => deleteItem("experience", index)} className="h-6 w-6 rounded text-muted-foreground/70 hover:text-red-500">
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
@@ -1329,7 +1329,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], company: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1342,7 +1342,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], role: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1355,7 +1355,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], duration: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1369,7 +1369,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], description: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-slate-200 resize-none text-xs"
+                                className="rounded-xl border-border resize-none text-xs"
                               />
                             </div>
                           </div>
@@ -1384,7 +1384,7 @@ Risk: <e.g., Low or None>
               {activeSection === "projects" && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Projects List</h3>
+                    <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Projects List</h3>
                     <Button onClick={() => addNewItem("projects")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-8 text-[10px]">
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Project
                     </Button>
@@ -1394,25 +1394,25 @@ Risk: <e.g., Low or None>
                     const isCollapsed = collapsedBlocks[proj.id] ?? false;
 
                     return (
-                      <div key={proj.id} className="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
+                      <div key={proj.id} className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
                         <div 
                           onClick={() => toggleCollapse(proj.id)}
-                          className="bg-slate-50/50 px-3 py-2.5 border-b border-slate-100 flex justify-between items-center cursor-pointer select-none"
+                          className="bg-muted/50 px-3 py-2.5 border-b border-border flex justify-between items-center cursor-pointer select-none"
                         >
-                          <div className="font-extrabold text-slate-900 text-xs truncate max-w-[150px]">
+                          <div className="font-extrabold text-foreground text-xs truncate max-w-[150px]">
                             {proj.name || "Project"}
                           </div>
                           <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" onClick={() => moveItem("projects", index, "up")} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => moveItem("projects", index, "up")} className="h-6 w-6 rounded text-muted-foreground">
                               <ChevronUp className="w-3.5 h-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => moveItem("projects", index, "down")} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => moveItem("projects", index, "down")} className="h-6 w-6 rounded text-muted-foreground">
                               <ChevronDown className="w-3.5 h-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => duplicateItem("projects", index)} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => duplicateItem("projects", index)} className="h-6 w-6 rounded text-muted-foreground">
                               <Copy className="w-3 h-3" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteItem("projects", index)} className="h-6 w-6 rounded text-slate-400 hover:text-red-500">
+                            <Button variant="ghost" size="icon" onClick={() => deleteItem("projects", index)} className="h-6 w-6 rounded text-muted-foreground/70 hover:text-red-500">
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
@@ -1430,7 +1430,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], name: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1443,7 +1443,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], role: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1456,7 +1456,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], duration: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1470,7 +1470,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], description: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-slate-200 resize-none text-xs"
+                                className="rounded-xl border-border resize-none text-xs"
                               />
                             </div>
                           </div>
@@ -1485,7 +1485,7 @@ Risk: <e.g., Low or None>
               {activeSection === "education" && (
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
-                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Degrees</h3>
+                    <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Degrees</h3>
                     <Button onClick={() => addNewItem("education")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-8 text-[10px]">
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Degree
                     </Button>
@@ -1495,22 +1495,22 @@ Risk: <e.g., Low or None>
                     const isCollapsed = collapsedBlocks[edu.id] ?? false;
 
                     return (
-                      <div key={edu.id} className="border border-slate-100 rounded-xl overflow-hidden shadow-sm bg-white">
+                      <div key={edu.id} className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
                         <div 
                           onClick={() => toggleCollapse(edu.id)}
-                          className="bg-slate-50/50 px-3 py-2.5 border-b border-slate-100 flex justify-between items-center cursor-pointer select-none"
+                          className="bg-muted/50 px-3 py-2.5 border-b border-border flex justify-between items-center cursor-pointer select-none"
                         >
-                          <div className="font-extrabold text-slate-900 text-xs truncate max-w-[150px]">
+                          <div className="font-extrabold text-foreground text-xs truncate max-w-[150px]">
                             {edu.institution || "Institution"}
                           </div>
                           <div className="flex items-center gap-0.5" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" onClick={() => moveItem("education", index, "up")} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => moveItem("education", index, "up")} className="h-6 w-6 rounded text-muted-foreground">
                               <ChevronUp className="w-3.5 h-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => moveItem("education", index, "down")} className="h-6 w-6 rounded text-slate-500">
+                            <Button variant="ghost" size="icon" onClick={() => moveItem("education", index, "down")} className="h-6 w-6 rounded text-muted-foreground">
                               <ChevronDown className="w-3.5 h-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => deleteItem("education", index)} className="h-6 w-6 rounded text-slate-400 hover:text-red-500">
+                            <Button variant="ghost" size="icon" onClick={() => deleteItem("education", index)} className="h-6 w-6 rounded text-muted-foreground/70 hover:text-red-500">
                               <Trash2 className="w-3 h-3" />
                             </Button>
                           </div>
@@ -1528,7 +1528,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], institution: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1541,7 +1541,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], degree: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1554,7 +1554,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], duration: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                             <div className="space-y-1">
@@ -1567,7 +1567,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], details: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-slate-200 h-9"
+                                className="rounded-xl border-border h-9"
                               />
                             </div>
                           </div>
@@ -1581,46 +1581,46 @@ Risk: <e.g., Low or None>
           </div>
 
           {/* 2. DOME PREVIEW WORKSPACE: Middle panel (60% or 75% desktop, 60% tablet, hidden on mobile) */}
-          <div className={`hidden md:flex flex-col h-full overflow-hidden bg-[#f1f5f9] border border-slate-200 rounded-2xl relative transition-all duration-300 ${
+          <div className={`hidden md:flex flex-col h-full overflow-hidden bg-[#f1f5f9] border border-border rounded-2xl relative transition-all duration-300 ${
             aiExpanded ? "lg:w-[60%]" : "lg:w-[75%]"
           }`}>
             {/* Dynamic A4 Preview Toolbar */}
-            <div className="h-12 shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-6 select-none">
+            <div className="h-12 shrink-0 bg-card border-b border-border flex items-center justify-between px-6 select-none">
               <div className="flex items-center gap-2">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={handlePrevPage}
-                  className="h-7 w-7 rounded hover:bg-slate-100"
+                  className="h-7 w-7 rounded hover:bg-muted"
                 >
-                  <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
+                  <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
-                <span className="text-[10px] font-bold text-slate-500 px-2 py-0.5 rounded-md uppercase select-none">
+                <span className="text-[10px] font-bold text-muted-foreground px-2 py-0.5 rounded-md uppercase select-none">
                   Page {currentPageIdx + 1} of {pages.length || 1}
                 </span>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={handleNextPage}
-                  className="h-7 w-7 rounded hover:bg-slate-100"
+                  className="h-7 w-7 rounded hover:bg-muted"
                 >
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
               </div>
               
               {/* Scale Zoom widgets */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-0.5 bg-slate-50 p-0.5 rounded-lg border border-slate-200">
+                <div className="flex items-center gap-0.5 bg-muted p-0.5 rounded-lg border border-border">
                   <Button variant="ghost" size="icon" onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))} className="h-6 w-6 rounded">
-                    <ZoomOut className="w-3 h-3 text-slate-600" />
+                    <ZoomOut className="w-3 h-3 text-muted-foreground" />
                   </Button>
-                  <span className="text-[10px] font-bold text-slate-700 w-10 text-center">{Math.round(zoom * 100)}%</span>
+                  <span className="text-[10px] font-bold text-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
                   <Button variant="ghost" size="icon" onClick={() => setZoom(prev => Math.min(2.0, prev + 0.1))} className="h-6 w-6 rounded">
-                    <ZoomIn className="w-3 h-3 text-slate-600" />
+                    <ZoomIn className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </div>
                 
-                <Button variant="ghost" size="sm" onClick={handleFitWidth} className="text-[9px] font-bold uppercase tracking-wider h-7 rounded-lg px-2 hover:bg-slate-100 text-slate-500">
+                <Button variant="ghost" size="sm" onClick={handleFitWidth} className="text-[9px] font-bold uppercase tracking-wider h-7 rounded-lg px-2 hover:bg-muted text-muted-foreground">
                   Fit Width
                 </Button>
               </div>
@@ -1632,7 +1632,7 @@ Risk: <e.g., Low or None>
                   size="icon" 
                   onClick={toggleFocusMode}
                   title="Fullscreen"
-                  className="h-8 w-8 rounded-lg text-slate-500 hover:bg-slate-100"
+                  className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-muted"
                 >
                   <Maximize2 className="w-3.5 h-3.5" />
                 </Button>
@@ -1659,7 +1659,7 @@ Risk: <e.g., Low or None>
                       position: "relative",
                       overflow: "visible"
                     }}
-                    className="shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-200 bg-white overflow-hidden transition-all duration-300"
+                    className="shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-border bg-card overflow-hidden transition-all duration-300"
                   >
                     <div 
                       style={{
@@ -1689,12 +1689,12 @@ Risk: <e.g., Low or None>
           {/* 3. AI PANEL COLUMN: Overlay drawer on tablet/mobile, side panel (15%) on desktop */}
           <div 
             ref={aiPanelRef}
-            className={`fixed right-4 top-24 bottom-4 w-[320px] bg-white border border-slate-200 shadow-2xl rounded-2xl z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:shadow-none lg:border-none lg:w-[15%] lg:right-0 lg:top-0 lg:h-full shrink-0 ${
+            className={`fixed right-4 top-24 bottom-4 w-[320px] bg-card border border-border shadow-2xl rounded-2xl z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:shadow-none lg:border-none lg:w-[15%] lg:right-0 lg:top-0 lg:h-full shrink-0 ${
               aiExpanded ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none lg:hidden"
             }`}
           >
-            <div className="p-4 border-b flex justify-between items-center bg-slate-50/50">
-              <h3 className="font-extrabold text-slate-900 text-sm flex items-center gap-1.5">
+            <div className="p-4 border-b flex justify-between items-center bg-muted/50">
+              <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-indigo-500" />
                 AI Coach
               </h3>
@@ -1706,22 +1706,22 @@ Risk: <e.g., Low or None>
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
               
               {/* ATS OPTIMIZATION SCOREBOARD */}
-              <div className="bg-slate-50 border border-slate-155 rounded-xl p-3 space-y-3 shadow-sm">
+              <div className="bg-muted border border-slate-155 rounded-xl p-3 space-y-3 shadow-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">ATS Scoreboard</span>
-                  <span className="text-[8px] font-bold text-slate-400 bg-slate-200/50 px-1.5 py-0.5 rounded border border-slate-200 select-none">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground/70">ATS Scoreboard</span>
+                  <span className="text-[8px] font-bold text-muted-foreground/70 bg-slate-200/50 px-1.5 py-0.5 rounded border border-border select-none">
                     Base: {baselineScore}
                   </span>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 shrink-0 flex items-center justify-center rounded-full border-2 border-slate-200 bg-white shadow-sm">
-                    <span className="text-base font-black text-slate-800 leading-none">{scores.ats}</span>
+                  <div className="relative w-12 h-12 shrink-0 flex items-center justify-center rounded-full border-2 border-border bg-card shadow-sm">
+                    <span className="text-base font-black text-foreground leading-none">{scores.ats}</span>
                   </div>
 
                   <div className="flex-1 space-y-0.5 min-w-0">
                     <div className="flex items-center gap-1">
-                      <span className="text-xs font-extrabold text-slate-700">
+                      <span className="text-xs font-extrabold text-foreground">
                         {baselineScore} &rarr; {scores.ats}
                       </span>
                       <span className={`text-[9px] font-black px-1 rounded ${
@@ -1732,16 +1732,16 @@ Risk: <e.g., Low or None>
                         +{scores.ats - baselineScore}
                       </span>
                     </div>
-                    <p className="text-[9px] text-slate-400 leading-tight">
+                    <p className="text-[9px] text-muted-foreground/70 leading-tight">
                       {scores.ats >= 85 ? "ATS filters passed!" : "Apply tips to optimize."}
                     </p>
                   </div>
                 </div>
 
                 {/* Weighted Subscores Progress list */}
-                <div className="space-y-1.5 pt-2 border-t border-slate-200/60">
+                <div className="space-y-1.5 pt-2 border-t border-border/60">
                   <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
                       <span>Completeness</span>
                       <span>{scores.completeness}%</span>
                     </div>
@@ -1750,7 +1750,7 @@ Risk: <e.g., Low or None>
                     </div>
                   </div>
                   <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
                       <span>Keywords</span>
                       <span>{scores.keywords}%</span>
                     </div>
@@ -1759,7 +1759,7 @@ Risk: <e.g., Low or None>
                     </div>
                   </div>
                   <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
                       <span>Impact</span>
                       <span>{scores.impact}%</span>
                     </div>
@@ -1768,7 +1768,7 @@ Risk: <e.g., Low or None>
                     </div>
                   </div>
                   <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
                       <span>Page Fit</span>
                       <span>{scores.coverage}%</span>
                     </div>
@@ -1780,15 +1780,15 @@ Risk: <e.g., Low or None>
               </div>
 
               {/* AI tab selector pills */}
-              <div className="grid grid-cols-2 gap-1 bg-slate-100/50 border p-1 rounded-xl">
+              <div className="grid grid-cols-2 gap-1 bg-muted/50 border p-1 rounded-xl">
                 {(["Improve", "ATS", "Keywords", "Rewrite"] as const).map(tab => (
                   <button
                     key={tab}
                     onClick={() => setAiActiveTab(tab)}
                     className={`py-1 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
                       aiActiveTab === tab 
-                        ? "bg-white text-slate-900 shadow-sm" 
-                        : "text-slate-500 hover:text-slate-800"
+                        ? "bg-card text-foreground shadow-sm" 
+                        : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     {tab}
@@ -1820,14 +1820,14 @@ Risk: <e.g., Low or None>
                   const isPreviewing = previewingSuggestionId === suggest.id;
 
                   return (
-                    <Card key={suggest.id} className="border border-slate-100 rounded-xl hover:shadow-md transition-all bg-white overflow-hidden">
+                    <Card key={suggest.id} className="border border-border rounded-xl hover:shadow-md transition-all bg-card overflow-hidden">
                       <CardContent className="p-3 space-y-2">
                         <div className="flex justify-between items-center">
                           <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-100 select-none">
                             {suggest.gain}
                           </span>
                           <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded border select-none ${
-                            suggest.risk === "None" ? "bg-slate-50 text-slate-400" :
+                            suggest.risk === "None" ? "bg-muted text-muted-foreground/70" :
                             suggest.risk === "Low" ? "bg-amber-50 text-amber-605 border-amber-100" :
                             "bg-rose-50 text-rose-600 border-rose-100"
                           }`}>
@@ -1835,12 +1835,12 @@ Risk: <e.g., Low or None>
                           </span>
                         </div>
                         
-                        <p className="text-[11px] text-slate-700 leading-normal font-semibold">
+                        <p className="text-[11px] text-foreground leading-normal font-semibold">
                           {suggest.text}
                         </p>
 
-                        <div className="text-[9px] text-slate-500 bg-slate-50 p-1.5 rounded-lg leading-tight border">
-                          <span className="font-extrabold text-slate-600 uppercase block text-[8px] tracking-wider mb-0.5">Why it works:</span>
+                        <div className="text-[9px] text-muted-foreground bg-muted p-1.5 rounded-lg leading-tight border">
+                          <span className="font-extrabold text-muted-foreground uppercase block text-[8px] tracking-wider mb-0.5">Why it works:</span>
                           {suggest.reason}
                         </div>
                         
@@ -1852,7 +1852,7 @@ Risk: <e.g., Low or None>
                             className={`flex-1 text-[9px] font-bold rounded-lg border h-8 ${
                               isPreviewing 
                                 ? "bg-indigo-50 border-indigo-200 text-indigo-650"
-                                : "border-slate-100 text-slate-500 hover:bg-slate-50"
+                                : "border-border text-muted-foreground hover:bg-muted"
                             }`}
                           >
                             {isPreviewing ? "Previewing" : "Preview"}
@@ -1879,10 +1879,10 @@ Risk: <e.g., Low or None>
                 })}
 
                 {aiSuggestions.length === 0 && !aiStreaming && (
-                  <div className="border border-dashed border-slate-200 p-6 text-center rounded-xl bg-slate-50/20">
-                    <Info className="w-6 h-6 text-slate-400 mx-auto mb-2" />
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">No suggestions loaded</p>
-                    <p className="text-[10px] text-slate-400 mt-1 leading-normal">Select a tab and click generate to audit your details.</p>
+                  <div className="border border-dashed border-border p-6 text-center rounded-xl bg-muted/20">
+                    <Info className="w-6 h-6 text-muted-foreground/70 mx-auto mb-2" />
+                    <p className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">No suggestions loaded</p>
+                    <p className="text-[10px] text-muted-foreground/70 mt-1 leading-normal">Select a tab and click generate to audit your details.</p>
                   </div>
                 )}
               </div>
@@ -1905,10 +1905,10 @@ Risk: <e.g., Low or None>
 
       {/* 4. MOBILE PREVIEW MODAL */}
       {mobileShowPreview && (
-        <div className="fixed inset-0 bg-white z-[110] flex flex-col overflow-hidden md:hidden">
+        <div className="fixed inset-0 bg-card z-[110] flex flex-col overflow-hidden md:hidden">
           {/* Header */}
-          <div className="h-16 shrink-0 border-b flex items-center justify-between px-4 bg-slate-50">
-            <span className="font-extrabold text-slate-900 text-sm">Resume Preview</span>
+          <div className="h-16 shrink-0 border-b flex items-center justify-between px-4 bg-muted">
+            <span className="font-extrabold text-foreground text-sm">Resume Preview</span>
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={handlePrintPdf} className="rounded-xl h-8 text-[10px] font-bold">
                 Export PDF
@@ -1920,10 +1920,10 @@ Risk: <e.g., Low or None>
           </div>
 
           {/* Centered canvas scaled for mobile screen */}
-          <div className="flex-1 overflow-auto p-4 bg-slate-100 flex flex-col items-center gap-4">
+          <div className="flex-1 overflow-auto p-4 bg-muted flex flex-col items-center gap-4">
             {pages.map((pageHtml, index) => (
               <div key={index} className="flex flex-col items-center">
-                <span className="text-[9px] font-bold text-slate-400 mb-1">Page {index + 1} of {pages.length}</span>
+                <span className="text-[9px] font-bold text-muted-foreground/70 mb-1">Page {index + 1} of {pages.length}</span>
                 <div 
                   style={{
                     width: `${950 * 0.38}px`,
@@ -1931,7 +1931,7 @@ Risk: <e.g., Low or None>
                     position: "relative",
                     overflow: "visible"
                   }}
-                  className="shadow-lg bg-white rounded-lg overflow-hidden border border-slate-200"
+                  className="shadow-lg bg-card rounded-lg overflow-hidden border border-border"
                 >
                   <div 
                     style={{
@@ -1956,10 +1956,10 @@ Risk: <e.g., Low or None>
       {/* 5. VERSION HISTORY MODAL */}
       {showVersionModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-lg border-none shadow-2xl rounded-2xl bg-white">
+          <Card className="w-full max-w-lg border-none shadow-2xl rounded-2xl bg-card">
             <CardHeader className="flex flex-row justify-between items-start">
               <div>
-                <CardTitle className="text-xl font-extrabold text-slate-900">Version Management</CardTitle>
+                <CardTitle className="text-xl font-extrabold text-foreground">Version Management</CardTitle>
                 <CardDescription>Save snapshots as patch differences and restore historical checkpoints (max 20).</CardDescription>
               </div>
               <Button variant="ghost" size="icon" onClick={() => setShowVersionModal(false)} className="rounded-xl">
@@ -1974,7 +1974,7 @@ Risk: <e.g., Low or None>
                     placeholder="Describe snapshot details..."
                     value={newVersionName}
                     onChange={(e) => setNewVersionName(e.target.value)}
-                    className="rounded-xl border-slate-200"
+                    className="rounded-xl border-border"
                   />
                 </div>
                 <Button onClick={handleSaveVersion} disabled={!newVersionName.trim()} className="rounded-xl bg-slate-900 text-white font-bold h-10 px-5">
@@ -1983,19 +1983,19 @@ Risk: <e.g., Low or None>
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Saved Snapshots</h3>
-                <div className="max-h-[240px] overflow-y-auto space-y-2 border border-slate-100 rounded-xl p-2 bg-slate-50/50">
+                <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Saved Snapshots</h3>
+                <div className="max-h-[240px] overflow-y-auto space-y-2 border border-border rounded-xl p-2 bg-muted/50">
                   {versions.map(v => (
-                    <div key={v.id} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+                    <div key={v.id} className="flex justify-between items-center p-3 bg-card border border-border rounded-lg shadow-sm">
                       <div>
-                        <div className="text-xs font-bold text-slate-900">{v.name}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{v.timestamp}</div>
+                        <div className="text-xs font-bold text-foreground">{v.name}</div>
+                        <div className="text-[10px] text-muted-foreground/70 mt-0.5">{v.timestamp}</div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => { handleRestoreVersion(v.patch); setShowVersionModal(false); }}
-                        className="rounded-xl border-slate-200 text-xs font-bold hover:bg-slate-50"
+                        className="rounded-xl border-border text-xs font-bold hover:bg-muted"
                       >
                         Restore
                       </Button>
@@ -2003,7 +2003,7 @@ Risk: <e.g., Low or None>
                   ))}
                   
                   {versions.length === 0 && (
-                    <div className="text-center py-8 text-slate-400 text-xs font-medium">
+                    <div className="text-center py-8 text-muted-foreground/70 text-xs font-medium">
                       No saved versions found. Save your first checkpoint above!
                     </div>
                   )}
@@ -2038,7 +2038,7 @@ Risk: <e.g., Low or None>
         {pages.map((pageHtml, index) => (
           <div 
             key={index} 
-            className="print-page bg-white" 
+            className="print-page bg-card" 
             dangerouslySetInnerHTML={{ __html: pageHtml }} 
           />
         ))}
@@ -2227,7 +2227,7 @@ function getFallbackSuggestions(category: string) {
 export default function ResumeEditorPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
       </div>
     }>

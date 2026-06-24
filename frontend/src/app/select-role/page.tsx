@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function SelectRolePage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-4 relative overflow-hidden">
       {/* Background blobs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl -z-10" />
@@ -20,10 +20,10 @@ export default function SelectRolePage() {
         <div className="inline-flex items-center justify-center gap-2 mb-4">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">A</div>
         </div>
-        <h1 className="text-4xl md:text-5xl font-black text-slate-900 font-heading tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-black text-foreground font-heading tracking-tight">
           Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">AI Placement Copilot</span>
         </h1>
-        <p className="text-lg text-slate-500 font-medium">
+        <p className="text-lg text-muted-foreground font-medium">
           We&apos;re excited to have you here. Whether you&apos;re building your career or building your team, AI Placement Copilot is designed to help you succeed faster.
         </p>
       </motion.div>
@@ -36,13 +36,13 @@ export default function SelectRolePage() {
           className="relative group"
         >
           <div className="absolute -inset-0.5 bg-gradient-to-br from-primary to-blue-600 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-500" />
-          <div className="relative h-full bg-white rounded-3xl p-8 flex flex-col items-center text-center space-y-6 shadow-xl border border-slate-100">
+          <div className="relative h-full bg-card rounded-3xl p-8 flex flex-col items-center text-center space-y-6 shadow-xl border border-border">
             <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm border border-blue-100">
               <GraduationCap className="w-10 h-10" />
             </div>
             <div className="space-y-3">
-              <h2 className="text-3xl font-black font-heading text-slate-900">Student</h2>
-              <ul className="text-slate-500 text-sm space-y-2 font-medium text-left inline-block">
+              <h2 className="text-3xl font-black font-heading text-foreground">Student</h2>
+              <ul className="text-muted-foreground text-sm space-y-2 font-medium text-left inline-block">
                 <li className="flex items-center gap-2">✓ Build ATS-friendly resumes</li>
                 <li className="flex items-center gap-2">✓ Get AI career guidance</li>
                 <li className="flex items-center gap-2">✓ Prepare for interviews</li>
@@ -65,13 +65,13 @@ export default function SelectRolePage() {
           className="relative group"
         >
           <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl blur opacity-25 group-hover:opacity-100 transition duration-500" />
-          <div className="relative h-full bg-white rounded-3xl p-8 flex flex-col items-center text-center space-y-6 shadow-xl border border-slate-100">
+          <div className="relative h-full bg-card rounded-3xl p-8 flex flex-col items-center text-center space-y-6 shadow-xl border border-border">
             <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-sm border border-emerald-100">
               <Building2 className="w-10 h-10" />
             </div>
             <div className="space-y-3">
-              <h2 className="text-3xl font-black font-heading text-slate-900">Recruiter</h2>
-              <ul className="text-slate-500 text-sm space-y-2 font-medium text-left inline-block">
+              <h2 className="text-3xl font-black font-heading text-foreground">Recruiter</h2>
+              <ul className="text-muted-foreground text-sm space-y-2 font-medium text-left inline-block">
                 <li className="flex items-center gap-2">✓ Post jobs and discover talent</li>
                 <li className="flex items-center gap-2">✓ Filter resumes with AI</li>
                 <li className="flex items-center gap-2">✓ Manage hiring pipeline</li>

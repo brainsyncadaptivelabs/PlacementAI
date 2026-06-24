@@ -28,11 +28,11 @@ import { usePerformanceProfile } from "@/hooks/usePerformanceProfile";
 
 // Lazy load non-critical components to reduce first paint
 const CareerMentorWidget = dynamic(() => import("@/components/dashboard/CareerMentorWidget"), { 
-  loading: () => <div className="h-48 animate-pulse bg-slate-100 rounded-3xl" /> 
+  loading: () => <div className="h-48 animate-pulse bg-muted rounded-3xl" /> 
 });
 
 const UpcomingEvents = dynamic(() => import("@/components/dashboard/UpcomingEvents"), {
-  loading: () => <div className="h-64 animate-pulse bg-slate-100 rounded-3xl" />
+  loading: () => <div className="h-64 animate-pulse bg-muted rounded-3xl" />
 });
 
 type DashboardStats = {
@@ -51,7 +51,7 @@ type DashboardStats = {
 };
 
 const RadialProgress = memo(({ score, animate }: { score: number, animate: boolean }) => (
-  <div className="relative z-10 flex flex-col items-center gap-4 bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-transparent shadow-md lg:w-72">
+  <div className="relative z-10 flex flex-col items-center gap-4 bg-card/5 backdrop-blur-xl p-8 rounded-[2.5rem] border border-transparent shadow-md lg:w-72">
     <div className="relative w-40 h-40">
        <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
           <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
@@ -59,11 +59,11 @@ const RadialProgress = memo(({ score, animate }: { score: number, animate: boole
        </svg>
        <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-4xl font-black tracking-tighter">{score}%</span>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ready</span>
+          <span className="text-[10px] font-black text-muted-foreground/70 uppercase tracking-widest">Ready</span>
        </div>
     </div>
     <div className="text-center">
-       <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-1">Placement Readiness</p>
+       <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/70 mb-1">Placement Readiness</p>
        <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
           <TrendingUp className="w-3 h-3" /> Updated just now
        </div>
@@ -150,20 +150,20 @@ export default function PerfectStudentPortal() {
       {/* Hero Welcome Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-md">
          <div className="relative z-10 space-y-6 lg:max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-transparent text-primary text-[10px] font-black uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/10 border border-transparent text-primary text-[10px] font-black uppercase tracking-widest">
                <Sparkles className="w-3 h-3" /> Ready for the next leap?
             </div>
             <h1 className="text-4xl lg:text-5xl font-black font-heading leading-tight">
                Good morning, <span className="text-primary italic">{userStats.fullName}</span> 👋
             </h1>
-            <p className="text-slate-400 text-lg font-medium leading-relaxed">
+            <p className="text-muted-foreground/70 text-lg font-medium leading-relaxed">
                Welcome to your AI Placement Copilot. Your readiness score is <span className="text-white font-bold">{userStats.readinessScore}%</span>. Keep up the good work!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
                <Button className="bg-primary hover:bg-primary/90 text-white font-black px-8 h-14 rounded-2xl shadow-sm text-md group" onClick={() => router.push('/dashboard/mock-interviews')}>
                   Start AI Interview <Mic2 className="ml-2 w-4 h-4 group-hover:scale-110 transition-transform" />
                </Button>
-               <Button variant="outline" className="border-transparent bg-white/10 hover:bg-white/20 text-white font-black px-8 h-14 rounded-2xl backdrop-blur-sm text-md" onClick={() => router.push('/dashboard/profile')}>
+               <Button variant="outline" className="border-transparent bg-card/10 hover:bg-card/20 text-white font-black px-8 h-14 rounded-2xl backdrop-blur-sm text-md" onClick={() => router.push('/dashboard/profile')}>
                   Update Profile
                </Button>
             </div>
@@ -179,7 +179,7 @@ export default function PerfectStudentPortal() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          <div className="lg:col-span-2 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <Card className="bg-white hover:-translate-y-1 transition-all duration-300">
+               <Card className="bg-card hover:-translate-y-1 transition-all duration-300">
                   <div className="flex justify-between items-center mb-6">
                      <div className="p-3 bg-blue-50 rounded-2xl">
                         <Target className="w-6 h-6 text-blue-600" />
@@ -188,9 +188,9 @@ export default function PerfectStudentPortal() {
                   </div>
                   <h3 className="text-lg font-bold font-heading mb-2">Resume ATS Stats</h3>
                   <div className="space-y-2 mb-6">
-                     <div className="flex justify-between text-xs font-bold text-slate-400">
+                     <div className="flex justify-between text-xs font-bold text-muted-foreground/70">
                         <span>Highest Score</span>
-                        <span className="text-slate-900">{userStats.highestAtsScore}</span>
+                        <span className="text-foreground">{userStats.highestAtsScore}</span>
                      </div>
                      <Progress value={userStats.highestAtsScore} className="h-1.5" />
                   </div>
@@ -199,7 +199,7 @@ export default function PerfectStudentPortal() {
                   </Button>
                </Card>
 
-               <Card className="bg-white hover:-translate-y-1 transition-all duration-300">
+               <Card className="bg-card hover:-translate-y-1 transition-all duration-300">
                   <div className="flex justify-between items-center mb-6">
                      <div className="p-3 bg-purple-50 rounded-2xl">
                         <Zap className="w-6 h-6 text-purple-600" />
@@ -211,7 +211,7 @@ export default function PerfectStudentPortal() {
                   <h3 className="text-lg font-bold font-heading mb-2">Active Roadmaps</h3>
                   <div className="space-y-4">
                      <div>
-                        <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                        <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
                            <span>Progress</span>
                            <span>{userStats.roadmapsCount > 0 ? "Active" : "None"}</span>
                         </div>
@@ -222,13 +222,13 @@ export default function PerfectStudentPortal() {
             </div>
 
             {activeRoadmap ? (
-               <Card className="bg-white overflow-hidden">
+               <Card className="bg-card overflow-hidden">
                   <CardHeader className="px-8 py-6 flex flex-row items-center justify-between">
                      <div>
                         <CardTitle className="text-xl font-bold font-heading">Personalized Roadmap</CardTitle>
                         <CardDescription>Target: {activeRoadmap.careerGoal}</CardDescription>
                      </div>
-                     <Badge variant="outline" className="rounded-lg py-1.5 px-3 font-bold border-neutral-100">In Progress</Badge>
+                     <Badge variant="outline" className="rounded-lg py-1.5 px-3 font-bold border-border">In Progress</Badge>
                   </CardHeader>
                   <CardContent className="p-8">
                      <div className="relative space-y-12">
@@ -239,19 +239,19 @@ export default function PerfectStudentPortal() {
                            const Icon = i === 0 ? Brain : i === 1 ? Code2 : i === 2 ? BookOpen : Star;
                            return (
                               <div key={i} className="relative pl-12 group">
-                                 <div className={`absolute left-0 w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-all duration-300 z-10 ${status === 'Completed' ? 'bg-primary text-white' : status === 'In Progress' ? 'bg-white text-primary border border-neutral-100' : 'bg-slate-100 text-slate-400'}`}>
+                                 <div className={`absolute left-0 w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-all duration-300 z-10 ${status === 'Completed' ? 'bg-primary text-white' : status === 'In Progress' ? 'bg-card text-primary border border-border' : 'bg-muted text-muted-foreground/70'}`}>
                                     <Icon className="w-3.5 h-3.5" />
                                  </div>
                                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
-                                       <h4 className="font-black text-slate-900">{step}</h4>
+                                       <h4 className="font-black text-foreground">{step}</h4>
                                        <div className="flex flex-wrap gap-2 mt-2">
                                           {stepSkills.map((item: string) => (
-                                             <span key={item} className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-50 border border-transparent px-2 py-0.5 rounded">{item}</span>
+                                             <span key={item} className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest bg-muted border border-transparent px-2 py-0.5 rounded">{item}</span>
                                           ))}
                                        </div>
                                     </div>
-                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${status === 'Completed' ? 'text-emerald-500' : status === 'In Progress' ? 'text-primary' : 'text-slate-300'}`}>{status}</span>
+                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${status === 'Completed' ? 'text-emerald-500' : status === 'In Progress' ? 'text-primary' : 'text-muted-foreground/50'}`}>{status}</span>
                                  </div>
                               </div>
                            );
@@ -260,9 +260,9 @@ export default function PerfectStudentPortal() {
                   </CardContent>
                </Card>
             ) : (
-               <Card className="bg-white overflow-hidden p-8 text-center space-y-4">
-                  <h3 className="text-lg font-bold font-heading text-slate-900">No Career Roadmap Generated Yet</h3>
-                  <p className="text-slate-500 text-sm max-w-sm mx-auto">
+               <Card className="bg-card overflow-hidden p-8 text-center space-y-4">
+                  <h3 className="text-lg font-bold font-heading text-foreground">No Career Roadmap Generated Yet</h3>
+                  <p className="text-muted-foreground text-sm max-w-sm mx-auto">
                      Create a fully personalized AI roadmap based on your profile and target job role.
                   </p>
                   <Button onClick={() => router.push('/dashboard/roadmap')} className="bg-primary hover:bg-primary/90 text-white font-bold px-6 rounded-xl">
@@ -277,12 +277,12 @@ export default function PerfectStudentPortal() {
             <CareerMentorWidget onOpenChat={() => router.push('/dashboard/chat')} />
 
             <div className="grid grid-cols-2 gap-4">
-               <Button variant="outline" className="h-24 flex-col gap-2 rounded-2xl bg-white border-neutral-100 hover:bg-slate-50 hover:text-primary transition-all group shadow-sm font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/ats')}>
-                  <FileText className="w-6 h-6 text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all" />
+               <Button variant="outline" className="h-24 flex-col gap-2 rounded-2xl bg-card border-border hover:bg-muted hover:text-primary transition-all group shadow-sm font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/ats')}>
+                  <FileText className="w-6 h-6 text-muted-foreground/70 group-hover:text-primary group-hover:scale-110 transition-all" />
                   ATS Scan
                </Button>
-               <Button variant="outline" className="h-24 flex-col gap-2 rounded-2xl bg-white border-neutral-100 hover:bg-slate-50 hover:text-primary transition-all group shadow-sm font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/roadmap')}>
-                  <MapIcon className="w-6 h-6 text-slate-400 group-hover:text-primary group-hover:scale-110 transition-all" />
+               <Button variant="outline" className="h-24 flex-col gap-2 rounded-2xl bg-card border-border hover:bg-muted hover:text-primary transition-all group shadow-sm font-black text-xs uppercase tracking-widest" onClick={() => router.push('/dashboard/roadmap')}>
+                  <MapIcon className="w-6 h-6 text-muted-foreground/70 group-hover:text-primary group-hover:scale-110 transition-all" />
                   Roadmap
                </Button>
             </div>

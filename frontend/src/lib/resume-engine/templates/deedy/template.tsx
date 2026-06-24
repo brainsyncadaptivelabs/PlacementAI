@@ -82,7 +82,7 @@ const DeedyTemplate: React.FC<TemplateProps> = ({ data }) => {
           {skills.map(skill => (
             <div key={skill.category} className="mb-2">
               <strong className="text-[10pt]">{skill.category}:</strong><br/>
-              <span className="text-[9pt] leading-tight text-slate-600">{skill.items.join(', ')}</span>
+              <span className="text-[9pt] leading-tight text-muted-foreground">{skill.items.join(', ')}</span>
             </div>
           ))}
         </div>

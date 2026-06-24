@@ -51,8 +51,8 @@ export default function ResumeATSPage() {
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold font-heading text-slate-900">Resume & ATS Analysis</h1>
-        <p className="text-slate-500">Optimize your resume for applicant tracking systems and increase your chances.</p>
+        <h1 className="text-2xl font-bold font-heading text-foreground">Resume & ATS Analysis</h1>
+        <p className="text-muted-foreground">Optimize your resume for applicant tracking systems and increase your chances.</p>
       </div>
 
       {error && (
@@ -63,14 +63,14 @@ export default function ResumeATSPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
         {/* Upload Section */}
-        <Card className="border-2 border-dashed border-slate-200 bg-white shadow-none">
+        <Card className="border-2 border-dashed border-border bg-card shadow-none">
           <CardContent className="pt-12 pb-12 flex flex-col items-center justify-center space-y-4">
              <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
                 <Upload className="w-8 h-8 text-primary" />
              </div>
              <div className="text-center space-y-1">
                 <h3 className="font-bold text-lg">Upload Your Resume</h3>
-                <p className="text-sm text-slate-500">PDF, DOCX (Max 5MB)</p>
+                <p className="text-sm text-muted-foreground">PDF, DOCX (Max 5MB)</p>
              </div>
              <input 
                type="file" 
@@ -90,7 +90,7 @@ export default function ResumeATSPage() {
              {isUploading && (
                <div className="w-full max-w-xs space-y-2 pt-4">
                  <Progress value={66} className="h-1" />
-                 <p className="text-[10px] text-center text-slate-400 uppercase font-bold tracking-widest animate-pulse">Scanning keywords...</p>
+                 <p className="text-[10px] text-center text-muted-foreground/70 uppercase font-bold tracking-widest animate-pulse">Scanning keywords...</p>
                </div>
              )}
           </CardContent>
@@ -98,35 +98,35 @@ export default function ResumeATSPage() {
 
         {/* Analysis Result */}
         {isAnalyzed && analysisResult ? (
-          <Card className="border-none shadow-sm bg-white overflow-hidden">
-             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-primary/5">
+          <Card className="border-none shadow-sm bg-card overflow-hidden">
+             <div className="p-6 border-b border-border flex items-center justify-between bg-primary/5">
                 <CardTitle className="text-lg font-bold font-heading text-primary">Analysis Result</CardTitle>
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary font-bold shadow-md border-2 border-primary/20 text-xl">
+                <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center text-primary font-bold shadow-md border-2 border-primary/20 text-xl">
                    {atsScore}
                 </div>
              </div>
              <CardContent className="pt-6 space-y-6">
                 <div className="space-y-2">
-                   <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                   <h3 className="font-bold text-foreground flex items-center gap-2">
                      {atsScore >= 80 ? "🚀 Great job! High Match" : 
                       atsScore >= 50 ? "📈 Good! But can be better." : 
                       "⚠️ Significant improvements needed"}
                    </h3>
-                   <p className="text-sm text-slate-500 italic">Target a score of 85+ for best results with major companies.</p>
+                   <p className="text-sm text-muted-foreground italic">Target a score of 85+ for best results with major companies.</p>
                 </div>
 
                 <div className="space-y-4">
-                   <h4 className="font-semibold text-sm text-slate-700 uppercase tracking-wider">Key Suggestions</h4>
+                   <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">Key Suggestions</h4>
                    {analysisResult.suggestions?.map((suggestion: string, index: number) => (
-                     <div key={index} className="flex gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                     <div key={index} className="flex gap-3 bg-muted p-3 rounded-lg border border-border">
                         <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                        <p className="text-sm text-slate-700">{suggestion}</p>
+                        <p className="text-sm text-foreground">{suggestion}</p>
                      </div>
                    ))}
                    {(!analysisResult.suggestions || analysisResult.suggestions.length === 0) && (
-                     <div className="flex gap-3 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                     <div className="flex gap-3 bg-muted p-3 rounded-lg border border-border">
                         <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                        <p className="text-sm text-slate-500">No specific suggestions found. Try adding more details to your resume.</p>
+                        <p className="text-sm text-muted-foreground">No specific suggestions found. Try adding more details to your resume.</p>
                      </div>
                    )}
                 </div>
@@ -134,7 +134,7 @@ export default function ResumeATSPage() {
                 {analysisResult.bestRole && (
                    <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
                       <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Recommended Role</p>
-                      <p className="font-bold text-slate-900">{analysisResult.bestRole}</p>
+                      <p className="font-bold text-foreground">{analysisResult.bestRole}</p>
                    </div>
                 )}
 
@@ -145,9 +145,9 @@ export default function ResumeATSPage() {
              </CardContent>
           </Card>
         ) : (
-          <div className="h-full flex flex-col items-center justify-center p-8 bg-slate-100/50 rounded-2xl border border-slate-200 border-dashed">
-             <FileText className="w-12 h-12 text-slate-300 mb-4" />
-             <p className="text-slate-400 text-sm text-center">Your analysis results will appear here after you upload a resume.</p>
+          <div className="h-full flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl border border-border border-dashed">
+             <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
+             <p className="text-muted-foreground/70 text-sm text-center">Your analysis results will appear here after you upload a resume.</p>
           </div>
         )}
       </div>
