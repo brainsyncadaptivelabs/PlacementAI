@@ -134,6 +134,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan())
                 .paymentStatus(user.getPaymentStatus())
                 .build();
@@ -270,6 +272,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan())
                 .paymentStatus(user.getPaymentStatus())
                 .build();
@@ -299,6 +303,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan())
                 .paymentStatus(user.getPaymentStatus())
                 .build();

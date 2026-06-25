@@ -159,6 +159,8 @@ public class PaymentServiceImpl implements PaymentService {
         try {
             user.setPlan(plan.toUpperCase());
             user.setPaymentStatus("COMPLETED");
+            user.setPlanSelected(true);
+            user.setPaymentCompleted(true);
             userRepository.save(user);
             log.info("[Payment] Success: User {} now has {} plan", email, plan);
         } catch (Exception e) {
@@ -188,6 +190,8 @@ public class PaymentServiceImpl implements PaymentService {
             log.info("[Payment] Updating DB to FREE plan for {}", email);
             user.setPlan("FREE");
             user.setPaymentStatus("COMPLETED");
+            user.setPlanSelected(true);
+            user.setPaymentCompleted(true);
             userRepository.save(user);
             log.info("[Payment] FREE plan activated successfully for {}", email);
         } catch (Exception e) {

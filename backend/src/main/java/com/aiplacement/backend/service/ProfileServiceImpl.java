@@ -78,6 +78,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .companyWebsite(user.getCompanyWebsite())
                 .companySize(user.getCompanySize())
                 .profileCompleted(user.isProfileCompleted())
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .profileImage(user.getProfileImage())
                 .plan(user.getPlan())
                 .paymentStatus(user.getPaymentStatus())

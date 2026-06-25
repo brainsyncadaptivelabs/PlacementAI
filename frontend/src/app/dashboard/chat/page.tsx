@@ -142,18 +142,16 @@ const MessageItem = memo(({
           <div 
             className={`message-content ${
               isAi 
-                ? 'bg-transparent text-foreground border-none shadow-none' 
-                : 'bg-slate-900 text-white shadow-sm'
+                ? 'bg-[#111827] text-foreground border border-border/30 shadow-sm' 
+                : 'bg-[#4F46E5] text-white shadow-sm'
             } w-full`}
             style={{ 
               whiteSpace: 'pre-wrap', 
               wordBreak: 'normal',
               overflowWrap: 'break-word',
               letterSpacing: '-0.01em',
-              padding: isAi ? '0' : '16px 24px',
-              borderRadius: isAi ? '0' : '24px',
-              boxShadow: isAi ? 'none' : undefined,
-              border: isAi ? 'none' : undefined,
+              padding: '16px 24px',
+              borderRadius: '24px',
               display: isAi ? 'flex' : undefined,
               flexDirection: isAi ? 'column' : undefined,
               gap: isAi ? '10px' : undefined,
@@ -166,15 +164,15 @@ const MessageItem = memo(({
                     remarkPlugins={[remarkGfm]}
                     rehypePlugins={[rehypeSanitize]}
                     components={{
-                      h1: ({children}) => <h1 style={{ fontSize: '34px', fontWeight: 700, lineHeight: '1.1', marginTop: '8px', marginBottom: '14px', color: '#0f172a' }}>{children}</h1>,
-                      h2: ({children}) => <h2 style={{ fontSize: '24px', fontWeight: 650, lineHeight: '1.15', marginTop: '18px', marginBottom: '10px', color: '#1e293b' }}>{children}</h2>,
-                      h3: ({children}) => <h3 style={{ fontSize: '20px', fontWeight: 600, lineHeight: '1.2', marginTop: '10px', marginBottom: '8px', color: '#334155' }}>{children}</h3>,
-                      p: ({children}) => <p style={{ fontSize: '17px', lineHeight: '1.6', fontWeight: 400, marginTop: '0px', marginBottom: '10px', color: '#334155' }}>{children}</p>,
+                      h1: ({children}) => <h1 style={{ fontSize: '34px', fontWeight: 700, lineHeight: '1.1', marginTop: '8px', marginBottom: '14px', color: 'var(--text-primary)' }}>{children}</h1>,
+                      h2: ({children}) => <h2 style={{ fontSize: '24px', fontWeight: 650, lineHeight: '1.15', marginTop: '18px', marginBottom: '10px', color: 'var(--text-primary)' }}>{children}</h2>,
+                      h3: ({children}) => <h3 style={{ fontSize: '20px', fontWeight: 600, lineHeight: '1.2', marginTop: '10px', marginBottom: '8px', color: 'var(--text-secondary)' }}>{children}</h3>,
+                      p: ({children}) => <p style={{ fontSize: '17px', lineHeight: '1.6', fontWeight: 400, marginTop: '0px', marginBottom: '10px', color: 'var(--text-secondary)' }}>{children}</p>,
                       ul: ({children}) => <ul style={{ paddingLeft: '18px', marginTop: '6px', marginBottom: '10px', listStyleType: 'disc' }}>{children}</ul>,
                       ol: ({children}) => <ol style={{ paddingLeft: '20px', marginTop: '6px', marginBottom: '10px', listStyleType: 'decimal' }}>{children}</ol>,
-                      li: ({children}) => <li style={{ display: 'list-item', marginTop: '0px', marginBottom: '6px', padding: '0px', lineHeight: '1.45', fontSize: '17px', color: '#334155', verticalAlign: 'top' }}>{children}</li>,
-                      strong: ({children}) => <strong style={{ fontWeight: 700, color: '#0f172a' }}>{children}</strong>,
-                      b: ({children}) => <strong style={{ fontWeight: 700, color: '#0f172a' }}>{children}</strong>,
+                      li: ({children}) => <li style={{ display: 'list-item', marginTop: '0px', marginBottom: '6px', padding: '0px', lineHeight: '1.45', fontSize: '17px', color: 'var(--text-secondary)', verticalAlign: 'top' }}>{children}</li>,
+                      strong: ({children}) => <strong style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{children}</strong>,
+                      b: ({children}) => <strong style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{children}</strong>,
                       code: ({className, children, ...props}) => {
                         const match = /language-(\w+)/.exec(className || '');
                         const isInline = !match && !String(children).includes('\n');
@@ -188,7 +186,7 @@ const MessageItem = memo(({
                                 <Copy className="w-3.5 h-3.5" />
                               </button>
                             </div>
-                            <pre className="bg-zinc-950 text-zinc-50 p-5 rounded-xl overflow-x-auto text-[13px] font-mono leading-relaxed shadow-md border border-white/5">
+                            <pre className="bg-zinc-950 text-zinc-50 p-5 rounded-xl overflow-x-auto text-[13px] font-mono leading-relaxed shadow-md border border-white/5 w-full min-w-full">
                               <code className={className}>{children}</code>
                             </pre>
                           </div>
@@ -196,14 +194,15 @@ const MessageItem = memo(({
                           <code className="bg-muted px-2 py-0.5 rounded-md text-primary font-mono text-[0.9em] font-medium" {...props}>{children}</code>
                         );
                       },
-                      blockquote: ({children}) => <blockquote style={{ borderLeft: '4px solid #e2e8f0', paddingLeft: '16px', fontStyle: 'italic', margin: '12px 0', color: '#64748b' }}>{children}</blockquote>,
+
+                      blockquote: ({children}) => <blockquote style={{ borderLeft: '4px solid var(--border-subtle)', paddingLeft: '16px', fontStyle: 'italic', margin: '12px 0', color: 'var(--text-secondary)' }}>{children}</blockquote>,
                       table: ({children}) => (
                         <div className="overflow-x-auto my-4 border border-border rounded-lg">
-                          <table className="min-w-full divide-y divide-slate-200">{children}</table>
+                          <table className="min-w-full divide-y divide-border/10">{children}</table>
                         </div>
                       ),
                       thead: ({children}) => <thead className="bg-muted">{children}</thead>,
-                      tbody: ({children}) => <tbody className="divide-y divide-slate-200 bg-card">{children}</tbody>,
+                      tbody: ({children}) => <tbody className="divide-y divide-border/10 bg-transparent">{children}</tbody>,
                       tr: ({children}) => <tr>{children}</tr>,
                       th: ({children}) => <th className="px-4 py-2 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{children}</th>,
                       td: ({children}) => <td className="px-4 py-2 text-sm text-muted-foreground">{children}</td>
@@ -231,7 +230,7 @@ const MessageItem = memo(({
                 onClick={handleCopy}
                 title="Copy response"
                 className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${
-                  copied ? 'text-green-600 bg-green-50' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
+                  copied ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
                 }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
@@ -247,8 +246,8 @@ const MessageItem = memo(({
                   Regenerate
                 </button>
               )}
-              <div className="w-px h-3 bg-slate-200 mx-1" />
-              <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-green-600 hover:bg-muted transition-all" title="Like response">
+              <div className="w-px h-3 bg-border mx-1" />
+              <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-green-500 hover:bg-muted transition-all" title="Like response">
                 <ThumbsUp className="w-3.5 h-3.5" />
               </button>
               <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-500 hover:bg-muted transition-all" title="Dislike response">
@@ -667,7 +666,7 @@ export default function ChatPage() {
   const isEmpty = messages.length === 0;
 
   return (
-    <div className="h-screen min-h-screen flex flex-col bg-[#f8fafc] relative overflow-hidden">
+    <div className="h-screen min-h-screen flex flex-col bg-transparent relative overflow-hidden">
       
       {/* Sticky Header (64px) */}
       <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-border bg-card/80 backdrop-blur-md sticky top-0 z-30">
@@ -746,11 +745,11 @@ export default function ChatPage() {
       </main>
 
       {/* Sticky Bottom Input Area */}
-      <div className="w-full shrink-0 border-t border-border bg-card py-4 shadow-lg shadow-slate-100/40">
+      <div className="w-full shrink-0 border-t border-border bg-card/85 backdrop-blur-md py-4 shadow-lg shadow-black/20 dark:shadow-none">
         <div className="max-w-[820px] mx-auto px-6 relative">
-          <div className="relative flex items-end bg-muted border border-border/80 rounded-[24px] focus-within:border-slate-300 focus-within:ring-1 focus-within:ring-slate-200/50 transition-all p-1.5 pl-4 pr-3 min-h-[56px]">
+          <div className="relative flex items-end bg-muted border border-border/80 rounded-[24px] focus-within:border-border-focus focus-within:ring-1 focus-within:ring-border-focus/30 transition-all p-1.5 pl-4 pr-3 min-h-[56px]">
             {/* Attach button */}
-            <button className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-slate-200/50 transition-colors shrink-0 mb-0.5">
+            <button className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-bg-elevated transition-colors shrink-0 mb-0.5">
               <Paperclip className="w-5 h-5" />
             </button>
             
@@ -766,7 +765,7 @@ export default function ChatPage() {
                 }
               }}
               placeholder={messages.length > 0 ? "Ask another question…" : "Message Career Assistant..."} 
-              className="flex-1 bg-transparent border-none focus:ring-0 py-2.5 px-3 text-[16px] text-foreground placeholder:text-slate-450 resize-none min-h-[40px] leading-relaxed align-bottom focus:outline-none"
+              className="flex-1 bg-transparent border-none focus:ring-0 py-2.5 px-3 text-[16px] text-foreground placeholder:text-text-muted resize-none min-h-[40px] leading-relaxed align-bottom focus:outline-none"
               rows={1}
               disabled={!generationComplete}
             />

@@ -23,6 +23,8 @@ public class UserProfileDto {
     private String companyWebsite;
     private String companySize;
     private boolean profileCompleted;
+    private boolean planSelected;
+    private boolean paymentCompleted;
     private String profileImage;
     private String plan;
     private String paymentStatus;

@@ -10,6 +10,9 @@ export type UserProfile = {
   branch: string;
   graduationYear: number;
   profileImage: string | null;
+  profileCompleted?: boolean;
+  planSelected?: boolean;
+  paymentCompleted?: boolean;
   plan?: string;
   paymentStatus?: string;
   createdAt?: string;

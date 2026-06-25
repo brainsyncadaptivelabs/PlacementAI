@@ -18,6 +18,10 @@ public class TokenResponse {
 
     private boolean profileCompleted;
 
+    private boolean planSelected;
+
+    private boolean paymentCompleted;
+
     private String plan;
 
     private String paymentStatus;

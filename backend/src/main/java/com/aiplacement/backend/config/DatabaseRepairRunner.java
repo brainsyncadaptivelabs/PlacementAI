@@ -19,6 +19,8 @@ public class DatabaseRepairRunner implements CommandLineRunner {
         try {
             ensureColumnExists("users", "plan", "VARCHAR(20) DEFAULT NULL");
             ensureColumnExists("users", "payment_status", "VARCHAR(20) DEFAULT 'PENDING'");
+            ensureColumnExists("users", "plan_selected", "BIT(1) DEFAULT 0");
+            ensureColumnExists("users", "payment_completed", "BIT(1) DEFAULT 0");
             log.info("[DatabaseRepair] Schema check complete.");
         } catch (Exception e) {
             log.error("[DatabaseRepair] Schema update failed", e);

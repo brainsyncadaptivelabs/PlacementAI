@@ -1,0 +1,237 @@
+/* Hard-locked Dark Theme for PlacementAI */
+
+:root, .dark {
+  --bg-primary: #090F1F;
+  --bg-secondary: #0B1020;
+  --bg-surface: #0F172A;
+  --bg-elevated: #172033;
+  --bg-hover: #111827;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  
+  --accent: #4F46E5;
+  --border-subtle: rgba(255,255,255,0.04);
+  --border-focus: rgba(99,102,241,0.15);
+  
+  /* Next.js & UI standard variable overrides */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-elevated);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-muted);
+  --border: var(--border-subtle);
+  --input: var(--bg-elevated);
+  --ring: var(--border-focus);
+  --radius: 24px;
+}
+
+/* Page base background linear-gradient */
+body {
+  background: linear-gradient(180deg, #090F1F 0%, #111827 100%) !important;
+  color: var(--text-primary) !important;
+  min-height: 100vh;
+}
+
+/* Scrollbar override */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Component Overrides to prevent page-level changes */
+
+/* Cards style reset */
+[data-slot=card], .bg-card {
+  background-color: var(--bg-surface) !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Input style reset */
+input:not(.oauth-btn), select, textarea, [data-slot=input] {
+  background-color: var(--bg-elevated) !important;
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid transparent !important;
+  border-radius: 16px !important;
+  height: 56px !important;
+  appearance: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  font-size: 14px !important;
+}
+input:not(.oauth-btn):hover, select:hover, textarea:hover, [data-slot=input]:hover {
+  background-color: var(--bg-hover) !important;
+}
+input:not(.oauth-btn):focus, select:focus, textarea:focus, [data-slot=input]:focus {
+  background-color: var(--bg-hover) !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--border-focus) !important;
+}
+input::placeholder, textarea::placeholder {
+  color: #64748B !important;
+}
+
+/* Button style reset */
+button:not(.oauth-btn), [data-slot=button] {
+  transform: none !important;
+}
+button:not(.oauth-btn):hover, [data-slot=button]:hover {
+  filter: brightness(1.04) !important;
+  transform: none !important;
+}
+button.bg-primary, [data-slot=button].bg-primary {
+  background-color: var(--accent) !important;
+  background: var(--accent) !important;
+  color: #ffffff !important;
+}
+button.bg-secondary, [data-slot=button].bg-secondary {
+  background-color: var(--bg-elevated) !important;
+  background: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+}
+button.bg-ghost, [data-slot=button].bg-ghost {
+  background-color: transparent !important;
+}
+
+/* Table style reset */
+table, [data-slot=table] {
+  background-color: var(--bg-surface) !important;
+  background: var(--bg-surface) !important;
+  border-collapse: collapse !important;
+}
+tr[data-slot=table-row], tr.table-row {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  background-color: transparent !important;
+}
+tr[data-slot=table-row]:hover, tr.table-row:hover {
+  background-color: var(--bg-elevated) !important;
+}
+th[data-slot=table-head], th.table-head {
+  background-color: #111827 !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Navbar / Topbar */
+header.topbar {
+  height: 72px !important;
+  background-color: #0B1020 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Sidebar styling */
+aside.sidebar {
+  background-color: #0B1020 !important;
+  border-right: 1px solid rgba(255,255,255,0.04) !important;
+}
+[data-sidebar=menu-button] {
+  transition: background-color 150ms ease !important;
+}
+[data-sidebar=menu-button][data-active=true],
+.sidebar-link.active {
+  background-color: #172033 !important;
+  color: #ffffff !important;
+}
+[data-sidebar=menu-button]:hover,
+.sidebar-link:hover {
+  background-color: #111827 !important;
+  color: #ffffff !important;
+}
+
+/* Modals / Dialogs style reset */
+[data-slot=dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+[data-slot=dialog-content] {
+  background-color: var(--bg-surface) !important;
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Clean Global Transitions */
+a, button, input, select, textarea, [data-slot=card], tr[data-slot=table-row] {
+  transition: background-color 150ms ease, opacity 150ms ease, border-color 150ms ease !important;
+}
+
+/* Resume Preview Canvas Overrides */
+#visible-preview-canvas, #resume-preview-panel {
+  background-color: #1E293B !important;
+  background: #1E293B !important;
+}
+
+/* Strip black/dark text colors inside resume canvas */
+#visible-preview-canvas [class*="text-black"],
+#visible-preview-canvas [class*="text-slate-950"],
+#visible-preview-canvas [class*="text-slate-900"],
+#visible-preview-canvas [class*="text-slate-800"],
+#visible-preview-canvas .text-black,
+#visible-preview-canvas .text-slate-900 {
+  color: #ffffff !important;
+}
+
+#visible-preview-canvas [class*="text-slate-750"],
+#visible-preview-canvas [class*="text-slate-700"],
+#visible-preview-canvas [class*="text-slate-600"],
+#visible-preview-canvas .text-slate-700,
+#visible-preview-canvas .text-slate-600 {
+  color: #CBD5E1 !important;
+}
+
+#visible-preview-canvas [class*="text-slate-500"],
+#visible-preview-canvas [class*="text-slate-400"],
+#visible-preview-canvas .text-slate-500,
+#visible-preview-canvas .text-slate-400 {
+  color: #94A3B8 !important;
+}
+
+/* Force border lines inside resume canvas to be subtle */
+#visible-preview-canvas hr, 
+#visible-preview-canvas .border-t,
+#visible-preview-canvas [class*="border-slate-"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Icon Wrapper for Stats/Cards */
+.icon-wrapper {
+  background-color: var(--bg-elevated) !important;
+  border-radius: 12px !important;
+  padding: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: var(--accent) !important;
+}
+
+

@@ -33,6 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { TEMPLATE_REGISTRY, ACTIVE_TEMPLATES, compileLatex } from "@/lib/resume/templates/templates";
 import { ResumeState, initialEducatorState } from "@/lib/resume/templates/placementai-educator/schema";
 import { ResumeService } from "@/services/resume.service";
@@ -839,7 +840,7 @@ Risk: <e.g., Low or None>
   };
 
   return (
-    <div className="h-screen flex flex-col bg-muted overflow-hidden font-sans relative selection:bg-indigo-150">
+    <div className="h-screen flex flex-col bg-transparent overflow-hidden font-sans relative selection:bg-indigo-150">
       
       {/* 1. FOCUS MODE (Fullscreen Preview) */}
       {focusMode && (
@@ -1109,10 +1110,11 @@ Risk: <e.g., Low or None>
 
       {/* Main Workspace flex layout */}
       {!focusMode && (
-        <div className="flex-1 flex gap-4 p-4 h-[calc(100vh-56px)] overflow-hidden w-full bg-[#f8fafc] max-w-none">
+        <div className="flex-1 flex gap-4 p-4 h-[calc(100vh-56px)] overflow-hidden w-full bg-transparent max-w-none">
+
           
           {/* 1. EDITOR PANEL: Left 25% on desktop (lg), 40% on tablet (md), 100% on mobile */}
-          <div className="w-full md:w-[40%] lg:w-[25%] h-full bg-card border border-border rounded-2xl flex flex-col overflow-hidden shrink-0 z-10 shadow-sm">
+          <div data-slot="card" className="w-full md:w-[40%] lg:w-[25%] h-full flex flex-col overflow-hidden shrink-0 z-10">
             {/* Section tabs */}
             <div className="p-3 bg-muted/50 border-b border-border">
               <div className="grid grid-cols-3 gap-1 bg-slate-200/50 p-1 rounded-xl">
@@ -1581,9 +1583,10 @@ Risk: <e.g., Low or None>
           </div>
 
           {/* 2. DOME PREVIEW WORKSPACE: Middle panel (60% or 75% desktop, 60% tablet, hidden on mobile) */}
-          <div className={`hidden md:flex flex-col h-full overflow-hidden bg-[#f1f5f9] border border-border rounded-2xl relative transition-all duration-300 ${
+          <div id="resume-preview-panel" className={cn(
+            "hidden md:flex flex-col h-full overflow-hidden relative transition-all duration-300",
             aiExpanded ? "lg:w-[60%]" : "lg:w-[75%]"
-          }`}>
+          )}>
             {/* Dynamic A4 Preview Toolbar */}
             <div className="h-12 shrink-0 bg-card border-b border-border flex items-center justify-between px-6 select-none">
               <div className="flex items-center gap-2">
@@ -1659,7 +1662,8 @@ Risk: <e.g., Low or None>
                       position: "relative",
                       overflow: "visible"
                     }}
-                    className="shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-border bg-card overflow-hidden transition-all duration-300"
+                    data-slot="card"
+                    className="overflow-hidden transition-all duration-300"
                   >
                     <div 
                       style={{
@@ -1689,11 +1693,13 @@ Risk: <e.g., Low or None>
           {/* 3. AI PANEL COLUMN: Overlay drawer on tablet/mobile, side panel (15%) on desktop */}
           <div 
             ref={aiPanelRef}
-            className={`fixed right-4 top-24 bottom-4 w-[320px] bg-card border border-border shadow-2xl rounded-2xl z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:shadow-none lg:border-none lg:w-[15%] lg:right-0 lg:top-0 lg:h-full shrink-0 ${
+            data-slot="card"
+            className={cn(
+              "fixed right-4 top-24 bottom-4 w-[320px] z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:w-[15%] lg:right-0 lg:top-0 lg:h-full shrink-0",
               aiExpanded ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none lg:hidden"
-            }`}
+            )}
           >
-            <div className="p-4 border-b flex justify-between items-center bg-muted/50">
+            <div className="p-4 flex justify-between items-center bg-transparent">
               <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-indigo-500" />
                 AI Coach
@@ -1702,6 +1708,7 @@ Risk: <e.g., Low or None>
                 <X className="w-4 h-4" />
               </Button>
             </div>
+            <Separator />
 
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
               

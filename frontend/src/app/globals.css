@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -46,6 +47,17 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
+  /* Semantic Tokens mapped to Tailwind colors */
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-focus: var(--border-focus);
+
   @keyframes progress {
     from { width: 0%; }
     to { width: 100%; }
@@ -53,74 +65,13 @@
   --animate-progress: progress 3s linear forwards;
 }
 
-:root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #8b5cf6;
-  --secondary-foreground: #ffffff;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --border: transparent;
-  --input: #e2e8f0;
-  --ring: #6366f1;
-  --chart-1: #6366f1;
-  --chart-2: #8b5cf6;
-  --chart-3: #10b981;
-  --chart-4: #f59e0b;
-  --chart-5: #64748b;
-  --radius: 0.75rem;
-  --sidebar: #ffffff;
-  --sidebar-foreground: #64748b;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f8fafc;
-  --sidebar-accent-foreground: #6366f1;
-  --sidebar-border: transparent;
-  --sidebar-ring: #6366f1;
+html {
+  background-color: #0B1020;
 }
 
-.dark {
-  --background: #000000;
-  --foreground: #fafafa;
-  --card: #09090b;
-  --card-foreground: #fafafa;
-  --popover: #09090b;
-  --popover-foreground: #fafafa;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #8b5cf6;
-  --secondary-foreground: #ffffff;
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
-  --accent: #27272a;
-  --accent-foreground: #fafafa;
-  --destructive: #ef4444;
-  --border: transparent;
-  --input: #27272a;
-  --ring: #6366f1;
-  --chart-1: #6366f1;
-  --chart-2: #8b5cf6;
-  --chart-3: #10b981;
-  --chart-4: #f59e0b;
-  --chart-5: #a1a1aa;
-  --sidebar: #09090b;
-  --sidebar-foreground: #a1a1aa;
-  --sidebar-primary: #6366f1;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #27272a;
-  --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: transparent;
-  --sidebar-ring: #6366f1;
-}
+
+/* Theme variables are loaded from theme.css */
+
 
 @layer base {
   * {
@@ -129,9 +80,205 @@
   body {
     @apply bg-background text-foreground font-sans;
   }
+  .dark body {
+    background-attachment: fixed;
+    background-image: 
+      radial-gradient(circle at top, rgba(99, 102, 241, 0.10) 0%, transparent 60%),
+      linear-gradient(to bottom, #0B1020 0%, #111827 100%);
+    background-color: #0B1020;
+  }
   h1, h2, h3, h4, h5, h6 {
     @apply font-heading font-semibold;
   }
+}
+
+/* Scrollbars overrides */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* Glass Surfaces */
+.dark .bg-card,
+.dark [data-slot=card] {
+  background-color: var(--bg-surface) !important;
+  backdrop-filter: blur(16px) !important;
+  border: none !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Inputs System styling */
+.dark input, 
+.dark select, 
+.dark textarea,
+.dark [data-slot=input] {
+  background-color: var(--bg-surface) !important;
+  border: 1px solid transparent !important;
+  color: var(--text-primary) !important;
+  appearance: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 16px !important;
+}
+
+.dark input:hover, 
+.dark select:hover, 
+.dark textarea:hover,
+.dark [data-slot=input]:hover {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+}
+
+.dark input:focus, 
+.dark select:focus, 
+.dark textarea:focus,
+.dark [data-slot=input]:focus {
+  background-color: var(--bg-surface) !important;
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* Button system */
+.dark button,
+.dark [data-slot=button] {
+  transform: none !important;
+}
+
+.dark button:hover,
+.dark [data-slot=button]:hover {
+  filter: brightness(1.03) !important;
+  transform: none !important;
+}
+
+.dark button.bg-primary,
+.dark [data-slot=button].bg-primary {
+  background-color: var(--accent) !important;
+  color: #ffffff !important;
+}
+
+.dark button.bg-secondary,
+.dark [data-slot=button].bg-secondary {
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark button.bg-ghost,
+.dark [data-slot=button].bg-ghost {
+  background-color: transparent !important;
+}
+
+/* Navbar glass */
+.dark header, 
+.dark [data-slot=header] {
+  background-color: rgba(11, 16, 32, 0.8) !important;
+  backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+/* Sidebar selected states */
+.dark [data-sidebar=menu-button][data-active=true] {
+  background-color: var(--sidebar-accent) !important;
+  color: var(--sidebar-accent-foreground) !important;
+}
+
+.dark [data-sidebar=menu-button]:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  color: var(--sidebar-accent-foreground) !important;
+}
+
+/* Tables custom styling */
+.dark tr[data-slot=table-row] {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  background-color: transparent !important;
+}
+
+.dark tr[data-slot=table-row]:hover {
+  background-color: var(--bg-surface) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark th[data-slot=table-head] {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Modals overlays */
+.dark [data-slot=dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.dark [data-slot=dialog-content] {
+  background-color: var(--bg-elevated) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Loading Skeletons */
+.dark [data-slot=skeleton] {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+}
+
+/* Transitions limit rules */
+.dark a,
+.dark button,
+.dark input,
+.dark select,
+.dark textarea,
+.dark [data-slot=card],
+.dark tr[data-slot=table-row],
+.dark [data-sidebar=menu-button] {
+  transition: opacity 160ms cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 160ms cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 160ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Dark Mode Resume Builder - Paper Mode and editor comfort overrides */
+.dark #visible-preview-canvas {
+  background-color: #0b1020 !important;
+}
+
+.dark #visible-preview-canvas [class*="bg-card"],
+.dark #visible-preview-canvas [class*="bg-card"] div,
+.dark #visible-preview-canvas [data-block] {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+}
+
+.dark #visible-preview-canvas [class*="text-slate-950"],
+.dark #visible-preview-canvas [class*="text-slate-900"],
+.dark #visible-preview-canvas [class*="text-slate-800"] {
+  color: #ffffff !important;
+}
+
+.dark #visible-preview-canvas [class*="text-muted-foreground"] {
+  color: #94a3b8 !important;
+}
+
+.dark #visible-preview-canvas [class*="border-border"],
+.dark #visible-preview-canvas [class*="border-slate-200"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark #visible-preview-canvas [class*="ring-white"] {
+  --tw-ring-color: #1e293b !important;
 }
 
 .no-animations * {

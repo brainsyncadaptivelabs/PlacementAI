@@ -65,6 +65,22 @@ public class User {
         return profileCompleted != null && profileCompleted;
     }
 
+    @Column(name = "plan_selected")
+    @Builder.Default
+    private Boolean planSelected = false;
+
+    public boolean isPlanSelected() {
+        return planSelected != null && planSelected;
+    }
+
+    @Column(name = "payment_completed")
+    @Builder.Default
+    private Boolean paymentCompleted = false;
+
+    public boolean isPaymentCompleted() {
+        return paymentCompleted != null && paymentCompleted;
+    }
+
     @Column(name = "profile_image")
     private String profileImage;
 

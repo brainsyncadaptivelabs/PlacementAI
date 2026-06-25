@@ -34,8 +34,8 @@ export default function PerfectRecruiterPortal() {
     const checkProfile = async () => {
       try {
         const response = await api.get("/user/profile");
-        if (response.data.profileCompleted === false) {
-          router.push("/complete-profile/recruiter");
+        if (!response.data.planSelected) {
+          router.push("/plans");
           return;
         }
         setLoading(false);

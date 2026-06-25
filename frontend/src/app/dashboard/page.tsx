@@ -179,44 +179,59 @@ export default function PerfectStudentPortal() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          <div className="lg:col-span-2 space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <Card className="bg-card hover:-translate-y-1 transition-all duration-300">
-                  <div className="flex justify-between items-center mb-6">
-                     <div className="p-3 bg-blue-50 rounded-2xl">
-                        <Target className="w-6 h-6 text-blue-600" />
+               <Card className="flex flex-col justify-between h-full">
+                  <div className="flex-1 flex flex-col justify-between">
+                     <div className="flex justify-between items-center mb-6">
+                        <div className="icon-wrapper">
+                           <Target className="w-6 h-6 text-primary" />
+                        </div>
+                        <Badge variant="secondary" className="font-bold">Resumes</Badge>
                      </div>
-                     <Badge className="bg-blue-100 text-blue-700 border-none font-bold">Resumes</Badge>
-                  </div>
-                  <h3 className="text-lg font-bold font-heading mb-2">Resume ATS Stats</h3>
-                  <div className="space-y-2 mb-6">
-                     <div className="flex justify-between text-xs font-bold text-muted-foreground/70">
-                        <span>Highest Score</span>
-                        <span className="text-foreground">{userStats.highestAtsScore}</span>
+                     <div>
+                        <h3 className="text-lg font-bold font-heading mb-2">Resume ATS Stats</h3>
+                        <div className="space-y-2">
+                           <div className="flex justify-between text-xs font-bold text-muted-foreground/70">
+                              <span>Highest Score</span>
+                              <span className="text-foreground">{userStats.highestAtsScore}</span>
+                           </div>
+                           <Progress value={userStats.highestAtsScore} className="h-1.5" />
+                        </div>
                      </div>
-                     <Progress value={userStats.highestAtsScore} className="h-1.5" />
                   </div>
-                  <Button variant="ghost" className="w-full justify-between text-blue-600 font-bold hover:bg-blue-50 hover:text-blue-700 rounded-xl px-4" onClick={() => router.push('/dashboard/ats')}>
-                     Upload New Resume <ChevronRight className="w-4 h-4" />
-                  </Button>
+                  <div className="pt-6">
+                     <Button variant="ghost" className="w-full justify-between text-primary font-bold px-4" onClick={() => router.push('/dashboard/ats')}>
+                        Upload New Resume <ChevronRight className="w-4 h-4" />
+                     </Button>
+                  </div>
                </Card>
 
-               <Card className="bg-card hover:-translate-y-1 transition-all duration-300">
-                  <div className="flex justify-between items-center mb-6">
-                     <div className="p-3 bg-purple-50 rounded-2xl">
-                        <Zap className="w-6 h-6 text-purple-600" />
+               <Card className="flex flex-col justify-between h-full">
+                  <div className="flex-1 flex flex-col justify-between">
+                     <div className="flex justify-between items-center mb-6">
+                        <div className="icon-wrapper">
+                           <Zap className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex items-center gap-1 text-primary text-xs font-bold">
+                           <Trophy className="w-3 h-3" /> Interviews: {userStats.mockInterviewsCount}
+                        </div>
                      </div>
-                     <div className="flex items-center gap-1 text-purple-600 text-xs font-bold">
-                        <Trophy className="w-3 h-3" /> Interviews: {userStats.mockInterviewsCount}
+                     <div>
+                        <h3 className="text-lg font-bold font-heading mb-2">Active Roadmaps</h3>
+                        <div className="space-y-4">
+                           <div>
+                              <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
+                                 <span>Progress</span>
+                                 <span>{userStats.roadmapsCount > 0 ? "Active" : "None"}</span>
+                              </div>
+                              <Progress value={userStats.roadmapsCount > 0 ? 50 : 0} className="h-1.5" />
+                           </div>
+                        </div>
                      </div>
                   </div>
-                  <h3 className="text-lg font-bold font-heading mb-2">Active Roadmaps</h3>
-                  <div className="space-y-4">
-                     <div>
-                        <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
-                           <span>Progress</span>
-                           <span>{userStats.roadmapsCount > 0 ? "Active" : "None"}</span>
-                        </div>
-                        <Progress value={userStats.roadmapsCount > 0 ? 50 : 0} className="h-1.5" indicatorClassName="bg-purple-500" />
-                     </div>
+                  <div className="pt-6">
+                     <Button variant="ghost" className="w-full justify-between text-primary font-bold px-4" onClick={() => router.push('/dashboard/roadmap')}>
+                        View Career Roadmap <ChevronRight className="w-4 h-4" />
+                     </Button>
                   </div>
                </Card>
             </div>

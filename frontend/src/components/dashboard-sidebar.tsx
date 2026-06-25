@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import {
   LayoutDashboard,
   FileText,
@@ -43,37 +44,47 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 import { UserNav } from "./dashboard/user-nav";
 
-const navItems = [
-  { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
-  { title: "Resume Builder", icon: FileText, url: "/dashboard/resume-builder" },
-  { title: "Resume & ATS", icon: FileText, url: "/dashboard/ats" },
-  { title: "Resume History", icon: History, url: "/dashboard/history" },
-  { title: "Compare Resumes", icon: Scale, url: "/dashboard/compare" },
-  { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" },
-  { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
-  { title: "Mock Interviews", icon: Mic2, url: "/dashboard/mock-interviews" },
-  { title: "Career Roadmap", icon: Map, url: "/dashboard/roadmap" },
-  { title: "AI Chatbot", icon: MessageSquare, url: "/dashboard/chat" },
-  { title: "Notes", icon: BookOpen, url: "/dashboard/notes" },
-  { title: "Coding Practice", icon: Code2, url: "/dashboard/coding" },
-  { title: "Aptitude", icon: Brain, url: "/dashboard/aptitude" },
-  { title: "Analytics", icon: BarChart3, url: "/dashboard/analytics" },
-];
-
-const secondaryItems = [
-  { title: "Profile", icon: User, url: "/dashboard/profile" },
-  { title: "Pricing & Plans", icon: CreditCard, url: "/select-plan" },
-  { title: "Settings", icon: Settings, url: "/dashboard/settings" },
-];
-
 export function AppSidebar() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const planSelected = user?.planSelected;
+
+  const menuItems = [];
+  if (planSelected) {
+    menuItems.push(
+      { title: "Profile", icon: User, url: "/dashboard/profile" },
+      { title: "Plans", icon: CreditCard, url: "/plans" },
+      { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
+      { title: "Resume Builder", icon: FileText, url: "/dashboard/resume-builder" },
+      { title: "Resume & ATS", icon: FileText, url: "/dashboard/ats" },
+      { title: "Resume History", icon: History, url: "/dashboard/history" },
+      { title: "Compare Resumes", icon: Scale, url: "/dashboard/compare" },
+      { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" },
+      { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
+      { title: "Mock Interviews", icon: Mic2, url: "/dashboard/mock-interviews" },
+      { title: "Career Roadmap", icon: Map, url: "/dashboard/roadmap" },
+      { title: "AI Chatbot", icon: MessageSquare, url: "/dashboard/chat" },
+      { title: "Notes", icon: BookOpen, url: "/dashboard/notes" },
+      { title: "Coding Practice", icon: Code2, url: "/dashboard/coding" },
+      { title: "Aptitude", icon: Brain, url: "/dashboard/aptitude" },
+      { title: "Analytics", icon: BarChart3, url: "/dashboard/analytics" }
+    );
+  } else {
+    menuItems.push(
+      { title: "Profile", icon: User, url: "/dashboard/profile" },
+      { title: "Plans", icon: CreditCard, url: "/plans" }
+    );
+  }
+
+  const settingsItems = [
+    { title: "Settings", icon: Settings, url: "/dashboard/settings" }
+  ];
 
   return (
     <Sidebar className="bg-sidebar border-r border-border">
       <SidebarHeader className="h-[80px] w-full flex items-center justify-center shrink-0 p-0">
         <Link 
-          href="/dashboard" 
+          href={planSelected ? "/dashboard" : "/plans"} 
           className="h-full w-[90%] flex items-center justify-center gap-3 m-auto p-0 scale-75 origin-center transition-opacity duration-200 hover:opacity-85"
         >
           <div className="w-[54px] h-[54px] bg-primary rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20 shrink-0">
@@ -86,7 +97,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="px-3 py-4">
         <SidebarMenu>
-          {navItems.map((item) => (
+          {menuItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 render={<Link href={item.url} />}
@@ -104,7 +115,7 @@ export function AppSidebar() {
           <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Account</span>
         </div>
         <SidebarMenu>
-          {secondaryItems.map((item) => (
+          {settingsItems.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 render={<Link href={item.url} />}
@@ -137,9 +148,38 @@ export function AppSidebar() {
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const pathname = usePathname();
+  const router = useRouter();
   
+  React.useEffect(() => {
+    if (loading) return;
+
+    if (!user) {
+      router.push("/auth");
+      return;
+    }
+
+    if (!user.planSelected) {
+      if (pathname !== "/dashboard/profile" && pathname !== "/dashboard/settings" && pathname !== "/plans") {
+        router.push("/plans");
+      }
+      return;
+    }
+  }, [user, loading, pathname, router]);
+
   const isWorkspaceMode = pathname?.includes('/resume-builder/editor');
   const isChatMode = pathname === '/dashboard/chat' || pathname === '/dashboard/chatbot';
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (isWorkspaceMode) {
     return (
