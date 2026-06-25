@@ -11,7 +11,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const syncBackend = async (session: any) => {
       if (!session?.user) return;
-      if (localStorage.getItem("token")) return; // already synced
+
+      // Check if we have a valid, unexpired token for the current user
+      const existingToken = localStorage.getItem("token");
+      if (existingToken) {
+        try {
+          const parts = existingToken.split('.');
+          if (parts.length === 3) {
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const email = payload.sub || payload.email;
+            const exp = payload.exp;
+            // Token is valid if it matches user email and has at least 60 seconds left before expiration
+            if (email === session.user.email && exp && (exp * 1000) > (Date.now() + 60000)) {
+              return; // already synced and token is valid
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to parse existing JWT token, will re-sync:", e);
+        }
+      }
 
       try {
         const base64UrlEncode = (str: string) => {
@@ -25,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: session.user.email,
           name: session.user.user_metadata?.full_name || session.user.email
         }));
-        const mockToken = `${header}.${payload}.signature`;
+        const mockToken = `${header}.${payload}.${base64UrlEncode("signature")}`;
 
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
         const response = await fetch(`${API_URL}/auth/google`, {

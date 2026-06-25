@@ -196,16 +196,7 @@
             <artifactId>json</artifactId>
             <version>20240303</version>
         </dependency>
-        
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
-        <!-- Add this dependency for connecting to PostgreSQL -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-jdbc</artifactId>
-</dependency>
+
 
     </dependencies>
 

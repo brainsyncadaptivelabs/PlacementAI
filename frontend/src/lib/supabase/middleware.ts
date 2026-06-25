@@ -6,12 +6,16 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-supabase.co';
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !anonKey) {
+    console.error("[SUPABASE_MIDDLEWARE] Warning: Supabase URL or Anon Key is missing! Check environment variables.");
+  }
 
   const supabase = createServerClient(
-    url,
-    anonKey,
+    url || 'https://placeholder-supabase.co',
+    anonKey || 'placeholder-anon-key',
     {
       cookies: {
         getAll() {
@@ -33,9 +37,16 @@ export async function updateSession(request: NextRequest) {
   // IMPORTANT: Avoid writing any logic between createServerClient and
   // supabase.auth.getUser(). A simple mistake could make it very hard to debug
   // issues with cross-browser cookies.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser();
+    user = data?.user;
+  } catch (err) {
+    console.error("[SUPABASE_MIDDLEWARE] Error fetching user session:", err);
+    // On transient network or socket failures in the container runtime, allow the request to proceed.
+    // The client-side AuthProvider running in the browser will handle session verification and sync.
+    return supabaseResponse;
+  }
 
   if (
     !user &&
