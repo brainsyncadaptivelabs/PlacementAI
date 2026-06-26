@@ -57,7 +57,7 @@ public class OtpServiceImpl implements OtpService {
     @Override
     public boolean isOtpVerified(String email) {
         return otpRepository.findTopByEmailOrderByCreatedAtDesc(email)
-                .map(PasswordResetOtp::isVerified)
+                .map(otp -> otp.isVerified())
                 .orElse(false);
     }
 

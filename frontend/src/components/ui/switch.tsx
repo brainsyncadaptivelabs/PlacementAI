@@ -19,7 +19,7 @@ const Switch = React.forwardRef<HTMLButtonElement, SwitchProps>(
         onClick={() => onCheckedChange(!checked)}
         className={cn(
           "relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-150 outline-none disabled:cursor-not-allowed disabled:opacity-50",
-          checked ? "bg-[#4F46E5]" : "bg-[#172033]",
+          checked ? "bg-[#4F46E5]" : "bg-input",
           className
         )}
         ref={ref}

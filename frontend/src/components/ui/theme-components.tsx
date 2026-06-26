@@ -30,8 +30,8 @@ export function Section({
     <section className={cn("flex flex-col gap-4 w-full", className)} {...props}>
       {(title || description) && (
         <div className="flex flex-col gap-1">
-          {title && <h3 className="text-lg font-bold text-slate-100">{title}</h3>}
-          {description && <p className="text-sm text-slate-400">{description}</p>}
+          {title && <h3 className="text-lg font-bold text-foreground">{title}</h3>}
+          {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
       )}
       <div className="w-full">{children}</div>
@@ -52,8 +52,8 @@ export function SidebarItem({
       className={cn(
         "w-full text-left px-4 py-3 rounded-xl transition-colors font-medium text-sm outline-none",
         active
-          ? "bg-[#172033] text-white"
-          : "text-slate-400 hover:bg-[#111827] hover:text-white",
+          ? "bg-secondary text-foreground font-semibold"
+          : "text-muted-foreground hover:bg-secondary/55 hover:text-foreground",
         className
       )}
       {...props}

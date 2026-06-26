@@ -107,8 +107,8 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       {/* Hide the default close button if possible by leaving it unrendered, or overriding its styles */}
       <DialogContent 
-        className={`w-[92vw] max-w-[1700px] h-[92vh] max-h-[92vh] p-0 overflow-hidden bg-[#eef2f7] border-none rounded-[24px] shadow-2xl flex flex-col transition-all duration-300 ${
-          isFullscreen ? "w-[100vw] max-w-none h-[100vh] max-h-none rounded-none" : ""
+        className={`w-[92vw] sm:max-w-[92vw] lg:max-w-[1700px] h-[92vh] max-h-[92vh] p-0 overflow-hidden bg-[#eef2f7] border-none rounded-[24px] shadow-2xl flex flex-col transition-all duration-300 ${
+          isFullscreen ? "w-[100vw] sm:max-w-none max-w-none h-[100vh] max-h-none rounded-none" : ""
         }`}
         showCloseButton={false}
       >
@@ -171,7 +171,7 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
 
         {/* Preview Canvas Area */}
         <div 
-          className="flex-1 overflow-x-hidden overflow-y-auto flex justify-center items-start p-10 relative bg-[#eef2f7]" 
+          className="flex-1 overflow-auto flex justify-center items-start p-10 relative bg-[#eef2f7]" 
           ref={containerRef}
         >
           {/* Page indicator at top right */}
@@ -179,30 +179,45 @@ export function ResumePreviewModal({ templateId, isOpen, onClose, onSelect }: Re
             Page {currentPage} of 1
           </div>
 
-          {/* Actual Resume Container */}
+          {/* Zoom layout wrapper */}
           <div 
-            style={{ 
-              transform: `scale(${zoom / 100})`, 
-              transformOrigin: "top center",
-              width: "950px",
-              minHeight: "1120px",
-              transition: "transform 0.2s ease"
+            style={{
+              width: `${950 * (zoom / 100)}px`,
+              minHeight: `${1120 * (zoom / 100)}px`,
+              position: "relative",
+              transition: "width 0.2s ease, min-height 0.2s ease"
             }}
-            className="bg-card shadow-[0_20px_80px_rgba(0,0,0,0.12)] shrink-0 mb-10 mx-auto flex justify-center items-start"
+            className="shrink-0 mb-10 mx-auto"
           >
-            {apiPreviewUrl && !failedPreviewFetch ? (
-              <img 
-                src={apiPreviewUrl} 
-                alt={`${template.initialState.personalInfo.name}'s Resume Preview`} 
-                className="w-full h-full object-contain"
-              />
-            ) : Renderer ? (
-              <Renderer data={template.initialState} previewMode={false} />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-card">
-                <Loader2 className="w-12 h-12 text-indigo-650 animate-spin" />
-              </div>
-            )}
+            {/* Actual Resume Container */}
+            <div 
+              style={{ 
+                transform: `scale(${zoom / 100})`, 
+                transformOrigin: "top center",
+                width: "950px",
+                minHeight: "1120px",
+                position: "absolute",
+                top: 0,
+                left: "50%",
+                marginLeft: "-475px",
+                transition: "transform 0.2s ease"
+              }}
+              className="bg-card shadow-[0_20px_80px_rgba(0,0,0,0.12)] flex justify-center items-start"
+            >
+              {apiPreviewUrl && !failedPreviewFetch ? (
+                <img 
+                  src={apiPreviewUrl} 
+                  alt={`${template.initialState.personalInfo.name}'s Resume Preview`} 
+                  className="w-full h-full object-contain"
+                />
+              ) : Renderer ? (
+                <Renderer data={template.initialState} previewMode={false} />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-card">
+                  <Loader2 className="w-12 h-12 text-indigo-650 animate-spin" />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>

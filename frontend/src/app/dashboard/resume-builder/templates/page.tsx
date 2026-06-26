@@ -119,8 +119,8 @@ export default function TemplateGalleryPage() {
           </div>
         </div>
 
-        {/* Grid of Templates - Optimized 4 per row grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 items-start justify-items-center w-full">
+        {/* Grid of Templates - Optimized 3 per row grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start justify-items-center w-full">
           {filteredTemplates.map((tpl) => {
             const isSelected = loadingTemplate === tpl.id;
             const reg = TEMPLATE_REGISTRY[tpl.id];
@@ -161,8 +161,13 @@ export default function TemplateGalleryPage() {
                         className="shrink-0 transition-transform duration-700 md:group-hover/preview:scale-105 pointer-events-none"
                         style={{
                           width: "950px",
-                          transform: "scale(0.35)",
-                          transformOrigin: "top left",
+                          height: "1120px",
+                          transform: "scale(0.31)",
+                          transformOrigin: "top center",
+                          position: "absolute",
+                          top: 16,
+                          left: "50%",
+                          marginLeft: "-475px"
                         }}
                       >
                         {Renderer ? (
@@ -216,43 +221,6 @@ export default function TemplateGalleryPage() {
                       const parserBadge = getATSBadge(analysis.parserScore);
                       return (
                         <div className="flex items-center justify-between border-t border-border pt-2.5 mt-2">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="flex items-center gap-2 cursor-help">
-                                <div className="text-left leading-none">
-                                  <div className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-wider">ATS</div>
-                                  <div className="text-xl font-black text-slate-950 mt-0.5 leading-none">{analysis.overall}</div>
-                                </div>
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="w-64 p-4 rounded-2xl border-none shadow-2xl bg-card/95 backdrop-blur-xl z-50">
-                              <div className="space-y-3">
-                                <div className="flex justify-between items-center border-b border-border pb-2">
-                                  <span className="font-black text-xs text-foreground uppercase tracking-tighter">ATS Analysis</span>
-                                  <span className="text-indigo-600 font-black text-xs">{analysis.overall}</span>
-                                </div>
-                                <div className="space-y-2">
-                                  {[
-                                    { label: "Structure", score: analysis.formatScore },
-                                    { label: "Parser", score: analysis.parserScore },
-                                    { label: "Readability", score: analysis.readability },
-                                    { label: "Keywords", score: analysis.keywordScore },
-                                  ].map((item, idx) => (
-                                    <div key={idx} className="flex flex-col gap-1">
-                                      <div className="flex justify-between text-[9px] font-bold">
-                                        <span className="text-muted-foreground uppercase">{item.label}</span>
-                                        <span className="text-foreground">{item.score}</span>
-                                      </div>
-                                      <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
-                                        <div className="h-full bg-slate-950 rounded-full" style={{ width: `${item.score}%` }} />
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </TooltipContent>
-                          </Tooltip>
-
                           <div className={`px-2.5 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest ${parserBadge.color}`}>
                             {parserBadge.label} Parser
                           </div>

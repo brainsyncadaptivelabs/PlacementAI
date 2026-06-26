@@ -1,19 +1,23 @@
-/* Hard-locked Dark Theme for PlacementAI */
+/* Theme Variables for PlacementAI */
 
-:root, .dark {
-  --bg-primary: #090F1F;
-  --bg-secondary: #0B1020;
-  --bg-surface: #0F172A;
-  --bg-elevated: #172033;
-  --bg-hover: #111827;
+:root {
+  /* Premium Light Theme */
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #F1F5F9;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #E2E8F0;
+  --bg-hover: #EDF2F7;
   
-  --text-primary: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
+  --text-primary: #0F172A;
+  --text-secondary: #334155;
+  --text-muted: #64748B;
   
   --accent: #4F46E5;
-  --border-subtle: rgba(255,255,255,0.04);
-  --border-focus: rgba(99,102,241,0.15);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-focus: rgba(99, 102, 241, 0.25);
+
+  --bg-gradient-start: #F8FAFC;
+  --bg-gradient-end: #E2E8F0;
   
   /* Next.js & UI standard variable overrides */
   --background: var(--bg-primary);
@@ -34,9 +38,46 @@
   --radius: 24px;
 }
 
+.dark {
+  /* Premium Dark Theme */
+  --bg-primary: #090F1F;
+  --bg-secondary: #0B1020;
+  --bg-surface: #0F172A;
+  --bg-elevated: #172033;
+  --bg-hover: #111827;
+  
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  
+  --accent: #6366F1;
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-focus: rgba(99, 102, 241, 0.15);
+
+  --bg-gradient-start: #090F1F;
+  --bg-gradient-end: #111827;
+  
+  /* Next.js & UI standard variable overrides */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg-elevated);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-secondary);
+  --muted-foreground: var(--text-muted);
+  --border: var(--border-subtle);
+  --input: var(--bg-elevated);
+  --ring: var(--border-focus);
+}
+
 /* Page base background linear-gradient */
 body {
-  background: linear-gradient(180deg, #090F1F 0%, #111827 100%) !important;
+  background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%) !important;
   color: var(--text-primary) !important;
   min-height: 100vh;
 }
@@ -131,7 +172,7 @@ tr[data-slot=table-row]:hover, tr.table-row:hover {
   background-color: var(--bg-elevated) !important;
 }
 th[data-slot=table-head], th.table-head {
-  background-color: #111827 !important;
+  background-color: var(--bg-secondary) !important;
   border-bottom: 1px solid var(--border-subtle) !important;
   color: var(--text-secondary) !important;
 }
@@ -139,29 +180,29 @@ th[data-slot=table-head], th.table-head {
 /* Navbar / Topbar */
 header.topbar {
   height: 72px !important;
-  background-color: #0B1020 !important;
-  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+  background-color: var(--bg-secondary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
   backdrop-filter: blur(12px) !important;
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
 /* Sidebar styling */
 aside.sidebar {
-  background-color: #0B1020 !important;
-  border-right: 1px solid rgba(255,255,255,0.04) !important;
+  background-color: var(--bg-secondary) !important;
+  border-right: 1px solid var(--border-subtle) !important;
 }
 [data-sidebar=menu-button] {
   transition: background-color 150ms ease !important;
 }
 [data-sidebar=menu-button][data-active=true],
 .sidebar-link.active {
-  background-color: #172033 !important;
-  color: #ffffff !important;
+  background-color: var(--bg-elevated) !important;
+  color: var(--text-primary) !important;
 }
 [data-sidebar=menu-button]:hover,
 .sidebar-link:hover {
-  background-color: #111827 !important;
-  color: #ffffff !important;
+  background-color: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
 }
 
 /* Modals / Dialogs style reset */
@@ -186,40 +227,40 @@ a, button, input, select, textarea, [data-slot=card], tr[data-slot=table-row] {
 }
 
 /* Resume Preview Canvas Overrides */
-#visible-preview-canvas, #resume-preview-panel {
+.dark #visible-preview-canvas, .dark #resume-preview-panel {
   background-color: #1E293B !important;
   background: #1E293B !important;
 }
 
 /* Strip black/dark text colors inside resume canvas */
-#visible-preview-canvas [class*="text-black"],
-#visible-preview-canvas [class*="text-slate-950"],
-#visible-preview-canvas [class*="text-slate-900"],
-#visible-preview-canvas [class*="text-slate-800"],
-#visible-preview-canvas .text-black,
-#visible-preview-canvas .text-slate-900 {
+.dark #visible-preview-canvas [class*="text-black"],
+.dark #visible-preview-canvas [class*="text-slate-950"],
+.dark #visible-preview-canvas [class*="text-slate-900"],
+.dark #visible-preview-canvas [class*="text-slate-800"],
+.dark #visible-preview-canvas .text-black,
+.dark #visible-preview-canvas .text-slate-900 {
   color: #ffffff !important;
 }
 
-#visible-preview-canvas [class*="text-slate-750"],
-#visible-preview-canvas [class*="text-slate-700"],
-#visible-preview-canvas [class*="text-slate-600"],
-#visible-preview-canvas .text-slate-700,
-#visible-preview-canvas .text-slate-600 {
+.dark #visible-preview-canvas [class*="text-slate-750"],
+.dark #visible-preview-canvas [class*="text-slate-700"],
+.dark #visible-preview-canvas [class*="text-slate-600"],
+.dark #visible-preview-canvas .text-slate-700,
+.dark #visible-preview-canvas .text-slate-600 {
   color: #CBD5E1 !important;
 }
 
-#visible-preview-canvas [class*="text-slate-500"],
-#visible-preview-canvas [class*="text-slate-400"],
-#visible-preview-canvas .text-slate-500,
-#visible-preview-canvas .text-slate-400 {
+.dark #visible-preview-canvas [class*="text-slate-500"],
+.dark #visible-preview-canvas [class*="text-slate-400"],
+.dark #visible-preview-canvas .text-slate-500,
+.dark #visible-preview-canvas .text-slate-400 {
   color: #94A3B8 !important;
 }
 
 /* Force border lines inside resume canvas to be subtle */
-#visible-preview-canvas hr, 
-#visible-preview-canvas .border-t,
-#visible-preview-canvas [class*="border-slate-"] {
+.dark #visible-preview-canvas hr, 
+.dark #visible-preview-canvas .border-t,
+.dark #visible-preview-canvas [class*="border-slate-"] {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
