@@ -56,7 +56,9 @@ public class SecurityConfig {
 
                                 "/v3/api-docs/**",
                                 
-                                "/actuator/**"
+                                "/actuator/**",
+
+                                "/api/v1/profile/public/**"
 
                         ).permitAll()
 

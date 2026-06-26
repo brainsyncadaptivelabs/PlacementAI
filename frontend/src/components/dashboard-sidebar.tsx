@@ -52,8 +52,6 @@ export function AppSidebar() {
   const menuItems = [];
   if (planSelected) {
     menuItems.push(
-      { title: "Profile", icon: User, url: "/dashboard/profile" },
-      { title: "Plans", icon: CreditCard, url: "/plans" },
       { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" },
       { title: "Resume Builder", icon: FileText, url: "/dashboard/resume-builder" },
       { title: "Resume & ATS", icon: FileText, url: "/dashboard/ats" },
@@ -70,10 +68,7 @@ export function AppSidebar() {
       { title: "Analytics", icon: BarChart3, url: "/dashboard/analytics" }
     );
   } else {
-    menuItems.push(
-      { title: "Profile", icon: User, url: "/dashboard/profile" },
-      { title: "Plans", icon: CreditCard, url: "/plans" }
-    );
+    // Empty array if no plan selected, the dashboard shell will redirect to /plans
   }
 
   const settingsItems = [

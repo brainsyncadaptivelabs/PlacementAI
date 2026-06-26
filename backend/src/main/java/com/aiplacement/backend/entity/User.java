@@ -25,6 +25,9 @@ public class User {
     @Column(name = "full_name", nullable = false)
     private String fullName;
 
+    @Column(name = "date_of_birth")
+    private String dateOfBirth;
+
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -48,6 +51,9 @@ public class User {
     @Column(name = "github_url")
     private String githubUrl;
 
+    @Column(name = "leetcode_url")
+    private String leetcodeUrl;
+
     @Column(name = "company_name")
     private String companyName;
 
@@ -56,6 +62,9 @@ public class User {
 
     @Column(name = "company_size")
     private String companySize;
+
+    @Column(columnDefinition = "TEXT")
+    private String skills;
 
     @Column(name = "profile_completed")
     @Builder.Default
@@ -91,6 +100,30 @@ public class User {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Column(name = "email_notifications")
+    @Builder.Default
+    private Boolean emailNotifications = true;
+
+    @Column(name = "push_notifications")
+    @Builder.Default
+    private Boolean pushNotifications = false;
+
+    @Column(name = "auto_save")
+    @Builder.Default
+    private Boolean autoSave = true;
+
+    @Column(name = "profile_visible")
+    @Builder.Default
+    private Boolean profileVisible = true;
+
+    @Column(name = "two_factor_enabled")
+    @Builder.Default
+    private Boolean twoFactorEnabled = false;
+
+    @Column(name = "language")
+    @Builder.Default
+    private String language = "en";
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;

@@ -54,6 +54,11 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.getMyProfile());
     }
 
+    @GetMapping("/public/{id}")
+    public ResponseEntity<UserProfileDto> getPublicProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(profileService.getPublicProfileById(id));
+    }
+
     @PutMapping("/update")
     public ResponseEntity<String> updateProfile(@RequestBody CompleteProfileRequest request) {
         profileService.updateProfile(request);

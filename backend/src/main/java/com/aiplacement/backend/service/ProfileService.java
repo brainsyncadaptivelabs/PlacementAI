@@ -7,5 +7,6 @@ public interface ProfileService {
     void completeStudentProfile(CompleteProfileRequest request);
     void completeRecruiterProfile(CompleteProfileRequest request);
     UserProfileDto getMyProfile();
+    UserProfileDto getPublicProfileById(Long id);
     void updateProfile(CompleteProfileRequest request);
 }

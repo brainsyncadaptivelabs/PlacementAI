@@ -36,6 +36,8 @@ public class ProfileServiceImpl implements ProfileService {
         user.setGraduationYear(request.getGraduationYear());
         if (request.getLinkedinUrl() != null) user.setLinkedinUrl(request.getLinkedinUrl());
         if (request.getGithubUrl() != null) user.setGithubUrl(request.getGithubUrl());
+        if (request.getLeetcodeUrl() != null) user.setLeetcodeUrl(request.getLeetcodeUrl());
+        if (request.getSkills() != null) user.setSkills(request.getSkills());
         
         user.setProfileCompleted(true);
         userRepository.save(user);
@@ -66,7 +68,9 @@ public class ProfileServiceImpl implements ProfileService {
     public UserProfileDto getMyProfile() {
         User user = getCurrentUser();
         return UserProfileDto.builder()
+                .id(user.getId())
                 .fullName(user.getFullName())
+                .dateOfBirth(user.getDateOfBirth())
                 .email(user.getEmail())
                 .role(user.getRole())
                 .collegeName(user.getCollegeName())
@@ -74,9 +78,11 @@ public class ProfileServiceImpl implements ProfileService {
                 .graduationYear(user.getGraduationYear())
                 .linkedinUrl(user.getLinkedinUrl())
                 .githubUrl(user.getGithubUrl())
+                .leetcodeUrl(user.getLeetcodeUrl())
                 .companyName(user.getCompanyName())
                 .companyWebsite(user.getCompanyWebsite())
                 .companySize(user.getCompanySize())
+                .skills(user.getSkills())
                 .profileCompleted(user.isProfileCompleted())
                 .planSelected(user.isPlanSelected())
                 .paymentCompleted(user.isPaymentCompleted())
@@ -87,16 +93,44 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    public UserProfileDto getPublicProfileById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return UserProfileDto.builder()
+                .id(user.getId())
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .collegeName(user.getCollegeName())
+                .branch(user.getBranch())
+                .graduationYear(user.getGraduationYear())
+                .linkedinUrl(user.getLinkedinUrl())
+                .githubUrl(user.getGithubUrl())
+                .leetcodeUrl(user.getLeetcodeUrl())
+                .companyName(user.getCompanyName())
+                .companyWebsite(user.getCompanyWebsite())
+                .companySize(user.getCompanySize())
+                .skills(user.getSkills())
+                .profileCompleted(user.isProfileCompleted())
+                .profileImage(user.getProfileImage())
+                .build();
+    }
+
+    @Override
     public void updateProfile(CompleteProfileRequest request) {
         User user = getCurrentUser();
+        if (request.getFullName() != null) user.setFullName(request.getFullName());
+        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth());
         if (request.getCollegeName() != null) user.setCollegeName(request.getCollegeName());
         if (request.getBranch() != null) user.setBranch(request.getBranch());
         if (request.getGraduationYear() != null) user.setGraduationYear(request.getGraduationYear());
         if (request.getLinkedinUrl() != null) user.setLinkedinUrl(request.getLinkedinUrl());
         if (request.getGithubUrl() != null) user.setGithubUrl(request.getGithubUrl());
+        if (request.getLeetcodeUrl() != null) user.setLeetcodeUrl(request.getLeetcodeUrl());
         if (request.getCompanyName() != null) user.setCompanyName(request.getCompanyName());
         if (request.getCompanyWebsite() != null) user.setCompanyWebsite(request.getCompanyWebsite());
         if (request.getCompanySize() != null) user.setCompanySize(request.getCompanySize());
+        if (request.getSkills() != null) user.setSkills(request.getSkills());
         userRepository.save(user);
     }
 }

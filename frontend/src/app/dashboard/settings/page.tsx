@@ -1,18 +1,30 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChevronRight, Bell, Shield, Download, Trash2, Key, Sun, Moon, Monitor, Eye } from "lucide-react";
+import { ChevronRight, Bell, Shield, Download, Trash2, Key, Sun, Moon, Monitor, Eye, User, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";
 import { PageShell } from "@/components/ui/theme-components";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-user";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { signOut } = useAuth();
+  const router = useRouter();
+
+  const { user, mutate } = useUser();
 
   // Switch states
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -21,11 +33,116 @@ export default function SettingsPage() {
   const [twoFactor, setTwoFactor] = useState(false);
   const [autoSave, setAutoSave] = useState(true);
 
+  // Change Password state
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+
+  // Support Ticket state
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [supportSubject, setSupportSubject] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
+  const [supportError, setSupportError] = useState("");
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      setEmailNotifs(user.emailNotifications ?? true);
+      setPushNotifs(user.pushNotifications ?? false);
+      setAutoSave(user.autoSave ?? true);
+      setProfileVisible(user.profileVisible ?? true);
+      setTwoFactor(user.twoFactorEnabled ?? false);
+    }
+  }, [user]);
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  const handlePushNotifToggle = async (val: boolean) => {
+    setPushNotifs(val);
+    
+    if (val) {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert('Push notifications are not supported by your browser.');
+        setPushNotifs(false);
+        return;
+      }
+      
+      try {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+          alert('You must grant notification permission to enable this feature.');
+          setPushNotifs(false);
+          return;
+        }
+        
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
+        });
+        
+        const subJson = subscription.toJSON();
+        
+        await api.post('/push/subscribe', {
+          endpoint: subJson.endpoint,
+          keys: subJson.keys
+        });
+        
+        await updatePreference("pushNotifications", true);
+      } catch (err) {
+        console.error("Failed to subscribe to push notifications", err);
+        setPushNotifs(false);
+        alert('Failed to enable push notifications.');
+      }
+    } else {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (subscription) {
+          const subJson = subscription.toJSON();
+          await api.post('/push/unsubscribe', { endpoint: subJson.endpoint });
+          await subscription.unsubscribe();
+        }
+        await updatePreference("pushNotifications", false);
+      } catch (err) {
+        console.error("Failed to unsubscribe", err);
+      }
+    }
+  };
+
+  const updatePreference = async (key: string, value: any) => {
+    try {
+      await api.put("/user/preferences", { [key]: value });
+      mutate();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to update preference");
+    }
+  };
+
   const handleAction = (label: string) => {
+    if (label === "Change Password") {
+      setIsPasswordModalOpen(true);
+      return;
+    }
+    if (label === "Download My Data") {
+      handleDownloadData();
+      return;
+    }
     setLoadingAction(label);
     setTimeout(() => {
       setLoadingAction(null);
@@ -33,13 +150,101 @@ export default function SettingsPage() {
     }, 800);
   };
 
-  const handleDelete = () => {
+  const handleDownloadData = () => {
+    if (!user) return;
+    setLoadingAction("Download My Data");
+    
+    try {
+      const dataStr = JSON.stringify(user, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "placementai_user_data.json";
+      document.body.appendChild(link);
+      link.click();
+      
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to download data.");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError("");
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setPasswordError("All fields are required.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match.");
+      return;
+    }
+    setLoadingAction("Change Password API");
+    try {
+      await api.put("/user/change-password", {
+        oldPassword,
+        newPassword
+      });
+      setIsPasswordModalOpen(false);
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      alert("Password changed successfully.");
+    } catch (err: any) {
+      console.error(err);
+      if (err.response?.status === 400) {
+        setPasswordError(err.response.data || "Incorrect current password.");
+      } else {
+        setPasswordError("Failed to change password. Please try again.");
+      }
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleSubmitSupportTicket = async () => {
+    setSupportError("");
+    if (!supportSubject.trim() || !supportMessage.trim()) {
+      setSupportError("Subject and Message are required.");
+      return;
+    }
+    setLoadingAction("Submit Support Ticket API");
+    try {
+      await api.post("/support/ticket", {
+        subject: supportSubject,
+        message: supportMessage
+      });
+      setIsSupportModalOpen(false);
+      setSupportSubject("");
+      setSupportMessage("");
+      alert("Support ticket submitted successfully.");
+    } catch (err: any) {
+      console.error(err);
+      setSupportError(err.response?.data || "Failed to submit ticket. Please try again.");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleDelete = async () => {
     if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
       setLoadingAction("Delete Account");
-      setTimeout(() => {
+      try {
+        await api.delete("/user/delete");
+        await signOut();
+        router.push("/auth");
+      } catch (err) {
+        console.error(err);
+        alert("Failed to delete account. Please try again.");
+      } finally {
         setLoadingAction(null);
-        alert("Account deletion request submitted.");
-      }, 1000);
+      }
     }
   };
 
@@ -99,7 +304,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Email Notifications</span>
                 <span className="text-xs text-muted-foreground">Receive weekly job matches and application updates.</span>
               </div>
-              <Switch checked={emailNotifs} onCheckedChange={setEmailNotifs} />
+              <Switch checked={emailNotifs} onCheckedChange={(val) => { setEmailNotifs(val); updatePreference("emailNotifications", val); }} />
             </div>
 
             <Separator className="my-2" />
@@ -110,7 +315,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Push Notifications</span>
                 <span className="text-xs text-muted-foreground">Get real-time browser alerts when a recruiter messages you.</span>
               </div>
-              <Switch checked={pushNotifs} onCheckedChange={setPushNotifs} />
+              <Switch checked={pushNotifs} onCheckedChange={handlePushNotifToggle} />
             </div>
 
             <Separator className="my-2" />
@@ -121,7 +326,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Auto-Save Progress</span>
                 <span className="text-xs text-muted-foreground">Automatically save changes in the resume builder.</span>
               </div>
-              <Switch checked={autoSave} onCheckedChange={setAutoSave} />
+              <Switch checked={autoSave} onCheckedChange={(val) => { setAutoSave(val); updatePreference("autoSave", val); }} />
             </div>
 
           </CardContent>
@@ -141,7 +346,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Public Profile Visibility</span>
                 <span className="text-xs text-muted-foreground">Allow verified recruiters to search and view your academic profile.</span>
               </div>
-              <Switch checked={profileVisible} onCheckedChange={setProfileVisible} />
+              <Switch checked={profileVisible} onCheckedChange={(val) => { setProfileVisible(val); updatePreference("profileVisible", val); }} />
             </div>
 
             <Separator className="my-2" />
@@ -152,7 +357,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Two-Factor Authentication</span>
                 <span className="text-xs text-muted-foreground">Secure your account with an authentication app verification code.</span>
               </div>
-              <Switch checked={twoFactor} onCheckedChange={setTwoFactor} />
+              <Switch checked={twoFactor} onCheckedChange={(val) => { setTwoFactor(val); updatePreference("twoFactorEnabled", val); }} />
             </div>
 
           </CardContent>
@@ -166,13 +371,21 @@ export default function SettingsPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {[
+              { label: "My Profile", icon: User, url: "/dashboard/profile" },
+              { label: "Subscription Plans", icon: CreditCard, url: "/plans" },
               { label: "Change Password", icon: Key },
               { label: "Download My Data", icon: Download },
             ].map((item, i) => (
               <Button
                 key={i}
                 variant="secondary"
-                onClick={() => handleAction(item.label)}
+                onClick={() => {
+                  if (item.url) {
+                    router.push(item.url);
+                  } else {
+                    handleAction(item.label);
+                  }
+                }}
                 disabled={loadingAction !== null}
                 className="w-full flex items-center justify-between py-6 px-4 text-left"
               >
@@ -220,7 +433,7 @@ export default function SettingsPage() {
             </div>
             <Button 
               variant="secondary" 
-              onClick={() => alert("Support ticket created. We will contact you soon.")}
+              onClick={() => setIsSupportModalOpen(true)}
               className="w-full text-xs"
             >
               Contact Support
@@ -229,6 +442,109 @@ export default function SettingsPage() {
         </Card>
 
       </div>
+
+      {/* Change Password Modal */}
+      <Dialog open={isPasswordModalOpen} onOpenChange={setIsPasswordModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Password</DialogTitle>
+            <DialogDescription>
+              Enter your current password and a new secure password to update your credentials.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="oldPassword">Current Password</Label>
+              <Input
+                id="oldPassword"
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="confirmPassword">Confirm New Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+            {passwordError && (
+              <p className="text-sm font-semibold text-red-500">{passwordError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsPasswordModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleChangePassword} 
+              disabled={loadingAction === "Change Password API"}
+            >
+              {loadingAction === "Change Password API" ? "Saving..." : "Change Password"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Contact Support Modal */}
+      <Dialog open={isSupportModalOpen} onOpenChange={setIsSupportModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Contact Support</DialogTitle>
+            <DialogDescription>
+              Describe your issue below and our support team will get back to you.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="supportSubject">Subject</Label>
+              <Input
+                id="supportSubject"
+                type="text"
+                value={supportSubject}
+                onChange={(e) => setSupportSubject(e.target.value)}
+                placeholder="What do you need help with?"
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="supportMessage">Message</Label>
+              <Textarea
+                id="supportMessage"
+                value={supportMessage}
+                onChange={(e) => setSupportMessage(e.target.value)}
+                placeholder="Provide detailed information about the issue..."
+                className="min-h-[120px]"
+              />
+            </div>
+            {supportError && (
+              <p className="text-sm font-semibold text-red-500">{supportError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setIsSupportModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitSupportTicket} 
+              disabled={loadingAction === "Submit Support Ticket API"}
+            >
+              {loadingAction === "Submit Support Ticket API" ? "Submitting..." : "Submit Ticket"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }

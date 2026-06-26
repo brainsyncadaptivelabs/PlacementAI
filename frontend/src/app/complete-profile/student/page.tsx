@@ -21,7 +21,8 @@ export default function CompleteStudentProfile() {
     branch: "",
     graduationYear: new Date().getFullYear(),
     linkedinUrl: "",
-    githubUrl: ""
+    githubUrl: "",
+    skills: ""
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -92,6 +93,10 @@ export default function CompleteStudentProfile() {
               <div className="space-y-1">
                 <Label htmlFor="linkedinUrl" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">LinkedIn URL (Optional)</Label>
                 <Input id="linkedinUrl" type="url" className="h-12 bg-muted" value={formData.linkedinUrl} onChange={(e) => setFormData({...formData, linkedinUrl: e.target.value})} />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="skills" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Skills (Comma separated) *</Label>
+                <Input id="skills" required className="h-12 bg-muted" value={formData.skills} onChange={(e) => setFormData({...formData, skills: e.target.value})} placeholder="e.g. React, Java, Spring Boot" />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="githubUrl" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GitHub URL (Optional)</Label>

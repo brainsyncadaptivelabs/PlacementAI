@@ -24,33 +24,61 @@ const api = {
     return { data };
   },
   post: async (url: string, data?: any, config?: any) => {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const headers: any = { ...getHeaders(), ...(config?.headers || {}) };
+    
+    if (isFormData || headers["Content-Type"] === "multipart/form-data") {
+      delete headers["Content-Type"];
+    }
+
     const response = await fetch(`${BASE_URL}${url}`, {
       method: "POST",
-      headers: getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
-      ...config
+      ...config,
+      headers,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
     });
     if (!response.ok) {
       const error = new Error(`HTTP error! status: ${response.status}`);
       (error as any).status = response.status;
       throw error;
     }
-    const resData = await response.json().catch(() => ({}));
+    // Only parse json if there's content
+    const resText = await response.text();
+    let resData;
+    try {
+      resData = resText ? JSON.parse(resText) : {};
+    } catch (e) {
+      resData = resText;
+    }
     return { data: resData };
   },
   put: async (url: string, data?: any, config?: any) => {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const headers: any = { ...getHeaders(), ...(config?.headers || {}) };
+    
+    if (isFormData || headers["Content-Type"] === "multipart/form-data") {
+      delete headers["Content-Type"];
+    }
+
     const response = await fetch(`${BASE_URL}${url}`, {
       method: "PUT",
-      headers: getHeaders(),
-      body: data ? JSON.stringify(data) : undefined,
-      ...config
+      ...config,
+      headers,
+      body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
     });
     if (!response.ok) {
       const error = new Error(`HTTP error! status: ${response.status}`);
       (error as any).status = response.status;
       throw error;
     }
-    const resData = await response.json().catch(() => ({}));
+    // Only parse json if there's content
+    const resText = await response.text();
+    let resData;
+    try {
+      resData = resText ? JSON.parse(resText) : {};
+    } catch (e) {
+      resData = resText;
+    }
     return { data: resData };
   },
   delete: async (url: string, config?: any) => {
