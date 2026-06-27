@@ -64,4 +64,9 @@ public class ProfileController {
         profileService.updateProfile(request);
         return ResponseEntity.ok("Profile updated successfully");
     }
+
+    @GetMapping("/dashboard-stats")
+    public ResponseEntity<com.aiplacement.backend.dto.profile.ProfileDashboardStatsDto> getDashboardStats() {
+        return ResponseEntity.ok(profileService.getDashboardStats());
+    }
 }

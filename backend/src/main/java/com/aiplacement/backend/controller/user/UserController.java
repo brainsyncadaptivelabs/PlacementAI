@@ -67,31 +67,7 @@ public class UserController {
                 .build());
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteAccount() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Soft Delete (Anonymization)
-        String randomSuffix = UUID.randomUUID().toString().substring(0, 8);
-        user.setEmail("deleted_" + user.getId() + "_" + randomSuffix + "@deleted.com");
-        user.setFullName("Deleted User");
-        user.setProfileImage(null);
-        user.setLinkedinUrl(null);
-        user.setGithubUrl(null);
-        user.setPassword("");
-        user.setCollegeName(null);
-        user.setBranch(null);
-        user.setGraduationYear(null);
-        user.setDateOfBirth(null);
-
-        userRepository.save(user);
-
-        return ResponseEntity.ok("Account successfully deleted");
-    }
 
     @PutMapping("/preferences")
     public ResponseEntity<String> updatePreferences(@RequestBody PreferencesRequestDto request) {

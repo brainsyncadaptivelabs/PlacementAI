@@ -9,4 +9,5 @@ public interface ProfileService {
     UserProfileDto getMyProfile();
     UserProfileDto getPublicProfileById(Long id);
     void updateProfile(CompleteProfileRequest request);
+    com.aiplacement.backend.dto.profile.ProfileDashboardStatsDto getDashboardStats();
 }

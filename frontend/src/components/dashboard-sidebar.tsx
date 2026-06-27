@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { SearchBar } from './search-bar';
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sun, Moon } from "lucide-react";
 import {
   LayoutDashboard,
   FileText,
@@ -42,6 +43,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
+import { useTheme } from "next-themes";
 import { UserNav } from "./dashboard/user-nav";
 
 export function AppSidebar() {
@@ -144,6 +146,12 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, loading } = useUser();
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+  
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
   
   React.useEffect(() => {
     if (loading) return;
@@ -194,19 +202,18 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             <header className="h-16 flex items-center justify-between px-8 bg-background border-b border-border/40 shrink-0 sticky top-0 z-30">
               <div className="flex items-center gap-4 flex-1">
                 <SidebarTrigger className="md:hidden" />
-                <div className="group relative flex items-center bg-card/80 backdrop-blur-[16px] rounded-[18px] px-[18px] h-[54px] border border-border/50 shadow-sm hover:-translate-y-[1px] focus-within:scale-[1.015] focus-within:shadow-[0_8px_28px_rgba(0,0,0,0.05),0_0_0_4px_rgba(99,102,241,0.08)] transition-all duration-250 ease-in-out w-full max-w-full md:max-w-[380px] lg:max-w-[480px] shrink-0">
-                  <Search className="w-[18px] h-[18px] text-muted-foreground opacity-65 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 shrink-0" />
-                  <input 
-                    type="text" 
-                    placeholder="Search resumes, ATS, roadmap..." 
-                    className="flex-1 bg-transparent border-none focus:outline-none focus:ring-0 pl-3 text-[15px] font-medium text-foreground placeholder-muted-foreground outline-none"
-                  />
-                  <div className="hidden md:flex items-center gap-1 px-1.5 py-0.5 bg-muted rounded-md text-[10px] font-bold text-muted-foreground/70 select-none font-sans whitespace-nowrap shrink-0">
-                    <span>Ctrl</span><span>K</span>
-                  </div>
-                </div>
+                <SearchBar />
               </div>
               <div className="flex items-center gap-4">
+                 <Button 
+                   variant="ghost" 
+                   size="icon" 
+                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                   className="text-muted-foreground hover:bg-muted rounded-xl transition-colors"
+                   title="Toggle Theme"
+                 >
+                   {mounted ? (theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />) : <Sun className="w-5 h-5" />}
+                 </Button>
                  <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors">
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>

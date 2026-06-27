@@ -112,10 +112,13 @@ public class AuthServiceImpl implements AuthService {
                     .fullName(fullName)
                     .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .role(role)
+                    .authProvider(com.aiplacement.backend.entity.AuthProvider.GOOGLE)
                     .profileCompleted(false)
                     .paymentStatus("PENDING")
                     .build();
 
+            com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
+            user.setUserStats(stats);
             userRepository.save(user);
             log.info("[SOCIAL_LOGIN] New social user created and saved successfully.");
             try {
@@ -255,6 +258,8 @@ public class AuthServiceImpl implements AuthService {
                 .build();
 
         log.info("Persisting manual signup user to database");
+        com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
+        user.setUserStats(stats);
         userRepository.save(user);
 
         try {

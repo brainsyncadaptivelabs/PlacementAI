@@ -19,6 +19,8 @@ import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { signOut } = useAuth();
@@ -232,19 +234,56 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-      setLoadingAction("Delete Account");
-      try {
-        await api.delete("/user/delete");
-        await signOut();
-        router.push("/auth");
-      } catch (err) {
-        console.error(err);
-        alert("Failed to delete account. Please try again.");
-      } finally {
-        setLoadingAction(null);
+  const handleDeleteEmail = async (password: string) => {
+    setLoadingAction("Delete Account");
+    setDeleteError(null);
+    try {
+      await api.post("/account/delete", { password });
+      await signOut();
+      router.push("/auth");
+    } catch (err: any) {
+      console.error(err);
+      setDeleteError(err.response?.data || "Failed to delete account. Please try again.");
+    } finally {
+      setLoadingAction(null);
+    }
+  };
+
+  const handleDeleteGoogle = async () => {
+    setLoadingAction("Delete Account");
+    setDeleteError(null);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          queryParams: {
+            prompt: 'consent',
+          }
+        }
+      });
+      if (error) throw error;
+      // Note: This triggers a redirect. If we wanted it inline without redirect,
+      // we could use supabase provider tokens. However, the redirect flow
+      // breaks the SPA state. Instead, we can try to get the current session token:
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData?.session?.provider_token) {
+         // Force a re-auth if no provider token is present
+         setDeleteError("Please re-authenticate with Google first.");
+         await supabase.auth.signInWithOAuth({ provider: 'google' });
+         return;
       }
+      
+      await api.post("/account/delete/google", { 
+        idToken: sessionData.session.provider_token
+      });
+      await signOut();
+      router.push("/auth");
+    } catch (err: any) {
+      console.error(err);
+      setDeleteError(err.response?.data || "Google verification failed. Your account has not been deleted.");
+    } finally {
+      setLoadingAction(null);
     }
   };
 
@@ -257,38 +296,6 @@ export default function SettingsPage() {
 
       <div className="flex flex-col gap-6">
         
-        {/* Appearance Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Appearance</CardTitle>
-            <CardDescription>Customize the application theme and layout options.</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <div className="grid grid-cols-3 gap-4">
-              <Button
-                variant={mounted && theme === 'light' ? 'default' : 'secondary'}
-                className="w-full gap-2 justify-center"
-                onClick={() => setTheme('light')}
-              >
-                <Sun className="w-4 h-4" /> Light
-              </Button>
-              <Button
-                variant={mounted && theme === 'dark' ? 'default' : 'secondary'}
-                className="w-full gap-2 justify-center"
-                onClick={() => setTheme('dark')}
-              >
-                <Moon className="w-4 h-4" /> Dark
-              </Button>
-              <Button
-                variant={mounted && theme === 'system' ? 'default' : 'secondary'}
-                className="w-full gap-2 justify-center"
-                onClick={() => setTheme('system')}
-              >
-                <Monitor className="w-4 h-4" /> System
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Notifications & Prefs */}
         <Card>
@@ -415,10 +422,10 @@ export default function SettingsPage() {
               </div>
               <Button 
                 variant="destructive"
-                onClick={handleDelete}
+                onClick={() => { setIsDeleteModalOpen(true); setDeleteError(null); }}
                 disabled={loadingAction !== null}
               >
-                {loadingAction === "Delete Account" ? "Processing..." : "Delete Account"}
+                Delete Account
               </Button>
             </div>
           </CardContent>

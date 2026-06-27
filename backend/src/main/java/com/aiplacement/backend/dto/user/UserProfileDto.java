@@ -1,6 +1,7 @@
 package com.aiplacement.backend.dto.user;
 
 import com.aiplacement.backend.entity.Role;
+import com.aiplacement.backend.entity.AuthProvider;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,6 +17,7 @@ public class UserProfileDto {
     private String dateOfBirth;
     private String email;
     private Role role;
+    private AuthProvider authProvider;
     private String collegeName;
     private String branch;
     private Integer graduationYear;

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { YearDropdown } from "@/components/ui/year-dropdown";
 import { Label } from "@/components/ui/label";
 import { Loader2, X } from "lucide-react";
 import api from "@/lib/api";
@@ -27,6 +28,19 @@ export default function CompleteStudentProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const gradYearStr = String(formData.graduationYear || "").trim();
+    if (!/^\d{4}$/.test(gradYearStr)) {
+      setError("Graduation year must be exactly 4 digits.");
+      return;
+    }
+    const gradYear = parseInt(gradYearStr, 10);
+    const maxYear = new Date().getFullYear() + 4;
+    if (gradYear < 2000 || gradYear > maxYear) {
+      setError(`Graduation year must be between 2000 and ${maxYear}.`);
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -87,7 +101,10 @@ export default function CompleteStudentProfile() {
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="graduationYear" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Grad. Year *</Label>
-                  <Input id="graduationYear" type="number" required className="h-12 bg-muted" value={formData.graduationYear} onChange={(e) => setFormData({...formData, graduationYear: parseInt(e.target.value)})} />
+                  <YearDropdown 
+                    value={formData.graduationYear} 
+                    onChange={(year) => setFormData({...formData, graduationYear: year as any})}
+                  />
                 </div>
               </div>
               <div className="space-y-1">

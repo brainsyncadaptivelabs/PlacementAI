@@ -37,6 +37,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private AuthProvider authProvider = AuthProvider.EMAIL;
+
     @Column(name = "college_name")
     private String collegeName;
 
@@ -127,4 +131,11 @@ public class User {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserStats userStats;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private java.util.List<UserActivityLog> activityLogs = new java.util.ArrayList<>();
 }

@@ -20,7 +20,7 @@ export default function Providers({
   }, []);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={true}>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
       <AuthProvider>
         {children}
       </AuthProvider>

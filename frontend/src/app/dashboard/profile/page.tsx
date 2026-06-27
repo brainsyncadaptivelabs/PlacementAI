@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Share2, Code2, Activity, FileText, CheckCircle, Award, LayoutGrid } from "lucide-react";
@@ -18,6 +18,24 @@ export default function ProfileDashboard() {
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [stats, setStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await api.get('/api/v1/profile/dashboard-stats');
+        setStats(response.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats", error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -176,7 +194,7 @@ export default function ProfileDashboard() {
                     <div className="w-3 h-16 bg-primary rounded-sm"></div>
                  </div>
                  <div className="ml-4 flex items-baseline gap-2">
-                   <span className="text-5xl font-black text-foreground">5</span>
+                   <span className="text-5xl font-black text-foreground">{loadingStats ? "-" : stats?.activityStreakDays || 0}</span>
                    <span className="text-sm font-semibold text-muted-foreground uppercase">Days</span>
                  </div>
                </div>
@@ -202,7 +220,9 @@ export default function ProfileDashboard() {
                   <div className="absolute inset-0 rounded-full border-4 border-t-primary border-r-primary border-b-transparent border-l-transparent transform -rotate-45"></div>
                   <div className="text-center">
                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Total<br/>Questions</p>
-                    <p className="text-xl font-black text-foreground">11943</p>
+                    <p className="text-xl font-black text-foreground">
+                      {loadingStats ? "-" : (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0)}
+                    </p>
                   </div>
                 </div>
                 {/* Stats Breakdown */}
@@ -210,28 +230,37 @@ export default function ProfileDashboard() {
                    <div>
                      <div className="flex justify-between text-xs mb-1">
                        <span className="font-bold text-green-500">EASY</span>
-                       <span className="text-muted-foreground">2.27% <span className="text-border">|</span> 111/4891</span>
+                       <span className="text-muted-foreground">
+                         {loadingStats ? "-" : Math.round(((stats?.questionsEasy || 0) / Math.max(1, (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0))) * 100)}% 
+                         <span className="text-border">|</span> {loadingStats ? "-" : stats?.questionsEasy || 0}
+                       </span>
                      </div>
                      <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                       <div className="h-full bg-green-500 w-[2.27%]"></div>
+                       <div className="h-full bg-green-500 transition-all" style={{ width: `${loadingStats ? 0 : Math.round(((stats?.questionsEasy || 0) / Math.max(1, (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0))) * 100)}%` }}></div>
                      </div>
                    </div>
                    <div>
                      <div className="flex justify-between text-xs mb-1">
                        <span className="font-bold text-yellow-500">MEDIUM</span>
-                       <span className="text-muted-foreground">0.11% <span className="text-border">|</span> 6/5487</span>
+                       <span className="text-muted-foreground">
+                         {loadingStats ? "-" : Math.round(((stats?.questionsMedium || 0) / Math.max(1, (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0))) * 100)}% 
+                         <span className="text-border">|</span> {loadingStats ? "-" : stats?.questionsMedium || 0}
+                       </span>
                      </div>
                      <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                       <div className="h-full bg-yellow-500 w-[0.11%]"></div>
+                       <div className="h-full bg-yellow-500 transition-all" style={{ width: `${loadingStats ? 0 : Math.round(((stats?.questionsMedium || 0) / Math.max(1, (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0))) * 100)}%` }}></div>
                      </div>
                    </div>
                    <div>
                      <div className="flex justify-between text-xs mb-1">
                        <span className="font-bold text-red-500">HARD</span>
-                       <span className="text-muted-foreground">0% <span className="text-border">|</span> 0/1565</span>
+                       <span className="text-muted-foreground">
+                         {loadingStats ? "-" : Math.round(((stats?.questionsHard || 0) / Math.max(1, (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0))) * 100)}% 
+                         <span className="text-border">|</span> {loadingStats ? "-" : stats?.questionsHard || 0}
+                       </span>
                      </div>
                      <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
-                       <div className="h-full bg-red-500 w-[0%]"></div>
+                       <div className="h-full bg-red-500 transition-all" style={{ width: `${loadingStats ? 0 : Math.round(((stats?.questionsHard || 0) / Math.max(1, (stats?.questionsEasy || 0) + (stats?.questionsMedium || 0) + (stats?.questionsHard || 0))) * 100)}%` }}></div>
                      </div>
                    </div>
                 </div>
@@ -242,9 +271,11 @@ export default function ProfileDashboard() {
            <Card className="col-span-1 border-border/50 shadow-sm flex flex-col items-center text-center">
              <CardHeader className="w-full flex flex-row items-center justify-between pb-2">
                <CardTitle className="text-sm font-bold text-foreground">Resume</CardTitle>
+               {stats?.resumeVerified && (
                <Badge className="bg-green-500 hover:bg-green-600 text-white border-none rounded-full px-3 py-0.5 shadow-none flex items-center gap-1">
                  <CheckCircle className="w-3 h-3" /> Verified
                </Badge>
+               )}
              </CardHeader>
              <CardContent className="flex flex-col items-center gap-4 pt-4 w-full">
                <FileText className="w-16 h-16 text-primary/60" />
@@ -281,14 +312,23 @@ export default function ProfileDashboard() {
              </CardHeader>
              <CardContent className="flex items-center justify-center py-8">
                 {/* Mock Heatmap blocks */}
-                <div className="flex gap-1 overflow-hidden opacity-50">
-                   {[...Array(30)].map((_, col) => (
-                     <div key={col} className="flex flex-col gap-1">
-                        {[...Array(5)].map((_, row) => (
-                          <div key={row} className={`w-3 h-3 rounded-sm ${Math.random() > 0.8 ? 'bg-primary' : Math.random() > 0.6 ? 'bg-primary/60' : Math.random() > 0.4 ? 'bg-primary/30' : 'bg-border'}`}></div>
-                        ))}
-                     </div>
-                   ))}
+                <div className="flex gap-1 overflow-x-auto pb-2 opacity-90 w-full justify-center">
+                   {loadingStats ? (
+                     <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                   ) : (
+                     [...Array(30)].map((_, col) => (
+                       <div key={col} className="flex flex-col gap-1">
+                          {[...Array(5)].map((_, row) => {
+                             // Dynamic calculation based on actual heatmapData could go here
+                             // For now we map some dynamic intensity based on data presence
+                             const intensity = stats?.heatmapData?.length > col * 5 + row ? Math.random() : 0.1;
+                             return (
+                               <div key={row} className={`w-3 h-3 rounded-sm ${intensity > 0.8 ? 'bg-primary' : intensity > 0.6 ? 'bg-primary/60' : intensity > 0.4 ? 'bg-primary/30' : 'bg-border/40'}`}></div>
+                             );
+                          })}
+                       </div>
+                     ))
+                   )}
                 </div>
              </CardContent>
            </Card>
