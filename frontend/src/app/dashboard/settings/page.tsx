@@ -16,11 +16,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { DeleteAccountModal } from "@/components/ui/delete-account-modal";
 
 export default function SettingsPage() {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { signOut } = useAuth();
@@ -234,57 +235,11 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDeleteEmail = async (password: string) => {
-    setLoadingAction("Delete Account");
-    setDeleteError(null);
-    try {
-      await api.post("/account/delete", { password });
-      await signOut();
-      router.push("/auth");
-    } catch (err: any) {
-      console.error(err);
-      setDeleteError(err.response?.data || "Failed to delete account. Please try again.");
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
-  const handleDeleteGoogle = async () => {
-    setLoadingAction("Delete Account");
-    setDeleteError(null);
-    try {
-      const supabase = createClient();
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          queryParams: {
-            prompt: 'consent',
-          }
-        }
-      });
-      if (error) throw error;
-      // Note: This triggers a redirect. If we wanted it inline without redirect,
-      // we could use supabase provider tokens. However, the redirect flow
-      // breaks the SPA state. Instead, we can try to get the current session token:
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData?.session?.provider_token) {
-         // Force a re-auth if no provider token is present
-         setDeleteError("Please re-authenticate with Google first.");
-         await supabase.auth.signInWithOAuth({ provider: 'google' });
-         return;
-      }
-      
-      await api.post("/account/delete/google", { 
-        idToken: sessionData.session.provider_token
-      });
-      await signOut();
-      router.push("/auth");
-    } catch (err: any) {
-      console.error(err);
-      setDeleteError(err.response?.data || "Google verification failed. Your account has not been deleted.");
-    } finally {
-      setLoadingAction(null);
-    }
+  const handleDeleteSuccess = async () => {
+    setIsDeleteModalOpen(false);
+    await signOut();
+    alert("Your account has been deleted successfully.");
+    router.push("/");
   };
 
   return (
@@ -422,7 +377,7 @@ export default function SettingsPage() {
               </div>
               <Button 
                 variant="destructive"
-                onClick={() => { setIsDeleteModalOpen(true); setDeleteError(null); }}
+                onClick={() => setIsDeleteModalOpen(true)}
                 disabled={loadingAction !== null}
               >
                 Delete Account
@@ -552,6 +507,13 @@ export default function SettingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <DeleteAccountModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        authProvider={user?.authProvider || "LOCAL"}
+        onDeleteSuccess={handleDeleteSuccess}
+      />
     </PageShell>
   );
 }

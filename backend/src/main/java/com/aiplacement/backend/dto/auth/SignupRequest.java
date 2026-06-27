@@ -26,11 +26,29 @@ public class SignupRequest {
     )
     private String password;
 
+    @NotBlank(message = "Confirm password is required")
+    private String confirmPassword;
+
+    @NotBlank(message = "Phone number is required")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^\\+?[0-9]{10,15}$",
+            message = "Invalid phone number format"
+    )
+    private String phone;
+
     private String collegeName;
 
     private String branch;
 
+    @jakarta.validation.constraints.Min(value = 1900, message = "Invalid graduation year")
+    @jakarta.validation.constraints.Max(value = 2100, message = "Invalid graduation year")
     private Integer graduationYear;
+
+    private Integer semester;
+
+    private String skills;
+
+    private String preferredRole;
 
     private String companyName;
 

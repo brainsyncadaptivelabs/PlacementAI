@@ -20,11 +20,37 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<TokenResponse> signup(
+    public ResponseEntity<AuthResponse> signup(
             @Valid @RequestBody SignupRequest request
     ) {
         log.info("User signup requested for email: {}", request.getEmail());
         return ResponseEntity.ok(authService.signup(request));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<TokenResponse> verifyEmail(
+            @Valid @RequestBody VerifyEmailRequest request
+    ) {
+        log.info("Email verification requested for email: {}", request.getEmail());
+        return ResponseEntity.ok(authService.verifyEmail(request));
+    }
+
+    @PostMapping("/resend-otp")
+    public ResponseEntity<AuthResponse> resendOtp(
+            @Valid @RequestBody ResendOtpRequest request
+    ) {
+        log.info("OTP resend requested for email: {}", request.getEmail());
+        authService.resendOtp(request);
+        return ResponseEntity.ok(new AuthResponse("OTP resent successfully"));
+    }
+
+    @PostMapping("/cancel-signup")
+    public ResponseEntity<AuthResponse> cancelSignup(
+            @Valid @RequestBody CancelSignupRequest request
+    ) {
+        log.info("Signup cancellation requested for email: {}", request.getEmail());
+        authService.cancelSignup(request);
+        return ResponseEntity.ok(new AuthResponse("Signup cancelled successfully"));
     }
 
     @PostMapping("/login")

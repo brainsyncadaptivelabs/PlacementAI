@@ -28,7 +28,7 @@ export type UserProfile = {
   language?: string;
   skills?: string;
   createdAt?: string;
-  authProvider?: 'EMAIL' | 'GOOGLE';
+  authProvider?: 'LOCAL' | 'GOOGLE' | 'GITHUB';
 };
 
 export function useUser() {

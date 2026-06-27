@@ -12,6 +12,7 @@ import java.util.List;
 
 @SpringBootApplication
 @EnableCaching
+@org.springframework.scheduling.annotation.EnableScheduling
 public class BackendApplication {
 
     public static void main(String[] args) {

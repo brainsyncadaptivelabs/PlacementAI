@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, ChevronDown, Check, Search } from "lucide-react";
+import { Calendar, Check, Search } from "lucide-react";
 
 interface YearDropdownProps {
   value: number | "";
@@ -14,6 +14,7 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
+  const [isFocused, setIsFocused] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -30,6 +31,7 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setIsFocused(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -47,12 +49,9 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
 
   useEffect(() => {
     if (isOpen && scrollRef.current && highlightedIndex >= 0) {
-      const itemsContainer = scrollRef.current.children[1];
-      if (itemsContainer) {
-        const item = itemsContainer.children[highlightedIndex] as HTMLElement;
-        if (item) {
-          item.scrollIntoView({ block: "nearest", behavior: "smooth" });
-        }
+      const item = scrollRef.current.children[highlightedIndex] as HTMLElement;
+      if (item) {
+        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
       }
     }
   }, [highlightedIndex, isOpen]);
@@ -62,6 +61,7 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
       if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
         e.preventDefault();
         setIsOpen(true);
+        setIsFocused(true);
       }
       return;
     }
@@ -77,35 +77,78 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
       if (highlightedIndex >= 0 && highlightedIndex < filteredYears.length) {
         onChange(filteredYears[highlightedIndex]);
         setIsOpen(false);
+        setIsFocused(false);
       }
-    } else if (e.key === "Escape" || e.key === "Tab") {
+    } else if (e.key === "Escape") {
+      e.preventDefault();
       setIsOpen(false);
+      setIsFocused(false);
+    } else if (e.key === "Tab") {
+      setIsOpen(false);
+      setIsFocused(false);
+    }
+  };
+
+  const handleContainerFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleContainerBlur = (e: React.FocusEvent) => {
+    if (containerRef.current && !containerRef.current.contains(e.relatedTarget as Node)) {
+      setIsFocused(false);
     }
   };
 
   return (
-    <div className="relative w-full" ref={containerRef}>
+    <div 
+      className="relative w-full" 
+      ref={containerRef}
+      onFocus={handleContainerFocus}
+      onBlur={handleContainerBlur}
+    >
       <style>{`
-        .year-dropdown-scrollbar::-webkit-scrollbar {
+        .custom-year-scroll::-webkit-scrollbar {
           width: 6px;
         }
-        .year-dropdown-scrollbar::-webkit-scrollbar-track {
+        .custom-year-scroll::-webkit-scrollbar-track {
           background: transparent;
         }
-        .year-dropdown-scrollbar::-webkit-scrollbar-thumb {
-          background: #4F46E5;
-          border-radius: 10px;
+        .custom-year-scroll::-webkit-scrollbar-thumb {
+          background: #5E6AFF;
+          border-radius: 999px;
+        }
+        .custom-year-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #5E6AFF transparent;
+        }
+        input.custom-year-search-input,
+        input.custom-year-search-input:not(.oauth-btn) {
+          background: transparent !important;
+          background-color: transparent !important;
+          border: none !important;
+          border-radius: 0px !important;
+          outline: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          color: #F8FAFC !important;
+          width: 100% !important;
+          height: 100% !important;
+        }
+        .custom-year-search-input::placeholder {
+          color: rgba(255, 255, 255, 0.45) !important;
         }
       `}</style>
       
+      {/* input closed state */}
       <div 
-        className={`flex items-center justify-between w-full h-[52px] rounded-[14px] px-4 cursor-pointer transition-all duration-150 outline-none
-          ${isOpen ? 'border-[#7C3AED] ring-2 ring-[#7C3AED]/30' : 'border-[rgba(255,255,255,0.08)] hover:border-[#6366F1]'}
-        `}
+        className={`flex items-center justify-between w-full h-[56px] rounded-[16px] px-[16px] cursor-pointer transition-all duration-200 outline-none hover:border-[#6D5CFF]`}
         style={{ 
-          background: '#111827', 
+          background: '#121827', 
           borderStyle: 'solid', 
-          borderWidth: '1px'
+          borderWidth: '1px',
+          borderColor: (isFocused || isOpen) ? '#6D5CFF' : 'rgba(255,255,255,0.08)',
+          boxShadow: (isFocused || isOpen) ? '0 0 0 4px rgba(109,92,255,0.18)' : 'none'
         }}
         onClick={() => setIsOpen(!isOpen)}
         tabIndex={0}
@@ -114,40 +157,51 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
         <span className={`text-[15px] font-medium ${value ? 'text-[#F8FAFC]' : 'text-[#94A3B8]'}`}>
           {value || "Select graduation year..."}
         </span>
-        <div className="flex items-center gap-2 text-[#94A3B8]">
-          <Calendar className="w-[18px] h-[18px]" />
-          <ChevronDown className={`w-[18px] h-[18px] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <div className="flex items-center gap-[12px] text-[#94A3B8]">
+          <Calendar className="w-[18px] h-[18px] text-[#94A3B8]" />
+          <svg 
+            width="10" 
+            height="6" 
+            viewBox="0 0 10 6" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            className={`transition-transform duration-200 text-[#94A3B8] ${isOpen ? '' : 'rotate-180'}`}
+          >
+            <path d="M5 0L10 6H0L5 0Z" fill="currentColor" />
+          </svg>
         </div>
       </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute z-[100] w-full mt-2 year-dropdown-scrollbar overflow-y-auto max-h-[220px] md:max-h-[280px]"
+            className="absolute z-[100] w-full mt-2 overflow-hidden"
             style={{
-              background: '#0F172A',
-              borderRadius: '16px',
+              background: '#121827',
+              borderRadius: '18px',
               border: '1px solid rgba(255,255,255,0.08)',
-              boxShadow: '0 18px 45px rgba(0,0,0,0.45)',
-              padding: '8px'
+              boxShadow: '0 25px 80px rgba(0,0,0,0.45)',
+              maxHeight: '320px',
+              display: 'flex',
+              flexDirection: 'column'
             }}
-            ref={scrollRef}
           >
-            <div className="sticky top-0 bg-[#0F172A] z-10 pb-2">
+            {/* search bar sticky at top */}
+            <div className="p-[8px] border-b border-[rgba(255,255,255,0.04)] shrink-0">
               <div 
-                className="flex items-center px-3 h-[42px] rounded-[10px]"
-                style={{ background: '#1E293B' }}
+                className="flex items-center px-[14px] h-[44px] rounded-[14px]"
+                style={{ background: '#1A2236' }}
               >
-                <Search className="w-4 h-4 text-[#94A3B8] mr-2 shrink-0" />
+                <Search className="w-4 h-4 text-[rgba(255,255,255,0.45)] mr-[10px] shrink-0" />
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search year..."
-                  className="w-full bg-transparent border-none outline-none text-[#F8FAFC] text-[15px] font-medium placeholder-[#94A3B8]"
+                  placeholder="Search..."
+                  className="custom-year-search-input"
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
@@ -158,9 +212,15 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1">
+            {/* scrollable year list */}
+            <div 
+              className="custom-year-scroll overflow-y-auto p-[8px] flex flex-col gap-[4px] grow"
+              ref={scrollRef}
+            >
               {filteredYears.length === 0 ? (
-                <div className="p-3 text-center text-[#94A3B8] text-sm font-medium">No years found</div>
+                <div className="py-[24px] text-center text-[rgba(255,255,255,0.45)] text-[14px] font-medium">
+                  No matching year found
+                </div>
               ) : (
                 filteredYears.map((year, index) => {
                   const isSelected = value === year;
@@ -171,17 +231,21 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
                       onClick={() => {
                         onChange(year);
                         setIsOpen(false);
+                        setIsFocused(false);
                       }}
                       onMouseEnter={() => setHighlightedIndex(index)}
-                      className={`flex items-center justify-between h-[40px] shrink-0 px-[14px] rounded-[10px] cursor-pointer transition-colors duration-150 text-[15px] font-medium
-                        ${isSelected ? 'text-white' : (isHighlighted ? 'bg-[#312E81] text-white' : 'text-[#E2E8F0]')}
-                      `}
+                      className="year-item flex items-center justify-between h-[44px] shrink-0 px-[16px] rounded-[12px] cursor-pointer transition-all duration-150 text-[15px] font-medium"
                       style={{
-                        background: isSelected ? 'linear-gradient(to right, #4F46E5, #7C3AED)' : ''
+                        background: isSelected 
+                          ? 'linear-gradient(90deg, #6D5CFF 0%, #8A6EFF 100%)' 
+                          : (isHighlighted ? 'rgba(124,92,255,0.15)' : 'transparent'),
+                        color: isSelected ? '#FFFFFF' : '#E8ECF8'
                       }}
                     >
                       <span>{year}</span>
-                      {isSelected && <Check className="w-[18px] h-[18px] text-white" />}
+                      {isSelected && (
+                        <Check className="w-[16px] h-[16px] text-white stroke-[2.5]" />
+                      )}
                     </div>
                   );
                 })

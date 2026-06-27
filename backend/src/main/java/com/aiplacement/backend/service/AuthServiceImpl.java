@@ -4,6 +4,9 @@ import com.aiplacement.backend.dto.auth.*;
 import com.aiplacement.backend.dto.token.TokenResponse;
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
+import com.aiplacement.backend.entity.PendingSignup;
+import com.aiplacement.backend.exception.DatabaseConflictException;
+import com.aiplacement.backend.repository.PendingSignupRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.security.JwtService;
 import com.aiplacement.backend.service.email.EmailService;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.time.LocalDateTime;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,7 @@ import java.util.*;
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
+    private final PendingSignupRepository pendingSignupRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final EmailService emailService;
@@ -82,11 +88,18 @@ public class AuthServiceImpl implements AuthService {
         otpService.clearOtp(request.getEmail());
     }
 
-    private TokenResponse socialLogin(String email, String fullName, String requestedRole) {
+    private TokenResponse socialLogin(String email, String fullName, String requestedRole, String provider) {
         log.info("[SOCIAL_LOGIN] Processing social login request for email: {}", email);
         
+        com.aiplacement.backend.entity.AuthProvider authProv = com.aiplacement.backend.entity.AuthProvider.GOOGLE;
+        String defaultName = "Google User";
+        if ("github".equalsIgnoreCase(provider)) {
+            authProv = com.aiplacement.backend.entity.AuthProvider.GITHUB;
+            defaultName = "GitHub User";
+        }
+        
         if (fullName == null || fullName.trim().isEmpty()) {
-            fullName = "Google User";
+            fullName = defaultName;
         }
         
         Optional<User> userOptional = userRepository.findByEmail(email);
@@ -95,6 +108,11 @@ public class AuthServiceImpl implements AuthService {
         if (userOptional.isPresent()) {
             log.info("[SOCIAL_LOGIN] Existing social login user found: {}", email);
             user = userOptional.get();
+            if (Boolean.FALSE.equals(user.getEmailVerified()) || user.getEmailVerified() == null) {
+                user.setEmailVerified(true);
+                user.setVerifiedAt(LocalDateTime.now());
+                userRepository.save(user);
+            }
         } else {
             log.info("[SOCIAL_LOGIN] Creating new social login account: {}", email);
             Role role = Role.STUDENT;
@@ -112,7 +130,10 @@ public class AuthServiceImpl implements AuthService {
                     .fullName(fullName)
                     .password(passwordEncoder.encode(UUID.randomUUID().toString()))
                     .role(role)
-                    .authProvider(com.aiplacement.backend.entity.AuthProvider.GOOGLE)
+                    .authProvider(authProv)
+                    .emailVerified(true)
+                    .verifiedAt(LocalDateTime.now())
+                    .accountStatus("ACTIVE")
                     .profileCompleted(false)
                     .paymentStatus("PENDING")
                     .build();
@@ -192,7 +213,7 @@ public class AuthServiceImpl implements AuthService {
             
             log.info("[GOOGLE_LOGIN] Token verification/parsing successful for email: {}", email);
 
-            return socialLogin(email, fullName, request.getRole());
+            return socialLogin(email, fullName, request.getRole(), request.getProvider());
 
         } catch (Exception e) {
             log.error("[GOOGLE_LOGIN] Critical Google Authentication Exception: {}", e.getMessage(), e);
@@ -201,16 +222,33 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public TokenResponse signup(SignupRequest request) {
+    public AuthResponse signup(SignupRequest request) {
         log.info("=================================");
         log.info("Processing manual signup request");
         log.info("Email: {}", request.getEmail());
         log.info("Role: {}", request.getRole());
         log.info("=================================");
 
+        // 1. Check database for existing user
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             log.warn("Signup blocked: email {} already registered", request.getEmail());
-            throw new RuntimeException("Email already exists");
+            throw new DatabaseConflictException("Email already registered.");
+        }
+
+        // 2. Validate passwords match
+        if (request.getPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
+            throw new RuntimeException("Passwords do not match");
+        }
+
+        // 3. Validate password strength
+        boolean hasLetter = false;
+        boolean hasDigit = false;
+        for (char c : request.getPassword().toCharArray()) {
+            if (Character.isLetter(c)) hasLetter = true;
+            if (Character.isDigit(c)) hasDigit = true;
+        }
+        if (!hasLetter || !hasDigit) {
+            throw new RuntimeException("Password must contain both letters and numbers");
         }
 
         Role assignedRole = Role.STUDENT;
@@ -244,43 +282,48 @@ public class AuthServiceImpl implements AuthService {
                 throw new RuntimeException("Company name is required for recruiters");
         }
 
-        User user = User.builder()
-                .fullName(request.getFullName())
+        // Delete any existing pending signup for this email
+        pendingSignupRepository.findByEmail(request.getEmail())
+                .ifPresent(pendingSignupRepository::delete);
+
+        // 4. Generate secure 6-digit OTP
+        SecureRandom secureRandom = new SecureRandom();
+        String otp = String.format("%06d", secureRandom.nextInt(900000) + 100000);
+
+        // 5. Hash OTP and store details in PendingSignup
+        PendingSignup pendingSignup = PendingSignup.builder()
                 .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .collegeName(request.getCollegeName())
+                .passwordHash(passwordEncoder.encode(request.getPassword()))
+                .fullName(request.getFullName())
+                .phone(request.getPhone())
+                .role(assignedRole.name())
+                .college(request.getCollegeName())
                 .branch(request.getBranch())
                 .graduationYear(request.getGraduationYear())
+                .semester(request.getSemester())
+                .skills(request.getSkills())
+                .preferredRole(request.getPreferredRole())
                 .companyName(request.getCompanyName())
-                .role(assignedRole)
-                .profileCompleted(true)
-                .paymentStatus("PENDING")
+                .otpHash(passwordEncoder.encode(otp))
+                .expiresAt(LocalDateTime.now().plusMinutes(10))
+                .createdAt(LocalDateTime.now())
+                .attempts(0)
+                .resendCount(0)
                 .build();
 
-        log.info("Persisting manual signup user to database");
-        com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
-        user.setUserStats(stats);
-        userRepository.save(user);
+        pendingSignupRepository.save(pendingSignup);
 
+        // 6. Send OTP Email
         try {
-            emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
-            log.info("Welcome email dispatched to {}", user.getEmail());
+            emailService.sendVerificationOtpEmail(request.getEmail(), otp);
+            log.info("Verification email dispatched with OTP to {}", request.getEmail());
         } catch (Exception e) {
-            log.error("Failed to dispatch welcome email to {}: {}", user.getEmail(), e.getMessage(), e);
+            log.error("Failed to dispatch verification email to {}: {}", request.getEmail(), e.getMessage(), e);
+            throw new RuntimeException("Failed to send verification email. Please try again.");
         }
 
-        String accessToken = jwtService.generateAccessToken(user.getEmail());
-        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
-
-        return TokenResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .role(user.getRole().name())
-                .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.isPlanSelected())
-                .paymentCompleted(user.isPaymentCompleted())
-                .plan(user.getPlan())
-                .paymentStatus(user.getPaymentStatus())
+        return AuthResponse.builder()
+                .message("Verification code sent to " + request.getEmail())
                 .build();
     }
 
@@ -297,6 +340,10 @@ public class AuthServiceImpl implements AuthService {
         if (!isPasswordValid) {
             log.warn("Login failed: password mismatch for email {}", request.getEmail());
             throw new RuntimeException("Invalid email or password");
+        }
+
+        if (Boolean.FALSE.equals(user.getEmailVerified())) {
+            throw new RuntimeException("Please verify your email first.");
         }
 
         log.info("Login authentication successful for user: {}", user.getEmail());
@@ -334,6 +381,142 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(newAccessToken)
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+    @Override
+    public TokenResponse verifyEmail(com.aiplacement.backend.dto.auth.VerifyEmailRequest request) {
+        log.info("Attempting verification for email: {}", request.getEmail());
+        
+        PendingSignup pendingSignup = pendingSignupRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Verification record not found. Please sign up again."));
+
+        // Check if OTP has expired
+        if (pendingSignup.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Verification code expired");
+        }
+
+        // Check if maximum attempts have been exceeded
+        if (pendingSignup.getAttempts() >= 5) {
+            pendingSignupRepository.delete(pendingSignup);
+            throw new RuntimeException("Maximum verification attempts exceeded. Please sign up again.");
+        }
+
+        // Match OTP hash
+        boolean matches = passwordEncoder.matches(request.getOtp(), pendingSignup.getOtpHash());
+        if (!matches) {
+            int attempts = pendingSignup.getAttempts() + 1;
+            pendingSignup.setAttempts(attempts);
+            
+            if (attempts >= 5) {
+                pendingSignupRepository.delete(pendingSignup);
+                throw new RuntimeException("Maximum verification attempts exceeded. Please sign up again.");
+            } else {
+                pendingSignupRepository.save(pendingSignup);
+                throw new RuntimeException("Invalid verification code.");
+            }
+        }
+
+        // Create the user
+        Role assignedRole = Role.STUDENT;
+        try {
+            assignedRole = Role.valueOf(pendingSignup.getRole().toUpperCase());
+        } catch (Exception e) {
+            log.warn("Invalid role stored in pending signup: {}. Defaulting to STUDENT.", pendingSignup.getRole());
+        }
+
+        User user = User.builder()
+                .fullName(pendingSignup.getFullName())
+                .email(pendingSignup.getEmail())
+                .password(pendingSignup.getPasswordHash()) // already hashed
+                .phone(pendingSignup.getPhone())
+                .collegeName(assignedRole == Role.STUDENT ? pendingSignup.getCollege() : null)
+                .branch(pendingSignup.getBranch())
+                .graduationYear(pendingSignup.getGraduationYear())
+                .companyName(assignedRole == Role.RECRUITER ? pendingSignup.getCompanyName() : null)
+                .role(assignedRole)
+                .emailVerified(true)
+                .verifiedAt(LocalDateTime.now())
+                .accountStatus("ACTIVE")
+                .profileCompleted(true)
+                .paymentStatus("PENDING")
+                .build();
+
+        com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
+        user.setUserStats(stats);
+        userRepository.save(user);
+
+        // Delete temporary signup data
+        pendingSignupRepository.delete(pendingSignup);
+
+        // Send welcome email
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
+            log.info("Welcome email dispatched to {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to dispatch welcome email to {}: {}", user.getEmail(), e.getMessage(), e);
+        }
+
+        // Generate tokens
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRole().name())
+                .profileCompleted(user.isProfileCompleted())
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
+                .plan(user.getPlan())
+                .paymentStatus(user.getPaymentStatus())
+                .build();
+    }
+
+    @Override
+    public void resendOtp(com.aiplacement.backend.dto.auth.ResendOtpRequest request) {
+        log.info("Resend OTP requested for email: {}", request.getEmail());
+
+        PendingSignup pendingSignup = pendingSignupRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Signup record not found. Please sign up again."));
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // Enforce hourly limit of 5 resends
+        if (pendingSignup.getLastResendAt() != null && pendingSignup.getLastResendAt().isAfter(now.minusHours(1))) {
+            if (pendingSignup.getResendCount() >= 5) {
+                throw new RuntimeException("Maximum resend limit of 5 per hour reached. Please try again later.");
+            }
+            pendingSignup.setResendCount(pendingSignup.getResendCount() + 1);
+        } else {
+            pendingSignup.setResendCount(1);
+        }
+        pendingSignup.setLastResendAt(now);
+
+        // Generate new 6-digit OTP
+        SecureRandom secureRandom = new SecureRandom();
+        String newOtp = String.format("%06d", secureRandom.nextInt(900000) + 100000);
+
+        pendingSignup.setOtpHash(passwordEncoder.encode(newOtp));
+        pendingSignup.setExpiresAt(now.plusMinutes(10));
+        pendingSignup.setAttempts(0);
+
+        pendingSignupRepository.save(pendingSignup);
+
+        // Send OTP email
+        try {
+            emailService.sendVerificationOtpEmail(pendingSignup.getEmail(), newOtp);
+            log.info("Resent OTP email dispatched successfully to {}", pendingSignup.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send resent OTP email to {}: {}", pendingSignup.getEmail(), e.getMessage());
+            throw new RuntimeException("Failed to send verification email. Please try again.");
+        }
+    }
+
+    @Override
+    public void cancelSignup(com.aiplacement.backend.dto.auth.CancelSignupRequest request) {
+        log.info("Cancelling signup for email: {}", request.getEmail());
+        pendingSignupRepository.findByEmail(request.getEmail())
+                .ifPresent(pendingSignupRepository::delete);
     }
 }
 

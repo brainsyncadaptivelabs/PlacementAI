@@ -103,8 +103,20 @@ export default function AuthPage() {
       setError("College name is required");
       return;
     }
+    if (selectedRole === "STUDENT" && !signupData.branch.trim()) {
+      setError("Branch is required");
+      return;
+    }
     if (selectedRole === "RECRUITER" && !signupData.companyName.trim()) {
       setError("Company name is required");
+      return;
+    }
+    if (!signupData.phone.trim()) {
+      setError("Phone number is required");
+      return;
+    }
+    if (signupData.password !== signupData.confirmPassword) {
+      setError("Passwords do not match");
       return;
     }
 
@@ -113,28 +125,20 @@ export default function AuthPage() {
     setSuccess("");
     
     try {
-      const { data: sbData, error: sbError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          data: {
-            full_name: signupData.fullName,
-            role: selectedRole
-          }
-        }
-      });
-
-      if (sbError) throw sbError;
-
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
       const signupBody = {
         fullName: signupData.fullName,
         email: signupData.email,
         password: signupData.password,
+        confirmPassword: signupData.confirmPassword,
+        phone: signupData.phone,
         role: selectedRole,
         collegeName: selectedRole === "STUDENT" ? signupData.collegeName : null,
         branch: selectedRole === "STUDENT" ? signupData.branch : null,
         graduationYear: selectedRole === "STUDENT" ? signupData.graduationYear : null,
+        semester: selectedRole === "STUDENT" ? signupData.currentSemester : null,
+        skills: selectedRole === "STUDENT" ? signupData.skills.join(",") : "",
+        preferredRole: selectedRole === "STUDENT" ? signupData.preferredRole : "",
         companyName: selectedRole === "RECRUITER" ? signupData.companyName : null
       };
 
@@ -149,14 +153,13 @@ export default function AuthPage() {
         throw new Error(errObj.message || "Backend registration failed");
       }
 
-      const backendData = await response.json();
-      localStorage.setItem("token", backendData.accessToken);
-      localStorage.setItem("role", backendData.role);
+      // Save plain-text password to sessionStorage temporarily for Supabase signup on OTP success
+      sessionStorage.setItem("signup_password", signupData.password);
 
-      setSuccess("Account Created Successfully! Redirecting...");
+      setSuccess("Verification email sent! Redirecting...");
       
       setTimeout(() => {
-        router.push("/plans");
+        router.push(`/auth/verify-email?email=${encodeURIComponent(signupData.email)}`);
       }, 1500);
     } catch (err: any) {
       setError(err.message || "Signup failed");
@@ -171,13 +174,6 @@ export default function AuthPage() {
     setError("");
     
     try {
-      const { data: sbData, error: sbError } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
-      });
-
-      if (sbError) throw sbError;
-      
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
@@ -190,10 +186,34 @@ export default function AuthPage() {
 
       if (!response.ok) {
         const errObj = await response.json().catch(() => ({}));
-        throw new Error(errObj.message || "Backend authentication failed");
+        const errMsg = errObj.message || "Backend authentication failed";
+        throw new Error(errMsg);
       }
 
       const backendData = await response.json();
+      
+      // Now login to Supabase to keep client session in sync
+      const { data: sbData, error: sbError } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password,
+      });
+
+      if (sbError) {
+        console.warn("Supabase login failed, attempting auto-registration:", sbError.message);
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: loginData.email,
+          password: loginData.password,
+          options: {
+            data: {
+              full_name: backendData.fullName || "User",
+              role: backendData.role
+            }
+          }
+        });
+        if (signUpError) {
+          console.error("Supabase auto-registration failed:", signUpError.message);
+        }
+      }
       
       localStorage.setItem("token", backendData.accessToken);
       localStorage.setItem("role", backendData.role);
@@ -205,6 +225,11 @@ export default function AuthPage() {
       }
     } catch (err: any) {
       setError(err.message || "Login failed");
+      if (err.message === "Please verify your email first.") {
+        setTimeout(() => {
+          router.push(`/auth/verify-email?email=${encodeURIComponent(loginData.email)}`);
+        }, 1500);
+      }
     } finally {
       setLoading(false);
     }
@@ -1001,6 +1026,14 @@ export default function AuthPage() {
                     </div>
                   </div>
 
+                  <div className="input-group col-span-2">
+                    <div className="input-label-row"><label>Phone Number *</label></div>
+                    <div className="input-wrapper">
+                      <Phone />
+                      <input type="tel" className="auth-input-new" placeholder="+1234567890" value={signupData.phone} onChange={(e) => setSignupData({...signupData, phone: e.target.value})} />
+                    </div>
+                  </div>
+
                   {selectedRole === "STUDENT" ? (
                     <>
                       <div className="input-group">
@@ -1026,14 +1059,31 @@ export default function AuthPage() {
                               ))}
                             </datalist>
                           </div>
-                        </div>
-<div className="input-group">
+                      </div>
+                      <div className="input-group">
                         <div className="input-label-row"><label>College *</label></div>
                         <div className="input-wrapper">
                           <GraduationCap />
                           <input className="auth-input-new" placeholder="Stanford University" value={signupData.collegeName} onChange={(e) => setSignupData({...signupData, collegeName: e.target.value})} />
                         </div>
                       </div>
+
+                      <div className="input-group">
+                        <div className="input-label-row"><label>Branch *</label></div>
+                        <div className="input-wrapper">
+                          <Book />
+                          <input className="auth-input-new" placeholder="Computer Science" value={signupData.branch} onChange={(e) => setSignupData({...signupData, branch: e.target.value})} />
+                        </div>
+                      </div>
+
+                      <div className="input-group">
+                        <div className="input-label-row"><label>Current Semester</label></div>
+                        <div className="input-wrapper">
+                          <Book />
+                          <input type="number" min="1" max="8" className="auth-input-new" placeholder="1" value={signupData.currentSemester} onChange={(e) => setSignupData({...signupData, currentSemester: parseInt(e.target.value) || 1})} />
+                        </div>
+                      </div>
+
                       <div className="input-group">
                         <div className="input-label-row"><label>Preferred Role *</label></div>
                         <div className="input-wrapper">

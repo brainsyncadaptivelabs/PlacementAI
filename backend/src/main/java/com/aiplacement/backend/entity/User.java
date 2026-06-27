@@ -39,12 +39,14 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private AuthProvider authProvider = AuthProvider.EMAIL;
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
     @Column(name = "college_name")
     private String collegeName;
 
     private String branch;
+
+    private String phone;
 
     @Column(name = "graduation_year")
     private Integer graduationYear;
@@ -73,6 +75,17 @@ public class User {
     @Column(name = "profile_completed")
     @Builder.Default
     private Boolean profileCompleted = false;
+
+    @Column(name = "email_verified")
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
+    @Column(name = "account_status")
+    @Builder.Default
+    private String accountStatus = "ACTIVE";
 
     public boolean isProfileCompleted() {
         return profileCompleted != null && profileCompleted;
@@ -135,7 +148,50 @@ public class User {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private UserStats userStats;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
     private java.util.List<UserActivityLog> activityLogs = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Resume> resumes = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<ResumeBuilder> resumeBuilders = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<SupportTicket> supportTickets = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<PushSubscription> pushSubscriptions = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviews = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<AtsAnalysis> atsAnalyses = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<DeleteAccountVerification> deleteAccountVerifications = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<Event> events = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<InterviewRecord> interviewRecords = new java.util.ArrayList<>();
+
+    @Column(name = "delete_lock_expires_at")
+    private LocalDateTime deleteLockExpiresAt;
+
+    @Builder.Default
+    @Column(name = "delete_failed_attempts", nullable = false)
+    private Integer deleteFailedAttempts = 0;
 }

@@ -38,6 +38,7 @@ import { TEMPLATE_REGISTRY, ACTIVE_TEMPLATES, compileLatex } from "@/lib/resume/
 import { ResumeState, initialEducatorState } from "@/lib/resume/templates/placementai-educator/schema";
 import { ResumeService } from "@/services/resume.service";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 import { StorageService } from "@/services/storage.service";
 
 function ResumeEditor() {

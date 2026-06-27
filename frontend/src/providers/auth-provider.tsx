@@ -51,7 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             idToken: mockToken,
-            role: "STUDENT"
+            role: "STUDENT",
+            provider: session.user.app_metadata?.provider || "google"
           })
         });
         if (response.ok) {

@@ -15,4 +15,6 @@ public class GoogleLoginRequest {
     private String idToken;
     
     private String role;
+
+    private String provider;
 }

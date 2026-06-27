@@ -17,4 +17,8 @@ public interface EmailService {
     );
 
     void sendOtpEmail(String toEmail, String otp);
+
+    void sendVerificationOtpEmail(String toEmail, String otp);
+
+    void sendDeleteAccountOtpEmail(String toEmail, String userName, String otp);
 }
