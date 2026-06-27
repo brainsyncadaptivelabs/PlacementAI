@@ -376,7 +376,8 @@ export default function SettingsPage() {
                 <p className="text-xs text-muted-foreground">Permanently remove your account and all associated data. This action is irreversible.</p>
               </div>
               <Button 
-                variant="destructive"
+                variant="outline"
+                className="border-red-500/50 text-red-500 hover:bg-red-50 hover:text-red-600 hover:border-red-500 dark:hover:bg-red-500/10 dark:hover:text-red-400"
                 onClick={() => setIsDeleteModalOpen(true)}
                 disabled={loadingAction !== null}
               >

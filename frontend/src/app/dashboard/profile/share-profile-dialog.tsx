@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Share2, Download, Building2, Loader2, Check } from "lucide-react";
@@ -21,7 +22,24 @@ export function ShareProfileDialog({
   const [selectedOption, setSelectedOption] = useState("complete");
   const [isDownloading, setIsDownloading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [scale, setScale] = useState(1);
+  const { resolvedTheme } = useTheme();
+  const containerRef = useRef<HTMLDivElement>(null);
   const previewRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        // 800 is the fixed width of the preview, 40 is for padding
+        const newScale = Math.min(1, (containerWidth - 40) / 800);
+        setScale(newScale);
+      }
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   const options = [
     { id: "complete", title: "Complete Profile", desc: "Days of active engagement & Continuous Question Solving" },
@@ -37,7 +55,13 @@ export function ShareProfileDialog({
     if (previewRef.current === null) return;
     setIsDownloading(true);
     try {
-      const dataUrl = await toPng(previewRef.current, { cacheBust: true, pixelRatio: 2 });
+      const dataUrl = await toPng(previewRef.current, { 
+        cacheBust: true, 
+        pixelRatio: 2,
+        width: 800,
+        height: 550,
+        style: { transform: 'scale(1)', margin: '0' }
+      });
       const link = document.createElement('a');
       link.download = `${user?.fullName?.replace(/\s+/g, '_') || 'Profile'}_Stats.png`;
       link.href = dataUrl;
@@ -45,7 +69,7 @@ export function ShareProfileDialog({
       toast.success("Profile image downloaded successfully!");
     } catch (err) {
       console.error('Failed to export image', err);
-      toast.error('Failed to download image.');
+      toast.error(`Failed to download image: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setIsDownloading(false);
     }
@@ -105,8 +129,10 @@ export function ShareProfileDialog({
         </div>
 
         {/* Right Side Preview Panel */}
-        <div className="flex-1 bg-muted/20 p-6 md:p-10 flex items-center justify-center overflow-y-auto h-full min-h-[500px]">
-           <div ref={previewRef} className="w-full max-w-[800px] aspect-[16/9] bg-background border border-border dark:bg-[#111827] rounded-xl overflow-hidden relative shadow-lg flex flex-col">
+        <div ref={containerRef} className="flex-1 bg-muted/20 p-6 md:p-10 flex items-center justify-center overflow-hidden h-full min-h-[500px]">
+           <div style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}>
+              {/* Dynamically apply dark mode only if the user's active theme is dark to prevent html-to-image bugs */}
+              <div ref={previewRef} className={`${resolvedTheme === 'dark' ? 'dark ' : ''}w-[800px] h-[550px] shrink-0 bg-background border border-border rounded-xl overflow-hidden relative flex flex-col text-foreground`}>
               
               {/* Preview Header */}
               <div className="p-8 flex items-start justify-between z-10">
@@ -130,9 +156,9 @@ export function ShareProfileDialog({
                  </div>
 
                  {/* Preview Grid Cards */}
-                 <div className="grid grid-cols-2 gap-4 w-[400px]">
+                 <div className="flex flex-wrap gap-4 w-[400px]">
                     
-                    <Card className="p-4 bg-card border-border shadow-sm rounded-xl">
+                    <Card className="p-4 bg-card border-border rounded-xl w-[192px]">
                        <p className="text-xs font-bold text-foreground mb-3">Activity Engagement</p>
                        <div className="flex items-end gap-3">
                           <div className="flex items-end gap-1 text-blue-500">
@@ -148,7 +174,7 @@ export function ShareProfileDialog({
                        </div>
                     </Card>
 
-                    <Card className="p-4 bg-card border-border shadow-sm rounded-xl">
+                    <Card className="p-4 bg-card border-border rounded-xl w-[192px]">
                        <p className="text-xs font-bold text-foreground mb-3">Streaks</p>
                        <div className="flex items-end gap-3">
                           <div className="flex items-end gap-1 text-red-500">
@@ -164,7 +190,7 @@ export function ShareProfileDialog({
                        </div>
                     </Card>
 
-                    <Card className="p-4 bg-card border-border shadow-sm rounded-xl col-span-2 flex items-center justify-between">
+                    <Card className="p-4 bg-card border-border rounded-xl w-full flex items-center justify-between">
                        <div className="w-1/3">
                          <p className="text-xs font-bold text-foreground mb-2">Question<br/>Analysis</p>
                          <p className="text-2xl font-black text-foreground leading-none">117</p>
@@ -181,7 +207,7 @@ export function ShareProfileDialog({
                        </div>
                     </Card>
 
-                    <Card className="p-4 bg-card border-border shadow-sm rounded-xl col-span-2">
+                    <Card className="p-4 bg-card border-border rounded-xl w-full">
                        <p className="text-xs font-bold text-foreground mb-3">Contest Ranking</p>
                        <div className="flex justify-between items-center pr-4">
                           <div>
@@ -206,7 +232,7 @@ export function ShareProfileDialog({
                  
                  {/* Illustration placeholder */}
                  <div className="relative w-32 h-32 mb-[-1.5rem]">
-                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-xl">
+                    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
                       {/* Person sitting */}
                       <circle cx="100" cy="60" r="20" fill="#fcd34d" />
                       <rect x="70" y="80" width="60" height="60" rx="10" fill="#3b82f6" />
@@ -222,7 +248,7 @@ export function ShareProfileDialog({
                  </div>
 
                  {/* Heatmap */}
-                 <Card className="bg-card border-border shadow-sm rounded-xl p-4 w-[400px]">
+                 <Card className="bg-card border-border rounded-xl p-4 w-[400px]">
                     <div className="flex justify-between text-[8px] text-muted-foreground mb-2 uppercase font-bold">
                        <span>December</span><span>January</span><span>February</span><span>March</span><span>April</span><span>May</span><span>June</span>
                     </div>
@@ -239,10 +265,11 @@ export function ShareProfileDialog({
               </div>
 
               {/* Background abstract shape */}
-              <div className="absolute inset-0 z-0 opacity-10 pointer-events-none overflow-hidden">
-                 <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[150%] bg-gradient-to-r from-primary to-transparent transform -skew-x-12"></div>
+              <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                 <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[150%] bg-gradient-to-r from-primary/10 to-transparent transform -skew-x-12"></div>
               </div>
 
+           </div>
            </div>
         </div>
 

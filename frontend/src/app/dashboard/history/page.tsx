@@ -120,20 +120,20 @@ export default function ResumeHistoryPage() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <Card className="border-none shadow-sm bg-gradient-to-br from-primary to-secondary text-white p-6 relative overflow-hidden group">
+         <Card className="border-none shadow-sm bg-card p-6 relative overflow-hidden group">
             <div className="relative z-10 space-y-4">
                <div className="flex justify-between items-start">
-                  <div className="p-2 bg-card/20 rounded-lg">
-                     <History className="w-6 h-6" />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                     <History className="w-6 h-6 text-primary" />
                   </div>
-                  <ArrowUpRight className="w-6 h-6 opacity-40 group-hover:opacity-100 transition-opacity" />
+                  <ArrowUpRight className="w-6 h-6 text-muted-foreground opacity-40 group-hover:opacity-100 group-hover:text-primary transition-opacity" />
                </div>
                <div>
-                  <h3 className="text-3xl font-black">{history.length}</h3>
-                  <p className="text-white/80 font-semibold uppercase text-[10px] tracking-widest">Total Analyses</p>
+                  <h3 className="text-3xl font-black text-foreground">{history.length}</h3>
+                  <p className="text-muted-foreground/70 font-bold uppercase text-[10px] tracking-widest">Total Analyses</p>
                </div>
             </div>
-            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-card/10 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
+            <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
          </Card>
 
          <Card className="border-none shadow-sm bg-card p-6 space-y-4">

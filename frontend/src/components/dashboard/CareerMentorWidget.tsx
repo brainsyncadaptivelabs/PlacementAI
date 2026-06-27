@@ -11,26 +11,26 @@ interface CareerMentorWidgetProps {
 
 const CareerMentorWidget = memo(({ onOpenChat }: CareerMentorWidgetProps) => {
   return (
-    <Card className="bg-primary text-white relative overflow-hidden rounded-[2rem] border-transparent shadow-md">
+    <Card className="relative overflow-hidden rounded-[2rem] border-transparent shadow-md p-6">
        <div className="relative z-10 space-y-6">
           <div className="flex justify-between items-center">
-             <div className="p-3 bg-card/20 rounded-2xl backdrop-blur-md">
-                <MessageSquare className="w-6 h-6 text-white" />
+             <div className="p-3 bg-primary/10 rounded-2xl backdrop-blur-md">
+                <MessageSquare className="w-6 h-6 text-primary" />
              </div>
              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
           <div>
-             <h4 className="text-xl font-bold font-heading leading-tight mb-2">Ask your Career Mentor</h4>
-             <p className="text-xs text-white/77 leading-relaxed font-medium">Get instant advice on salary negotiation, resume tips, or company culture.</p>
+             <h4 className="text-xl font-bold font-heading leading-tight mb-2 text-foreground">Ask your Career Mentor</h4>
+             <p className="text-xs text-muted-foreground leading-relaxed font-medium">Get instant advice on salary negotiation, resume tips, or company culture.</p>
           </div>
-          <div className="bg-card/10 border border-transparent rounded-2xl p-4 cursor-pointer hover:bg-card/20 transition-all group" onClick={onOpenChat}>
-             <p className="text-xs font-bold text-white/50 group-hover:text-white/80 transition-colors italic">&quot;How should I explain my gap year to an Amazon recruiter?&quot;</p>
+          <div className="bg-muted/50 border border-transparent rounded-2xl p-4 cursor-pointer hover:bg-muted transition-all group" onClick={onOpenChat}>
+             <p className="text-xs font-bold text-muted-foreground group-hover:text-foreground transition-colors italic">&quot;How should I explain my gap year to an Amazon recruiter?&quot;</p>
           </div>
-          <Button className="w-full bg-card text-primary hover:bg-muted font-black h-12 rounded-xl shadow-md" onClick={onOpenChat}>
+          <Button className="w-full font-black h-12 rounded-xl shadow-md" onClick={onOpenChat}>
              Open AI Chat
           </Button>
        </div>
-       <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-card/10 rounded-full blur-3xl" />
+       <div className="absolute -left-12 -bottom-12 w-48 h-48 bg-primary/5 rounded-full blur-3xl" />
     </Card>
   );
 });

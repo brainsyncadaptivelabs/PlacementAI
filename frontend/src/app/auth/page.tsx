@@ -426,14 +426,12 @@ export default function AuthPage() {
           margin: 0;
         }
 
-        /* Right Panel */
         .auth-right-panel {
           width: 55%;
           height: 100vh;
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
           position: relative;
           padding: 40px;
           box-sizing: border-box;
@@ -464,6 +462,7 @@ export default function AuthPage() {
           box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
           border: 1px solid #f1f5f9;
           box-sizing: border-box;
+          margin: auto;
         }
 
         .auth-card-header {
@@ -749,9 +748,11 @@ export default function AuthPage() {
         .auth-role-btn {
           flex: 1;
           padding: 12px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #e2e8f0 !important;
           border-radius: 12px;
-          background: white;
+          background: white !important;
+          color: var(--foreground, #0f172a) !important;
+          font-weight: 700 !important;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -761,10 +762,9 @@ export default function AuthPage() {
         }
         
         .auth-role-btn.active {
-          border-color: #6366f1;
-          background: #eef2ff;
-          color: #4f46e5;
-          font-weight: 600;
+          border-color: var(--primary, #4f46e5) !important;
+          background: rgba(99, 102, 241, 0.1) !important;
+          color: var(--primary, #4f46e5) !important;
         }
       `}</style>
 
