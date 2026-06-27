@@ -11,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.aiplacement.backend.dto.profile.ProfileDashboardStatsDto;
 import com.aiplacement.backend.entity.UserStats;
-import com.aiplacement.backend.entity.UserActivityLog;
 import java.util.stream.Collectors;
 
 @Service
