@@ -7,6 +7,7 @@ import { Share2, Download, Building2, Loader2, Check } from "lucide-react";
 import { UserProfile } from "@/hooks/use-user";
 import { Card } from "@/components/ui/card";
 import { toPng } from 'html-to-image';
+import { toast } from "@/store/toast-store";
 
 export function ShareProfileDialog({
   open,
@@ -41,9 +42,10 @@ export function ShareProfileDialog({
       link.download = `${user?.fullName?.replace(/\s+/g, '_') || 'Profile'}_Stats.png`;
       link.href = dataUrl;
       link.click();
+      toast.success("Profile image downloaded successfully!");
     } catch (err) {
       console.error('Failed to export image', err);
-      alert('Failed to download image.');
+      toast.error('Failed to download image.');
     } finally {
       setIsDownloading(false);
     }
@@ -53,6 +55,7 @@ export function ShareProfileDialog({
     const shareUrl = `${window.location.origin}/profile/${user?.id || 'unknown'}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
       setIsCopied(true);
+      toast.success("Profile URL copied to clipboard!");
       setTimeout(() => setIsCopied(false), 2000);
     });
   };

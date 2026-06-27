@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.SecureRandom;
-import java.time.Duration;
 import java.time.LocalDateTime;
 
 @RestController

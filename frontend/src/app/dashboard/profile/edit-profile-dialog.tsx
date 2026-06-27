@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2 } from "lucide-react";
 import api from "@/lib/api";
 import { UserProfile } from "@/hooks/use-user";
+import { toast } from "@/store/toast-store";
 
 export function EditProfileDialog({
   open,
@@ -88,10 +89,11 @@ export function EditProfileDialog({
       });
 
       await mutate();
+      toast.success("Profile updated successfully!");
       onOpenChange(false);
     } catch (err) {
       console.error(err);
-      alert("Failed to update profile");
+      toast.error("Failed to update profile");
     } finally {
       setIsSaving(false);
     }
