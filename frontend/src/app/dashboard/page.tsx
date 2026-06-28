@@ -20,7 +20,9 @@ import {
   Loader2,
   Map as MapIcon,
   Trophy,
-  Star
+  Star,
+  X,
+  AlertCircle
 } from "lucide-react";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
@@ -76,6 +78,7 @@ RadialProgress.displayName = "RadialProgress";
 export default function PerfectStudentPortal() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsError, setStatsError] = useState<string | null>(null);
   const [activeRoadmap, setActiveRoadmap] = useState<any | null>(null);
   const router = useRouter();
   const perfProfile = usePerformanceProfile();
@@ -93,10 +96,12 @@ export default function PerfectStudentPortal() {
 
   const fetchStats = useCallback(async () => {
     try {
+      setStatsError(null);
       const response = await api.get("/dashboard/stats");
       setStats(response.data);
     } catch (err: unknown) {
       console.error("Failed to fetch stats", err);
+      setStatsError("Unable to load dashboard statistics.");
     } finally {
       setLoading(false);
     }
@@ -150,6 +155,18 @@ export default function PerfectStudentPortal() {
 
   return (
     <div className={`p-8 space-y-8 font-sans ${perfProfile === 'low' ? 'no-animations' : ''}`}>
+      {statsError && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-2xl flex items-center justify-between text-xs font-bold shadow-sm backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            <span>{statsError}</span>
+          </div>
+          <button onClick={() => setStatsError(null)} className="opacity-70 hover:opacity-100 transition-opacity">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
       {/* Hero Welcome Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-md">
          <div className="relative z-10 space-y-6 lg:max-w-2xl">
