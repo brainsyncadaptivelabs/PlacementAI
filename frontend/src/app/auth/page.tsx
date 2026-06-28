@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { YearDropdown } from "@/components/ui/year-dropdown";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone } from "lucide-react";
+import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
@@ -58,6 +58,11 @@ export default function AuthPage() {
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
 
   const [signupData, setSignupData] = useState({
     fullName: "",
@@ -96,9 +101,71 @@ export default function AuthPage() {
     }
   };
 
+  const handleRequestOtp = async () => {
+    if (!signupData.email) {
+      setError("Please enter your email first");
+      return;
+    }
+    setSendingOtp(true);
+    setError("");
+    setSuccess("");
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const response = await fetch(`${API_URL}/auth/request-email-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: signupData.email })
+      });
+      if (!response.ok) {
+        const errObj = await response.json().catch(() => ({}));
+        throw new Error(errObj.message || "Failed to send OTP");
+      }
+      setShowOtpInput(true);
+      setSuccess("OTP sent to your email!");
+    } catch (err: any) {
+      setError(err.message || "Failed to send OTP");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) {
+      setError("Please enter the OTP");
+      return;
+    }
+    setVerifyingOtp(true);
+    setError("");
+    setSuccess("");
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const response = await fetch(`${API_URL}/auth/verify-email-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: signupData.email, otp })
+      });
+      if (!response.ok) {
+        const errObj = await response.json().catch(() => ({}));
+        throw new Error(errObj.message || "Invalid OTP");
+      }
+      setIsEmailVerified(true);
+      setShowOtpInput(false);
+      setSuccess("Email successfully verified!");
+    } catch (err: any) {
+      setError(err.message || "Failed to verify OTP");
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!isEmailVerified) {
+      setError("Please verify your email before signing up");
+      return;
+    }
+
     if (selectedRole === "STUDENT" && !signupData.collegeName.trim()) {
       setError("College name is required");
       return;
@@ -153,13 +220,35 @@ export default function AuthPage() {
         throw new Error(errObj.message || "Backend registration failed");
       }
 
-      // Save plain-text password to sessionStorage temporarily for Supabase signup on OTP success
-      sessionStorage.setItem("signup_password", signupData.password);
+      const backendData = await response.json();
 
-      setSuccess("Verification email sent! Redirecting...");
+      // Now create Supabase user
+      const { data: sbData, error: sbError } = await supabase.auth.signUp({
+        email: signupData.email,
+        password: signupData.password,
+        options: {
+          data: {
+            full_name: backendData.fullName || signupData.fullName,
+            role: backendData.role || selectedRole
+          }
+        }
+      });
+
+      if (sbError) {
+        console.warn("Supabase signup failed:", sbError.message);
+      }
+
+      localStorage.setItem("token", backendData.accessToken);
+      localStorage.setItem("role", backendData.role);
+
+      setSuccess("Account created successfully! Redirecting...");
       
       setTimeout(() => {
-        router.push(`/auth/verify-email?email=${encodeURIComponent(signupData.email)}`);
+        if (!backendData.planSelected) {
+          router.push("/plans");
+        } else {
+          router.push("/dashboard");
+        }
       }, 1500);
     } catch (err: any) {
       setError(err.message || "Signup failed");
@@ -998,11 +1087,33 @@ export default function AuthPage() {
                   
                   <div className="input-group">
                     <div className="input-label-row"><label>Email</label></div>
-                    <div className="input-wrapper">
+                    <div className="input-wrapper" style={{ paddingRight: '8px' }}>
                       <Mail />
-                      <input type="email" className="auth-input-new" placeholder="name@example.com" value={signupData.email} onChange={(e) => setSignupData({...signupData, email: e.target.value})} />
+                      <input type="email" className="auth-input-new flex-1" placeholder="name@example.com" value={signupData.email} onChange={(e) => setSignupData({...signupData, email: e.target.value})} disabled={isEmailVerified || showOtpInput} />
+                      {!isEmailVerified && (
+                        <button type="button" onClick={handleRequestOtp} disabled={sendingOtp || showOtpInput} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 shrink-0">
+                          {sendingOtp ? 'Sending...' : (showOtpInput ? 'Sent' : 'Verify')}
+                        </button>
+                      )}
+                      {isEmailVerified && (
+                        <span className="text-sm font-semibold text-green-600 shrink-0 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" /> Verified
+                        </span>
+                      )}
                     </div>
                   </div>
+                  
+                  {showOtpInput && !isEmailVerified && (
+                    <div className="input-group col-span-2 mt-[-8px]">
+                      <div className="input-wrapper" style={{ paddingRight: '8px', background: 'rgba(99, 102, 241, 0.05)', borderColor: 'rgba(99, 102, 241, 0.2)' }}>
+                        <Lock className="text-indigo-500" />
+                        <input type="text" className="auth-input-new flex-1 tracking-[0.2em] font-mono text-lg bg-transparent" placeholder="Enter 6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0,6))} />
+                        <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otp.length !== 6} className="text-sm font-semibold text-white disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-lg shrink-0 transition-colors">
+                          {verifyingOtp ? 'Verifying...' : 'Submit'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="input-group">
                     <div className="input-label-row"><label>Password</label></div>

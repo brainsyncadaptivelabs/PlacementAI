@@ -5,7 +5,9 @@ import com.aiplacement.backend.dto.token.TokenResponse;
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.PendingSignup;
+import com.aiplacement.backend.entity.EmailVerificationOtp;
 import com.aiplacement.backend.exception.DatabaseConflictException;
+import com.aiplacement.backend.repository.EmailVerificationOtpRepository;
 import com.aiplacement.backend.repository.PendingSignupRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.security.JwtService;
@@ -20,8 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 import java.time.LocalDateTime;
@@ -39,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final EmailService emailService;
     private final OtpService otpService;
+    private final EmailVerificationOtpRepository emailVerificationOtpRepository;
 
     @Value("${google.client-id:default}")
     private String googleClientId;
@@ -219,7 +220,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse signup(SignupRequest request) {
+    public TokenResponse signup(SignupRequest request) {
         log.info("=================================");
         log.info("Processing manual signup request");
         log.info("Email: {}", request.getEmail());
@@ -232,12 +233,20 @@ public class AuthServiceImpl implements AuthService {
             throw new DatabaseConflictException("Email already registered.");
         }
 
-        // 2. Validate passwords match
+        // 2. Validate email is verified
+        EmailVerificationOtp verification = emailVerificationOtpRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Email verification record not found. Please verify your email first."));
+
+        if (!verification.isVerified()) {
+            throw new RuntimeException("Email is not verified. Please verify your email before signing up.");
+        }
+
+        // 3. Validate passwords match
         if (request.getPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
             throw new RuntimeException("Passwords do not match");
         }
 
-        // 3. Validate password strength
+        // 4. Validate password strength
         boolean hasLetter = false;
         boolean hasDigit = false;
         for (char c : request.getPassword().toCharArray()) {
@@ -279,49 +288,100 @@ public class AuthServiceImpl implements AuthService {
                 throw new RuntimeException("Company name is required for recruiters");
         }
 
-        // Delete any existing pending signup for this email
-        pendingSignupRepository.findByEmail(request.getEmail())
-                .ifPresent(pendingSignupRepository::delete);
+        // 5. Create the User directly
+        User user = User.builder()
+                .email(request.getEmail())
+                .fullName(request.getFullName())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .phone(request.getPhone())
+                .role(assignedRole)
+                .collegeName(assignedRole == Role.STUDENT ? request.getCollegeName() : null)
+                .branch(assignedRole == Role.STUDENT ? request.getBranch() : null)
+                .graduationYear(assignedRole == Role.STUDENT ? request.getGraduationYear() : null)
+                .companyName(assignedRole == Role.RECRUITER ? request.getCompanyName() : null)
+                .emailVerified(true)
+                .verifiedAt(LocalDateTime.now())
+                .accountStatus("ACTIVE")
+                .profileCompleted(true)
+                .paymentStatus("PENDING")
+                .authProvider(com.aiplacement.backend.entity.AuthProvider.LOCAL)
+                .build();
 
-        // 4. Generate secure 6-digit OTP
+        com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
+        user.setUserStats(stats);
+        userRepository.save(user);
+
+        // Delete the verification record now that signup is complete
+        emailVerificationOtpRepository.delete(verification);
+
+        log.info("New user registered successfully: {}", user.getEmail());
+
+        // 6. Generate and return tokens
+        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
+        return TokenResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .role(user.getRole().name())
+                .profileCompleted(user.isProfileCompleted())
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
+                .plan(user.getPlan())
+                .paymentStatus(user.getPaymentStatus())
+                .build();
+    }
+
+    @Override
+    public void requestEmailOtp(RequestEmailOtpRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new DatabaseConflictException("Email already registered.");
+        }
+
+        // Generate OTP
         SecureRandom secureRandom = new SecureRandom();
         String otp = String.format("%06d", secureRandom.nextInt(900000) + 100000);
 
-        // 5. Hash OTP and store details in PendingSignup
-        PendingSignup pendingSignup = PendingSignup.builder()
+        // Delete existing unverified records for this email
+        emailVerificationOtpRepository.findByEmail(request.getEmail())
+                .ifPresent(emailVerificationOtpRepository::delete);
+
+        EmailVerificationOtp verification = EmailVerificationOtp.builder()
                 .email(request.getEmail())
-                .passwordHash(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getFullName())
-                .phone(request.getPhone())
-                .role(assignedRole.name())
-                .college(request.getCollegeName())
-                .branch(request.getBranch())
-                .graduationYear(request.getGraduationYear())
-                .semester(request.getSemester())
-                .skills(request.getSkills())
-                .preferredRole(request.getPreferredRole())
-                .companyName(request.getCompanyName())
-                .otpHash(passwordEncoder.encode(otp))
-                .expiresAt(LocalDateTime.now().plusMinutes(10))
+                .otp(passwordEncoder.encode(otp))
+                .verified(false)
                 .createdAt(LocalDateTime.now())
-                .attempts(0)
-                .resendCount(0)
+                .expiresAt(LocalDateTime.now().plusMinutes(10))
                 .build();
 
-        pendingSignupRepository.save(pendingSignup);
+        emailVerificationOtpRepository.save(verification);
 
-        // 6. Send OTP Email
         try {
             emailService.sendVerificationOtpEmail(request.getEmail(), otp);
-            log.info("Verification email dispatched with OTP: [{}] to {}", otp, request.getEmail());
+            log.info("Email verification OTP dispatched to {}", request.getEmail());
         } catch (Exception e) {
-            log.error("Failed to dispatch verification email to {}: {}", request.getEmail(), e.getMessage(), e);
+            log.error("Failed to dispatch verification email to {}: {}", request.getEmail(), e.getMessage());
             throw new RuntimeException("Failed to send verification email. Please try again.");
         }
+    }
 
-        return AuthResponse.builder()
-                .message("Verification code sent to " + request.getEmail())
-                .build();
+    @Override
+    public void verifyEmailOtp(VerifyEmailOtpRequest request) {
+        EmailVerificationOtp verification = emailVerificationOtpRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("OTP not found. Please request a new one."));
+
+        if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
+            emailVerificationOtpRepository.delete(verification);
+            throw new RuntimeException("OTP has expired. Please request a new one.");
+        }
+
+        if (!passwordEncoder.matches(request.getOtp(), verification.getOtp())) {
+            throw new RuntimeException("Invalid OTP.");
+        }
+
+        verification.setVerified(true);
+        emailVerificationOtpRepository.save(verification);
+        log.info("Email {} successfully verified inline", request.getEmail());
     }
 
     @Override

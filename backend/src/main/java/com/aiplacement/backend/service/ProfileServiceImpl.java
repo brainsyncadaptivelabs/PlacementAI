@@ -5,20 +5,18 @@ import com.aiplacement.backend.dto.user.UserProfileDto;
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
-import com.aiplacement.backend.service.email.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import com.aiplacement.backend.dto.profile.ProfileDashboardStatsDto;
 import com.aiplacement.backend.entity.UserStats;
 import java.util.stream.Collectors;
-
+import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ProfileServiceImpl implements ProfileService {
 
     private final UserRepository userRepository;
-    private final EmailService emailService;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -133,6 +131,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional
     public ProfileDashboardStatsDto getDashboardStats() {
         User user = getCurrentUser();
         UserStats stats = user.getUserStats();
@@ -158,12 +157,12 @@ public class ProfileServiceImpl implements ProfileService {
             userRepository.save(user);
         }
 
-        java.util.List<ProfileDashboardStatsDto.ActivityLogDto> heatmapData = user.getActivityLogs().stream()
+        java.util.List<ProfileDashboardStatsDto.ActivityLogDto> heatmapData = user.getActivityLogs() != null ? user.getActivityLogs().stream()
             .map(log -> ProfileDashboardStatsDto.ActivityLogDto.builder()
                 .date(log.getActivityDate().toString())
                 .durationMinutes(log.getDurationMinutes())
                 .build())
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()) : new java.util.ArrayList<>();
 
         return ProfileDashboardStatsDto.builder()
             .activityStreakDays(stats.getActivityStreakDays())

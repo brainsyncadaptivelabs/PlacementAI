@@ -1,6 +1,5 @@
 package com.aiplacement.backend.service.email;
 
-import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

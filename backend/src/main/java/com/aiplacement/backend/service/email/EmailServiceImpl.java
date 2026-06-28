@@ -120,16 +120,24 @@ public class EmailServiceImpl
             else if (feature.contains("Everything")) icon = "⭐";
 
             sb.append("<!--[if mso]>")
-              .append("<table align=\"left\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"135\">")
+              .append("<table align=\"left\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"165\">")
               .append("<tr>")
               .append("<td style=\"padding: 4px;\">")
               .append("<![endif]-->")
-              .append("<div style=\"display: inline-block; max-width: 135px; min-width: 115px; width: 100%; vertical-align: top; margin: 6px;\">")
-              .append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background-color: #1E293B; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; text-align: center; height: 110px;\">")
+              .append("<div class=\"feature-box\" style=\"display: inline-block; max-width: 165px; min-width: 140px; width: 100%; vertical-align: middle; margin: 6px;\">")
+              .append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background-color: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; text-align: left;\">")
               .append("<tr>")
-              .append("<td style=\"padding: 16px 8px; color: #FFFFFF; font-size: 11px; font-weight: bold; line-height: 1.4; height: 110px;\" valign=\"middle\" align=\"center\">")
-              .append("<span style=\"font-size: 24px; display: block; margin-bottom: 8px;\">").append(icon).append("</span>")
+              .append("<td style=\"padding: 10px;\" valign=\"middle\">")
+              .append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\"><tr>")
+              .append("<td width=\"36\" valign=\"middle\">")
+              .append("<div style=\"background-color: #F0FDF4; border: 1px solid #DCFCE7; border-radius: 6px; width: 32px; height: 32px; text-align: center;\">")
+              .append("<span style=\"color: #16A34A; font-size: 16px; line-height: 32px; display: inline-block; vertical-align: middle;\">").append(icon).append("</span>")
+              .append("</div>")
+              .append("</td>")
+              .append("<td valign=\"middle\" style=\"padding-left: 8px; color: #0F172A; font-size: 11px; font-weight: 700; line-height: 1.3;\">")
               .append(feature)
+              .append("</td>")
+              .append("</tr></table>")
               .append("</td>")
               .append("</tr>")
               .append("</table>")
@@ -152,12 +160,12 @@ public class EmailServiceImpl
         if (plan == null) plan = "FREE";
         switch (plan.toUpperCase()) {
             case "PREMIUM":
-                return "<span style=\"color: #F59E0B; font-weight: 700;\">👑 PREMIUM PLAN</span>";
+                return "<span style=\"color: #D97706; font-weight: 800;\">PREMIUM PLAN</span>";
             case "BASIC":
-                return "<span style=\"color: #3B82F6; font-weight: 700;\">🔷 BASIC PLAN</span>";
+                return "<span style=\"color: #2563EB; font-weight: 800;\">BASIC PLAN</span>";
             case "FREE":
             default:
-                return "<span style=\"color: #10B981; font-weight: 700;\">🟢 FREE PLAN</span>";
+                return "<span style=\"color: #16A34A; font-weight: 800;\">FREE PLAN</span>";
         }
     }
 
@@ -446,5 +454,29 @@ public class EmailServiceImpl
         } catch (Exception e) {
             throw new RuntimeException("Failed to send deletion verification email: " + e.getMessage());
         }
+    }
+
+    @Override
+    public void sendAccountDeletedEmail(String toEmail, String userName, String deletionDate) {
+        scheduler.submit(() -> {
+            try {
+                log.info("Rendering account-deleted.html template");
+                String template = loadTemplate("templates/account-deleted.html");
+
+                String firstName = getFirstName(userName);
+
+                String htmlContent = template
+                        .replace("{{firstName}}", firstName)
+                        .replace("{{email}}", toEmail)
+                        .replace("{{deletionDate}}", deletionDate);
+
+                log.info("Sending account deleted email to: {}", toEmail);
+                sendHtmlEmail(toEmail, "Your PlacementAI Account Has Been Deleted", htmlContent);
+                log.info("Account deleted email sent successfully to: {}", toEmail);
+                
+            } catch (Exception e) {
+                log.error("Failed to send account deletion email to: " + toEmail, e);
+            }
+        });
     }
 }

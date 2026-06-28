@@ -20,7 +20,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<AuthResponse> signup(
+    public ResponseEntity<TokenResponse> signup(
             @Valid @RequestBody SignupRequest request
     ) {
         log.info("User signup requested for email: {}", request.getEmail());
@@ -104,5 +104,23 @@ public class AuthController {
     ) {
         authService.resetPassword(request);
         return ResponseEntity.ok(new AuthResponse("Password reset successful"));
+    }
+
+    @PostMapping("/request-email-otp")
+    public ResponseEntity<AuthResponse> requestEmailOtp(
+            @Valid @RequestBody RequestEmailOtpRequest request
+    ) {
+        log.info("Email OTP requested for: {}", request.getEmail());
+        authService.requestEmailOtp(request);
+        return ResponseEntity.ok(new AuthResponse("OTP sent successfully to email"));
+    }
+
+    @PostMapping("/verify-email-otp")
+    public ResponseEntity<AuthResponse> verifyEmailOtp(
+            @Valid @RequestBody VerifyEmailOtpRequest request
+    ) {
+        log.info("Email OTP verification requested for: {}", request.getEmail());
+        authService.verifyEmailOtp(request);
+        return ResponseEntity.ok(new AuthResponse("Email successfully verified"));
     }
 }

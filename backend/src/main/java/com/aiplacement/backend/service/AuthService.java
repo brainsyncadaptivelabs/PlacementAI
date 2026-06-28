@@ -5,7 +5,7 @@ import com.aiplacement.backend.dto.token.TokenResponse;
 
 public interface AuthService {
 
-    AuthResponse signup(
+    TokenResponse signup(
             SignupRequest request
     );
 
@@ -32,4 +32,8 @@ public interface AuthService {
     void resendOtp(com.aiplacement.backend.dto.auth.ResendOtpRequest request);
 
     void cancelSignup(com.aiplacement.backend.dto.auth.CancelSignupRequest request);
+
+    void requestEmailOtp(RequestEmailOtpRequest request);
+
+    void verifyEmailOtp(VerifyEmailOtpRequest request);
 }

@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @RestController
 @RequestMapping("/api/v1/account")
@@ -152,8 +153,17 @@ public class AccountController {
         log.info("OTP verified");
         log.info("Deleting account {}", user.getEmail());
         
+        String userEmail = user.getEmail();
+        String userFullName = user.getFullName();
         userRepository.delete(user);
         log.info("Account deleted successfully");
+        
+        try {
+            String deletionDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a"));
+            emailService.sendAccountDeletedEmail(userEmail, userFullName, deletionDate);
+        } catch (Exception e) {
+            log.error("Failed to send account deletion email to " + userEmail, e);
+        }
         
         return ResponseEntity.ok(new DeleteResponseDto(true, "Account successfully deleted"));
     }
