@@ -18,6 +18,7 @@ import Link from "next/link";
 import api from "@/lib/api";
 
 type AtsHistoryItem = {
+  id: number;
   bestRole: string;
   atsScore: number;
   createdAt: string;
@@ -26,6 +27,19 @@ type AtsHistoryItem = {
 export default function ResumeHistoryPage() {
   const [history, setHistory] = useState<AtsHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Modal State
+  const [selectedAnalysis, setSelectedAnalysis] = useState<AtsHistoryItem | null>(null);
+  const [details, setDetails] = useState<any>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Delete Modal State
+  const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Toast State
+  const [toastMessage, setToastMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -40,6 +54,50 @@ export default function ResumeHistoryPage() {
     };
     fetchHistory();
   }, []);
+
+  const showToast = (text: string, type: "success" | "error") => {
+    setToastMessage({ text, type });
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 4000);
+  };
+
+  const handleView = async (item: AtsHistoryItem) => {
+    setSelectedAnalysis(item);
+    setLoadingDetails(true);
+    setIsModalOpen(true);
+    setDetails(null);
+    try {
+      const response = await api.get(`/ats/${item.id}`);
+      setDetails(response.data);
+    } catch (err) {
+      console.error("Failed to load details", err);
+      showToast("Failed to load analysis details.", "error");
+      setIsModalOpen(false);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
+
+  const promptDelete = (id: number) => {
+    setDeleteTargetId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deleteTargetId === null) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/ats/${deleteTargetId}`);
+      setHistory(prev => prev.filter(item => item.id !== deleteTargetId));
+      showToast("Analysis record deleted successfully", "success");
+    } catch (err) {
+      console.error("Failed to delete record", err);
+      showToast("Failed to delete history record.", "error");
+    } finally {
+      setIsDeleting(false);
+      setDeleteTargetId(null);
+    }
+  };
 
   const averageScore = history.length > 0 
     ? (history.reduce((acc, curr) => acc + curr.atsScore, 0) / history.length).toFixed(1)
@@ -59,6 +117,21 @@ export default function ResumeHistoryPage() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-8">
+      <style>{`
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalScaleIn {
+          from { transform: scale(0.96); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes modalSlideUp {
+          from { transform: translateY(20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `}</style>
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-2xl font-bold font-heading text-foreground">Resume Analysis History</h1>
@@ -87,8 +160,8 @@ export default function ResumeHistoryPage() {
                    </TableCell>
                  </TableRow>
                ) : (
-                 history.map((resume, idx) => (
-                    <TableRow key={idx} className="hover:bg-muted/50 transition-colors">
+                 history.map((resume) => (
+                    <TableRow key={resume.id} className="hover:bg-muted/50 transition-colors">
                        <TableCell>
                           <span className="text-sm font-semibold text-muted-foreground bg-muted px-2 py-1 rounded">
                              {resume.bestRole}
@@ -104,10 +177,20 @@ export default function ResumeHistoryPage() {
                        </TableCell>
                        <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
-                             <Button variant="ghost" size="icon" className="text-muted-foreground/70 hover:text-primary hover:bg-primary/5">
+                             <Button 
+                               variant="ghost" 
+                               size="icon" 
+                               className="text-muted-foreground/70 hover:text-primary hover:bg-primary/5"
+                               onClick={() => handleView(resume)}
+                             >
                                 <Eye className="w-4 h-4" />
                              </Button>
-                             <Button variant="ghost" size="icon" className="text-muted-foreground/70 hover:text-red-500 hover:bg-red-50">
+                             <Button 
+                               variant="ghost" 
+                               size="icon" 
+                               className="text-muted-foreground/70 hover:text-red-500 hover:bg-red-50"
+                               onClick={() => promptDelete(resume.id)}
+                             >
                                 <Trash2 className="w-4 h-4" />
                              </Button>
                           </div>
@@ -157,6 +240,197 @@ export default function ResumeHistoryPage() {
             </div>
          </Card>
       </div>
+
+      {/* View Details Modal */}
+      {isModalOpen && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          style={{ animation: 'modalFadeIn 0.2s ease-out' }}
+        >
+          <div 
+            className="bg-card w-full max-w-2xl rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            style={{ animation: 'modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          >
+            {/* Modal Header */}
+            <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
+              <div>
+                <h2 className="text-xl font-bold font-heading text-foreground">Analysis Details</h2>
+                <p className="text-xs text-muted-foreground">
+                  Analyzed on {selectedAnalysis && new Date(selectedAnalysis.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+                ✕
+              </Button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              {loadingDetails ? (
+                <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                  <p className="text-sm text-muted-foreground">Loading analysis results...</p>
+                </div>
+              ) : details ? (
+                <div className="space-y-6">
+                  {/* Score & Role overview */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
+                    <div>
+                      <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Suggested Best Role</p>
+                      <h4 className="text-lg font-black text-foreground">{details.bestRole || "Unknown"}</h4>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase">ATS Score</p>
+                        <p className="text-sm font-medium text-muted-foreground">Match Rating</p>
+                      </div>
+                      <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-lg border-2 ${
+                        details.atsScore >= 70 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                      }`}>
+                        {details.atsScore}%
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Strengths */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5 text-green-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Strengths
+                    </h4>
+                    <ul className="space-y-2">
+                      {details.strengths && details.strengths.length > 0 ? (
+                        details.strengths.map((str: string, i: number) => (
+                          <li key={i} className="text-sm text-muted-foreground bg-green-50/50 p-2.5 rounded border border-green-100/50">
+                            {str}
+                          </li>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No specific strengths highlighted.</p>
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Weaknesses */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5 text-amber-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Weaknesses & Gaps
+                    </h4>
+                    <ul className="space-y-2">
+                      {details.weaknesses && details.weaknesses.length > 0 ? (
+                        details.weaknesses.map((weak: string, i: number) => (
+                          <li key={i} className="text-sm text-muted-foreground bg-amber-50/50 p-2.5 rounded border border-amber-100/50">
+                            {weak}
+                          </li>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No major weaknesses identified.</p>
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Missing Keywords */}
+                  <div className="space-y-2.5">
+                    <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5 text-red-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Missing Keywords
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {details.missingKeywords && details.missingKeywords.length > 0 ? (
+                        details.missingKeywords.map((kw: string, i: number) => (
+                          <Badge key={i} variant="outline" className="bg-red-50/30 text-red-700 border-red-200/50 font-semibold px-2 py-0.5 text-xs">
+                            {kw}
+                          </Badge>
+                        ))
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No missing keywords found.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-8">Failed to fetch details.</p>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-border flex justify-end bg-muted/10">
+              <Button onClick={() => setIsModalOpen(false)} className="bg-slate-900 hover:bg-slate-800 text-white px-6">
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTargetId !== null && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          style={{ animation: 'modalFadeIn 0.2s ease-out' }}
+        >
+          <div 
+            className="bg-card w-full max-w-md rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col"
+            style={{ animation: 'modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          >
+            {/* Header */}
+            <div className="p-6 pb-4 border-b border-border flex justify-between items-center bg-red-50/10">
+              <h3 className="text-lg font-bold font-heading text-red-600 flex items-center gap-2">
+                Delete Analysis
+              </h3>
+              <Button variant="ghost" size="sm" onClick={() => setDeleteTargetId(null)} className="text-muted-foreground hover:text-foreground">
+                ✕
+              </Button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-foreground/80 leading-relaxed">
+                Are you sure you want to delete this resume analysis record? This action is permanent and cannot be undone.
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-border flex justify-end gap-3 bg-muted/10">
+              <Button 
+                variant="outline"
+                onClick={() => setDeleteTargetId(null)} 
+                disabled={isDeleting}
+                className="px-5 border-border hover:bg-muted text-foreground"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white px-5"
+              >
+                {isDeleting ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Deleting...
+                  </span>
+                ) : (
+                  "Delete Record"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Toast Notification */}
+      {toastMessage && (
+        <div 
+          className="fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-5 py-4 rounded-xl border shadow-2xl backdrop-blur-md"
+          style={{ 
+            animation: 'modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+            backgroundColor: toastMessage.type === 'success' ? 'rgba(240, 253, 244, 0.95)' : 'rgba(254, 242, 242, 0.95)',
+            borderColor: toastMessage.type === 'success' ? '#bbf7d0' : '#fecaca',
+            color: toastMessage.type === 'success' ? '#166534' : '#991b1b'
+          }}
+        >
+
+          <span className="text-sm font-semibold tracking-tight">{toastMessage.text}</span>
+        </div>
+      )}
     </div>
   );
 }

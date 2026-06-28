@@ -7,4 +7,8 @@ public interface AtsDetailsService {
     AtsDetailsDto getDetails(
             Long id
     );
+
+    void deleteAnalysis(
+            Long id
+    );
 }

@@ -12,6 +12,8 @@ import java.time.LocalDateTime;
 
 public class AtsHistoryDto {
 
+    private Long id;
+
     private Integer atsScore;
 
     private String bestRole;

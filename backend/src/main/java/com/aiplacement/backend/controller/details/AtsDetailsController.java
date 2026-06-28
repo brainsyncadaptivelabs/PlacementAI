@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/ats")
+@RequestMapping("/api/v1/ats")
 @RequiredArgsConstructor
 
 public class AtsDetailsController {
@@ -20,5 +20,13 @@ public class AtsDetailsController {
     ) {
 
         return atsDetailsService.getDetails(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public org.springframework.http.ResponseEntity<?> deleteAnalysis(
+            @PathVariable Long id
+    ) {
+        atsDetailsService.deleteAnalysis(id);
+        return org.springframework.http.ResponseEntity.ok().body(java.util.Map.of("message", "Analysis deleted successfully"));
     }
 }

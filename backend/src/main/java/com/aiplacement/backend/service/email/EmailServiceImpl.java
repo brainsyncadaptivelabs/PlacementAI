@@ -19,6 +19,16 @@ public class EmailServiceImpl
 
     private final JavaMailSender mailSender;
 
+    @org.springframework.beans.factory.annotation.Value("${spring.mail.username:}")
+    private String fromEmail;
+
+    private String getFromEmail() {
+        if (fromEmail == null || fromEmail.trim().isEmpty()) {
+            return "no-reply@placementai.com";
+        }
+        return fromEmail;
+    }
+
     @Override
     public void sendWelcomeEmail(
             String toEmail,
@@ -60,6 +70,7 @@ public class EmailServiceImpl
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws Exception {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setFrom(getFromEmail());
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(htmlContent, true);
@@ -70,6 +81,7 @@ public class EmailServiceImpl
     public void sendPasswordResetEmail(String toEmail, String resetUrl) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(getFromEmail());
             message.setTo(toEmail);
             message.setSubject("Password Reset Request - AI Placement Copilot");
             message.setText(
@@ -88,6 +100,7 @@ public class EmailServiceImpl
     public void sendOtpEmail(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(getFromEmail());
             message.setTo(toEmail);
             message.setSubject("PlacementAI Password Reset OTP");
             message.setText(
@@ -109,6 +122,7 @@ public class EmailServiceImpl
     public void sendVerificationOtpEmail(String toEmail, String otp) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom(getFromEmail());
             message.setTo(toEmail);
             message.setSubject("Verify your PlacementAI Account");
             message.setText(

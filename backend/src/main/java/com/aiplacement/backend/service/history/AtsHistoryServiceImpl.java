@@ -53,6 +53,10 @@ public class AtsHistoryServiceImpl
                 .map(analysis ->
                         AtsHistoryDto.builder()
 
+                                .id(
+                                        analysis.getId()
+                                )
+
                                 .atsScore(
                                         analysis.getAtsScore()
                                 )

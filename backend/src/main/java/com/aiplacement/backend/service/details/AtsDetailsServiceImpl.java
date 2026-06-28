@@ -82,4 +82,41 @@ public class AtsDetailsServiceImpl
 
                 .build();
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteAnalysis(
+            Long id
+    ) {
+        Authentication authentication =
+                SecurityContextHolder
+                        .getContext()
+                        .getAuthentication();
+
+        String email =
+                authentication.getName();
+
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+
+        AtsAnalysis analysis =
+                atsAnalysisRepository
+                        .findByIdAndUser(
+                                id,
+                                user
+                        )
+                        .orElseThrow(
+                                () -> new RuntimeException(
+                                        "ATS report not found"
+                                )
+                        );
+
+        atsAnalysisRepository.delete(analysis);
+    }
 }

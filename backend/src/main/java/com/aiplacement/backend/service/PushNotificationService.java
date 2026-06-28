@@ -32,6 +32,9 @@ public class PushNotificationService {
 
     @PostConstruct
     private void init() throws GeneralSecurityException {
+        if (java.security.Security.getProvider("BC") == null) {
+            java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        }
         pushService = new PushService(publicKey, privateKey, subject);
     }
 

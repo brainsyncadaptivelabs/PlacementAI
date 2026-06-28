@@ -50,6 +50,10 @@ services:
       PISTON_API_URL: http://piston:2000/api/v2
       SPRING_DATA_REDIS_HOST: redis
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-YOUR_GOOGLE_CLIENT_ID}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
       JAVA_OPTS: "-Xms${JAVA_XMS:-512m} -Xmx${JAVA_XMX:-1g} -XX:+UseG1GC -XX:+UseStringDeduplication"
 
   piston:
