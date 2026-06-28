@@ -9,13 +9,16 @@ export async function updateSession(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey) {
-    console.error("[SUPABASE_MIDDLEWARE] Warning: Supabase URL or Anon Key is missing! Check environment variables.");
+  if (!url) {
+    throw new Error("Configuration Error: NEXT_PUBLIC_SUPABASE_URL is missing.");
+  }
+  if (!anonKey) {
+    throw new Error("Configuration Error: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing.");
   }
 
   const supabase = createServerClient(
-    url || 'https://placeholder-supabase.co',
-    anonKey || 'placeholder-anon-key',
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {
@@ -48,11 +51,14 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
+  console.log(`[SUPABASE_MIDDLEWARE] Path: ${request.nextUrl.pathname}, User: ${user ? user.email : "none"}`);
+
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&
     request.nextUrl.pathname !== '/'
   ) {
+    console.log(`[SUPABASE_MIDDLEWARE] Redirecting unauthenticated user from ${request.nextUrl.pathname} to /auth`);
     // No user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = '/auth';

@@ -7,9 +7,8 @@ public interface EmailService {
             String fullName
     );
 
-    void sendStudentWelcomeEmail(String toEmail, String firstName);
+    void sendWelcomeEmail(com.aiplacement.backend.entity.User user);
 
-    void sendRecruiterWelcomeEmail(String toEmail, String companyName);
 
     void sendPasswordResetEmail(
             String toEmail,

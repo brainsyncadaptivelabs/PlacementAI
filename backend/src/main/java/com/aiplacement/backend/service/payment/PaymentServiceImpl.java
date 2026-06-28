@@ -5,6 +5,7 @@ import com.aiplacement.backend.dto.payment.PaymentResponseDto;
 import com.aiplacement.backend.dto.payment.PaymentVerificationDto;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
+import com.aiplacement.backend.service.email.EmailService;
 import com.razorpay.Order;
 import com.razorpay.RazorpayClient;
 import com.razorpay.Utils;
@@ -15,6 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import java.time.LocalDateTime;
 
 import jakarta.annotation.PostConstruct;
 
@@ -31,6 +35,7 @@ public class PaymentServiceImpl implements PaymentService {
     private String razorpayKeySecret;
 
     private final UserRepository userRepository;
+    private final EmailService emailService;
     private RazorpayClient razorpayClient;
 
     @PostConstruct
@@ -161,8 +166,22 @@ public class PaymentServiceImpl implements PaymentService {
             user.setPaymentStatus("COMPLETED");
             user.setPlanSelected(true);
             user.setPaymentCompleted(true);
+            
+            LocalDateTime now = LocalDateTime.now();
+            user.setPlanActivatedAt(now);
+            if (plan.toUpperCase().contains("FREE") || plan.toUpperCase().contains("LIFETIME")) {
+                user.setPlanExpiresAt(null);
+            } else if (plan.toUpperCase().contains("YEARLY")) {
+                user.setPlanExpiresAt(now.plusDays(365));
+            } else if (plan.toUpperCase().contains("QUARTERLY")) {
+                user.setPlanExpiresAt(now.plusDays(90));
+            } else {
+                user.setPlanExpiresAt(now.plusDays(30));
+            }
+
             userRepository.save(user);
             log.info("[Payment] Success: User {} now has {} plan", email, plan);
+            triggerWelcomeEmail(user);
         } catch (Exception e) {
             log.error("[Payment] DB SAVE FAILED during fulfillment", e);
             throw new RuntimeException("Database error during payment fulfillment: " + e.getMessage());
@@ -192,11 +211,36 @@ public class PaymentServiceImpl implements PaymentService {
             user.setPaymentStatus("COMPLETED");
             user.setPlanSelected(true);
             user.setPaymentCompleted(true);
+            user.setPlanActivatedAt(LocalDateTime.now());
+            user.setPlanExpiresAt(null);
             userRepository.save(user);
             log.info("[Payment] FREE plan activated successfully for {}", email);
+            triggerWelcomeEmail(user);
         } catch (Exception e) {
             log.error("[Payment] DB SAVE FAILED for FREE plan", e);
             throw new RuntimeException("Failed to save plan in database: " + e.getMessage());
+        }
+    }
+
+    private void triggerWelcomeEmail(User user) {
+        try {
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        if (!Boolean.TRUE.equals(user.getWelcomeEmailSent())) {
+                            emailService.sendWelcomeEmail(user);
+                        }
+                    }
+                });
+            } else {
+                if (!Boolean.TRUE.equals(user.getWelcomeEmailSent())) {
+                    emailService.sendWelcomeEmail(user);
+                }
+            }
+            log.info("Welcome email registered post-commit after plan activation for: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to dispatch welcome email to {}: {}", user.getEmail(), e.getMessage(), e);
         }
     }
 }

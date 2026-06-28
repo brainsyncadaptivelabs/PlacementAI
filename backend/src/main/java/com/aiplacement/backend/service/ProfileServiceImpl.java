@@ -44,10 +44,6 @@ public class ProfileServiceImpl implements ProfileService {
         
         user.setProfileCompleted(true);
         userRepository.save(user);
-
-        // Send Student Welcome Email
-        String firstName = user.getFullName().split(" ")[0];
-        emailService.sendStudentWelcomeEmail(user.getEmail(), firstName);
     }
 
     @Override
@@ -62,9 +58,6 @@ public class ProfileServiceImpl implements ProfileService {
         
         user.setProfileCompleted(true);
         userRepository.save(user);
-
-        // Send Recruiter Welcome Email
-        emailService.sendRecruiterWelcomeEmail(user.getEmail(), user.getCompanyName());
     }
 
     @Override

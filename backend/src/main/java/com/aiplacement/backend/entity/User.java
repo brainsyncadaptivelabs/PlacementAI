@@ -112,6 +112,16 @@ public class User {
 
     private String plan; // FREE, BASIC, PREMIUM
 
+    @Column(name = "plan_activated_at")
+    private LocalDateTime planActivatedAt;
+
+    @Column(name = "plan_expires_at")
+    private LocalDateTime planExpiresAt;
+
+    @Column(name = "welcome_email_sent")
+    @Builder.Default
+    private Boolean welcomeEmailSent = false;
+
     @Column(name = "payment_status")
     private String paymentStatus; // PENDING, COMPLETED
 

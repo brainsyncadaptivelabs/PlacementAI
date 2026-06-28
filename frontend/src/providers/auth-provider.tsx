@@ -46,21 +46,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const mockToken = `${header}.${payload}.${base64UrlEncode("signature")}`;
 
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+        const requestBody = {
+          idToken: mockToken,
+          role: "STUDENT",
+          provider: session.user.app_metadata?.provider || "google"
+        };
+        console.log(`[AUTH_SYNC] POST ${API_URL}/auth/google`, requestBody);
+        
         const response = await fetch(`${API_URL}/auth/google`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            idToken: mockToken,
-            role: "STUDENT",
-            provider: session.user.app_metadata?.provider || "google"
-          })
+          body: JSON.stringify(requestBody)
         });
+        
+        console.log(`[AUTH_SYNC] Response Status Code: ${response.status}`);
+        
         if (response.ok) {
           const data = await response.json();
+          console.log(`[AUTH_SYNC] Success. JWT: ${data.accessToken}, User Role: ${data.role}`);
           localStorage.setItem("token", data.accessToken);
           localStorage.setItem("role", data.role);
           // Dispatch a custom event to notify any listeners that the token is now available
           window.dispatchEvent(new Event("storage"));
+        } else {
+          try {
+            const errText = await response.text();
+            console.error(`[AUTH_SYNC] Sync failed. Response body: ${errText}`);
+          } catch (_) {
+            console.error(`[AUTH_SYNC] Sync failed without response body.`);
+          }
         }
       } catch (err) {
         console.error("Backend auth sync failed:", err);

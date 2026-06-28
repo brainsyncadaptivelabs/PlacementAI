@@ -1,7 +1,11 @@
 package com.aiplacement.backend.service.email;
 
+import com.aiplacement.backend.entity.User;
+import com.aiplacement.backend.repository.UserRepository;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -9,18 +13,39 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
-
+@Slf4j
 public class EmailServiceImpl
         implements EmailService {
 
     private final JavaMailSender mailSender;
+    private final UserRepository userRepository;
+    private final EmailTransactionHelper transactionHelper;
 
-    @org.springframework.beans.factory.annotation.Value("${spring.mail.username:}")
+    @Value("${spring.mail.username:}")
     private String fromEmail;
+
+    @Value("${frontend.url:http://localhost:3000}")
+    private String frontendUrl;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+    private final Set<String> queuedEmails = ConcurrentHashMap.newKeySet();
+
+    @jakarta.annotation.PreDestroy
+    public void shutdown() {
+        scheduler.shutdown();
+    }
 
     private String getFromEmail() {
         if (fromEmail == null || fromEmail.trim().isEmpty()) {
@@ -29,36 +54,277 @@ public class EmailServiceImpl
         return fromEmail;
     }
 
-    @Override
-    public void sendWelcomeEmail(
-            String toEmail,
-            String fullName
-    ) {
-        // Fallback or general welcome
-        sendStudentWelcomeEmail(toEmail, fullName.split(" ")[0]);
+    private String getFirstName(String fullName) {
+        if (fullName == null || fullName.trim().isEmpty()) {
+            return "User";
+        }
+        return fullName.split(" ")[0];
     }
 
-    @Override
-    public void sendStudentWelcomeEmail(String toEmail, String firstName) {
-        try {
-            String template = loadTemplate("templates/student-welcome.html");
-            String htmlContent = template.replace("{{firstName}}", firstName);
-            sendHtmlEmail(toEmail, "Welcome to AI Placement Copilot 🚀", htmlContent);
-        } catch (Exception e) {
-            System.err.println("Failed to send student welcome email: " + e.getMessage());
+    private List<String> getFeaturesForPlan(String plan) {
+        if (plan == null) plan = "FREE";
+        switch (plan.toUpperCase()) {
+            case "PREMIUM":
+                return List.of(
+                    "Everything in BASIC",
+                    "AI Career Mentor",
+                    "Unlimited Resume Tailoring",
+                    "Company Specific Prep",
+                    "Advanced Analytics",
+                    "Premium Insights"
+                );
+            case "BASIC":
+                return List.of(
+                    "Everything in FREE plus",
+                    "Unlimited Mock Interviews",
+                    "AI Resume Improvements",
+                    "Coding Practice",
+                    "Progress Analytics",
+                    "Priority Support"
+                );
+            case "FREE":
+            default:
+                return List.of(
+                    "Resume Builder",
+                    "ATS Resume Analysis",
+                    "Skill Gap Analysis",
+                    "Learning Roadmaps",
+                    "Limited Mock Interviews"
+                );
         }
     }
 
-    @Override
-    public void sendRecruiterWelcomeEmail(String toEmail, String companyName) {
-        try {
-            String template = loadTemplate("templates/recruiter-welcome.html");
-            String htmlContent = template.replace("{{companyName}}", companyName);
-            sendHtmlEmail(toEmail, "Build Your Dream Team with AI Placement Copilot 🏢", htmlContent);
-        } catch (Exception e) {
-            System.err.println("Failed to send recruiter welcome email: " + e.getMessage());
+    private String renderPlanFeaturesHtml(String plan) {
+        log.info("Rendering plan features");
+        List<String> features = getFeaturesForPlan(plan);
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\">")
+          .append("<tr>")
+          .append("<td align=\"center\" style=\"padding: 0; text-align: center; font-size: 0;\">");
+          
+        for (String feature : features) {
+            String icon = "✅";
+            if (feature.contains("Resume Builder")) icon = "📝";
+            else if (feature.contains("ATS Resume")) icon = "🔍";
+            else if (feature.contains("Skill Gap")) icon = "⚡";
+            else if (feature.contains("Roadmaps") || feature.contains("Learning Roadmaps")) icon = "🗺️";
+            else if (feature.contains("Mock Interviews")) icon = "🎤";
+            else if (feature.contains("Resume Improvements") || feature.contains("Resume Tailoring")) icon = "✨";
+            else if (feature.contains("Coding")) icon = "💻";
+            else if (feature.contains("Analytics")) icon = "📊";
+            else if (feature.contains("Support")) icon = "⭐";
+            else if (feature.contains("Career Mentor")) icon = "🤖";
+            else if (feature.contains("Specific Prep") || feature.contains("Company Specific")) icon = "🏢";
+            else if (feature.contains("Insights") || feature.contains("Premium Insights")) icon = "💎";
+            else if (feature.contains("Everything")) icon = "⭐";
+
+            sb.append("<!--[if mso]>")
+              .append("<table align=\"left\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"135\">")
+              .append("<tr>")
+              .append("<td style=\"padding: 4px;\">")
+              .append("<![endif]-->")
+              .append("<div style=\"display: inline-block; max-width: 135px; min-width: 115px; width: 100%; vertical-align: top; margin: 6px;\">")
+              .append("<table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" border=\"0\" style=\"background-color: #1E293B; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; text-align: center; height: 110px;\">")
+              .append("<tr>")
+              .append("<td style=\"padding: 16px 8px; color: #FFFFFF; font-size: 11px; font-weight: bold; line-height: 1.4; height: 110px;\" valign=\"middle\" align=\"center\">")
+              .append("<span style=\"font-size: 24px; display: block; margin-bottom: 8px;\">").append(icon).append("</span>")
+              .append(feature)
+              .append("</td>")
+              .append("</tr>")
+              .append("</table>")
+              .append("</div>")
+              .append("<!--[if mso]>")
+              .append("</td>")
+              .append("</tr>")
+              .append("</table>")
+              .append("<![endif]-->");
+        }
+        
+        sb.append("</td>")
+          .append("</tr>")
+          .append("</table>");
+          
+        return sb.toString();
+    }
+
+    private String renderPlanNameHtml(String plan) {
+        if (plan == null) plan = "FREE";
+        switch (plan.toUpperCase()) {
+            case "PREMIUM":
+                return "<span style=\"color: #F59E0B; font-weight: 700;\">👑 PREMIUM PLAN</span>";
+            case "BASIC":
+                return "<span style=\"color: #3B82F6; font-weight: 700;\">🔷 BASIC PLAN</span>";
+            case "FREE":
+            default:
+                return "<span style=\"color: #10B981; font-weight: 700;\">🟢 FREE PLAN</span>";
         }
     }
+
+    private String formatDate(LocalDateTime dateTime) {
+        if (dateTime == null) return "Unlimited";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
+        return dateTime.format(formatter);
+    }
+
+    @Override
+    public void sendWelcomeEmail(String toEmail, String fullName) {
+        userRepository.findByEmail(toEmail).ifPresentOrElse(
+            this::sendWelcomeEmail,
+            () -> {
+                User dummyUser = User.builder()
+                        .email(toEmail)
+                        .fullName(fullName)
+                        .role(com.aiplacement.backend.entity.Role.STUDENT)
+                        .accountStatus("ACTIVE")
+                        .plan("FREE")
+                        .paymentStatus("COMPLETED")
+                        .createdAt(LocalDateTime.now())
+                        .verifiedAt(LocalDateTime.now())
+                        .build();
+                sendWelcomeEmail(dummyUser);
+            }
+        );
+    }
+
+    @Override
+    public void sendWelcomeEmail(User user) {
+        if (user == null) {
+            log.error("Welcome email user is null. Cannot send email.");
+            return;
+        }
+        log.info("Calling sendWelcomeEmail() for User ID: {}, Email: {}, Plan: {}, welcomeEmailSent: {}", 
+                 user.getId(), user.getEmail(), user.getPlan(), user.getWelcomeEmailSent());
+        
+        if (Boolean.TRUE.equals(user.getWelcomeEmailSent())) {
+            log.info("Welcome email already sent for user: {}. Skipping.", user.getEmail());
+            return;
+        }
+        
+        if (!queuedEmails.add(user.getEmail())) {
+            log.info("Welcome email for {} is already queued or being processed. Skipping duplicate trigger.", user.getEmail());
+            return;
+        }
+        
+        log.info("Creating welcome email");
+        sendWelcomeEmailAsync(user.getId(), 0);
+    }
+
+    private void sendWelcomeEmailAsync(Long userId, int attempt) {
+        scheduler.submit(() -> {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user == null) {
+                log.error("User not found for ID: {}. Aborting email send.", userId);
+                return;
+            }
+            log.info("User created - User ID: {}, Email: {}, Plan: {}, welcomeEmailSent: {}", 
+                     user.getId(), user.getEmail(), user.getPlan(), user.getWelcomeEmailSent());
+
+            if (Boolean.TRUE.equals(user.getWelcomeEmailSent())) {
+                log.info("Welcome email already marked as sent in DB for: {}. Skipping.", user.getEmail());
+                queuedEmails.remove(user.getEmail());
+                return;
+            }
+
+            try {
+                log.info("Rendering template");
+                String template = loadTemplate("templates/welcome-premium.html");
+                
+                String firstName = getFirstName(user.getFullName());
+                String plan = user.getPlan();
+                if (plan == null || plan.trim().isEmpty()) {
+                    plan = "FREE";
+                }
+                
+                String planNameHtml = renderPlanNameHtml(plan);
+                String planName = plan.substring(0, 1).toUpperCase() + plan.substring(1).toLowerCase();
+                String planStatus = "Active";
+                
+                LocalDateTime activationDateVal = user.getPlanActivatedAt();
+                if (activationDateVal == null) {
+                    activationDateVal = user.getVerifiedAt() != null ? user.getVerifiedAt() : user.getCreatedAt();
+                }
+                if (activationDateVal == null) {
+                    activationDateVal = LocalDateTime.now();
+                }
+                String activationDate = formatDate(activationDateVal);
+                
+                String expiryDate = "Unlimited";
+                if (!plan.equalsIgnoreCase("FREE")) {
+                    LocalDateTime expiryDateVal = user.getPlanExpiresAt();
+                    if (expiryDateVal == null) {
+                        expiryDateVal = activationDateVal.plusDays(30);
+                    }
+                    expiryDate = formatDate(expiryDateVal);
+                } else {
+                    expiryDate = "Lifetime";
+                }
+
+                String featuresHtml = renderPlanFeaturesHtml(plan);
+                
+                String dashboardUrl = frontendUrl + "/dashboard";
+                String subscriptionUrl = frontendUrl + "/dashboard?tab=subscription";
+
+                String htmlContent = template
+                        .replace("{{firstName}}", firstName)
+                        .replace("{{planNameHtml}}", planNameHtml)
+                        .replace("{{planName}}", planName)
+                        .replace("{{planStatus}}", planStatus)
+                        .replace("{{activationDate}}", activationDate)
+                        .replace("{{expiryDate}}", expiryDate)
+                        .replace("{{emailAddress}}", user.getEmail())
+                        .replace("{{email}}", user.getEmail())
+                        .replace("{{featuresList}}", featuresHtml)
+                        .replace("{{dashboardUrl}}", dashboardUrl)
+                        .replace("{{subscriptionUrl}}", subscriptionUrl);
+
+                log.info("SMTP connection starting for user: {}", user.getEmail());
+                sendHtmlEmail(user.getEmail(), String.format("🎉 Welcome to PlacementAI, %s! Your Placement Journey Starts Today 🚀", firstName), htmlContent);
+                
+                log.info("Email sent successfully to user: {}", user.getEmail());
+                
+                log.info("Updating welcomeEmailSent for user: {}", user.getEmail());
+                transactionHelper.markWelcomeEmailSent(user.getId());
+                
+                log.info("Completed");
+                queuedEmails.remove(user.getEmail());
+                
+            } catch (Exception e) {
+                log.error("Welcome email failed with exception for user: " + user.getEmail(), e);
+                
+                if (isPermanentError(e)) {
+                    log.error("Permanent error encountered while sending email to {}. Retries aborted.", user.getEmail());
+                    queuedEmails.remove(user.getEmail());
+                    return;
+                }
+
+                if (attempt < 5) {
+                    int nextAttempt = attempt + 1;
+                    log.info("Retry " + nextAttempt);
+                    long delaySeconds = (long) Math.pow(2, attempt) * 10;
+                    scheduler.schedule(() -> sendWelcomeEmailAsync(userId, nextAttempt), delaySeconds, TimeUnit.SECONDS);
+                } else {
+                    log.error("Max retries (5) reached for sending welcome email to user: {}", user.getEmail());
+                    queuedEmails.remove(user.getEmail());
+                }
+            }
+        });
+    }
+
+    private boolean isPermanentError(Exception e) {
+        String msg = e.getMessage();
+        if (msg == null) return false;
+        msg = msg.toLowerCase();
+        return msg.contains("invalid address") || 
+               msg.contains("550") || 
+               msg.contains("553") || 
+               msg.contains("554") ||
+               msg.contains("syntax error") ||
+               msg.contains("recipient rejected") ||
+               msg.contains("authenticationfailedexception") ||
+               msg.contains("authentication failed");
+    }
+
 
     private String loadTemplate(String path) throws Exception {
         ClassPathResource resource = new ClassPathResource(path);

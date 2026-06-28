@@ -7,13 +7,20 @@ export async function createClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!url || !anonKey) {
-    console.error("[SUPABASE_SERVER] Warning: Supabase URL or Anon Key is missing! Check environment variables.");
+  if (!url) {
+    throw new Error("Configuration Error: NEXT_PUBLIC_SUPABASE_URL is missing.");
+  }
+  if (!anonKey) {
+    throw new Error("Configuration Error: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing.");
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("Supabase URL (Server):", url);
   }
 
   return createServerClient(
-    url || 'https://placeholder-supabase.co',
-    anonKey || 'placeholder-anon-key',
+    url,
+    anonKey,
     {
       cookies: {
         getAll() {

@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 import java.time.LocalDateTime;
@@ -142,11 +144,6 @@ public class AuthServiceImpl implements AuthService {
             user.setUserStats(stats);
             userRepository.save(user);
             log.info("[SOCIAL_LOGIN] New social user created and saved successfully.");
-            try {
-                emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
-            } catch (Exception e) {
-                log.error("[SOCIAL_LOGIN] Failed to send welcome email: {}", e.getMessage(), e);
-            }
         }
 
         log.info("[SOCIAL_LOGIN] Issuing access and refresh tokens for user: {}", user.getEmail());
@@ -316,7 +313,7 @@ public class AuthServiceImpl implements AuthService {
         // 6. Send OTP Email
         try {
             emailService.sendVerificationOtpEmail(request.getEmail(), otp);
-            log.info("Verification email dispatched with OTP to {}", request.getEmail());
+            log.info("Verification email dispatched with OTP: [{}] to {}", otp, request.getEmail());
         } catch (Exception e) {
             log.error("Failed to dispatch verification email to {}: {}", request.getEmail(), e.getMessage(), e);
             throw new RuntimeException("Failed to send verification email. Please try again.");
@@ -448,14 +445,6 @@ public class AuthServiceImpl implements AuthService {
         // Delete temporary signup data
         pendingSignupRepository.delete(pendingSignup);
 
-        // Send welcome email
-        try {
-            emailService.sendWelcomeEmail(user.getEmail(), user.getFullName());
-            log.info("Welcome email dispatched to {}", user.getEmail());
-        } catch (Exception e) {
-            log.error("Failed to dispatch welcome email to {}: {}", user.getEmail(), e.getMessage(), e);
-        }
-
         // Generate tokens
         String accessToken = jwtService.generateAccessToken(user.getEmail());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
@@ -505,7 +494,7 @@ public class AuthServiceImpl implements AuthService {
         // Send OTP email
         try {
             emailService.sendVerificationOtpEmail(pendingSignup.getEmail(), newOtp);
-            log.info("Resent OTP email dispatched successfully to {}", pendingSignup.getEmail());
+            log.info("Resent OTP email dispatched successfully with OTP: [{}] to {}", newOtp, pendingSignup.getEmail());
         } catch (Exception e) {
             log.error("Failed to send resent OTP email to {}: {}", pendingSignup.getEmail(), e.getMessage());
             throw new RuntimeException("Failed to send verification email. Please try again.");

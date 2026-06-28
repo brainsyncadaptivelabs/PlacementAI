@@ -106,16 +106,19 @@ export default function PerfectStudentPortal() {
     const checkProfile = async () => {
       try {
         const profileRes = await api.get("/profile/me");
-        const { profileCompleted, plan, role } = profileRes.data;
+        const { profileCompleted, planSelected, role } = profileRes.data;
 
         if (profileCompleted === false) {
-          router.push("/complete-profile/student");
+          if (role === "RECRUITER") {
+            router.push("/complete-profile/recruiter");
+          } else {
+            router.push("/complete-profile/student");
+          }
           return;
         }
 
-        // If user is a student and hasn't selected a plan, redirect to select-plan
-        if (role === "STUDENT" && !plan) {
-          router.push("/select-plan");
+        if (planSelected === false) {
+          router.push("/plans");
           return;
         }
 

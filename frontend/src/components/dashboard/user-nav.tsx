@@ -135,7 +135,7 @@ export function UserNav() {
           >
             <div className="p-1.5 flex flex-col gap-0.5">
               <Link 
-                href="/select-plan"
+                href="/plans"
                 onClick={() => setIsOpen(false)}
                 className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
               >

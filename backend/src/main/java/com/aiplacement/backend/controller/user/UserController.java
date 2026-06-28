@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.aiplacement.backend.dto.user.PreferencesRequestDto;
 import com.aiplacement.backend.dto.user.ChangePasswordRequestDto;
+import com.aiplacement.backend.dto.user.UserReportCardDto;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.http.HttpStatus;
 
@@ -24,6 +25,9 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.aiplacement.backend.repository.AtsAnalysisRepository atsAnalysisRepository;
+    private final com.aiplacement.backend.repository.ResumeRepository resumeRepository;
+    private final com.aiplacement.backend.repository.interview.MockInterviewRepository mockInterviewRepository;
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfileDto> getUserProfile() {
@@ -103,5 +107,88 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.ok("Password changed successfully.");
+    }
+
+    @GetMapping("/report-card")
+    public ResponseEntity<UserReportCardDto> getUserReportCard() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Integer highestAts = atsAnalysisRepository.findHighestAtsScoreByUser(user);
+        Double averageAts = atsAnalysisRepository.findAverageAtsScoreByUser(user);
+        Long resumesCount = resumeRepository.countByUser(user);
+        
+        java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviews = mockInterviewRepository.findByUserOrderByCreatedAtDesc(user);
+        long interviewsCount = mockInterviews.size();
+        
+        double mockScoreSum = 0;
+        int mockScoreCount = 0;
+        int highestMockScore = 0;
+        
+        for (com.aiplacement.backend.entity.interview.MockInterview interview : mockInterviews) {
+            if (interview.getFeedback() != null && interview.getFeedback().getTotalScore() != null) {
+                int score = interview.getFeedback().getTotalScore();
+                mockScoreSum += score;
+                mockScoreCount++;
+                if (score > highestMockScore) {
+                    highestMockScore = score;
+                }
+            }
+        }
+        
+        Double averageMockScore = mockScoreCount > 0 ? (mockScoreSum / mockScoreCount) : null;
+        Integer highestMockScoreVal = mockScoreCount > 0 ? highestMockScore : null;
+        
+        int codingSolved = 0;
+        if (user.getUserStats() != null) {
+            codingSolved = user.getUserStats().getQuestionsEasy() 
+                         + user.getUserStats().getQuestionsMedium() 
+                         + user.getUserStats().getQuestionsHard();
+        }
+        
+        int readinessScore = (int) (averageAts != null ? averageAts * 0.8 + 10 : 0);
+        if (readinessScore > 100) readinessScore = 100;
+        
+        // Calculate profile completion percentage
+        int filledFields = 0;
+        int totalFields = 9;
+        
+        if (user.getFullName() != null && !user.getFullName().isBlank()) filledFields++;
+        if (user.getEmail() != null && !user.getEmail().isBlank()) filledFields++;
+        if (user.getRole() != null) filledFields++;
+        if (user.getCollegeName() != null && !user.getCollegeName().isBlank()) filledFields++;
+        if (user.getBranch() != null && !user.getBranch().isBlank()) filledFields++;
+        if (user.getGraduationYear() != null) filledFields++;
+        if (user.getSkills() != null && !user.getSkills().isBlank()) filledFields++;
+        if (user.getLinkedinUrl() != null && !user.getLinkedinUrl().isBlank()) filledFields++;
+        if (user.getGithubUrl() != null && !user.getGithubUrl().isBlank()) filledFields++;
+        
+        int profileCompletion = (int) Math.round(((double) filledFields / totalFields) * 100);
+        if (profileCompletion > 100) profileCompletion = 100;
+        if (profileCompletion < 20) profileCompletion = 20; // base minimum for signup fields completed
+        
+        String customUserId = "PAI-2026-" + String.format("%06d", user.getId() != null ? user.getId() : 0);
+
+        return ResponseEntity.ok(UserReportCardDto.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .role(user.getRole() != null ? user.getRole().name() : "STUDENT")
+                .plan(user.getPlan() != null ? user.getPlan() : "FREE")
+                .memberSince(user.getCreatedAt() != null ? user.getCreatedAt() : java.time.LocalDateTime.now())
+                .userId(customUserId)
+                .profileImage(user.getProfileImage())
+                .highestAtsScore(highestAts)
+                .averageAtsScore(averageAts != null ? averageAts.intValue() : null)
+                .resumeCount(resumesCount)
+                .mockInterviewsCount(interviewsCount)
+                .averageMockScore(averageMockScore)
+                .highestMockScore(highestMockScoreVal)
+                .codingProblemsSolved(codingSolved)
+                .readinessScore(readinessScore)
+                .profileCompletionPercentage(profileCompletion)
+                .build());
     }
 }

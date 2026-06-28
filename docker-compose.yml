@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: placementai
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql-data:/var/lib/mysql
 
@@ -50,10 +50,10 @@ services:
       PISTON_API_URL: http://piston:2000/api/v2
       SPRING_DATA_REDIS_HOST: redis
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-YOUR_GOOGLE_CLIENT_ID}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: founders.brainsynclabs@gmail.com
+      MAIL_PASSWORD: "vimx fido xxvp eewz"
       JAVA_OPTS: "-Xms${JAVA_XMS:-512m} -Xmx${JAVA_XMX:-1g} -XX:+UseG1GC -XX:+UseStringDeduplication"
 
   piston:

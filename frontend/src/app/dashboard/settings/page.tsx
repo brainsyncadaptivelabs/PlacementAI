@@ -18,6 +18,7 @@ import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { DeleteAccountModal } from "@/components/ui/delete-account-modal";
+import { ReportCardModal } from "@/components/dashboard/ReportCardModal";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "@/store/toast-store";
@@ -25,6 +26,7 @@ import { toast } from "@/store/toast-store";
 export default function SettingsPage() {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isReportCardModalOpen, setIsReportCardModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const { signOut } = useAuth();
@@ -154,7 +156,7 @@ export default function SettingsPage() {
       return;
     }
     if (label === "Download My Data") {
-      handleDownloadData();
+      setIsReportCardModalOpen(true);
       return;
     }
     setLoadingAction(label);
@@ -686,6 +688,11 @@ export default function SettingsPage() {
         onClose={() => setIsDeleteModalOpen(false)}
         authProvider={user?.authProvider || "LOCAL"}
         onDeleteSuccess={handleDeleteSuccess}
+      />
+
+      <ReportCardModal
+        isOpen={isReportCardModalOpen}
+        onClose={() => setIsReportCardModalOpen(false)}
       />
     </PageShell>
   );

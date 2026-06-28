@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to PlacementAI</title>
+    <style>
+        /* Responsive Media Queries */
+        @media only screen and (max-width: 900px) {
+            .container {
+                width: 100% !important;
+                border-radius: 20px !important;
+            }
+            .content-padding {
+                padding: 24px !important;
+            }
+        }
+        @media only screen and (max-width: 600px) {
+            .content-padding {
+                padding: 16px !important;
+            }
+            .stacked-col {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                text-align: center !important;
+                margin: 10px 0 !important;
+            }
+            .illustration-box {
+                margin: 15px auto !important;
+            }
+            .button-wrapper {
+                display: block !important;
+                max-width: 100% !important;
+                width: 100% !important;
+                margin: 12px 0 !important;
+            }
+            .button-wrapper a {
+                width: 100% !important;
+                box-sizing: border-box !important;
+            }
+        }
+    </style>
+</head>
+<body style="font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #E2E8F0; margin: 0; padding: 0; background-color: #0B1020;">
+    <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0B1020; width: 100%;">
+        <tr>
+            <td align="center" style="padding: 30px 10px;">
+                <!-- Main Container -->
+                <table class="container" width="900" cellspacing="0" cellpadding="0" border="0" style="max-width: 900px; width: 100%; background-color: #0F172A; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 30px; overflow: hidden; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
+                    
+                    <!-- Header Section -->
+                    <tr>
+                        <td align="center" style="padding: 40px 40px 20px 40px; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                            <!-- Centered Logo -->
+                            <table cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td align="center">
+                                        <table cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="background-color: #2563EB; border-radius: 10px; width: 44px; height: 44px; font-weight: 900; font-size: 24px; color: #FFFFFF; text-align: center; line-height: 44px;" valign="middle">P</td>
+                                                <td style="padding-left: 10px; font-size: 22px; font-weight: 800; color: #FFFFFF; letter-spacing: 0.5px;">PlacementAI</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Body Content Padding Container -->
+                    <tr>
+                        <td class="content-padding" style="padding: 40px;">
+                            
+                            <!-- Greeting & Illustration Section -->
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 30px;">
+                                <tr>
+                                    <td style="font-size: 0; text-align: center;">
+                                        <!--[if mso]>
+                                        <table align="center" border="0" cellspacing="0" cellpadding="0" width="820">
+                                        <tr>
+                                        <td width="480" valign="middle">
+                                        <![endif]-->
+                                        
+                                        <!-- Greeting (Left) -->
+                                        <div class="stacked-col" style="display: inline-block; max-width: 480px; width: 100%; vertical-align: middle; text-align: left;">
+                                            <h2 style="margin: 0 0 10px 0; font-size: 28px; font-weight: 800; color: #FFFFFF;">Hi {{firstName}} 👋</h2>
+                                            <h3 style="margin: 0 0 15px 0; font-size: 22px; font-weight: 700; color: #818CF8;">Welcome to PlacementAI!</h3>
+                                            <p style="margin: 0 0 10px 0; font-size: 15px; color: #94A3B8; line-height: 1.6; font-weight: 500;">
+                                                We're thrilled to have you join the PlacementAI community.
+                                            </p>
+                                            <p style="margin: 0; font-size: 15px; color: #94A3B8; line-height: 1.6; font-weight: 500;">
+                                                Your account has been successfully created and verified.
+                                            </p>
+                                        </div>
+
+                                        <!--[if mso]>
+                                        </td>
+                                        <td width="340" valign="middle" align="center">
+                                        <![endif]-->
+
+                                        <!-- Illustration (Right) -->
+                                        <div class="stacked-col" style="display: inline-block; max-width: 300px; width: 100%; vertical-align: middle; text-align: center; margin-left: 20px;">
+                                            <table class="illustration-box" align="center" cellpadding="0" cellspacing="0" border="0" style="background: rgba(99, 102, 241, 0.05); border: 2px dashed rgba(99, 102, 241, 0.2); border-radius: 20px; width: 220px; height: 160px; margin-top: 15px;">
+                                                <tr>
+                                                    <td align="center" valign="middle">
+                                                        <span style="font-size: 56px;">✉️</span>
+                                                        <div style="color: #6366F1; font-weight: 800; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-top: 8px;">VERIFIED ACCOUNT</div>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+
+                                        <!--[if mso]>
+                                        </td>
+                                        </tr>
+                                        </table>
+                                        <![endif]-->
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Subscription Card -->
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #111827; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; margin-bottom: 35px; border-collapse: separate;">
+                                <!-- Blue Title Bar -->
+                                <tr>
+                                    <td style="background-color: #2563EB; padding: 14px 20px; color: #FFFFFF; font-size: 13px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+                                        👑 YOUR SUBSCRIPTION
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                            <tr>
+                                                <td style="font-size: 0; text-align: center;">
+                                                    <!-- Column 1: Current Plan -->
+                                                    <!--[if mso]>
+                                                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="160">
+                                                    <tr>
+                                                    <td>
+                                                    <![endif]-->
+                                                    <div class="stacked-col" style="display: inline-block; max-width: 155px; width: 100%; vertical-align: top; margin: 10px 5px; text-align: left;">
+                                                        <div style="font-size: 10px; font-weight: bold; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Current Plan</div>
+                                                        <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-top: 6px;">
+                                                            {{planNameHtml}}
+                                                        </div>
+                                                    </div>
+                                                    <!--[if mso]>
+                                                    </td>
+                                                    </tr>
+                                                    </table>
+                                                    <![endif]-->
+
+                                                    <!-- Column 2: Status -->
+                                                    <!--[if mso]>
+                                                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="100">
+                                                    <tr>
+                                                    <td>
+                                                    <![endif]-->
+                                                    <div class="stacked-col" style="display: inline-block; max-width: 95px; width: 100%; vertical-align: top; margin: 10px 5px; text-align: left;">
+                                                        <div style="font-size: 10px; font-weight: bold; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Status</div>
+                                                        <div style="font-size: 14px; font-weight: 800; color: #10B981; margin-top: 6px; display: inline-block;">
+                                                            🟢 Active
+                                                        </div>
+                                                    </div>
+                                                    <!--[if mso]>
+                                                    </td>
+                                                    </tr>
+                                                    </table>
+                                                    <![endif]-->
+
+                                                    <!-- Column 3: Activated -->
+                                                    <!--[if mso]>
+                                                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="130">
+                                                    <tr>
+                                                    <td>
+                                                    <![endif]-->
+                                                    <div class="stacked-col" style="display: inline-block; max-width: 125px; width: 100%; vertical-align: top; margin: 10px 5px; text-align: left;">
+                                                        <div style="font-size: 10px; font-weight: bold; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Activated</div>
+                                                        <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-top: 6px;">
+                                                            {{activationDate}}
+                                                        </div>
+                                                    </div>
+                                                    <!--[if mso]>
+                                                    </td>
+                                                    </tr>
+                                                    </table>
+                                                    <![endif]-->
+
+                                                    <!-- Column 4: Valid Until -->
+                                                    <!--[if mso]>
+                                                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="130">
+                                                    <tr>
+                                                    <td>
+                                                    <![endif]-->
+                                                    <div class="stacked-col" style="display: inline-block; max-width: 125px; width: 100%; vertical-align: top; margin: 10px 5px; text-align: left;">
+                                                        <div style="font-size: 10px; font-weight: bold; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Valid Until</div>
+                                                        <div style="font-size: 14px; font-weight: 800; color: #FFFFFF; margin-top: 6px;">
+                                                            {{expiryDate}}
+                                                        </div>
+                                                    </div>
+                                                    <!--[if mso]>
+                                                    </td>
+                                                    </tr>
+                                                    </table>
+                                                    <![endif]-->
+
+                                                    <!-- Column 5: Registered Email -->
+                                                    <!--[if mso]>
+                                                    <table align="left" border="0" cellspacing="0" cellpadding="0" width="220">
+                                                    <tr>
+                                                    <td>
+                                                    <![endif]-->
+                                                    <div class="stacked-col" style="display: inline-block; max-width: 220px; width: 100%; vertical-align: top; margin: 10px 5px; text-align: left;">
+                                                        <div style="font-size: 10px; font-weight: bold; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Registered Email</div>
+                                                        <div style="font-size: 14px; font-weight: 800; color: #A5B4FC; margin-top: 6px; word-break: break-all;">
+                                                            {{email}}
+                                                        </div>
+                                                    </div>
+                                                    <!--[if mso]>
+                                                    </td>
+                                                    </tr>
+                                                    </table>
+                                                    <![endif]-->
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Features List -->
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 35px;">
+                                <tr>
+                                    <td align="center">
+                                        <h3 style="margin: 0 0 20px 0; color: #FFFFFF; font-size: 16px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                                            ⭐ YOUR PLAN FEATURES ⭐
+                                        </h3>
+                                        {{featuresList}}
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Motivation Card -->
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 24px; margin-bottom: 35px; border-collapse: separate;">
+                                <tr>
+                                    <td align="center" style="padding: 30px;">
+                                        <span style="font-size: 40px; color: #3B82F6; line-height: 1; font-family: Georgia, serif; display: block; margin-bottom: -10px;">“</span>
+                                        <p style="margin: 0 0 12px 0; font-size: 16px; font-weight: bold; color: #FFFFFF; line-height: 1.5; max-width: 650px; font-style: italic; font-family: Georgia, serif;">
+                                            Every successful software engineer once started exactly where you are today.
+                                        </p>
+                                        <p style="margin: 0; font-size: 14px; color: #94A3B8; font-weight: 600; line-height: 1.5;">
+                                            Stay consistent. Keep learning. Keep improving.
+                                        </p>
+                                        <span style="font-size: 40px; color: #3B82F6; line-height: 1; font-family: Georgia, serif; display: block; margin-top: 10px; margin-bottom: -20px;">”</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Support Card -->
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background: linear-gradient(135deg, #065F46 0%, #064E3B 100%); border-radius: 24px; border-collapse: separate; margin-bottom: 35px;">
+                                <tr>
+                                    <td style="padding: 28px; font-size: 0; text-align: center;">
+                                        <!--[if mso]>
+                                        <table align="center" border="0" cellspacing="0" cellpadding="0" width="820">
+                                        <tr>
+                                        <td width="120" valign="middle">
+                                        <![endif]-->
+                                        
+                                        <!-- Robot Illustration (Left) -->
+                                        <div class="stacked-col" style="display: inline-block; max-width: 120px; width: 100%; vertical-align: middle; text-align: center;">
+                                            <span style="font-size: 64px; display: block;">🤖</span>
+                                        </div>
+
+                                        <!--[if mso]>
+                                        </td>
+                                        <td width="680" valign="middle">
+                                        <![endif]-->
+
+                                        <!-- Support Text (Right) -->
+                                        <div class="stacked-col" style="display: inline-block; max-width: 660px; width: 100%; vertical-align: middle; text-align: left; padding-left: 20px; box-sizing: border-box;">
+                                            <h4 style="margin: 0 0 6px 0; color: #FFFFFF; font-size: 18px; font-weight: 800;">Need Help?</h4>
+                                            <p style="margin: 0; color: #A7F3D0; font-size: 14px; line-height: 1.5; font-weight: 500;">
+                                                Our AI Career Mentor is always available to help you.
+                                            </p>
+                                            <p style="margin: 4px 0 0 0; color: #A7F3D0; font-size: 14px; line-height: 1.5; font-weight: 500;">
+                                                If you have any questions simply log in and start chatting.
+                                            </p>
+                                        </div>
+
+                                        <!--[if mso]>
+                                        </td>
+                                        </tr>
+                                        </table>
+                                        <![endif]-->
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- CTA Buttons Row -->
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin: 35px 0 15px 0;">
+                                <tr>
+                                    <td style="font-size: 0; text-align: center;">
+                                        <!--[if mso]>
+                                        <table align="center" border="0" cellspacing="0" cellpadding="0" width="820">
+                                        <tr>
+                                        <td width="400" align="center">
+                                        <![endif]-->
+                                        
+                                        <!-- Primary Button -->
+                                        <div class="button-wrapper" style="display: inline-block; max-width: 380px; width: 100%; margin: 8px; vertical-align: top;">
+                                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                    <td align="center">
+                                                        <a href="{{dashboardUrl}}" style="display: block; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); color: #FFFFFF; text-decoration: none; padding: 16px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35); text-align: center; border: 1px solid #2563EB;">
+                                                            🚀 Open Dashboard
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+
+                                        <!--[if mso]>
+                                        </td>
+                                        <td width="400" align="center">
+                                        <![endif]-->
+
+                                        <!-- Secondary Button -->
+                                        <div class="button-wrapper" style="display: inline-block; max-width: 380px; width: 100%; margin: 8px; vertical-align: top;">
+                                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                    <td align="center">
+                                                        <a href="{{subscriptionUrl}}" style="display: block; background: transparent; border: 2px solid rgba(255, 255, 255, 0.15); color: #E2E8F0; text-decoration: none; padding: 14px 24px; border-radius: 12px; font-weight: 800; font-size: 15px; text-align: center;">
+                                                            📋 View Subscription
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+
+                                        <!--[if mso]>
+                                        </td>
+                                        </tr>
+                                        </table>
+                                        <![endif]-->
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer Section -->
+                    <tr>
+                        <td align="center" style="background-color: #0B1222; padding: 35px 40px; border-top: 1px solid rgba(255, 255, 255, 0.06);">
+                            <p style="margin: 0 0 15px 0; font-size: 13px; color: #64748B; line-height: 1.5;">
+                                Thank you for choosing PlacementAI. Your dream offer starts with consistent preparation.
+                            </p>
+                            <p style="margin: 0 0 2px 0; font-size: 14px; color: #94A3B8; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">
+                                PlacementAI
+                            </p>
+                            <p style="margin: 0 0 15px 0; font-size: 11px; color: #64748B; font-weight: 600;">
+                                AI Placement Copilot for Engineering Students
+                            </p>
+                            <p style="margin: 0 0 20px 0; font-size: 11px; color: #475569; font-weight: 500;">
+                                &copy; 2026 PlacementAI. All Rights Reserved.
+                            </p>
+
+                            <!-- Social Icons -->
+                            <table align="center" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td align="center" style="padding: 0 6px;">
+                                        <a href="https://linkedin.com" style="display: inline-block; width: 34px; height: 34px; line-height: 34px; background-color: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center;">in</a>
+                                    </td>
+                                    <td align="center" style="padding: 0 6px;">
+                                        <a href="https://x.com" style="display: inline-block; width: 34px; height: 34px; line-height: 34px; background-color: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center;">X</a>
+                                    </td>
+                                    <td align="center" style="padding: 0 6px;">
+                                        <a href="https://instagram.com" style="display: inline-block; width: 34px; height: 34px; line-height: 34px; background-color: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center;">ig</a>
+                                    </td>
+                                    <td align="center" style="padding: 0 6px;">
+                                        <a href="https://youtube.com" style="display: inline-block; width: 34px; height: 34px; line-height: 34px; background-color: #1E293B; border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: bold; text-align: center;">yt</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

@@ -161,10 +161,17 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (!user.planSelected) {
-      if (pathname !== "/dashboard/profile" && pathname !== "/dashboard/settings" && pathname !== "/plans") {
-        router.push("/plans");
+    if (!user.profileCompleted) {
+      if (user.role === "RECRUITER") {
+        router.push("/complete-profile/recruiter");
+      } else {
+        router.push("/complete-profile/student");
       }
+      return;
+    }
+
+    if (!user.planSelected) {
+      router.push("/plans");
       return;
     }
   }, [user, loading, pathname, router]);

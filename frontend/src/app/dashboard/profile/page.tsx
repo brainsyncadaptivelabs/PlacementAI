@@ -6,7 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Share2, Code2, Activity, FileText, CheckCircle, Award, LayoutGrid, Check, X, Edit2, Plus } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { EditProfileDialog } from "./edit-profile-dialog";
-import { ShareProfileDialog } from "./share-profile-dialog";
+import html2canvas from "html2canvas";
+import { ExportReportCard, ReportCardData } from "@/components/dashboard/ExportReportCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useRef } from "react";
@@ -16,13 +17,132 @@ import { toast } from "@/store/toast-store";
 export default function ProfileDashboard() {
   const { user, loading, mutate } = useUser();
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [reportData, setReportData] = useState<ReportCardData | null>(null);
+  const [cachedBlob, setCachedBlob] = useState<{ blob: Blob; timestamp: number } | null>(null);
+  const [imageError, setImageError] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const shareCardRef = useRef<HTMLDivElement>(null);
 
   const [editingPlatform, setEditingPlatform] = useState<'linkedin' | 'leetcode' | 'github' | null>(null);
   const [editValue, setEditValue] = useState("");
   const [isSavingLink, setIsSavingLink] = useState(false);
+
+  const getExportDateStr = () => {
+    return new Date().toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    }) + ", " + new Date().toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  };
+
+  const getMemberSinceStr = (dateStr: string | null | undefined) => {
+    if (!dateStr) return "--";
+    return new Date(dateStr).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    });
+  };
+
+  const handleShareReport = async () => {
+    setIsSharing(true);
+    try {
+      let currentReportData = reportData;
+      if (!currentReportData) {
+        const res = await api.get("/user/report-card");
+        currentReportData = res.data;
+        setReportData(currentReportData);
+      }
+
+      const now = Date.now();
+      let blob: Blob;
+
+      if (cachedBlob && (now - cachedBlob.timestamp < 30000)) {
+        console.log("[Share] Reusing cached report card blob");
+        blob = cachedBlob.blob;
+      } else {
+        console.log("[Share] Generating fresh report card blob");
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        const cardEl = shareCardRef.current;
+        if (!cardEl) {
+          throw new Error("Export card element not mounted");
+        }
+
+        await document.fonts.ready;
+        await new Promise(resolve => requestAnimationFrame(resolve));
+
+        const canvas = await html2canvas(cardEl, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#0B1020",
+          allowTaint: false,
+          imageTimeout: 0,
+          logging: false,
+          removeContainer: true,
+          foreignObjectRendering: false
+        });
+
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob((b) => {
+            if (b) resolve(b);
+            else reject(new Error("Failed to create image blob"));
+          }, "image/jpeg", 1.0);
+        });
+
+        setCachedBlob({ blob, timestamp: now });
+      }
+
+      const username = currentReportData?.fullName?.replace(/\s+/g, "_") || "user";
+      const fileName = `PlacementAI_Report_${username}.jpg`;
+      const file = new File([blob], fileName, { type: "image/jpeg" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: "My PlacementAI Report",
+            text: "Check out my PlacementAI placement progress 🚀",
+            files: [file]
+          });
+          toast.success("Placement Report shared successfully 🚀");
+        } catch (shareErr: any) {
+          if (shareErr.name !== "AbortError") {
+            console.error("Native share failed", shareErr);
+            toast.error("Unable to share your report. Please try again.");
+          }
+        }
+      } else {
+        try {
+          if (navigator.clipboard && navigator.clipboard.write) {
+            const item = new ClipboardItem({ [file.type]: blob });
+            await navigator.clipboard.write([item]);
+            toast.success("Report copied to clipboard! You can now share it.");
+          } else {
+            throw new Error("Clipboard write image not supported");
+          }
+        } catch (clipErr) {
+          console.warn("Clipboard copy failed, falling back to download", clipErr);
+          const link = document.createElement("a");
+          link.download = fileName;
+          link.href = URL.createObjectURL(blob);
+          link.click();
+          toast.success("Native sharing isn't supported on this device. Your report has been downloaded instead.");
+        }
+      }
+
+    } catch (err) {
+      console.error("Share flow failed:", err);
+      toast.error("Unable to share your report. Please try again.");
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   const handleSaveLink = async (platform: 'linkedin' | 'leetcode' | 'github') => {
     setIsSavingLink(true);
@@ -128,8 +248,23 @@ export default function ProfileDashboard() {
                   <Button variant="secondary" size="sm" className="bg-white text-[#1e4a8c] hover:bg-white/90" onClick={() => setIsEditOpen(true)}>
                     Edit Profile
                   </Button>
-                  <Button variant="outline" size="sm" className="border-white/30 text-white bg-transparent hover:bg-white/10 px-3" onClick={() => setIsShareOpen(true)}>
-                    Share <Share2 className="w-3 h-3 ml-1.5" />
+                   <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="border-white/30 text-white bg-transparent hover:bg-white/10 px-3 min-w-[120px]" 
+                    onClick={handleShareReport}
+                    disabled={isSharing}
+                  >
+                    {isSharing ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                        Preparing...
+                      </>
+                    ) : (
+                      <>
+                        Share <Share2 className="w-3 h-3 ml-1.5" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -505,7 +640,45 @@ export default function ProfileDashboard() {
       </div>
 
       <EditProfileDialog open={isEditOpen} onOpenChange={setIsEditOpen} user={user} mutate={mutate} />
-      <ShareProfileDialog open={isShareOpen} onOpenChange={setIsShareOpen} user={user} />
+      
+      {/* Offscreen Full Size Export Container for sharing */}
+      {reportData && (
+        <div 
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            top: "0",
+            width: "1600px",
+            height: "900px",
+            overflow: "hidden"
+          }}
+        >
+          <div 
+            ref={shareCardRef}
+            style={{
+              width: "1600px",
+              height: "900px",
+              backgroundColor: "#0B1020",
+              padding: "40px",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+              boxSizing: "border-box",
+              position: "relative",
+              borderRadius: "24px"
+            }}
+          >
+            <ExportReportCard 
+              data={reportData}
+              imageError={imageError}
+              setImageError={setImageError}
+              getExportDateStr={getExportDateStr}
+              getMemberSinceStr={getMemberSinceStr}
+              animate={false}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
