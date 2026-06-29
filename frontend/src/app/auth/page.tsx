@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { YearDropdown } from "@/components/ui/year-dropdown";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle } from "lucide-react";
+import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
+import { useTheme } from "next-themes";
 
 const PREDEFINED_SKILLS = [
   "Java",
@@ -35,6 +36,11 @@ export default function AuthPage() {
   const [success, setSuccess] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const { setTheme } = useTheme();
+  
+  useEffect(() => {
+    setTheme('light');
+  }, [setTheme]);
   
   const { signInWithProvider } = useAuth();
   const supabase = createClient();
@@ -623,16 +629,48 @@ export default function AuthPage() {
           padding: 0;
         }
 
-        .auth-input-new {
+        input.auth-input-new {
           width: 100%;
           height: 42px;
           padding: 0 44px;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 12px !important;
           font-size: 14px;
-          color: #334155;
+          color: #0f172a !important;
+          background-color: #ffffff !important;
           transition: all 0.2s;
           box-sizing: border-box;
+        }
+
+        .dark input.auth-input-new {
+          border: 1px solid #334155 !important;
+          color: #f8fafc !important;
+          background-color: #1e293b !important;
+        }
+
+        input.auth-input-new::placeholder {
+          color: #64748b !important;
+          opacity: 1 !important;
+        }
+
+        .dark input.auth-input-new::placeholder {
+          color: #94a3b8 !important;
+        }
+
+        input.auth-input-new:-webkit-autofill,
+        input.auth-input-new:-webkit-autofill:hover, 
+        input.auth-input-new:-webkit-autofill:focus, 
+        input.auth-input-new:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px white inset !important;
+          -webkit-text-fill-color: #0f172a !important;
+        }
+
+        .dark input.auth-input-new:-webkit-autofill,
+        .dark input.auth-input-new:-webkit-autofill:hover, 
+        .dark input.auth-input-new:-webkit-autofill:focus, 
+        .dark input.auth-input-new:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+          -webkit-text-fill-color: #f8fafc !important;
         }
 
         .auth-input-new:focus {
@@ -890,9 +928,13 @@ export default function AuthPage() {
             <span className="font-bold text-xl tracking-wide">PlacementAI</span>
           </div>
 
+          <div className="flex items-center gap-2 bg-white/10 w-fit px-3 py-1.5 rounded-full mb-6 border border-white/10">
+            <span className="text-xs font-semibold text-white">✨ AI-Powered Career Success</span>
+          </div>
+
           <h1 className="left-panel-headline">
             Your AI-Powered<br />
-            <span>Placement</span> Partner
+            Placement <span>Partner</span>
           </h1>
 
           <p className="left-panel-description">
@@ -941,11 +983,20 @@ export default function AuthPage() {
             </div>
           </div>
 
-
+          <div className="mt-auto relative" style={{ height: '250px' }}>
+             {/* Robot Image Placeholder */}
+             <div className="absolute bottom-0 right-0 left-0 flex justify-center translate-y-8">
+               <div className="w-64 h-64 bg-indigo-800/30 rounded-full flex items-center justify-center border border-indigo-400/20 backdrop-blur-sm relative overflow-hidden">
+                 <div className="text-indigo-200/50 flex flex-col items-center">
+                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
+                 </div>
+               </div>
+             </div>
+          </div>
         </div>
 
         {/* Right Auth Panel */}
-        <div className="auth-right-panel">
+        <div className="auth-right-panel relative">
           
           {activeTab === 'login' ? (
             <div className="auth-card">
@@ -1053,25 +1104,31 @@ export default function AuthPage() {
               </div>
             </div>
           ) : (
-            <div className="auth-card signup-card">
-              <div className="auth-card-header">
-                <h2 className="auth-card-title">Create Account</h2>
-                <p className="auth-card-subtitle">Join PlacementAI today</p>
+            <div className="auth-card signup-card relative">
+              <div className="text-center mb-8 relative">
+                <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-2 flex items-center justify-center gap-2">
+                  <span className="text-slate-400">✦</span>
+                  Create your <span className="text-indigo-600">account</span>
+                  <span className="text-indigo-400">✦</span>
+                </h2>
+                <p className="text-slate-500 font-medium">Join <span className="text-indigo-600 font-bold">PlacementAI</span> and start your success journey</p>
               </div>
               <form onSubmit={handleSignup}>
-                <div className="flex gap-3 mb-6">
+                <div className="flex gap-4 mb-8">
                   <button
                     type="button"
                     onClick={() => { setSelectedRole("STUDENT"); setError(""); }}
-                    className={`auth-role-btn ${selectedRole === "STUDENT" ? "active" : ""}`}
+                    className={`auth-role-btn flex-1 py-3 px-6 rounded-xl border flex items-center justify-center gap-2 font-semibold transition-all ${selectedRole === "STUDENT" ? "border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
                   >
+                    <Book className="w-4 h-4" />
                     <span>Student</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => { setSelectedRole("RECRUITER"); setError(""); }}
-                    className={`auth-role-btn ${selectedRole === "RECRUITER" ? "active" : ""}`}
+                    className={`auth-role-btn flex-1 py-3 px-6 rounded-xl border flex items-center justify-center gap-2 font-semibold transition-all ${selectedRole === "RECRUITER" ? "border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
                   >
+                    <Briefcase className="w-4 h-4" />
                     <span>Recruiter</span>
                   </button>
                 </div>
@@ -1223,19 +1280,37 @@ export default function AuthPage() {
                   )}
                 </div>
 
-                <button type="submit" className="auth-btn-primary" disabled={loading} style={{marginTop: '24px'}}>
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign Up"}
+                <button type="submit" className="auth-btn-primary mt-8 mb-6 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 shadow-md flex items-center justify-center gap-2" disabled={loading}>
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
                 </button>
               </form>
               
-              <div className="auth-top-nav">
-                Already have an account? <button onClick={() => { setActiveTab('login'); setError(''); }}>Sign in</button>
+              <div className="auth-top-nav text-center mb-8">
+                <span className="text-slate-500 font-medium">Already have an account? </span>
+                <button onClick={() => { setActiveTab('login'); setError(''); }} className="text-indigo-600 font-semibold hover:text-indigo-700">Sign in</button>
               </div>
-              <div className="global-footer">
-                <div>© 2026 PlacementAI. All rights reserved.</div>
-                <div className="footer-links">
-                  <Link href="#">Privacy Policy</Link>
-                  <Link href="#">Terms of Service</Link>
+              
+              <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Shield className="w-4 h-4 text-emerald-600"/></div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">100% Secure</div>
+                    <div className="text-[10px] text-slate-500">Your data is safe</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">AI-Powered</div>
+                    <div className="text-[10px] text-slate-500">Smarter guidance</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">Career Growth</div>
+                    <div className="text-[10px] text-slate-500">Better opportunities</div>
+                  </div>
                 </div>
               </div>
             </div>
