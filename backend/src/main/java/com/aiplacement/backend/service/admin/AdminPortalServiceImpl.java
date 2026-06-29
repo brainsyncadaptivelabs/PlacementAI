@@ -583,4 +583,46 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         return sb.toString().getBytes(StandardCharsets.UTF_8);
     }
+
+    @Override
+    @Transactional
+    public Map<String, Object> updateUserPlan(Long userId, String plan) {
+        log.info("[ADMIN_PORTAL] Upgrading user plan for ID: {} to {}", userId, plan);
+        User u = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        u.setPlan(plan.toUpperCase());
+        if ("PREMIUM".equalsIgnoreCase(plan)) {
+            u.setCreditsRemaining(5000);
+            u.setPaymentCompleted(true);
+            u.setPlanSelected(true);
+            u.setPaymentStatus("COMPLETED");
+            u.setPlanActivatedAt(LocalDateTime.now());
+            u.setPlanExpiresAt(LocalDateTime.now().plusYears(1));
+        } else if ("BASIC".equalsIgnoreCase(plan)) {
+            u.setCreditsRemaining(500);
+            u.setPaymentCompleted(true);
+            u.setPlanSelected(true);
+            u.setPaymentStatus("COMPLETED");
+            u.setPlanActivatedAt(LocalDateTime.now());
+            u.setPlanExpiresAt(LocalDateTime.now().plusMonths(1));
+        } else {
+            u.setPlan("FREE");
+            u.setCreditsRemaining(100);
+            u.setPaymentCompleted(false);
+            u.setPlanSelected(false);
+            u.setPaymentStatus("PENDING");
+            u.setPlanActivatedAt(null);
+            u.setPlanExpiresAt(null);
+        }
+
+        userRepository.save(u);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("message", "User plan updated successfully to " + plan);
+        response.put("plan", u.getPlan());
+        response.put("creditsRemaining", u.getCreditsRemaining());
+        return response;
+    }
 }

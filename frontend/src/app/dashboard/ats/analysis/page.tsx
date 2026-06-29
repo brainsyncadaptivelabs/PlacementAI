@@ -668,7 +668,7 @@ export default function AtsAnalysisDashboard() {
               <Button size="sm" onClick={() => router.push("/dashboard/resume-builder")} className="bg-primary hover:bg-primary/90 text-white font-bold">Open Resume Builder</Button>
               <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/ats")}>Run ATS Again</Button>
               <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/jd-match")}>JD Matching</Button>
-              <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/mock-interviews")}>Mock Interview</Button>
+              <Button size="sm" variant="outline" onClick={() => router.push("/mock-interview")}>Mock Interview</Button>
             </CardContent>
           </Card>
 

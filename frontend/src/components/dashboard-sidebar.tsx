@@ -61,7 +61,7 @@ export function AppSidebar() {
       { title: "Compare Resumes", icon: Scale, url: "/dashboard/compare" },
       { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" },
       { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
-      { title: "Mock Interviews", icon: Mic2, url: "/dashboard/mock-interviews" },
+      { title: "Mock Interviews", icon: Mic2, url: "/mock-interview" },
       { title: "Career Roadmap", icon: Map, url: "/dashboard/roadmap" },
       { title: "AI Chatbot", icon: MessageSquare, url: "/dashboard/chat" },
       { title: "Notes", icon: BookOpen, url: "/dashboard/notes" },

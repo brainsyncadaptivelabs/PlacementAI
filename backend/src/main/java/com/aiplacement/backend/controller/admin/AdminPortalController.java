@@ -90,4 +90,12 @@ public class AdminPortalController {
                 .contentType(MediaType.parseMediaType("text/csv"))
                 .body(csvData);
     }
+
+    @PutMapping("/users/{id}/plan")
+    public ResponseEntity<Map<String, Object>> updateUserPlan(
+            @PathVariable("id") Long id,
+            @RequestParam("plan") String plan
+    ) {
+        return ResponseEntity.ok(adminPortalService.updateUserPlan(id, plan));
+    }
 }

@@ -407,7 +407,9 @@ export const InterviewSession = ({
 
       const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
       if (!agentId) {
-        throw new Error("ElevenLabs Agent ID not configured");
+        console.warn("ElevenLabs Agent ID not configured. Starting local fallback mode.");
+        startLocalFallback();
+        return;
       }
 
       const formattedQuestions = interviewData.questions
@@ -484,66 +486,41 @@ export const InterviewSession = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Interviewer */}
-          <Card className="flex flex-col items-center p-4 border border-border bg-muted/20">
-            <div className="relative">
-              <Avatar className="h-24 w-24 border-2 border-primary/20">
-                <AvatarFallback className="text-3xl">🤖</AvatarFallback>
-              </Avatar>
+        <div className="call-view-premium">
+          {/* AI Interviewer */}
+          <div className="card-interviewer-premium">
+            <div className="avatar-premium">
+              <span className="text-5xl">🤖</span>
               {(isSpeaking || (isFallbackMode && callStatus === CallStatus.ACTIVE && !isRecording)) && (
-                <span className="absolute inset-0 rounded-full border-2 border-primary animate-ping opacity-75" />
+                <span className="animate-speak-premium" />
               )}
             </div>
-            <div className="text-center mt-3">
-              <h3 className="font-bold text-sm">AI Interviewer</h3>
-              <Badge className="mt-1.5 text-[8px] border-none font-bold" variant="secondary">
-                {isFallbackMode ? "TEXT FALLBACK MODE" : callStatus}
-              </Badge>
-            </div>
-          </Card>
+            <h3 className="text-center text-white mt-5 font-bold text-lg">AI Interviewer</h3>
+            <Badge className="mt-1 text-[9px] bg-primary/20 text-primary border-none font-bold">
+              {isFallbackMode ? "LOCAL FALLBACK MODE" : callStatus}
+            </Badge>
+          </div>
 
           {/* Candidate */}
-          <Card className="flex flex-col items-center p-4 border border-border bg-muted/20">
-            <div className="relative">
-              <Avatar className="h-24 w-24 border-2 border-secondary/20">
-                <AvatarFallback className="text-3xl">👤</AvatarFallback>
-              </Avatar>
-              {isRecording && (
-                <span className="absolute inset-0 rounded-full border-2 border-red-500 animate-ping opacity-75" />
-              )}
+          <div className="card-border-premium">
+            <div className="card-content-premium">
+              <div className="size-[120px] rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border-2 border-primary/30">
+                <span className="text-5xl">👤</span>
+              </div>
+              <h3 className="text-center text-white mt-5 font-bold text-lg">{userName}</h3>
+              <span className="text-[10px] text-muted-foreground block">Candidate</span>
             </div>
-            <div className="text-center mt-3">
-              <h3 className="font-bold text-sm">{userName}</h3>
-              <span className="text-[10px] text-muted-foreground block mt-1">Candidate</span>
-            </div>
-          </Card>
+          </div>
         </div>
 
         {/* Live Question Transcript */}
-        <Card className="min-h-[150px] flex flex-col border border-border">
-          <CardHeader className="py-3 px-4 border-b border-border bg-muted/20 flex flex-row items-center justify-between">
-            <span className="text-xs font-bold text-primary">Question Console</span>
-            {isFallbackMode && (
-              <span className="text-xs font-bold text-muted-foreground">
-                Progress: {currentQuestionIndex + 1} / {interviewData.questions.length}
-              </span>
-            )}
-          </CardHeader>
-          <CardContent className="p-4 flex-1">
-            {lastMessage ? (
-              <p className="text-md font-medium leading-relaxed text-foreground">
-                {lastMessage}
-              </p>
-            ) : (
-              <p className="text-muted-foreground italic text-sm">
-                {callStatus === CallStatus.ACTIVE
-                  ? "Waiting for the AI to present the question..."
-                  : "Click 'Start Interview' below to begin your session."}
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        {lastMessage && (
+          <div className="transcript-border-premium">
+            <div className="transcript-premium">
+              <p className="animate-fadeIn">{lastMessage}</p>
+            </div>
+          </div>
+        )}
 
         {/* Answer Composition (Local Fallback panel) */}
         {isFallbackMode && callStatus === CallStatus.ACTIVE && (
@@ -591,30 +568,30 @@ export const InterviewSession = ({
         {/* Session Action Control Buttons */}
         <div className="flex justify-center gap-3 pt-2">
           {callStatus === CallStatus.INACTIVE && (
-            <Button size="lg" onClick={handleCall} className="rounded-full px-8 font-bold">
-              <PlayCircle className="mr-2 h-5 w-5" /> Start Interview Session
-            </Button>
+            <button onClick={handleCall} className="btn-call-premium">
+              Start Interview Session
+            </button>
           )}
           {callStatus === CallStatus.CONNECTING && (
-            <Button size="lg" disabled className="rounded-full px-8 font-bold">
-              <Mic className="mr-2 h-5 w-5 animate-pulse" /> Connecting...
-            </Button>
+            <button disabled className="btn-call-premium opacity-80 flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" /> Connecting...
+            </button>
           )}
           {callStatus === CallStatus.ACTIVE && (
-            <Button size="lg" variant="destructive" onClick={handleDisconnect} className="rounded-full px-8 font-bold">
-              <PhoneOff className="mr-2 h-5 w-5" /> End Interview
-            </Button>
+            <button onClick={handleDisconnect} className="btn-disconnect-premium">
+              End Interview
+            </button>
           )}
           {callStatus === CallStatus.FINISHED && (
-            <Button size="lg" onClick={handleGenerateFeedback} disabled={isGenerating} className="rounded-full px-8 font-bold bg-primary text-white">
+            <button onClick={handleGenerateFeedback} disabled={isGenerating} className="btn-call-premium relative">
               {isGenerating ? (
                 <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Evaluating Transcript...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin inline" /> Evaluating Transcript...
                 </>
               ) : (
                 "Compile AI Performance Feedback"
               )}
-            </Button>
+            </button>
           )}
         </div>
       </div>

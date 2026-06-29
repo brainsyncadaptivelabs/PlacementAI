@@ -180,7 +180,7 @@ export default function PerfectStudentPortal() {
                Welcome to your AI Placement Copilot. Your readiness score is <span className="text-white font-bold">{userStats.readinessScore}%</span>. Keep up the good work!
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-               <Button className="bg-primary hover:bg-primary/90 text-white font-black px-8 h-14 rounded-2xl shadow-sm text-md group" onClick={() => router.push('/dashboard/mock-interviews')}>
+               <Button className="bg-primary hover:bg-primary/90 text-white font-black px-8 h-14 rounded-2xl shadow-sm text-md group" onClick={() => router.push('/mock-interview')}>
                   Start AI Interview <Mic2 className="ml-2 w-4 h-4 group-hover:scale-110 transition-transform" />
                </Button>
                <Button variant="outline" className="border-transparent bg-card/10 hover:bg-card/20 text-white font-black px-8 h-14 rounded-2xl backdrop-blur-sm text-md" onClick={() => router.push('/dashboard/profile')}>

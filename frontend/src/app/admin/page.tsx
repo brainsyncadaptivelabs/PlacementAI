@@ -90,6 +90,7 @@ export default function SuperAdminPortal() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [userModalOpen, setUserModalOpen] = useState<boolean>(false);
   const [loadingUserDetail, setLoadingUserDetail] = useState<boolean>(false);
+  const [updatingPlan, setUpdatingPlan] = useState<boolean>(false);
 
   // Filtering states for User Table
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -225,6 +226,31 @@ export default function SuperAdminPortal() {
       console.error("Failed to fetch user details", err);
     } finally {
       setLoadingUserDetail(false);
+    }
+  };
+
+  const handleUpdatePlan = async (userId: number, newPlan: string) => {
+    if (!confirm(`Are you sure you want to change this user's plan to ${newPlan}?`)) return;
+    setUpdatingPlan(true);
+    try {
+      const res = await api.put(`/admin/users/${userId}/plan?plan=${newPlan}`);
+      // Update selectedUser state
+      setSelectedUser((prev: any) => ({
+        ...prev,
+        plan: newPlan,
+        creditsRemaining: res.data.creditsRemaining
+      }));
+      // Also update user in usersData list
+      setUsersData((prev: any) => ({
+        ...prev,
+        users: prev.users.map((u: any) => u.id === userId ? { ...u, plan: newPlan } : u)
+      }));
+      alert(`User plan successfully updated to ${newPlan}!`);
+    } catch (err) {
+      console.error("Failed to update user plan:", err);
+      alert("Failed to update user plan. Please try again.");
+    } finally {
+      setUpdatingPlan(false);
     }
   };
 
@@ -1090,6 +1116,34 @@ export default function SuperAdminPortal() {
                       <Badge className="bg-indigo-50 text-indigo-700 border border-indigo-150 py-1 px-2.5 font-bold">
                         {selectedUser.plan} Member
                       </Badge>
+                      <div className="w-full pt-2 flex flex-col gap-2">
+                        {selectedUser.plan !== "PREMIUM" ? (
+                          <Button 
+                            onClick={() => handleUpdatePlan(selectedUser.id, "PREMIUM")}
+                            className="w-full bg-amber-500 hover:bg-amber-400 text-white font-bold h-10 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm shadow-amber-500/10"
+                            disabled={updatingPlan}
+                          >
+                            {updatingPlan ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <>⭐ Make Premium User</>
+                            )}
+                          </Button>
+                        ) : (
+                          <Button 
+                            onClick={() => handleUpdatePlan(selectedUser.id, "FREE")}
+                            variant="outline"
+                            className="w-full border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 font-bold h-10 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                            disabled={updatingPlan}
+                          >
+                            {updatingPlan ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <>❌ Revoke Premium</>
+                            )}
+                          </Button>
+                        )}
+                      </div>
                     </Card>
 
                     <Card className="p-6 space-y-3 text-xs font-bold bg-slate-50 border border-slate-200 rounded-2xl">
