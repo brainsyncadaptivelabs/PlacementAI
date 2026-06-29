@@ -104,6 +104,9 @@ public class JdMatchResponseDto implements Serializable {
         private String opinion;
         private List<String> critiques;
         private List<String> actionPoints;
+        private List<String> strengths;
+        private List<String> weaknesses;
+        private List<String> reasons;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -120,6 +123,8 @@ public class JdMatchResponseDto implements Serializable {
         private String action;
         private String estimatedTime;
         private String impact;
+        private String difficulty;
+        private String priority;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -141,6 +146,8 @@ public class JdMatchResponseDto implements Serializable {
         private String riskLevel; // "High", "Medium", "Low"
         private String riskType;
         private String reasoning;
+        private String reason;
+        private String recommendation;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -149,6 +156,7 @@ public class JdMatchResponseDto implements Serializable {
         private String expectedMinLpa;
         private String expectedMaxLpa;
         private String explanation;
+        private String reason;
     }
 
     @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
@@ -156,5 +164,7 @@ public class JdMatchResponseDto implements Serializable {
         private static final long serialVersionUID = 1L;
         private Integer confidencePercentage;
         private String explanation;
+        private String reason;
+        private String certainty;
     }
 }

@@ -155,7 +155,8 @@ public class OllamaClient {
 
             saveLog(detectFeature(), promptTokens, completionTokens, latency, "SUCCESS", prompt, responseText);
 
-            return objectMapper.readTree(responseText);
+            String cleanedResponse = cleanAndRepairJson(responseText);
+            return objectMapper.readTree(cleanedResponse);
 
         } catch (Exception e) {
 
@@ -261,6 +262,33 @@ public class OllamaClient {
         } catch (Exception e) {
             log.error("Failed to log API usage", e);
         }
+    }
+
+    private String cleanAndRepairJson(String rawText) {
+        if (rawText == null) return "{}";
+        String cleaned = rawText.trim();
+        
+        if (cleaned.startsWith("```")) {
+            int firstLineEnd = cleaned.indexOf('\n');
+            if (firstLineEnd != -1) {
+                cleaned = cleaned.substring(firstLineEnd + 1);
+            }
+            if (cleaned.endsWith("```")) {
+                cleaned = cleaned.substring(0, cleaned.length() - 3);
+            }
+            cleaned = cleaned.trim();
+        }
+        
+        int firstBrace = cleaned.indexOf('{');
+        int lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        }
+        
+        cleaned = cleaned.replaceAll(",\\s*\\}", "}");
+        cleaned = cleaned.replaceAll(",\\s*\\]", "]");
+        
+        return cleaned;
     }
 
 }

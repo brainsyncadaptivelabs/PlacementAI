@@ -814,6 +814,12 @@ Certifications: ${selected.certifications || ""}
                                 </Badge>
                               </div>
                               <p className="text-[10px] text-muted-foreground leading-normal">{r.reasoning || r.reason}</p>
+                              {r.recommendation && (
+                                <p className="text-[9px] text-primary leading-normal mt-1 font-medium flex items-center gap-1">
+                                  <span>💡</span>
+                                  <span>Recommendation: {r.recommendation}</span>
+                                </p>
+                              )}
                             </div>
                           </div>
                         );
@@ -855,9 +861,19 @@ Certifications: ${selected.certifications || ""}
                                 {step.impact}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-muted-foreground">
                               <Clock className="w-3 h-3" />
                               <span>Est: {step.estimatedTime}</span>
+                              {step.priority && (
+                                <Badge variant="outline" className="text-[8px] py-0 px-1 border-primary/20 bg-primary/5 text-primary">
+                                  {step.priority}
+                                </Badge>
+                              )}
+                              {step.difficulty && (
+                                <Badge variant="outline" className="text-[8px] py-0 px-1 border-muted-foreground/20 text-muted-foreground">
+                                  {step.difficulty}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -885,6 +901,30 @@ Certifications: ${selected.certifications || ""}
                         &quot;{result.recruiterFeedback?.opinion}&quot;
                       </p>
                     </div>
+
+                    {/* Strengths */}
+                    {result.recruiterFeedback?.strengths && result.recruiterFeedback.strengths.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-green-600 dark:text-green-400">Key Strengths</span>
+                        <ul className="list-disc pl-4 text-[10px] text-muted-foreground space-y-0.5">
+                          {result.recruiterFeedback.strengths.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {/* Weaknesses */}
+                    {result.recruiterFeedback?.weaknesses && result.recruiterFeedback.weaknesses.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-red-500">Weaknesses</span>
+                        <ul className="list-disc pl-4 text-[10px] text-muted-foreground space-y-0.5">
+                          {result.recruiterFeedback.weaknesses.map((w, i) => (
+                            <li key={i}>{w}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
 
                     {/* Critiques */}
                     {result.recruiterFeedback?.critiques && result.recruiterFeedback.critiques.length > 0 && (
@@ -989,8 +1029,13 @@ Certifications: ${selected.certifications || ""}
                         </Badge>
                       </div>
                       <p className="text-[10px] text-muted-foreground leading-normal">
-                        {result.confidenceScore?.explanation}
+                        {result.confidenceScore?.explanation || result.confidenceScore?.reason}
                       </p>
+                      {result.confidenceScore?.certainty && (
+                        <div className="text-[9px] text-primary/80 font-medium italic mt-1">
+                          AI Certainty: {result.confidenceScore?.certainty}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
