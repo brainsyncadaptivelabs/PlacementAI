@@ -136,8 +136,11 @@ export default function SuperAdminPortal() {
       });
 
       const { token, role, email, csrfToken } = res.data;
+      // Store token and role for both generic and admin endpoints
       localStorage.setItem("token", token);
+      localStorage.setItem("admin_token", token);
       localStorage.setItem("role", role);
+      localStorage.setItem("admin_role", role);
       localStorage.setItem("admin_csrf", csrfToken);
 
       setIsAuthenticated(true);
@@ -155,7 +158,9 @@ export default function SuperAdminPortal() {
       await api.post("/admin/auth/logout");
     } catch (_) {}
     localStorage.removeItem("token");
+    localStorage.removeItem("admin_token");
     localStorage.removeItem("role");
+    localStorage.removeItem("admin_role");
     localStorage.removeItem("admin_csrf");
     setIsAuthenticated(false);
     setAdminEmail("");

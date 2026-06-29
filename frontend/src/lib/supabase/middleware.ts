@@ -56,6 +56,7 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     !request.nextUrl.pathname.startsWith('/auth') &&
+    !request.nextUrl.pathname.startsWith('/admin') &&
     request.nextUrl.pathname !== '/'
   ) {
     console.log(`[SUPABASE_MIDDLEWARE] Redirecting unauthenticated user from ${request.nextUrl.pathname} to /auth`);
