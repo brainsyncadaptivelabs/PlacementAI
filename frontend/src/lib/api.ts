@@ -1,19 +1,31 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
-const getHeaders = () => {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+const getHeaders = (url?: string) => {
+  const isAdmin = url && url.startsWith("/admin");
+  const tokenKey = isAdmin ? "admin_token" : "token";
+  const token = typeof window !== "undefined" ? localStorage.getItem(tokenKey) : null;
+  const csrfToken = typeof window !== "undefined" ? localStorage.getItem("admin_csrf") : null;
   return {
     "Content-Type": "application/json",
-    ...(token ? { "Authorization": `Bearer ${token}` } : {})
+    ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    ...(isAdmin && csrfToken ? { "X-CSRF-Token": csrfToken } : {})
   };
 };
 
-const handleResponseError = async (response: Response) => {
+const handleResponseError = async (response: Response, url?: string) => {
   if (response.status === 401 || response.status === 403) {
     if (typeof window !== "undefined") {
-      localStorage.removeItem("token");
-      localStorage.removeItem("role");
-      window.location.href = "/auth";
+      const isAdmin = url && url.startsWith("/admin");
+      if (isAdmin) {
+        localStorage.removeItem("admin_token");
+        localStorage.removeItem("admin_role");
+        localStorage.removeItem("admin_csrf");
+        window.location.href = "/admin";
+      } else {
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        window.location.href = "/auth";
+      }
     }
   }
   const errorText = await response.text();
@@ -35,16 +47,16 @@ const api = {
   get: async (url: string, config?: any) => {
     const response = await fetch(`${BASE_URL}${url}`, {
       method: "GET",
-      headers: getHeaders(),
+      headers: getHeaders(url),
       ...config
     });
-    if (!response.ok) await handleResponseError(response);
+    if (!response.ok) await handleResponseError(response, url);
     const data = await response.json();
     return { data };
   },
   post: async (url: string, data?: any, config?: any) => {
     const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
-    const headers: any = { ...getHeaders(), ...(config?.headers || {}) };
+    const headers: any = { ...getHeaders(url), ...(config?.headers || {}) };
     
     if (isFormData || headers["Content-Type"] === "multipart/form-data") {
       delete headers["Content-Type"];
@@ -56,7 +68,7 @@ const api = {
       headers,
       body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
     });
-    if (!response.ok) await handleResponseError(response);
+    if (!response.ok) await handleResponseError(response, url);
     // Only parse json if there's content
     const resText = await response.text();
     let resData;
@@ -69,7 +81,7 @@ const api = {
   },
   put: async (url: string, data?: any, config?: any) => {
     const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
-    const headers: any = { ...getHeaders(), ...(config?.headers || {}) };
+    const headers: any = { ...getHeaders(url), ...(config?.headers || {}) };
     
     if (isFormData || headers["Content-Type"] === "multipart/form-data") {
       delete headers["Content-Type"];
@@ -81,7 +93,7 @@ const api = {
       headers,
       body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
     });
-    if (!response.ok) await handleResponseError(response);
+    if (!response.ok) await handleResponseError(response, url);
     // Only parse json if there's content
     const resText = await response.text();
     let resData;
@@ -95,10 +107,10 @@ const api = {
   delete: async (url: string, config?: any) => {
     const response = await fetch(`${BASE_URL}${url}`, {
       method: "DELETE",
-      headers: getHeaders(),
+      headers: getHeaders(url),
       ...config
     });
-    if (!response.ok) await handleResponseError(response);
+    if (!response.ok) await handleResponseError(response, url);
     const resData = await response.json().catch(() => ({}));
     return { data: resData };
   }

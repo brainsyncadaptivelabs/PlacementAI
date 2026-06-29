@@ -2,6 +2,7 @@ package com.aiplacement.backend.security;
 
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
+import com.aiplacement.backend.repository.AdminUserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,8 @@ public class JwtAuthenticationFilter
     private final JwtService jwtService;
 
     private final UserRepository userRepository;
+
+    private final AdminUserRepository adminUserRepository;
 
     @Override
     protected boolean shouldNotFilterAsyncDispatch() {
@@ -71,42 +74,29 @@ public class JwtAuthenticationFilter
                             token
                     );
 
-            User user =
-                    userRepository.findByEmail(
-                            email
-                    ).orElse(null);
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
+                User user = userRepository.findByEmail(email).orElse(null);
 
-            if(user != null
-                    && SecurityContextHolder
-                    .getContext()
-                    .getAuthentication() == null) {
-
-                UsernamePasswordAuthenticationToken authToken =
-
-                        new UsernamePasswordAuthenticationToken(
-
+                if (user != null) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            email,
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email).orElse(null);
+                    if (admin != null) {
+                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 email,
-
                                 null,
-
-                                List.of(
-                                        new SimpleGrantedAuthority(
-                                                "ROLE_" +
-                                                        user.getRole()
-                                                                .name()
-                                        )
-                                )
+                                List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
                         );
-
-                authToken.setDetails(
-
-                        new WebAuthenticationDetailsSource()
-                                .buildDetails(request)
-                );
-
-                SecurityContextHolder
-                        .getContext()
-                        .setAuthentication(authToken);
+                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    }
+                }
             }
 
         } catch (Exception e) {

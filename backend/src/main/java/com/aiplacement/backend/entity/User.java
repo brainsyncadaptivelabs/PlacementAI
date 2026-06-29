@@ -204,4 +204,15 @@ public class User {
     @Builder.Default
     @Column(name = "delete_failed_attempts", nullable = false)
     private Integer deleteFailedAttempts = 0;
+
+    @Builder.Default
+    @Column(name = "credits_remaining", nullable = false)
+    private Integer creditsRemaining = 100;
+
+    @Builder.Default
+    @Column(name = "credits_used", nullable = false)
+    private Integer creditsUsed = 0;
+
+    @Column(name = "last_active")
+    private LocalDateTime lastActive;
 }

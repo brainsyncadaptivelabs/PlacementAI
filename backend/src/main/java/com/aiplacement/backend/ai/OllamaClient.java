@@ -2,6 +2,8 @@ package com.aiplacement.backend.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.aiplacement.backend.repository.ApiUsageLogRepository;
+import com.aiplacement.backend.entity.ApiUsageLog;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,7 @@ public class OllamaClient {
     private int defaultNumPredict;
 
     private final WebClient.Builder webClientBuilder;
+    private final ApiUsageLogRepository apiUsageLogRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -122,6 +125,7 @@ public class OllamaClient {
                 )
         );
 
+        long startTime = System.currentTimeMillis();
         try {
 
             String response = webClientBuilder.build()
@@ -134,6 +138,8 @@ public class OllamaClient {
                     .timeout(Duration.ofSeconds(120))
                     .block();
 
+            long latency = System.currentTimeMillis() - startTime;
+
             if (response == null) {
                 throw new RuntimeException(
                         "Empty response from Ollama"
@@ -143,11 +149,18 @@ public class OllamaClient {
             JsonNode root =
                     objectMapper.readTree(response);
 
-            return objectMapper.readTree(
-                    root.get("response").asText()
-            );
+            int promptTokens = root.has("prompt_eval_count") ? root.get("prompt_eval_count").asInt() : 0;
+            int completionTokens = root.has("eval_count") ? root.get("eval_count").asInt() : 0;
+            String responseText = root.has("response") ? root.get("response").asText() : "";
+
+            saveLog(detectFeature(), promptTokens, completionTokens, latency, "SUCCESS", prompt, responseText);
+
+            return objectMapper.readTree(responseText);
 
         } catch (Exception e) {
+
+            long latency = System.currentTimeMillis() - startTime;
+            saveLog(detectFeature(), 0, 0, latency, "FAILURE", prompt, e.getMessage());
 
             log.error(
                     "Ollama API failed",
@@ -174,10 +187,10 @@ public class OllamaClient {
             double temperature,
             String fallbackText
     ) {
-
+        long startTime = System.currentTimeMillis();
         try {
 
-            return streamChatResponse(
+            String result = streamChatResponse(
                     prompt,
                     temperature
             )
@@ -189,9 +202,64 @@ public class OllamaClient {
                             Duration.ofSeconds(300)
                     );
 
+            long latency = System.currentTimeMillis() - startTime;
+            saveLog(detectFeature(), 0, 0, latency, "SUCCESS", prompt, result);
+            return result;
+
         } catch (Exception e) {
+            long latency = System.currentTimeMillis() - startTime;
+            saveLog(detectFeature(), 0, 0, latency, "FAILURE", prompt, e.getMessage());
 
             return fallbackText;
+        }
+    }
+
+    private String detectFeature() {
+        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : stackTrace) {
+            String name = element.getClassName();
+            if (name.contains("ResumeCompareServiceImpl")) return "RESUME_COMPARE";
+            if (name.contains("JdMatchServiceImpl")) return "JD_MATCH";
+            if (name.contains("MockInterviewServiceImpl")) return "MOCK_INTERVIEW";
+            if (name.contains("SkillGapServiceImpl")) return "SKILL_GAP";
+            if (name.contains("RoadmapServiceImpl")) return "ROADMAP";
+            if (name.contains("ChatbotServiceImpl")) return "CHATBOT";
+        }
+        return "GENERAL_AI";
+    }
+
+    private void saveLog(String feature, int promptTokens, int completionTokens, long latencyMs, String status, String promptText, String completionText) {
+        try {
+            String userEmail = "anonymous@example.com";
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
+                userEmail = auth.getName();
+            }
+
+            int pTokens = promptTokens > 0 ? promptTokens : (promptText != null ? promptText.length() / 4 : 0);
+            int cTokens = completionTokens > 0 ? completionTokens : (completionText != null ? completionText.length() / 4 : 0);
+            int totalTokens = pTokens + cTokens;
+            double cost = (pTokens * 0.00015 + cTokens * 0.0006); // estimate: $0.15/M and $0.60/M tokens
+
+            ApiUsageLog apiLog = ApiUsageLog.builder()
+                    .userEmail(userEmail)
+                    .featureUsed(feature)
+                    .aiModel(ollamaModel)
+                    .provider("Ollama")
+                    .promptTokens(pTokens)
+                    .completionTokens(cTokens)
+                    .totalTokens(totalTokens)
+                    .estimatedCost(cost)
+                    .latencyMs(latencyMs)
+                    .status(status)
+                    .retryCount(0)
+                    .promptLength(promptText != null ? promptText.length() : 0)
+                    .completionLength(completionText != null ? completionText.length() : 0)
+                    .build();
+
+            apiUsageLogRepository.save(apiLog);
+        } catch (Exception e) {
+            log.error("Failed to log API usage", e);
         }
     }
 

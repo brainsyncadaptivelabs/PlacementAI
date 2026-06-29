@@ -26,6 +26,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CsrfProtectionFilter csrfProtectionFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -63,8 +64,12 @@ public class SecurityConfig {
                         ).permitAll()
 
                         .requestMatchers(
+                                "/api/v1/admin/auth/**"
+                        ).permitAll()
+
+                        .requestMatchers(
                                 "/api/v1/admin/**"
-                        ).hasRole("ADMIN")
+                        ).hasRole("SUPER_ADMIN")
 
                         .requestMatchers(
                                 "/api/v1/recruiter/**"
@@ -90,6 +95,10 @@ public class SecurityConfig {
                         jwtAuthenticationFilter,
 
                         UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterAfter(
+                        csrfProtectionFilter,
+                        JwtAuthenticationFilter.class
                 );
 
         return http.build();
