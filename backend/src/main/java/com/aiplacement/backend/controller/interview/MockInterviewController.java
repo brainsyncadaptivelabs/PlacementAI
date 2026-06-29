@@ -35,9 +35,21 @@ public class MockInterviewController {
         return mockInterviewService.getInterviewHistory();
     }
 
+    @GetMapping("/analytics")
+    public java.util.Map<String, Object> getInterviewAnalytics() {
+        log.info("Fetching interview analytics");
+        return mockInterviewService.getInterviewAnalytics();
+    }
+
     @GetMapping("/{id}")
     public MockInterviewDto getInterviewById(@PathVariable Long id) {
         log.info("Fetching interview by id: {}", id);
         return mockInterviewService.getInterviewById(id);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteInterview(@PathVariable Long id) {
+        log.info("Deleting interview by id: {}", id);
+        mockInterviewService.deleteInterview(id);
     }
 }

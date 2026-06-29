@@ -9,7 +9,14 @@ export default function MockInterviewStartPage() {
   const router = useRouter();
   const setInterviewData = useInterviewStore((state) => state.setInterviewData);
 
-  const handleGenerated = (data: { role: string; experienceLevel: string; questions: string[] }) => {
+  const handleGenerated = (data: { 
+    role: string; 
+    experienceLevel: string; 
+    questions: string[];
+    company?: string;
+    difficulty?: string;
+    interviewType?: string;
+  }) => {
     setInterviewData(data);
     router.push("/mock-interview/session");
   };

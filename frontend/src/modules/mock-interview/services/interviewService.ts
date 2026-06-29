@@ -20,5 +20,14 @@ export const interviewService = {
   getById: async (id: string | number): Promise<MockInterview> => {
     const response = await api.get(`/interview/${id}`);
     return response.data;
+  },
+
+  deleteInterview: async (id: number | string): Promise<void> => {
+    await api.delete(`/interview/${id}`);
+  },
+
+  getAnalytics: async (): Promise<any> => {
+    const response = await api.get('/interview/analytics');
+    return response.data;
   }
 };

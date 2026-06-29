@@ -8,4 +8,6 @@ public interface MockInterviewService {
     MockInterviewDto saveInterviewResults(MockInterviewDto interviewDto);
     List<MockInterviewDto> getInterviewHistory();
     MockInterviewDto getInterviewById(Long id);
+    void deleteInterview(Long id);
+    java.util.Map<String, Object> getInterviewAnalytics();
 }

@@ -18,14 +18,31 @@ export interface InterviewQuestion {
 
 export interface InterviewFeedback {
   totalScore: number;
+  technicalScore?: number;
+  communicationScore?: number;
+  confidenceScore?: number;
   finalAssessment: string;
   strengths: string[];
   areasForImprovement: string[];
+  bodyLanguageTips?: string[];
+  missedTopics?: string[];
+  recommendedResources?: string[];
+  improvementPlan?: string[];
+  companyReadiness?: number;
+  hiringProbability?: number;
+  expectedSalary?: string;
+  recruiterVerdict?: string;
+  finalRecommendation?: string;
 }
 
 export interface MockInterviewRequest {
   role: string;
   experienceLevel: string;
+  company?: string;
+  difficulty?: string;
+  interviewType?: string;
+  jobDescription?: string;
+  resumeText?: string;
 }
 
 export interface MockInterviewResponse {
