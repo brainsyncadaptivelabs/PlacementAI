@@ -154,7 +154,10 @@ export default function ResumeATSPage() {
                 )}
 
                 <Button 
-                  onClick={() => router.push("/dashboard/ats/result")} 
+                  onClick={() => {
+                    console.log("View Full Analysis clicked");
+                    router.push("/dashboard/ats/analysis");
+                  }} 
                   className="w-full py-6 group bg-slate-900 hover:bg-slate-800"
                 >
                    View Full Analysis 
