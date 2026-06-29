@@ -55,7 +55,7 @@ public class AuthServiceImpl implements AuthService {
     public void forgotPassword(ForgotPasswordRequest request) {
         log.info("ForgotPassword request initiated for email: {}", request.getEmail());
         
-        Optional<User> userOptional = userRepository.findByEmail(request.getEmail());
+        Optional<User> userOptional = userRepository.findByEmailIgnoreCase(request.getEmail());
         
         if (userOptional.isEmpty()) {
             log.warn("ForgotPassword request failed: email {} not found", request.getEmail());
@@ -81,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("OTP not verified for email: " + request.getEmail());
         }
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmailIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -92,59 +92,118 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private TokenResponse socialLogin(String email, String fullName, String requestedRole, String provider) {
-        log.info("[SOCIAL_LOGIN] Processing social login request for email: {}", email);
-        
+        boolean isGitHub = "github".equalsIgnoreCase(provider);
+        if (isGitHub) {
+            log.info("Github login started");
+        } else {
+            log.info("Google login started");
+        }
+
+        log.info("Checking existing user");
+
         com.aiplacement.backend.entity.AuthProvider authProv = com.aiplacement.backend.entity.AuthProvider.GOOGLE;
         String defaultName = "Google User";
-        if ("github".equalsIgnoreCase(provider)) {
+        if (isGitHub) {
             authProv = com.aiplacement.backend.entity.AuthProvider.GITHUB;
             defaultName = "GitHub User";
         }
-        
+
         if (fullName == null || fullName.trim().isEmpty()) {
             fullName = defaultName;
         }
-        
-        Optional<User> userOptional = userRepository.findByEmail(email);
-        User user;
 
-        if (userOptional.isPresent()) {
-            log.info("[SOCIAL_LOGIN] Existing social login user found: {}", email);
-            user = userOptional.get();
-            if (Boolean.FALSE.equals(user.getEmailVerified()) || user.getEmailVerified() == null) {
-                user.setEmailVerified(true);
-                user.setVerifiedAt(LocalDateTime.now());
-                userRepository.save(user);
-            }
-        } else {
-            log.info("[SOCIAL_LOGIN] Creating new social login account: {}", email);
-            Role role = Role.STUDENT;
-            if (requestedRole != null) {
-                try {
-                    role = Role.valueOf(requestedRole.toUpperCase());
-                } catch (IllegalArgumentException e) {
-                    log.error("[SOCIAL_LOGIN] Invalid role requested: {}. Defaulting to STUDENT.", requestedRole);
-                    role = Role.STUDENT;
+        User user = null;
+        try {
+            Optional<User> userOptional = userRepository.findByEmailIgnoreCase(email);
+            if (userOptional.isPresent()) {
+                log.info("Existing user found");
+                user = userOptional.get();
+                boolean changed = false;
+
+                if (user.getAuthProvider() != authProv) {
+                    log.info("Updating provider information");
+                    user.setAuthProvider(authProv);
+                    changed = true;
+                }
+
+                if (Boolean.FALSE.equals(user.getEmailVerified()) || user.getEmailVerified() == null) {
+                    user.setEmailVerified(true);
+                    user.setVerifiedAt(LocalDateTime.now());
+                    changed = true;
+                }
+
+                if (!"ACTIVE".equals(user.getAccountStatus())) {
+                    user.setAccountStatus("ACTIVE");
+                    changed = true;
+                }
+
+                if (fullName != null && !fullName.equals(user.getFullName()) && !defaultName.equals(fullName)) {
+                    user.setFullName(fullName);
+                    changed = true;
+                }
+
+                if (changed) {
+                    user.setUpdatedAt(LocalDateTime.now());
+                    user = userRepository.save(user);
+                }
+            } else {
+                if (isGitHub) {
+                    log.info("Creating new Github account");
+                } else {
+                    log.info("Creating new Google account");
+                }
+
+                Role role = Role.STUDENT;
+                if (requestedRole != null) {
+                    try {
+                        role = Role.valueOf(requestedRole.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        log.error("[SOCIAL_LOGIN] Invalid role requested: {}. Defaulting to STUDENT.", requestedRole);
+                        role = Role.STUDENT;
+                    }
+                }
+
+                user = User.builder()
+                        .email(email)
+                        .fullName(fullName)
+                        .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                        .role(role)
+                        .authProvider(authProv)
+                        .emailVerified(true)
+                        .verifiedAt(LocalDateTime.now())
+                        .accountStatus("ACTIVE")
+                        .profileCompleted(false)
+                        .paymentStatus("PENDING")
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build();
+
+                com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
+                user.setUserStats(stats);
+                user = userRepository.save(user);
+                
+                if (isGitHub) {
+                    log.info("Github login completed");
+                } else {
+                    log.info("Google login completed");
                 }
             }
+        } catch (Exception e) {
+            log.warn("Exception during social login persist: {}", e.getMessage());
+            Optional<User> reloaded = userRepository.findByEmailIgnoreCase(email);
+            if (reloaded.isPresent()) {
+                log.warn("Duplicate email detected");
+                log.info("Reloading existing user");
+                user = reloaded.get();
+            } else {
+                throw new RuntimeException("Social login persistence failed: " + e.getMessage(), e);
+            }
+        }
 
-            user = User.builder()
-                    .email(email)
-                    .fullName(fullName)
-                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                    .role(role)
-                    .authProvider(authProv)
-                    .emailVerified(true)
-                    .verifiedAt(LocalDateTime.now())
-                    .accountStatus("ACTIVE")
-                    .profileCompleted(false)
-                    .paymentStatus("PENDING")
-                    .build();
-
-            com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
-            user.setUserStats(stats);
-            userRepository.save(user);
-            log.info("[SOCIAL_LOGIN] New social user created and saved successfully.");
+        if (isGitHub) {
+            log.info("Github login successful");
+        } else {
+            log.info("Google login successful");
         }
 
         log.info("[SOCIAL_LOGIN] Issuing access and refresh tokens for user: {}", user.getEmail());
@@ -164,6 +223,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public TokenResponse googleLogin(GoogleLoginRequest request) {
         log.info("[GOOGLE_LOGIN] Verifying incoming Google ID Token");
         log.debug("[GOOGLE_LOGIN] Configured Client ID: {}", googleClientId);
@@ -228,7 +288,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("=================================");
 
         // 1. Check database for existing user
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmailIgnoreCase(request.getEmail()).isPresent()) {
             log.warn("Signup blocked: email {} already registered", request.getEmail());
             throw new DatabaseConflictException("Email already registered.");
         }
@@ -334,7 +394,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void requestEmailOtp(RequestEmailOtpRequest request) {
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+        if (userRepository.findByEmailIgnoreCase(request.getEmail()).isPresent()) {
             throw new DatabaseConflictException("Email already registered.");
         }
 
@@ -389,7 +449,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponse login(LoginRequest request) {
         log.info("Login request received for email: {}", request.getEmail());
         
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmailIgnoreCase(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
         boolean isPasswordValid = passwordEncoder.matches(request.getPassword(), user.getPassword());

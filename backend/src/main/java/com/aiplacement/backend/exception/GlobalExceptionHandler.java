@@ -11,6 +11,17 @@ import java.time.LocalDateTime;
 
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleUserNotFoundException(UserNotFoundException ex) {
         ApiErrorResponse error = ApiErrorResponse.builder()

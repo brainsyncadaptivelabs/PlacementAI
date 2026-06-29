@@ -33,4 +33,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @org.springframework.data.jpa.repository.Query("SELECT DISTINCT u.branch FROM User u WHERE u.branch IS NOT NULL")
     java.util.List<String> findDistinctBranches();
+
+    Optional<User> findByEmailIgnoreCase(String email);
 }
