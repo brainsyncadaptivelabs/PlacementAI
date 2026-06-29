@@ -156,6 +156,10 @@ export default function ResumeATSPage() {
                 <Button 
                   onClick={() => {
                     console.log("View Full Analysis clicked");
+                    // Persist the latest ATS analysis for the dashboard page
+                    if (analysisResult) {
+                      sessionStorage.setItem("ats-analysis", JSON.stringify(analysisResult));
+                    }
                     router.push("/dashboard/ats/analysis");
                   }} 
                   className="w-full py-6 group bg-slate-900 hover:bg-slate-800"
