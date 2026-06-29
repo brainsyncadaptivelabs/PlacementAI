@@ -22,9 +22,34 @@ public class JdMatchServiceImpl implements JdMatchService {
 
     @Override
     public JdMatchResponseDto matchJobDescription(JdMatchRequestDto request) {
+        log.info("Received JdMatchRequestDto for analysis.");
+        
         String resumeText = request.getResumeText();
         String jobDescription = request.getJobDescription();
+
+        // Validate Resume Text input
+        if (resumeText == null || resumeText.trim().isEmpty()) {
+            log.error("Resume text is empty/null. Stopping analysis.");
+            throw new IllegalArgumentException("Resume parsing failed.");
+        }
         
+        int charsCount = resumeText.length();
+        int wordsCount = resumeText.trim().split("\\s+").length;
+        log.info("Resume extracted successfully. Characters extracted: {}. Words extracted: {}.", charsCount, wordsCount);
+        
+        if (charsCount == 0 || wordsCount == 0) {
+            log.error("Extracted zero characters or words from the resume. Stopping analysis.");
+            throw new IllegalArgumentException("Resume parsing failed.");
+        }
+
+        if (jobDescription == null || jobDescription.trim().isEmpty()) {
+            log.error("Job Description is empty/null. Stopping analysis.");
+            throw new IllegalArgumentException("Job Description cannot be empty.");
+        }
+
+        log.info("Resume Text Length: {}, JD Length: {}", charsCount, jobDescription.length());
+
+        // Simple string concatenation to avoid String#formatted UnknownFormatConversionException (e.g. from literal % signs in JSON template)
         String prompt = """
                 Analyze the candidate resume against the Job Description (JD). 
                 Extract matched skills, missing skills, evaluations, recruiter feedback, risks, and improvements.
@@ -71,12 +96,11 @@ public class JdMatchServiceImpl implements JdMatchService {
                   "confidenceCertainty": "High certainty based on complete skills extraction."
                 }
                 
-                Resume: %s
-                JD: %s
-                """.formatted(truncate(resumeText, 1500), truncate(jobDescription, 1500));
+                Resume:\n""" + truncate(resumeText, 1500) + "\n\nJD:\n" + truncate(jobDescription, 1500);
+
+        log.info("AI Prompt generated successfully. Length: {}", prompt.length());
 
         JsonNode aiJson = null;
-        Exception lastException = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
             try {
                 log.info("Sending job description match request to OllamaClient, attempt: {}", attempt);
@@ -90,52 +114,38 @@ public class JdMatchServiceImpl implements JdMatchService {
                 }
             } catch (Exception e) {
                 log.warn("Ollama attempt {} failed: {}", attempt, e.getMessage());
-                lastException = e;
+                log.error("AI Response extraction error on attempt {}", attempt, e);
             }
         }
         
         if (aiJson == null) {
-            log.error("Ollama matching failed after 2 attempts.");
-            throw new RuntimeException("Unable to analyze the Job Description. The AI model is currently busy or failed to respond. Please retry.");
+            log.error("Ollama matching failed after 2 attempts. Raw AI response was invalid or connection failed.");
+            throw new RuntimeException("AI returned invalid JSON.");
         }
 
+        log.info("Raw AI Response parsed as valid JSON: {}", aiJson.toString());
+
         try {
-            // Retrieve AI JSON values
-            List<String> matchedSkills = objectMapper.convertValue(
-                    aiJson.get("matchedSkills"),
-                    new TypeReference<List<String>>() {}
-            );
-            if (matchedSkills == null) matchedSkills = new ArrayList<>();
+            log.info("Starting DTO mapping and deterministic computations.");
+            
+            // Safe JSON mapping helpers
+            List<String> matchedSkills = parseSafeStringList(aiJson, "matchedSkills");
+            List<String> missingSkills = parseSafeStringList(aiJson, "missingSkills");
 
-            List<String> missingSkills = objectMapper.convertValue(
-                    aiJson.get("missingSkills"),
-                    new TypeReference<List<String>>() {}
-            );
-            if (missingSkills == null) missingSkills = new ArrayList<>();
+            int experienceRating = parseSafeInt(aiJson, "experienceRating", 60);
+            int projectRating = parseSafeInt(aiJson, "projectRating", 60);
+            boolean educationMatchVal = parseSafeBoolean(aiJson, "educationMatch", true);
+            int certificationsRating = parseSafeInt(aiJson, "certificationsRating", 50);
 
-            int experienceRating = aiJson.has("experienceRating") ? aiJson.get("experienceRating").asInt() : 60;
-            int projectRating = aiJson.has("projectRating") ? aiJson.get("projectRating").asInt() : 60;
-            boolean educationMatchVal = !aiJson.has("educationMatch") || aiJson.get("educationMatch").asBoolean();
-            int certificationsRating = aiJson.has("certificationsRating") ? aiJson.get("certificationsRating").asInt() : 50;
+            List<String> suggestions = parseSafeStringList(aiJson, "suggestions");
 
-            List<String> suggestions = objectMapper.convertValue(
-                    aiJson.get("suggestions"),
-                    new TypeReference<List<String>>() {}
-            );
-            if (suggestions == null) suggestions = new ArrayList<>();
-
-            String recruiterVerdict = aiJson.has("recruiterVerdict") ? aiJson.get("recruiterVerdict").asText() : "Likely Shortlisted";
-            String recruiterOpinion = aiJson.has("recruiterOpinion") ? aiJson.get("recruiterOpinion").asText() : "Candidate meets core needs.";
-            List<String> critiques = objectMapper.convertValue(aiJson.get("critiques"), new TypeReference<List<String>>() {});
-            if (critiques == null) critiques = new ArrayList<>();
-            List<String> actionPoints = objectMapper.convertValue(aiJson.get("actionPoints"), new TypeReference<List<String>>() {});
-            if (actionPoints == null) actionPoints = new ArrayList<>();
-            List<String> strengths = objectMapper.convertValue(aiJson.get("strengths"), new TypeReference<List<String>>() {});
-            if (strengths == null) strengths = new ArrayList<>();
-            List<String> weaknesses = objectMapper.convertValue(aiJson.get("weaknesses"), new TypeReference<List<String>>() {});
-            if (weaknesses == null) weaknesses = new ArrayList<>();
-            List<String> reasons = objectMapper.convertValue(aiJson.get("reasons"), new TypeReference<List<String>>() {});
-            if (reasons == null) reasons = new ArrayList<>();
+            String recruiterVerdict = parseSafeString(aiJson, "recruiterVerdict", "Likely Shortlisted");
+            String recruiterOpinion = parseSafeString(aiJson, "recruiterOpinion", "Candidate meets core needs.");
+            List<String> critiques = parseSafeStringList(aiJson, "critiques");
+            List<String> actionPoints = parseSafeStringList(aiJson, "actionPoints");
+            List<String> strengths = parseSafeStringList(aiJson, "strengths");
+            List<String> weaknesses = parseSafeStringList(aiJson, "weaknesses");
+            List<String> reasons = parseSafeStringList(aiJson, "reasons");
 
             // Perform deterministic calculations
             int matchCount = matchedSkills.size();
@@ -247,11 +257,12 @@ public class JdMatchServiceImpl implements JdMatchService {
                     .build();
 
             // AI Improvement Plan Steps
-            List<JdMatchResponseDto.ImprovementStepDto> planSteps = objectMapper.convertValue(
-                    aiJson.get("steps"),
-                    new TypeReference<List<JdMatchResponseDto.ImprovementStepDto>>() {}
+            List<JdMatchResponseDto.ImprovementStepDto> planSteps = safeConvert(
+                    aiJson,
+                    "steps",
+                    new TypeReference<List<JdMatchResponseDto.ImprovementStepDto>>() {},
+                    new ArrayList<>()
             );
-            if (planSteps == null) planSteps = new ArrayList<>();
             int targetPercentage = Math.min(placementAIScore + 12, 98);
             JdMatchResponseDto.ImprovementPlanDto improvementPlan = JdMatchResponseDto.ImprovementPlanDto.builder()
                     .targetPercentage(targetPercentage)
@@ -271,11 +282,12 @@ public class JdMatchServiceImpl implements JdMatchService {
                     .build();
 
             // Hiring Risks
-            List<JdMatchResponseDto.RiskAnalysisDto> risks = objectMapper.convertValue(
-                    aiJson.get("risks"),
-                    new TypeReference<List<JdMatchResponseDto.RiskAnalysisDto>>() {}
+            List<JdMatchResponseDto.RiskAnalysisDto> risks = safeConvert(
+                    aiJson,
+                    "risks",
+                    new TypeReference<List<JdMatchResponseDto.RiskAnalysisDto>>() {},
+                    new ArrayList<>()
             );
-            if (risks == null) risks = new ArrayList<>();
             for (JdMatchResponseDto.RiskAnalysisDto risk : risks) {
                 if (risk.getReason() != null && risk.getReasoning() == null) {
                     risk.setReasoning(risk.getReason());
@@ -297,7 +309,7 @@ public class JdMatchServiceImpl implements JdMatchService {
             }
             double minLpa = baseMin + (skillMatch / 100.0) * 4.0;
             double maxLpa = baseMax + (skillMatch / 100.0) * 6.0;
-            String salaryExplanation = aiJson.has("salaryExplanation") ? aiJson.get("salaryExplanation").asText() : "Calculated based on skill alignment, role complexity, and market standard rates.";
+            String salaryExplanation = parseSafeString(aiJson, "salaryExplanation", "Calculated based on skill alignment, role complexity, and market standard rates.");
             JdMatchResponseDto.SalaryPredictionDto salaryPrediction = JdMatchResponseDto.SalaryPredictionDto.builder()
                     .expectedMinLpa(String.format(java.util.Locale.US, "%.1f", minLpa))
                     .expectedMaxLpa(String.format(java.util.Locale.US, "%.1f", maxLpa))
@@ -308,7 +320,7 @@ public class JdMatchServiceImpl implements JdMatchService {
             // AI Confidence Score
             int confidencePercentage = (int) (80 + (resumeText.length() > 500 ? 10 : 5) + (jobDescription.length() > 500 ? 5 : 0));
             confidencePercentage = Math.min(confidencePercentage, 98);
-            String confidenceCertainty = aiJson.has("confidenceCertainty") ? aiJson.get("confidenceCertainty").asText() : "High model evaluation confidence based on structured fields.";
+            String confidenceCertainty = parseSafeString(aiJson, "confidenceCertainty", "High model evaluation confidence based on structured fields.");
             JdMatchResponseDto.ConfidenceScoreDto confidenceScore = JdMatchResponseDto.ConfidenceScoreDto.builder()
                     .confidencePercentage(confidencePercentage)
                     .explanation("Evaluation completed successfully with analysis of " + resumeText.length() + " character resume.")
@@ -316,7 +328,7 @@ public class JdMatchServiceImpl implements JdMatchService {
                     .certainty(confidenceCertainty)
                     .build();
 
-            return JdMatchResponseDto.builder()
+            JdMatchResponseDto responseDto = JdMatchResponseDto.builder()
                     .matchPercentage((int) skillMatch)
                     .overallRating(placementAIScore >= 85 ? "Excellent Match" : placementAIScore >= 70 ? "Strong Match" : placementAIScore >= 55 ? "Average Match" : "Weak Match")
                     .aiSummary(recruiterOpinion)
@@ -324,7 +336,7 @@ public class JdMatchServiceImpl implements JdMatchService {
                     .matchedSkills(matchedSkills)
                     .suggestions(suggestions)
                     .learningRecommendations(suggestions)
-                    .bestFitRole(aiJson.has("bestFitRole") ? aiJson.get("bestFitRole").asText() : "Full Stack Engineer")
+                    .bestFitRole(parseSafeString(aiJson, "bestFitRole", "Full Stack Engineer"))
                     
                     // Upgraded PlacementAI 2.0 fields
                     .placementAIScore(placementAIScore)
@@ -346,9 +358,76 @@ public class JdMatchServiceImpl implements JdMatchService {
                     .confidenceScore(confidenceScore)
                     .build();
 
+            log.info("DTO Mapping and calculations complete.");
+            try {
+                log.info("Final Response JdMatchResponseDto: {}", objectMapper.writeValueAsString(responseDto));
+            } catch (Exception se) {
+                log.warn("Failed to serialize responseDto for logging.");
+            }
+
+            return responseDto;
+
         } catch (Exception e) {
             log.error("Failed to map DTO and calculate scores", e);
             throw new RuntimeException("DTO Mapping failed: " + e.getMessage());
+        }
+    }
+
+    // Helper Converters & Safe Mappers
+    private int parseSafeInt(JsonNode node, String fieldName, int defaultValue) {
+        if (node == null || !node.has(fieldName)) return defaultValue;
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) return defaultValue;
+        if (field.isNumber()) return field.asInt();
+        String txt = field.asText().trim();
+        if (txt.isEmpty() || "N/A".equalsIgnoreCase(txt)) return defaultValue;
+        try {
+            return Integer.parseInt(txt);
+        } catch (NumberFormatException e) {
+            log.warn("Failed to parse integer for field: {}, value: {}", fieldName, txt);
+            return defaultValue;
+        }
+    }
+
+    private boolean parseSafeBoolean(JsonNode node, String fieldName, boolean defaultValue) {
+        if (node == null || !node.has(fieldName)) return defaultValue;
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) return defaultValue;
+        if (field.isBoolean()) return field.asBoolean();
+        return Boolean.parseBoolean(field.asText().trim());
+    }
+
+    private String parseSafeString(JsonNode node, String fieldName, String defaultValue) {
+        if (node == null || !node.has(fieldName)) return defaultValue;
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) return defaultValue;
+        String val = field.asText();
+        return val.trim().isEmpty() ? defaultValue : val;
+    }
+
+    private List<String> parseSafeStringList(JsonNode node, String fieldName) {
+        List<String> list = new ArrayList<>();
+        if (node == null || !node.has(fieldName)) return list;
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull() || !field.isArray()) return list;
+        for (JsonNode item : field) {
+            if (item != null && !item.isNull()) {
+                list.add(item.asText());
+            }
+        }
+        return list;
+    }
+
+    private <T> T safeConvert(JsonNode node, String fieldName, TypeReference<T> typeRef, T defaultValue) {
+        if (node == null || !node.has(fieldName)) return defaultValue;
+        JsonNode field = node.get(fieldName);
+        if (field == null || field.isNull()) return defaultValue;
+        try {
+            return objectMapper.convertValue(field, typeRef);
+        } catch (Exception e) {
+            log.error("ObjectMapper conversion failed. DTO Field: {}, Target Type: {}, Raw JSON: {}", 
+                      fieldName, typeRef.getType().getTypeName(), field.toString(), e);
+            return defaultValue;
         }
     }
 
