@@ -202,9 +202,11 @@ public class JdMatchServiceImpl implements JdMatchService {
 
         try {
             log.info("Sending job description match request to OllamaClient");
-            JsonNode aiJson = ollamaClient.getJsonResponse(prompt, 0.7, e -> fallbackJson);
+            JsonNode aiJson = ollamaClient.getJsonResponse(prompt, 0.7, e -> {
+                throw new RuntimeException("AI Engine is currently unavailable or failed to process the request.");
+            });
 
-            return JdMatchResponseDto.builder()
+            JdMatchResponseDto responseDto = JdMatchResponseDto.builder()
                     .matchPercentage(aiJson.has("matchPercentage") ? aiJson.get("matchPercentage").asInt() : 0)
                     .overallRating(aiJson.has("overallRating") ? aiJson.get("overallRating").asText() : "N/A")
                     .aiSummary(aiJson.has("aiSummary") ? aiJson.get("aiSummary").asText() : "")
@@ -278,9 +280,24 @@ public class JdMatchServiceImpl implements JdMatchService {
                     ))
                     .build();
 
+            // Validate that we didn't receive an empty or incomplete response from the local LLM
+            if (responseDto.getPlacementAIScore() == null || responseDto.getPlacementAIScore() == 0 ||
+                responseDto.getAtsQualification() == null || responseDto.getAtsQualification().getAtsPercentage() == 0 ||
+                responseDto.getShortlistingChance() == null || responseDto.getShortlistingChance().getShortlistPercentage() == 0 ||
+                responseDto.getInterviewProbability() == null || responseDto.getInterviewProbability().getProbabilityPercentage() == 0 ||
+                responseDto.getResumeRadar() == null || responseDto.getResumeRadar().isEmpty() ||
+                responseDto.getSkillPriority() == null ||
+                responseDto.getRecruiterFeedback() == null ||
+                responseDto.getCompanyReadiness() == null || responseDto.getCompanyReadiness().isEmpty() ||
+                responseDto.getSalaryPrediction() == null || "0.0".equals(responseDto.getSalaryPrediction().getExpectedMinLpa())) {
+                throw new RuntimeException("AI engine returned incomplete diagnostic data fields.");
+            }
+
+            return responseDto;
+
         } catch (Exception e) {
             log.error("Failed to match job description", e);
-            throw new RuntimeException("Failed to match job description");
+            throw new RuntimeException(e.getMessage());
         }
     }
 

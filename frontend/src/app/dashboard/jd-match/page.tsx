@@ -813,14 +813,12 @@ Certifications: ${selected.certifications || ""}
                                   {r.riskLevel}
                                 </Badge>
                               </div>
-                              <p className="text-[10px] text-muted-foreground leading-normal">{r.reasoning}</p>
+                              <p className="text-[10px] text-muted-foreground leading-normal">{r.reasoning || r.reason}</p>
                             </div>
                           </div>
                         );
                       })
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic">No hiring risks identified from your profile.</p>
-                    )}
+                    ) : null}
                   </CardContent>
                 </Card>
 
@@ -984,12 +982,14 @@ Certifications: ${selected.certifications || ""}
                     <CardContent className="p-0 space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">Confidence Level:</span>
-                        <Badge className="bg-primary text-white border-none font-bold text-[9px]">
+                        <Badge className={`text-[9px] font-black border-none ${
+                          getColorClasses(result.confidenceScore?.confidencePercentage || 0).badge
+                        }`}>
                           {result.confidenceScore?.confidencePercentage || 0}%
                         </Badge>
                       </div>
                       <p className="text-[10px] text-muted-foreground leading-normal">
-                        {result.confidenceScore?.explanation || "Based on analysis scope."}
+                        {result.confidenceScore?.explanation}
                       </p>
                     </CardContent>
                   </Card>
