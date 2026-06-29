@@ -43,6 +43,7 @@ export interface MockInterviewRequest {
   interviewType?: string;
   jobDescription?: string;
   resumeText?: string;
+  topic?: string;
 }
 
 export interface MockInterviewResponse {

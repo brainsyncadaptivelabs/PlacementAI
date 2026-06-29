@@ -10,7 +10,15 @@ import { MockInterviewRequest } from "../types/interview.types";
 import { Loader2, Sparkles } from "lucide-react";
 
 interface InterviewSetupProps {
-  onGenerated: (data: { role: string; experienceLevel: string; questions: string[] }) => void;
+  onGenerated: (data: { 
+    role: string; 
+    experienceLevel: string; 
+    questions: string[]; 
+    company?: string; 
+    difficulty?: string; 
+    interviewType?: string; 
+    topic?: string; 
+  }) => void;
 }
 
 export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
@@ -18,9 +26,10 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
   const [experienceLevel, setExperienceLevel] = useState("Entry Level");
   const [company, setCompany] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
-  const [interviewType, setInterviewType] = useState("Technical");
+  const [interviewType, setInterviewType] = useState("Technical Coding");
   const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
+  const [focusAreas, setFocusAreas] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
@@ -34,13 +43,18 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
         difficulty,
         interviewType,
         jobDescription: jobDescription || undefined,
-        resumeText: resumeText || undefined
+        resumeText: resumeText || undefined,
+        topic: focusAreas || undefined
       };
       const response = await interviewService.generateInterview(request);
       onGenerated({
         role: response.role,
         experienceLevel,
         questions: response.questions,
+        company,
+        difficulty,
+        interviewType,
+        topic: focusAreas
       });
     } catch (error) {
       console.error("Failed to generate interview:", error);
@@ -78,20 +92,40 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
               <option value="Software Engineer">Software Engineer</option>
               <option value="DevOps Engineer">DevOps Engineer</option>
             </select>
+            <Input
+              placeholder="Or type custom role..."
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="mt-2 text-xs h-8"
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="type">Interview Type</Label>
+            <Label htmlFor="type">Interview Type / Module</Label>
             <select 
               className={selectClassName}
               value={interviewType} 
               onChange={(e) => setInterviewType(e.target.value)}
             >
-              <option value="Technical">Technical Interview</option>
-              <option value="HR">HR Behavioral</option>
-              <option value="DSA Coding">DSA Coding Round</option>
+              <option value="Technical Coding">Technical Coding</option>
               <option value="System Design">System Design</option>
+              <option value="Behavioral / HR">Behavioral / HR</option>
+              <option value="Aptitude & Reasoning">Aptitude & Reasoning</option>
+              <option value="Technical HR">Technical HR</option>
+              <option value="Embedded Systems">Embedded Systems</option>
+              <option value="VLSI Design">VLSI Design</option>
+              <option value="Architecture">Architecture</option>
             </select>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="focusAreas">Focus Areas / Tech Stack</Label>
+          <Input
+            id="focusAreas"
+            placeholder="e.g. React, Spring Boot, OOP, Algorithms"
+            value={focusAreas}
+            onChange={(e) => setFocusAreas(e.target.value)}
+          />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

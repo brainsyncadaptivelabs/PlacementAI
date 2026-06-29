@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Calendar, Briefcase, Trash } from "lucide-react";
 import { interviewService } from "../services/interviewService";
 import { MockInterview } from "../types/interview.types";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 
 export const InterviewHistory = () => {

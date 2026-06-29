@@ -35,8 +35,48 @@ interface InterviewSessionProps {
     company?: string;
     difficulty?: string;
     interviewType?: string;
+    topic?: string;
   };
 }
+
+const getInterviewPrompt = (interviewModule?: string, focusAreas?: string) => {
+  const focusAreasStr = focusAreas || "general topics";
+
+  const baseGuidelines = `
+Interview Guidelines:
+- Listen actively to responses and acknowledge them before moving forward.
+- Ask brief follow-up questions if a response is vague or requires more detail.
+- Keep the conversation flowing smoothly while maintaining control.
+- Keep responses concise and to the point.
+- This is a voice conversation, so keep your responses short, like in a real conversation.
+- Focus areas: ${focusAreasStr}.`;
+
+  const modulePrompts: Record<string, string> = {
+    "Technical Coding": `You are a professional interviewer conducting a real-time voice interview focused on Technical Coding. Your goal is to assess the candidate's coding skills, algorithmic thinking, and problem-solving abilities.
+${baseGuidelines}`,
+    "System Design": `You are a professional interviewer conducting a real-time voice interview focused on System Design. Your goal is to assess the candidate's ability to design scalable, reliable systems and make informed architectural trade-offs.
+${baseGuidelines}`,
+    "Behavioral / HR": `You are a professional interviewer conducting a real-time voice interview focused on Behavioral and HR assessment. Your goal is to assess the candidate's leadership, teamwork, communication skills, and cultural fit.
+${baseGuidelines}`,
+    "Aptitude & Reasoning": `You are a professional interviewer conducting a real-time voice interview focused on Aptitude and Reasoning. Your goal is to assess the candidate's logical reasoning, quantitative analysis, and critical thinking abilities.
+${baseGuidelines}`,
+    "Technical HR": `You are a professional interviewer conducting a real-time voice interview focused on Technical HR. Your goal is to assess the candidate's past project experience, technical background, and cultural fit.
+${baseGuidelines}`,
+    "Embedded Systems": `You are a professional interviewer conducting a real-time voice interview focused on Embedded Systems. Your goal is to assess the candidate's knowledge of microcontrollers, RTOS, hardware interfaces, and IoT systems.
+${baseGuidelines}`,
+    "VLSI Design": `You are a professional interviewer conducting a real-time voice interview focused on VLSI Design. Your goal is to assess the candidate's knowledge of digital design, Verilog, FPGA, and integrated circuit concepts.
+${baseGuidelines}`,
+    "Architecture": `You are a professional interviewer conducting a real-time voice interview focused on Architecture. Your goal is to assess the candidate's knowledge of architectural design, AutoCAD, BIM, and sustainable design principles.
+${baseGuidelines}`,
+  };
+
+  if (interviewModule && modulePrompts[interviewModule]) {
+    return modulePrompts[interviewModule];
+  }
+
+  return `You are a professional interviewer conducting a real-time voice interview. Your goal is to assess the candidate's technical skills, problem-solving abilities, and fit for the role.
+${baseGuidelines}`;
+};
 
 export const InterviewSession = ({
   userName,
@@ -69,6 +109,7 @@ export const InterviewSession = ({
   const wsRef = useRef<WebSocket | null>(null);
 
   const isCodingRound = interviewData.interviewType === "DSA Coding" || 
+                        interviewData.interviewType === "Technical Coding" ||
                         (interviewData.role && interviewData.role.toLowerCase().indexOf("coding") !== -1) ||
                         (interviewData.role && interviewData.role.toLowerCase().indexOf("dsa") !== -1);
 
@@ -317,7 +358,7 @@ export const InterviewSession = ({
       role: interviewData.role,
       experienceLevel: interviewData.experienceLevel,
       company: interviewData.company,
-      topic: interviewData.interviewType,
+      topic: interviewData.interviewType + (interviewData.topic ? " - " + interviewData.topic : ""),
       transcript,
       questions,
     };
@@ -373,12 +414,25 @@ export const InterviewSession = ({
         .map((q, i) => `${i + 1}. ${q}`)
         .join("\n");
 
+      let agentPrompt = getInterviewPrompt(interviewData.interviewType, interviewData.topic);
+
+      if (formattedQuestions) {
+        agentPrompt += `\n\nHere are the specific questions you must ask the candidate during this interview:\n${formattedQuestions}\n\nAsk these questions one by one. Wait for the candidate to answer each question before moving to the next one. You may ask brief follow-up questions based on their answers.`;
+      }
+
+      const firstMessage = interviewData.company
+        ? `Hello ${userName}! I'll be conducting your ${interviewData.company} interview today. Let's get started. Are you ready?`
+        : `Hello ${userName}! I'll be your interviewer today. Let's get started. Are you ready?`;
+
       await startSession({
         agentId,
-        dynamicVariables: {
-          questions: formattedQuestions,
-          user_name: userName,
-          role: interviewData.role,
+        overrides: {
+          agent: {
+            prompt: {
+              prompt: agentPrompt,
+            },
+            firstMessage: firstMessage,
+          },
         },
       });
     } catch (error) {

@@ -10,7 +10,7 @@ import { useUser } from "@/hooks/use-user";
 export default function MockInterviewSessionPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { role, questions, experienceLevel, company, difficulty, interviewType } = useInterviewStore();
+  const { role, questions, experienceLevel, company, difficulty, interviewType, topic } = useInterviewStore();
 
   useEffect(() => {
     if (!role || questions.length === 0) {
@@ -31,7 +31,7 @@ export default function MockInterviewSessionPage() {
       <ConversationProvider>
         <InterviewSession 
           userName={user?.fullName || "Candidate"} 
-          interviewData={{ role, questions, experienceLevel, company, difficulty, interviewType }} 
+          interviewData={{ role, questions, experienceLevel, company, difficulty, interviewType, topic }}
         />
       </ConversationProvider>
     </div>

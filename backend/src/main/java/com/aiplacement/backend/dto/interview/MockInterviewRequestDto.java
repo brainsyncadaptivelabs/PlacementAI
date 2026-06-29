@@ -7,7 +7,6 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
 public class MockInterviewRequestDto {
 
     private String role;
@@ -17,4 +16,5 @@ public class MockInterviewRequestDto {
     private String interviewType;
     private String jobDescription;
     private String resumeText;
+    private String topic;
 }

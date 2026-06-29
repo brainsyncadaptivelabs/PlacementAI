@@ -16,6 +16,7 @@ export default function MockInterviewStartPage() {
     company?: string;
     difficulty?: string;
     interviewType?: string;
+    topic?: string;
   }) => {
     setInterviewData(data);
     router.push("/mock-interview/session");

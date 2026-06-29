@@ -8,7 +8,6 @@ import com.aiplacement.backend.entity.interview.InterviewQuestion;
 import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.interview.MockInterviewRepository;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,6 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     private final OllamaClient ollamaClient;
     private final MockInterviewRepository mockInterviewRepository;
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public MockInterviewResponseDto generateMockInterview(MockInterviewRequestDto request) {
@@ -38,21 +36,82 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        String type = request.getInterviewType() != null ? request.getInterviewType() : "Technical";
+        String topics = request.getTopic() != null ? request.getTopic() : "";
+        String role = request.getRole();
+        String level = request.getExperienceLevel();
+        String difficulty = request.getDifficulty() != null ? request.getDifficulty() : "Medium";
+        String targetCompany = request.getCompany() != null ? request.getCompany() : "General Tech Company";
+
+        StringBuilder guidelines = new StringBuilder();
+        if ("Technical Coding".equals(type) || "Data Structures & Algorithms".equals(type) || "DSA Coding".equals(type)) {
+            guidelines.append("- Provide coding problems with clear problem statements\n")
+                    .append("- Focus on ").append(topics).append(" concepts\n")
+                    .append("- Include questions on time and space complexity analysis\n")
+                    .append("- Cover arrays, strings, trees, graphs, dynamic programming, etc.\n")
+                    .append("- Range from easy to hard based on the ").append(level).append(" level\n")
+                    .append("- Ask candidates to explain their approach verbally (this is a voice interview)\n")
+                    .append("- Example: \"How would you find the longest substring without repeating characters? Please explain your approach and discuss the time complexity.\"\n");
+        } else if ("System Design".equals(type)) {
+            guidelines.append("- Provide system design scenarios (e.g., design a URL shortener, design Twitter, design a parking lot)\n")
+                    .append("- Focus on scalability, reliability, and trade-offs\n")
+                    .append("- Include questions on databases, caching, load balancing, microservices\n")
+                    .append("- Ask about handling high traffic and data consistency\n")
+                    .append("- Appropriate for ").append(level).append(" level\n")
+                    .append("- Example: \"Design a scalable notification system that can handle millions of users. Discuss your architecture choices.\"\n");
+        } else if ("Technical HR".equals(type)) {
+            guidelines.append("- Mix of behavioral and technical background questions\n")
+                    .append("- Ask about past projects and technical challenges\n")
+                    .append("- Questions about teamwork in technical settings\n")
+                    .append("- Problem-solving approach and learning mindset\n")
+                    .append("- Example: \"Tell me about a challenging bug you fixed. How did you approach debugging it?\"\n");
+        } else if ("Case Study".equals(type) || "Case".equals(type)) {
+            guidelines.append("- Provide a short business scenario, market sizing, or profitability framework question\n")
+                    .append("- Appropriate for MBA/business candidates\n");
+        } else if ("Technical Finance".equals(type)) {
+            guidelines.append("- Provide rigorous questions on valuation (DCF, LBO, Multiples), accounting (3 statements), or M&A\n")
+                    .append("- Appropriate for MBA Finance candidates\n");
+        } else if ("Operations".equals(type)) {
+            guidelines.append("- Focus on process optimization, bottleneck analysis, supply chain resilience, or Little's Law\n")
+                    .append("- Appropriate for MBA Operations candidates\n");
+        } else if ("Behavioral".equals(type) || "Behavioral / HR".equals(type) || "HR".equals(type)) {
+            guidelines.append("- Provide STAR method based questions focusing on leadership and conflict resolution\n")
+                    .append("- Appropriate for all candidates\n");
+        } else if ("Embedded Systems".equals(type)) {
+            guidelines.append("- Provide embedded systems questions focusing on microcontrollers, RTOS, hardware interfaces, and IoT systems\n")
+                    .append("- Focus on ").append(topics).append(" concepts\n");
+        } else if ("VLSI Design".equals(type)) {
+            guidelines.append("- Provide VLSI design questions focusing on digital design, Verilog, FPGA, and integrated circuit concepts\n")
+                    .append("- Focus on ").append(topics).append(" concepts\n");
+        } else if ("Architecture".equals(type)) {
+            guidelines.append("- Provide architecture questions focusing on architectural design, AutoCAD, BIM, and sustainable design principles\n")
+                    .append("- Focus on ").append(topics).append(" concepts\n");
+        } else {
+            guidelines.append("- Create relevant questions based on the role and focus areas: ").append(topics).append("\n")
+                    .append("- Ensure questions are appropriate for the ").append(level).append(" level\n");
+        }
+
         String prompt = "Generate a mock interview questions response in JSON format. The response must match this schema:\n" +
                 "{\n" +
-                "  \"role\": \"" + request.getRole() + "\",\n" +
+                "  \"role\": \"" + role + "\",\n" +
                 "  \"questions\": [\"Question 1\", \"Question 2\", \"Question 3\", \"Question 4\", \"Question 5\"],\n" +
                 "  \"tips\": [\"Tip 1\", \"Tip 2\"]\n" +
                 "}\n" +
                 "\n" +
                 "Target Parameters:\n" +
-                "- Role: " + request.getRole() + "\n" +
-                "- Experience Level: " + request.getExperienceLevel() + "\n" +
-                "- Difficulty Level: " + (request.getDifficulty() != null ? request.getDifficulty() : "Medium") + "\n" +
-                "- Target Company: " + (request.getCompany() != null ? request.getCompany() : "General Tech Company") + "\n" +
-                "- Interview Type: " + (request.getInterviewType() != null ? request.getInterviewType() : "Technical") + "\n" +
+                "- Role: " + role + "\n" +
+                "- Experience Level: " + level + "\n" +
+                "- Difficulty Level: " + difficulty + "\n" +
+                "- Target Company: " + targetCompany + "\n" +
+                "- Interview Type/Module: " + type + "\n" +
+                (topics.isEmpty() ? "" : "- Focus Areas / Tech Stack: " + topics + "\n") +
                 (request.getResumeText() != null ? "- Match Resume Credentials: " + truncate(request.getResumeText(), 500) + "\n" : "") +
-                (request.getJobDescription() != null ? "- Match Job Description Requirements: " + truncate(request.getJobDescription(), 500) + "\n" : "");
+                (request.getJobDescription() != null ? "- Match Job Description Requirements: " + truncate(request.getJobDescription(), 500) + "\n" : "") +
+                "\n" +
+                "Guidelines based on interview type:\n" +
+                guidelines.toString() + "\n" +
+                "The questions are going to be read by a voice assistant so do not use \"/\" or \"*\" or any other special characters which might break the voice assistant.\n" +
+                "Return the questions array as plain strings.";
 
         JsonNode aiJson = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
@@ -134,13 +193,14 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         }
 
         // Generate Feedback using AI
-        String feedbackPrompt = "Evaluate the following mock interview transcript and return ONLY a JSON feedback report matching this schema:\n" +
+        String feedbackPrompt = "You are an AI interviewer analyzing a mock interview transcript. Your task is to evaluate the candidate thoroughly. Be detailed and constructive. Do not be overly lenient; point out mistakes or areas for improvement.\n\n" +
+                "Evaluate the transcript and return ONLY a JSON feedback report matching this schema:\n" +
                 "{\n" +
                 "  \"totalScore\": 80,\n" +
                 "  \"technicalScore\": 85,\n" +
                 "  \"communicationScore\": 75,\n" +
                 "  \"confidenceScore\": 80,\n" +
-                "  \"finalAssessment\": \"Summary of performance...\",\n" +
+                "  \"finalAssessment\": \"Detailed breakdown assessment covering Communication Skills, Domain Knowledge, Analytical Thinking, Cultural & Role Fit, and Confidence and Clarity. Discuss each area clearly.\",\n" +
                 "  \"strengths\": [\"Strength 1\", \"Strength 2\"],\n" +
                 "  \"areasForImprovement\": [\"Area 1\", \"Area 2\"],\n" +
                 "  \"bodyLanguageTips\": [\"Tip 1\"],\n" +
@@ -506,17 +566,6 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         return list;
     }
 
-    private <T> T safeConvert(JsonNode node, String fieldName, TypeReference<T> typeRef, T defaultValue) {
-        if (node == null || !node.has(fieldName)) return defaultValue;
-        JsonNode field = node.get(fieldName);
-        if (field == null || field.isNull()) return defaultValue;
-        try {
-            return objectMapper.convertValue(field, typeRef);
-        } catch (Exception e) {
-            log.error("ObjectMapper conversion failed in MockInterview for field: {}", fieldName);
-            return defaultValue;
-        }
-    }
 
     private String truncate(String text, int limit) {
         if (text == null || text.length() <= limit) return text;

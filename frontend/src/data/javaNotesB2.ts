@@ -462,11 +462,11 @@ String msg = String.format("Result: %s", "PASS");
 
 | Spec | Type | Example |
 |---|---|---|
-| \`%d\` | int/long | \`"Age: %d"` → \`Age: 21\` |
-| \`%f\` / \`%.2f\` | float/double | \`"%.2f"` → \`3.14\` |
-| \`%s\` | String | \`"%s"` → \`Java\` |
-| \`%c\` | char | \`"%c"` → \`A\` |
-| \`%b\` | boolean | \`"%b"` → \`true\` |
+| \`%d\` | int/long | \`"Age: %d"\` → \`Age: 21\` |
+| \`%f\` / \`%.2f\` | float/double | \`"%.2f"\` → \`3.14\` |
+| \`%s\` | String | \`"%s"\` → \`Java\` |
+| \`%c\` | char | \`"%c"\` → \`A\` |
+| \`%b\` | boolean | \`"%b"\` → \`true\` |
 | \`%n\` | Newline | platform-independent |
 | \`%10d\` | Right-pad to 10 | |
 | \`%-10d\` | Left-pad to 10 | |
