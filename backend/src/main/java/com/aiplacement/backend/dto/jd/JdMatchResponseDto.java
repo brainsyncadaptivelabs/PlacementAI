@@ -22,4 +22,10 @@ public class JdMatchResponseDto implements Serializable {
     private List<String> suggestions;
 
     private String bestFitRole;
+
+    private String overallRating;
+
+    private String aiSummary;
+
+    private List<String> learningRecommendations;
 }

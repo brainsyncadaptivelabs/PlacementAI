@@ -22,7 +22,7 @@ public class RoadmapServiceImpl implements RoadmapService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    @Cacheable(value = "roadmaps", key = "#request")
+    @Cacheable(value = "roadmaps", key = "#request.careerGoal + '-' + #request.resumeText.hashCode()")
     public RoadmapResponseDto generateRoadmap(RoadmapRequestDto request) {
         String prompt = """
                 Generate a career roadmap. Return ONLY JSON.

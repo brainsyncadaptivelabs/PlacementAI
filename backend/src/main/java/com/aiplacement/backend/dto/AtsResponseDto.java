@@ -23,4 +23,6 @@ public class AtsResponseDto {
     private List<String> suggestions;
 
     private String bestRole;
+
+    private String extractedText;
 }

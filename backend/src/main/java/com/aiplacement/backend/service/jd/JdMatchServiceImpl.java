@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import org.springframework.cache.annotation.Cacheable;
 import java.util.List;
 
 @Service
@@ -22,22 +21,24 @@ public class JdMatchServiceImpl implements JdMatchService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    @Cacheable(value = "jd_analysis", key = "#request")
     public JdMatchResponseDto matchJobDescription(JdMatchRequestDto request) {
         String prompt = """
                 Match resume with JD. Return ONLY JSON.
                 {
                   "matchPercentage": 85,
+                  "overallRating": "Strong Match",
                   "missingSkills": ["s1"],
                   "matchedSkills": ["s2"],
                   "suggestions": ["tip1"],
-                  "bestFitRole": "role"
+                  "bestFitRole": "role",
+                  "aiSummary": "summary description",
+                  "learningRecommendations": ["rec1"]
                 }
                 Resume: %s
                 JD: %s
                 """.formatted(truncate(request.getResumeText(), 1000), truncate(request.getJobDescription(), 1000));
 
-        String fallbackJson = "{\"matchPercentage\": 0, \"missingSkills\": [], \"matchedSkills\": [], \"suggestions\": [\"AI service is currently unavailable. Please try again later.\"], \"bestFitRole\": \"Unknown\"}";
+        String fallbackJson = "{\"matchPercentage\": 0, \"overallRating\": \"Unable to determine\", \"missingSkills\": [], \"matchedSkills\": [], \"suggestions\": [\"AI service is currently unavailable. Please try again later.\"], \"bestFitRole\": \"Unknown\", \"aiSummary\": \"\", \"learningRecommendations\": []}";
 
         try {
             log.info("Sending job description match request to OllamaClient");
@@ -45,6 +46,8 @@ public class JdMatchServiceImpl implements JdMatchService {
 
             return JdMatchResponseDto.builder()
                     .matchPercentage(aiJson.has("matchPercentage") ? aiJson.get("matchPercentage").asInt() : 0)
+                    .overallRating(aiJson.has("overallRating") ? aiJson.get("overallRating").asText() : "N/A")
+                    .aiSummary(aiJson.has("aiSummary") ? aiJson.get("aiSummary").asText() : "")
                     .missingSkills(objectMapper.convertValue(
                             aiJson.get("missingSkills"),
                             new TypeReference<List<String>>() {}
@@ -55,6 +58,10 @@ public class JdMatchServiceImpl implements JdMatchService {
                     ))
                     .suggestions(objectMapper.convertValue(
                             aiJson.get("suggestions"),
+                            new TypeReference<List<String>>() {}
+                    ))
+                    .learningRecommendations(objectMapper.convertValue(
+                            aiJson.get("learningRecommendations"),
                             new TypeReference<List<String>>() {}
                     ))
                     .bestFitRole(aiJson.has("bestFitRole") ? aiJson.get("bestFitRole").asText() : "Unknown")

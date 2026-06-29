@@ -37,9 +37,18 @@ public class ResumeServiceImpl implements ResumeService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AtsResponseDto uploadResume(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file is empty.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new IllegalArgumentException("Unable to determine file name.");
+        }
+
         File tempFile = null;
         try {
-            log.info("Starting resume upload process");
+            log.info("Starting resume upload process for: {}", originalFilename);
 
             String uploadDir = System.getProperty("user.dir") + "/temp/";
             File directory = new File(uploadDir);
@@ -49,15 +58,16 @@ public class ResumeServiceImpl implements ResumeService {
                 log.info("Temp directory created");
             }
 
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String fileName = UUID.randomUUID() + "_" + originalFilename;
             String tempFilePath = uploadDir + fileName;
             tempFile = new File(tempFilePath);
 
             file.transferTo(tempFile);
             log.info("Temporary resume file created: {}", fileName);
 
-            String extractedText = pdfService.extractTextFromPdf(tempFile);
-            log.info("PDF text extracted successfully");
+            // Dynamically extract text based on extension
+            String extractedText = pdfService.extractText(tempFile, originalFilename);
+            log.info("Document text extracted successfully, character length: {}", extractedText.length());
 
             String cloudinaryUrl = cloudinaryService.uploadFile(file);
             log.info("Resume uploaded to Cloudinary successfully");
@@ -81,7 +91,9 @@ public class ResumeServiceImpl implements ResumeService {
             resumeRepository.save(resume);
             log.info("Resume saved to database");
 
+            log.info("Sending resume to OllamaClient for ATS analysis");
             AtsResponseDto atsResponse = geminiService.analyzeResume(extractedText);
+            atsResponse.setExtractedText(extractedText);
             log.info("ATS analysis completed successfully");
 
             AtsAnalysis atsAnalysis = AtsAnalysis.builder()
@@ -100,9 +112,12 @@ public class ResumeServiceImpl implements ResumeService {
 
             return atsResponse;
 
-        } catch (IOException e) {
-            log.error("Resume upload failed: {}", e.getMessage());
-            throw new RuntimeException("Failed to upload resume: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            log.warn("Validation error during upload: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Resume parsing/upload failed: {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to upload and parse resume: " + e.getMessage(), e);
         } finally {
             if (tempFile != null && tempFile.exists()) {
                 boolean deleted = tempFile.delete();

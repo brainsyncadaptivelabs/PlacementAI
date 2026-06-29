@@ -22,6 +22,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleUserNotFoundException(UserNotFoundException ex) {
         ApiErrorResponse error = ApiErrorResponse.builder()
@@ -47,8 +58,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
         ex.printStackTrace(); // Log for debugging
+        String message = ex.getMessage();
+        if (message != null && (message.toLowerCase().contains("cache") || 
+                                message.toLowerCase().contains("redis") || 
+                                message.toLowerCase().contains("connection") || 
+                                message.toLowerCase().contains("serialization") || 
+                                message.toLowerCase().contains("convert") || 
+                                message.toLowerCase().contains("hibernate") || 
+                                message.toLowerCase().contains("sql"))) {
+            message = "Unable to analyze the Job Description. Please try again.";
+        }
         ApiErrorResponse error = ApiErrorResponse.builder()
-                .message(ex.getMessage())
+                .message(message)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .timestamp(LocalDateTime.now())
                 .build();
