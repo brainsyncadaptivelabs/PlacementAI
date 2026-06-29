@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, FileText, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
@@ -15,12 +16,25 @@ type AnalysisResult = {
 };
 
 export default function ResumeATSPage() {
+  const router = useRouter();
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const atsScore = analysisResult?.atsScore ?? 0;
+
+  useEffect(() => {
+    const saved = localStorage.getItem("latest_ats_analysis");
+    if (saved) {
+      try {
+        setAnalysisResult(JSON.parse(saved));
+        setIsAnalyzed(true);
+      } catch (e) {
+        console.error("Failed to parse cached ATS analysis:", e);
+      }
+    }
+  }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -40,6 +54,7 @@ export default function ResumeATSPage() {
         },
       });
       setAnalysisResult(response.data);
+      localStorage.setItem("latest_ats_analysis", JSON.stringify(response.data));
       setIsAnalyzed(true);
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to analyze resume"));
@@ -138,7 +153,10 @@ export default function ResumeATSPage() {
                    </div>
                 )}
 
-                <Button className="w-full py-6 group bg-slate-900 hover:bg-slate-800">
+                <Button 
+                  onClick={() => router.push("/dashboard/ats/result")} 
+                  className="w-full py-6 group bg-slate-900 hover:bg-slate-800"
+                >
                    View Full Analysis 
                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
