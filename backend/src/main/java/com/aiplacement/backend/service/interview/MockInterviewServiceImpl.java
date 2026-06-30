@@ -1267,7 +1267,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                 .sorted()
                 .collect(Collectors.toList());
 
-        double globalAvg = globalScores.stream().mapToInt(Integer::intValue).average().orElse(70.0);
+        double globalAvg = globalScores.stream().mapToInt(val -> val != null ? val : 0).average().orElse(70.0);
 
         long scoresBelow = globalScores.stream().filter(s -> s < candidateScore).count();
         long scoresEqual = globalScores.stream().filter(s -> s == candidateScore).count();

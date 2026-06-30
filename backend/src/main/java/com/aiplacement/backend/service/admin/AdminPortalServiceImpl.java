@@ -701,7 +701,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         Map<String, List<User>> usersByBranch = collegeUsers.stream()
                 .filter(u -> u.getBranch() != null && !u.getBranch().trim().isEmpty())
-                .collect(Collectors.groupingBy(User::getBranch));
+                .collect(Collectors.groupingBy(u -> u.getBranch() != null ? u.getBranch() : "General"));
 
         List<Map<String, Object>> branchPerformance = new ArrayList<>();
         for (Map.Entry<String, List<User>> entry : usersByBranch.entrySet()) {
@@ -730,7 +730,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         Map<String, Long> weakTopicsFreq = interviews.stream()
                 .filter(m -> m.getFeedback() != null && m.getFeedback().getAreasForImprovement() != null)
                 .flatMap(m -> m.getFeedback().getAreasForImprovement().stream())
-                .collect(Collectors.groupingBy(String::toString, Collectors.counting()));
+                .collect(Collectors.groupingBy(s -> s != null ? s : "Unknown", Collectors.counting()));
 
         List<Map<String, Object>> commonWeakTopics = weakTopicsFreq.entrySet().stream()
                 .map(e -> {
@@ -748,7 +748,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         Map<String, Long> recruiterSkillsFreq = interviews.stream()
                 .filter(m -> m.getFeedback() != null && m.getFeedback().getStrengths() != null)
                 .flatMap(m -> m.getFeedback().getStrengths().stream())
-                .collect(Collectors.groupingBy(String::toString, Collectors.counting()));
+                .collect(Collectors.groupingBy(s -> s != null ? s : "Unknown", Collectors.counting()));
 
         List<Map<String, Object>> topRecruiterSkills = recruiterSkillsFreq.entrySet().stream()
                 .map(e -> {
