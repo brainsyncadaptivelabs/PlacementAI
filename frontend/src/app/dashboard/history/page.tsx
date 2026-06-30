@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,14 +26,9 @@ type AtsHistoryItem = {
 };
 
 export default function ResumeHistoryPage() {
+  const router = useRouter();
   const [history, setHistory] = useState<AtsHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Modal State
-  const [selectedAnalysis, setSelectedAnalysis] = useState<AtsHistoryItem | null>(null);
-  const [details, setDetails] = useState<any>(null);
-  const [loadingDetails, setLoadingDetails] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Delete Modal State
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
@@ -62,21 +58,8 @@ export default function ResumeHistoryPage() {
     }, 4000);
   };
 
-  const handleView = async (item: AtsHistoryItem) => {
-    setSelectedAnalysis(item);
-    setLoadingDetails(true);
-    setIsModalOpen(true);
-    setDetails(null);
-    try {
-      const response = await api.get(`/ats/${item.id}`);
-      setDetails(response.data);
-    } catch (err) {
-      console.error("Failed to load details", err);
-      showToast("Failed to load analysis details.", "error");
-      setIsModalOpen(false);
-    } finally {
-      setLoadingDetails(false);
-    }
+  const handleView = (item: AtsHistoryItem) => {
+    router.push(`/dashboard/ats/analysis/${item.id}`);
   };
 
   const promptDelete = (id: number) => {
@@ -241,125 +224,6 @@ export default function ResumeHistoryPage() {
          </Card>
       </div>
 
-      {/* View Details Modal */}
-      {isModalOpen && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-          style={{ animation: 'modalFadeIn 0.2s ease-out' }}
-        >
-          <div 
-            className="bg-card w-full max-w-2xl rounded-2xl border border-border shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
-            style={{ animation: 'modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)' }}
-          >
-            {/* Modal Header */}
-            <div className="p-6 border-b border-border flex justify-between items-center bg-muted/30">
-              <div>
-                <h2 className="text-xl font-bold font-heading text-foreground">Analysis Details</h2>
-                <p className="text-xs text-muted-foreground">
-                  Analyzed on {selectedAnalysis && new Date(selectedAnalysis.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-              <Button variant="ghost" size="sm" onClick={() => setIsModalOpen(false)} className="text-muted-foreground hover:text-foreground">
-                ✕
-              </Button>
-            </div>
-
-            {/* Modal Content */}
-            <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              {loadingDetails ? (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                  <p className="text-sm text-muted-foreground">Loading analysis results...</p>
-                </div>
-              ) : details ? (
-                <div className="space-y-6">
-                  {/* Score & Role overview */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-primary/5 rounded-xl border border-primary/10">
-                    <div>
-                      <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Suggested Best Role</p>
-                      <h4 className="text-lg font-black text-foreground">{details.bestRole || "Unknown"}</h4>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase">ATS Score</p>
-                        <p className="text-sm font-medium text-muted-foreground">Match Rating</p>
-                      </div>
-                      <div className={`w-14 h-14 rounded-full flex items-center justify-center font-black text-lg border-2 ${
-                        details.atsScore >= 70 ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
-                      }`}>
-                        {details.atsScore}%
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Strengths */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5 text-green-700">
-                      <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Strengths
-                    </h4>
-                    <ul className="space-y-2">
-                      {details.strengths && details.strengths.length > 0 ? (
-                        details.strengths.map((str: string, i: number) => (
-                          <li key={i} className="text-sm text-muted-foreground bg-green-50/50 p-2.5 rounded border border-green-100/50">
-                            {str}
-                          </li>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No specific strengths highlighted.</p>
-                      )}
-                    </ul>
-                  </div>
-
-                  {/* Weaknesses */}
-                  <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5 text-amber-700">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Weaknesses & Gaps
-                    </h4>
-                    <ul className="space-y-2">
-                      {details.weaknesses && details.weaknesses.length > 0 ? (
-                        details.weaknesses.map((weak: string, i: number) => (
-                          <li key={i} className="text-sm text-muted-foreground bg-amber-50/50 p-2.5 rounded border border-amber-100/50">
-                            {weak}
-                          </li>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No major weaknesses identified.</p>
-                      )}
-                    </ul>
-                  </div>
-
-                  {/* Missing Keywords */}
-                  <div className="space-y-2.5">
-                    <h4 className="text-xs font-bold text-foreground uppercase tracking-widest flex items-center gap-1.5 text-red-700">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Missing Keywords
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {details.missingKeywords && details.missingKeywords.length > 0 ? (
-                        details.missingKeywords.map((kw: string, i: number) => (
-                          <Badge key={i} variant="outline" className="bg-red-50/30 text-red-700 border-red-200/50 font-semibold px-2 py-0.5 text-xs">
-                            {kw}
-                          </Badge>
-                        ))
-                      ) : (
-                        <p className="text-xs text-muted-foreground">No missing keywords found.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">Failed to fetch details.</p>
-              )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 border-t border-border flex justify-end bg-muted/10">
-              <Button onClick={() => setIsModalOpen(false)} className="bg-slate-900 hover:bg-slate-800 text-white px-6">
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Delete Confirmation Modal */}
       {deleteTargetId !== null && (

@@ -44,6 +44,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.NOT_FOUND.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(DatabaseConflictException.class)
     public ResponseEntity<ApiErrorResponse> handleDatabaseConflictException(DatabaseConflictException ex) {
         ApiErrorResponse error = ApiErrorResponse.builder()

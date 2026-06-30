@@ -22,21 +22,39 @@ public class AtsAnalysis {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-
     private Long id;
 
     private Integer atsScore;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "ats_strengths", joinColumns = @JoinColumn(name = "ats_analysis_id"))
+    @Column(name = "strength", columnDefinition = "TEXT")
     private List<String> strengths;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "ats_weaknesses", joinColumns = @JoinColumn(name = "ats_analysis_id"))
+    @Column(name = "weakness", columnDefinition = "TEXT")
     private List<String> weaknesses;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "ats_missing_keywords", joinColumns = @JoinColumn(name = "ats_analysis_id"))
+    @Column(name = "keyword")
     private List<String> missingKeywords;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "ats_matched_keywords", joinColumns = @JoinColumn(name = "ats_analysis_id"))
+    @Column(name = "keyword")
+    private List<String> matchedKeywords;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "ats_suggestions", joinColumns = @JoinColumn(name = "ats_analysis_id"))
+    @Column(name = "suggestion", columnDefinition = "TEXT")
+    private List<String> suggestions;
+
     private String bestRole;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String extractedText;
 
     @OneToOne
     @JoinColumn(name = "resume_id")

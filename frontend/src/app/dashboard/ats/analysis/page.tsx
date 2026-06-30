@@ -41,53 +41,53 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
   const score = Math.min(95, Math.max(30, analysis.atsScore || 60));
 
   // ── Contact Signals ────────────────────────────────────────────────────────
-  const hasGithub   = /github\.com/i.test(text);
+  const hasGithub = /github\.com/i.test(text);
   const hasLinkedin = /linkedin\.com/i.test(text);
-  const hasEmail    = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
-  const hasPhone    = /(\+?\d{1,3}[-\s]?)?\d{10}/.test(text);
+  const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
+  const hasPhone = /(\+?\d{1,3}[-\s]?)?\d{10}/.test(text);
   const hasPortfolio = /portfolio|netlify\.app|vercel\.app|github\.io/i.test(text);
 
   // ── Experience Signals ─────────────────────────────────────────────────────
   const yearsMatch = text.match(/(\d+)\+?\s*years?\s+(?:of\s+)?(?:experience|exp)/i);
   const yearsOfExp = yearsMatch ? parseInt(yearsMatch[1]) : 0;
   const hasInternship = /intern(?:ship)?|trainee|apprentice/i.test(text);
-  const hasCorporate  = /engineer|developer|analyst|architect|lead|senior|junior/i.test(text);
-  const expLevel      = yearsOfExp >= 5 ? "senior" : yearsOfExp >= 2 ? "mid" : yearsOfExp >= 1 ? "junior" : hasInternship ? "intern" : "fresher";
+  const hasCorporate = /engineer|developer|analyst|architect|lead|senior|junior/i.test(text);
+  const expLevel = yearsOfExp >= 5 ? "senior" : yearsOfExp >= 2 ? "mid" : yearsOfExp >= 1 ? "junior" : hasInternship ? "intern" : "fresher";
 
   // ── Project Signals ────────────────────────────────────────────────────────
   const projectKeywords = text.match(/project|built|developed|implemented|designed|created|engineered|deployed/gi) || [];
-  const projectCount    = Math.max(0, Math.min(6, Math.floor(projectKeywords.length / 3)));
-  const hasMetrics      = /%|reduced|improved|increased|optimized|decreased|saved|achieved|boosted/i.test(text);
-  const hasLiveLink     = /https?:\/\/|netlify|vercel|heroku|aws\.amazon|render\.com/i.test(text);
+  const projectCount = Math.max(0, Math.min(6, Math.floor(projectKeywords.length / 3)));
+  const hasMetrics = /%|reduced|improved|increased|optimized|decreased|saved|achieved|boosted/i.test(text);
+  const hasLiveLink = /https?:\/\/|netlify|vercel|heroku|aws\.amazon|render\.com/i.test(text);
 
   // ── Skills Signals ─────────────────────────────────────────────────────────
   const allTechSkills = [
-    "react","angular","vue","next.js","node","express","spring","spring boot",
-    "java","python","c++","c#","golang","rust","kotlin","swift",
-    "aws","gcp","azure","docker","kubernetes","terraform","jenkins","ci/cd",
-    "sql","mysql","postgresql","mongodb","redis","elasticsearch","kafka",
-    "git","github","gitlab","jira","agile","scrum","rest","graphql",
-    "typescript","javascript","html","css","tailwind","sass",
-    "machine learning","deep learning","tensorflow","pytorch","pandas","numpy",
-    "microservices","system design","linux","bash","firebase","supabase",
+    "react", "angular", "vue", "next.js", "node", "express", "spring", "spring boot",
+    "java", "python", "c++", "c#", "golang", "rust", "kotlin", "swift",
+    "aws", "gcp", "azure", "docker", "kubernetes", "terraform", "jenkins", "ci/cd",
+    "sql", "mysql", "postgresql", "mongodb", "redis", "elasticsearch", "kafka",
+    "git", "github", "gitlab", "jira", "agile", "scrum", "rest", "graphql",
+    "typescript", "javascript", "html", "css", "tailwind", "sass",
+    "machine learning", "deep learning", "tensorflow", "pytorch", "pandas", "numpy",
+    "microservices", "system design", "linux", "bash", "firebase", "supabase",
   ];
   const matchedSkills = allTechSkills.filter(s => new RegExp("\\b" + s.replace(/[.+]/g, "\\$&") + "\\b", "i").test(text));
 
-  const cloudSkills = ["aws","gcp","azure","docker","kubernetes","terraform"].filter(s => new RegExp("\\b" + s + "\\b","i").test(text));
-  const dbSkills    = ["sql","mysql","postgresql","mongodb","redis","elasticsearch"].filter(s => new RegExp("\\b" + s + "\\b","i").test(text));
-  const devOpsSkills = ["docker","kubernetes","jenkins","ci/cd","terraform","github"].filter(s => new RegExp("\\b" + s + "\\b","i").test(text));
+  const cloudSkills = ["aws", "gcp", "azure", "docker", "kubernetes", "terraform"].filter(s => new RegExp("\\b" + s + "\\b", "i").test(text));
+  const dbSkills = ["sql", "mysql", "postgresql", "mongodb", "redis", "elasticsearch"].filter(s => new RegExp("\\b" + s + "\\b", "i").test(text));
+  const devOpsSkills = ["docker", "kubernetes", "jenkins", "ci/cd", "terraform", "github"].filter(s => new RegExp("\\b" + s + "\\b", "i").test(text));
 
   // ── Education Signals ──────────────────────────────────────────────────────
-  const hasDegree   = /b\.?tech|m\.?tech|b\.?sc|m\.?sc|bachelor|master|b\.?e\.|m\.?e\.|phd|diploma/i.test(text);
-  const hasCGPA     = /cgpa|gpa|\d+\.\d+\s*\/\s*10|\d+\.\d+\s*\/\s*4/i.test(text);
+  const hasDegree = /b\.?tech|m\.?tech|b\.?sc|m\.?sc|bachelor|master|b\.?e\.|m\.?e\.|phd|diploma/i.test(text);
+  const hasCGPA = /cgpa|gpa|\d+\.\d+\s*\/\s*10|\d+\.\d+\s*\/\s*4/i.test(text);
   const hasTopCollege = /iit|nit|bits|vit|manipal|sjce|rvce|anna university|pune university/i.test(text);
-  const cgpaMatch   = text.match(/(\d+\.\d+)\s*\/\s*10/);
-  const cgpaVal     = cgpaMatch ? parseFloat(cgpaMatch[1]) : null;
+  const cgpaMatch = text.match(/(\d+\.\d+)\s*\/\s*10/);
+  const cgpaVal = cgpaMatch ? parseFloat(cgpaMatch[1]) : null;
 
   // ── Achievements ───────────────────────────────────────────────────────────
   const achievementCount = (text.match(/certified|certification|award|winner|rank\s*\d|hackathon|competitive|leetcode|codeforces|topcoder|open.?source|publication|paper/gi) || []).length;
   const hasCompetitiveCoding = /leetcode|codeforces|hackerrank|topcoder|codechef/i.test(text);
-  const hasCertification     = /certified|aws certified|google certified|microsoft certified|coursera|udemy|oracle certified/i.test(text);
+  const hasCertification = /certified|aws certified|google certified|microsoft certified|coursera|udemy|oracle certified/i.test(text);
 
   // ── Document Quality ───────────────────────────────────────────────────────
   const wordCount = text.split(/\s+/).filter(Boolean).length;
@@ -95,8 +95,8 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
 
   // ── Keyword Data from Backend ──────────────────────────────────────────────
   const matchedKwCount = analysis.matchedKeywords?.length || 0;
-  const missingKwCount  = analysis.missingKeywords?.length || 0;
-  const totalKwCount    = Math.max(1, matchedKwCount + missingKwCount);
+  const missingKwCount = analysis.missingKeywords?.length || 0;
+  const totalKwCount = Math.max(1, matchedKwCount + missingKwCount);
 
   // ── CATEGORY SCORES (fully independent, capped at 95) ─────────────────────
   const keywordScore = Math.min(92, Math.max(20,
@@ -105,36 +105,36 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
 
   const formattingScore = Math.min(93, Math.max(40,
     60
-    + (hasEmail    ? 8  : 0)
-    + (hasPhone    ? 6  : 0)
-    + (hasLinkedin ? 8  : 0)
-    + (hasGithub   ? 7  : 0)
-    + (hasPortfolio? 5  : 0)
+    + (hasEmail ? 8 : 0)
+    + (hasPhone ? 6 : 0)
+    + (hasLinkedin ? 8 : 0)
+    + (hasGithub ? 7 : 0)
+    + (hasPortfolio ? 5 : 0)
     + (isOptimalLength ? 5 : wordCount < 200 ? -15 : -5)
   ));
 
   const grammarScore = Math.min(94, Math.max(50,
     72
-    + (isOptimalLength ? 8  : 0)
-    + (hasDegree       ? 5  : 0)
-    + (hasCGPA         ? 4  : 0)
-    + (hasLinkedin     ? 5  : 0)
+    + (isOptimalLength ? 8 : 0)
+    + (hasDegree ? 5 : 0)
+    + (hasCGPA ? 4 : 0)
+    + (hasLinkedin ? 5 : 0)
   ));
 
   const experienceScore = Math.min(90, (() => {
     if (yearsOfExp >= 5) return 88;
     if (yearsOfExp >= 3) return 80;
     if (yearsOfExp >= 1) return 70;
-    if (hasInternship)   return 58;
+    if (hasInternship) return 58;
     return 40;
   })() + (hasMetrics ? 5 : 0));
 
   const projectScore = Math.min(90, Math.max(30,
     35
     + projectCount * 10
-    + (hasMetrics   ? 8  : 0)
-    + (hasLiveLink  ? 7  : 0)
-    + (hasGithub    ? 5  : 0)
+    + (hasMetrics ? 8 : 0)
+    + (hasLiveLink ? 7 : 0)
+    + (hasGithub ? 5 : 0)
   ));
 
   const educationScore = (() => {
@@ -160,49 +160,49 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
     30
     + achievementCount * 8
     + (hasCompetitiveCoding ? 10 : 0)
-    + (hasCertification     ? 8  : 0)
-    + (hasMetrics           ? 5  : 0)
+    + (hasCertification ? 8 : 0)
+    + (hasMetrics ? 5 : 0)
   ));
 
   const contactScore = Math.min(100,
-    (hasEmail  ? 25 : 0)
-    + (hasPhone  ? 25 : 0)
+    (hasEmail ? 25 : 0)
+    + (hasPhone ? 25 : 0)
     + (hasLinkedin ? 25 : 0)
-    + (hasGithub   ? 25 : 0)
+    + (hasGithub ? 25 : 0)
   );
 
   // ── RADAR DATA ─────────────────────────────────────────────────────────────
   const breakdown: Record<string, number> = {
-    "Keywords":    keywordScore,
-    "Formatting":  formattingScore,
-    "Grammar":     grammarScore,
-    "Experience":  experienceScore,
-    "Projects":    projectScore,
-    "Education":   educationScore,
-    "Skills":      Math.round(skillScore),
-    "Achievements":achievementScore,
-    "Contact":     contactScore,
+    "Keywords": keywordScore,
+    "Formatting": formattingScore,
+    "Grammar": grammarScore,
+    "Experience": experienceScore,
+    "Projects": projectScore,
+    "Education": educationScore,
+    "Skills": Math.round(skillScore),
+    "Achievements": achievementScore,
+    "Contact": contactScore,
   };
   const radarData = Object.entries(breakdown).map(([subject, value]) => ({ subject, value, fullMark: 100 }));
 
   // ── GRADE ──────────────────────────────────────────────────────────────────
   const getGrade = (s: number) => {
     if (s >= 89) return { grade: "A+", verdict: "Exceptional", style: "text-emerald-700 bg-emerald-50 border-emerald-200" };
-    if (s >= 79) return { grade: "A",  verdict: "Strong",      style: "text-green-600 bg-green-50 border-green-200" };
-    if (s >= 66) return { grade: "B+", verdict: "Good",        style: "text-blue-600 bg-blue-50 border-blue-200" };
-    if (s >= 50) return { grade: "C",  verdict: "Average",     style: "text-amber-600 bg-amber-50 border-amber-100" };
-    return       { grade: "D",  verdict: "Needs Work",   style: "text-red-600 bg-red-50 border-red-100" };
+    if (s >= 79) return { grade: "A", verdict: "Strong", style: "text-green-600 bg-green-50 border-green-200" };
+    if (s >= 66) return { grade: "B+", verdict: "Good", style: "text-blue-600 bg-blue-50 border-blue-200" };
+    if (s >= 50) return { grade: "C", verdict: "Average", style: "text-amber-600 bg-amber-50 border-amber-100" };
+    return { grade: "D", verdict: "Needs Work", style: "text-red-600 bg-red-50 border-red-100" };
   };
   const evaluation = getGrade(score);
 
   // ── PLACEMENT READINESS (6 segments, each weighted differently) ────────────
   const readiness = {
-    overall:   Math.min(92, Math.round(score * 0.45 + skillScore * 0.30 + projectScore * 0.25)),
-    service:   Math.min(96, Math.round(score * 0.50 + skillScore * 0.25 + educationScore * 0.25 + 5)),
-    startup:   Math.min(90, Math.round(projectScore * 0.40 + skillScore * 0.35 + score * 0.25 - 2)),
-    midProduct:Math.min(86, Math.round(score * 0.35 + skillScore * 0.35 + projectScore * 0.30 - 6)),
-    tier1:     Math.min(80, Math.round(score * 0.30 + skillScore * 0.30 + achievementScore * 0.20 + projectScore * 0.20 - 12)),
-    faang:     Math.min(74, Math.round(score * 0.25 + skillScore * 0.25 + achievementScore * 0.30 + projectScore * 0.20 - 20)),
+    overall: Math.min(92, Math.round(score * 0.45 + skillScore * 0.30 + projectScore * 0.25)),
+    service: Math.min(96, Math.round(score * 0.50 + skillScore * 0.25 + educationScore * 0.25 + 5)),
+    startup: Math.min(90, Math.round(projectScore * 0.40 + skillScore * 0.35 + score * 0.25 - 2)),
+    midProduct: Math.min(86, Math.round(score * 0.35 + skillScore * 0.35 + projectScore * 0.30 - 6)),
+    tier1: Math.min(80, Math.round(score * 0.30 + skillScore * 0.30 + achievementScore * 0.20 + projectScore * 0.20 - 12)),
+    faang: Math.min(74, Math.round(score * 0.25 + skillScore * 0.25 + achievementScore * 0.30 + projectScore * 0.20 - 20)),
   };
 
   // ── COMPANY COMPATIBILITY ──────────────────────────────────────────────────
@@ -279,75 +279,75 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
 
   // ── RECRUITER ASSESSMENT ───────────────────────────────────────────────────
   const atsParsability = Math.min(98, Math.round(80 + contactScore * 0.12 + (hasDegree ? 5 : 0) + (isOptimalLength ? 3 : 0)));
-  const visualQuality  = parseFloat(Math.min(9.8, (7.0 + (hasLinkedin ? 0.5 : 0) + (hasGithub ? 0.4 : 0) + (isOptimalLength ? 0.4 : 0) + (hasPortfolio ? 0.3 : 0))).toFixed(1));
+  const visualQuality = parseFloat(Math.min(9.8, (7.0 + (hasLinkedin ? 0.5 : 0) + (hasGithub ? 0.4 : 0) + (isOptimalLength ? 0.4 : 0) + (hasPortfolio ? 0.3 : 0))).toFixed(1));
   const readabilityScore = Math.min(95, 65 + (wordCount > 250 ? 10 : 0) + (hasDegree ? 5 : 0) + (hasGithub ? 5 : 0) + (hasLinkedin ? 5 : 0) + (isOptimalLength ? 5 : 0));
   const professionalismScore = Math.min(95, 62 + (hasLinkedin ? 12 : 0) + (hasCGPA ? 5 : 0) + (achievementCount > 0 ? 10 : 0) + (hasPortfolio ? 6 : 0));
 
   const recruiterVerdict =
-    score >= 89 ? "Strong Shortlist"   :
-    score >= 79 ? "Likely Interview"   :
-    score >= 65 ? "Borderline"         :
-    score >= 50 ? "Needs Improvement"  : "Reject";
+    score >= 89 ? "Strong Shortlist" :
+      score >= 79 ? "Likely Interview" :
+        score >= 65 ? "Borderline" :
+          score >= 50 ? "Needs Improvement" : "Reject";
 
   const verdictStyle =
     score >= 89 ? "bg-emerald-100 text-emerald-800" :
-    score >= 79 ? "bg-blue-100 text-blue-800"       :
-    score >= 65 ? "bg-amber-100 text-amber-800"     :
-    score >= 50 ? "bg-orange-100 text-orange-800"   : "bg-red-100 text-red-800";
+      score >= 79 ? "bg-blue-100 text-blue-800" :
+        score >= 65 ? "bg-amber-100 text-amber-800" :
+          score >= 50 ? "bg-orange-100 text-orange-800" : "bg-red-100 text-red-800";
 
   // ── SALARY PREDICTION (3-tier, conservative) ──────────────────────────────
   const getSalary = () => {
     if (score >= 89) return { current: "10–14 LPA", potential: "14–20 LPA", stretch: "20–28 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount}+ projects, ${yearsOfExp > 0 ? yearsOfExp + "+ yrs exp" : "fresher/intern profile"}` };
-    if (score >= 79) return { current: "7–10 LPA",  potential: "10–14 LPA", stretch: "14–18 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount}+ projects, ${yearsOfExp > 0 ? yearsOfExp + "+ yrs exp" : "fresher/intern profile"}` };
-    if (score >= 65) return { current: "5–7 LPA",   potential: "7–10 LPA",  stretch: "10–13 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount} projects, ${expLevel} level profile` };
-    if (score >= 50) return { current: "3.5–5 LPA", potential: "5–7 LPA",   stretch: "7–9 LPA",  basis: `${matchedSkills.length} matched skills, limited project depth` };
-    return             { current: "2–3.5 LPA", potential: "3.5–5 LPA", stretch: "5–7 LPA",  basis: "Entry-level profile with foundational skills" };
+    if (score >= 79) return { current: "7–10 LPA", potential: "10–14 LPA", stretch: "14–18 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount}+ projects, ${yearsOfExp > 0 ? yearsOfExp + "+ yrs exp" : "fresher/intern profile"}` };
+    if (score >= 65) return { current: "5–7 LPA", potential: "7–10 LPA", stretch: "10–13 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount} projects, ${expLevel} level profile` };
+    if (score >= 50) return { current: "3.5–5 LPA", potential: "5–7 LPA", stretch: "7–9 LPA", basis: `${matchedSkills.length} matched skills, limited project depth` };
+    return { current: "2–3.5 LPA", potential: "3.5–5 LPA", stretch: "5–7 LPA", basis: "Entry-level profile with foundational skills" };
   };
   const salary = getSalary();
 
   // ── RECRUITER FUNNEL ──────────────────────────────────────────────────────
-  const funnelScreening  = Math.min(92, Math.round(score * 0.88 + 5));
-  const funnelTechnical  = Math.min(80, Math.round(score * 0.72 + skillScore * 0.10));
-  const funnelManager    = Math.min(70, Math.round(score * 0.55 + projectScore * 0.12));
-  const funnelOffer      = Math.min(score - 15, Math.round(score * 0.42 + achievementScore * 0.10 - 5));
+  const funnelScreening = Math.min(92, Math.round(score * 0.88 + 5));
+  const funnelTechnical = Math.min(80, Math.round(score * 0.72 + skillScore * 0.10));
+  const funnelManager = Math.min(70, Math.round(score * 0.55 + projectScore * 0.12));
+  const funnelOffer = Math.min(score - 15, Math.round(score * 0.42 + achievementScore * 0.10 - 5));
 
   const funnel = [
-    { stage: "Resume Screening",  prob: funnelScreening, color: "#3b82f6" },
-    { stage: "Technical Round",   prob: Math.max(20, funnelTechnical), color: "#8b5cf6" },
-    { stage: "Manager Round",     prob: Math.max(15, funnelManager),   color: "#f59e0b" },
+    { stage: "Resume Screening", prob: funnelScreening, color: "#3b82f6" },
+    { stage: "Technical Round", prob: Math.max(20, funnelTechnical), color: "#8b5cf6" },
+    { stage: "Manager Round", prob: Math.max(15, funnelManager), color: "#f59e0b" },
     { stage: "Offer Probability", prob: Math.max(10, Math.min(funnelOffer, score - 15)), color: "#10b981" },
   ];
 
   // ── TOP CANDIDATE BENCHMARK ────────────────────────────────────────────────
   const topBenchmarks = [
-    { metric: "ATS Score",    you: score,          top: 91 },
-    { metric: "Skills",       you: Math.round(skillScore), top: 93 },
-    { metric: "Projects",     you: projectScore,   top: 92 },
-    { metric: "Experience",   you: experienceScore,top: 89 },
-    { metric: "Education",    you: educationScore, top: 90 },
-    { metric: "Achievements", you: achievementScore,top: 87 },
+    { metric: "ATS Score", you: score, top: 91 },
+    { metric: "Skills", you: Math.round(skillScore), top: 93 },
+    { metric: "Projects", you: projectScore, top: 92 },
+    { metric: "Experience", you: experienceScore, top: 89 },
+    { metric: "Education", you: educationScore, top: 90 },
+    { metric: "Achievements", you: achievementScore, top: 87 },
   ];
 
   // ── MISSING SKILLS (3 tiers) ───────────────────────────────────────────────
-  const criticalMissing   = (analysis.missingKeywords || []).slice(0, 3);
-  const importantMissing  = (analysis.missingKeywords || []).slice(3, 7);
+  const criticalMissing = (analysis.missingKeywords || []).slice(0, 3);
+  const importantMissing = (analysis.missingKeywords || []).slice(3, 7);
   const niceToHaveMissing = (analysis.missingKeywords || []).slice(7, 12);
 
   // Fill defaults if backend returns nothing
-  const defaultCritical   = ["Docker", "Kubernetes", "CI/CD"].filter(k => !new RegExp("\\b" + k + "\\b","i").test(text));
-  const defaultImportant  = ["Redis", "Kafka", "Terraform", "System Design"].filter(k => !new RegExp("\\b" + k + "\\b","i").test(text));
-  const defaultNice       = ["GraphQL", "Prometheus", "ELK Stack"].filter(k => !new RegExp("\\b" + k + "\\b","i").test(text));
+  const defaultCritical = ["Docker", "Kubernetes", "CI/CD"].filter(k => !new RegExp("\\b" + k + "\\b", "i").test(text));
+  const defaultImportant = ["Redis", "Kafka", "Terraform", "System Design"].filter(k => !new RegExp("\\b" + k + "\\b", "i").test(text));
+  const defaultNice = ["GraphQL", "Prometheus", "ELK Stack"].filter(k => !new RegExp("\\b" + k + "\\b", "i").test(text));
 
   // ── IMPROVEMENT IMPACT ─────────────────────────────────────────────────────
   const improvements = [
-    { action: "Add GitHub Portfolio",          boost: hasGithub   ? 0 : 2, note: "Verified code samples increase recruiter confidence." },
-    { action: "Add LinkedIn URL",              boost: hasLinkedin ? 0 : 1, note: "Professional presence expected by most parsers." },
+    { action: "Add GitHub Portfolio", boost: hasGithub ? 0 : 2, note: "Verified code samples increase recruiter confidence." },
+    { action: "Add LinkedIn URL", boost: hasLinkedin ? 0 : 1, note: "Professional presence expected by most parsers." },
     { action: `Add ${(criticalMissing[0] || defaultCritical[0] || "Docker")}`, boost: 3, note: "Critical missing skill impacting keyword match score." },
     { action: `Add ${(criticalMissing[1] || defaultCritical[1] || "Kubernetes")}`, boost: 2, note: "Commonly required in modern engineering JDs." },
-    { action: "Quantify Project Metrics",      boost: hasMetrics  ? 0 : 5, note: "e.g. 'Improved query time by 40%'. Highest single improvement." },
-    { action: "Add Live Project Link",         boost: hasLiveLink ? 0 : 3, note: "Demonstrates working, deployable projects." },
-    { action: "Include Certifications",        boost: hasCertification ? 0 : 2, note: "AWS / Google Cloud certs add significant credibility." },
-    { action: "Expand Skills Section",         boost: matchedSkills.length < 10 ? 4 : 1, note: "Resume currently has " + matchedSkills.length + " identified tech skills." },
+    { action: "Quantify Project Metrics", boost: hasMetrics ? 0 : 5, note: "e.g. 'Improved query time by 40%'. Highest single improvement." },
+    { action: "Add Live Project Link", boost: hasLiveLink ? 0 : 3, note: "Demonstrates working, deployable projects." },
+    { action: "Include Certifications", boost: hasCertification ? 0 : 2, note: "AWS / Google Cloud certs add significant credibility." },
+    { action: "Expand Skills Section", boost: matchedSkills.length < 10 ? 4 : 1, note: "Resume currently has " + matchedSkills.length + " identified tech skills." },
   ].filter(i => i.boost > 0).sort((a, b) => b.boost - a.boost).slice(0, 6);
 
   // ── AI CONFIDENCE ──────────────────────────────────────────────────────────
@@ -388,15 +388,15 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
     recruiterVerdict, verdictStyle,
     salary, funnel,
     topBenchmarks,
-    criticalMissing:   criticalMissing.length   > 0 ? criticalMissing   : defaultCritical,
-    importantMissing:  importantMissing.length  > 0 ? importantMissing  : defaultImportant,
+    criticalMissing: criticalMissing.length > 0 ? criticalMissing : defaultCritical,
+    importantMissing: importantMissing.length > 0 ? importantMissing : defaultImportant,
     niceToHaveMissing: niceToHaveMissing.length > 0 ? niceToHaveMissing : defaultNice,
     improvements,
     aiConfidence,
     verdict,
     matchedKwCount, missingKwCount,
-    matchedKeywords: analysis.matchedKeywords?.length ? analysis.matchedKeywords : ["Java","Spring Boot","SQL","REST API","Git","JavaScript","HTML","CSS"],
-    missingKeywords:  analysis.missingKeywords?.length ? analysis.missingKeywords : ["Docker","Kubernetes","AWS","CI/CD","Redis","Kafka","Terraform"],
+    matchedKeywords: analysis.matchedKeywords?.length ? analysis.matchedKeywords : ["Java", "Spring Boot", "SQL", "REST API", "Git", "JavaScript", "HTML", "CSS"],
+    missingKeywords: analysis.missingKeywords?.length ? analysis.missingKeywords : ["Docker", "Kubernetes", "AWS", "CI/CD", "Redis", "Kafka", "Terraform"],
     expLevel, yearsOfExp, hasGithub, hasLinkedin, matchedSkills, projectCount,
   };
 }
@@ -407,7 +407,7 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
 export default function AtsAnalysisDashboard() {
   const router = useRouter();
   const [analysis, setAnalysis] = useState<AtsAnalysisData | null>(null);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Try sessionStorage first (set by the ATS page button), then fall back to localStorage
@@ -455,9 +455,9 @@ export default function AtsAnalysisDashboard() {
 
   const downloadJson = () => {
     const blob = new Blob([JSON.stringify(analysis, null, 2)], { type: "application/json" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
     a.download = "ats-analysis-report.json";
     a.click();
     URL.revokeObjectURL(url);
@@ -566,12 +566,12 @@ export default function AtsAnalysisDashboard() {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { label: "Overall",                value: s.readiness.overall   },
-                { label: "Service Companies",      value: s.readiness.service   },
-                { label: "Startups",               value: s.readiness.startup   },
-                { label: "Mid-size Product",       value: s.readiness.midProduct},
-                { label: "Tier-1 Product",         value: s.readiness.tier1     },
-                { label: "FAANG Readiness",        value: s.readiness.faang     },
+                { label: "Overall", value: s.readiness.overall },
+                { label: "Service Companies", value: s.readiness.service },
+                { label: "Startups", value: s.readiness.startup },
+                { label: "Mid-size Product", value: s.readiness.midProduct },
+                { label: "Tier-1 Product", value: s.readiness.tier1 },
+                { label: "FAANG Readiness", value: s.readiness.faang },
               ].map((item, i) => (
                 <div key={i} className="space-y-1">
                   <div className="flex justify-between text-[11px] font-bold text-muted-foreground uppercase">
@@ -593,11 +593,11 @@ export default function AtsAnalysisDashboard() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {[
-                { label: "Initial Resume Scan",  value: "6–8 seconds" },
-                { label: "ATS Parse Success",    value: `${s.atsParsability}%` },
-                { label: "Visual Quality",        value: `${s.visualQuality}/10` },
-                { label: "Formatting Quality",   value: `${s.readabilityScore}%` },
-                { label: "Professionalism",       value: `${s.professionalismScore}%` },
+                { label: "Initial Resume Scan", value: "6–8 seconds" },
+                { label: "ATS Parse Success", value: `${s.atsParsability}%` },
+                { label: "Visual Quality", value: `${s.visualQuality}/10` },
+                { label: "Formatting Quality", value: `${s.readabilityScore}%` },
+                { label: "Professionalism", value: `${s.professionalismScore}%` },
               ].map((row, i) => (
                 <div key={i} className="flex justify-between border-b pb-2 last:border-0">
                   <span className="text-muted-foreground">{row.label}</span>
@@ -623,9 +623,9 @@ export default function AtsAnalysisDashboard() {
             <CardContent className="space-y-3">
               <div className="grid grid-cols-3 gap-3 pt-1">
                 {[
-                  { label: "Current",    value: s.salary.current,   color: "text-slate-300" },
-                  { label: "Potential",  value: s.salary.potential,  color: "text-blue-400"  },
-                  { label: "Stretch",    value: s.salary.stretch,    color: "text-emerald-400" },
+                  { label: "Current", value: s.salary.current, color: "text-slate-300" },
+                  { label: "Potential", value: s.salary.potential, color: "text-blue-400" },
+                  { label: "Stretch", value: s.salary.stretch, color: "text-emerald-400" },
                 ].map((tier, i) => (
                   <div key={i} className="text-center p-2 rounded-lg bg-slate-800/60">
                     <span className="text-[9px] text-slate-500 uppercase font-bold block">{tier.label}</span>
@@ -713,11 +713,11 @@ export default function AtsAnalysisDashboard() {
                   <BarChart data={s.topBenchmarks} barCategoryGap="25%">
                     <XAxis dataKey="metric" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                    <Tooltip formatter={(value: number, name: string) => [`${value}%`, name === "you" ? "Your Score" : "Top Candidates"]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
-                    <Bar dataKey="you"  name="you"  radius={[4,4,0,0]}>
+                    <Tooltip formatter={(value: any, name: any) => [`${value}%`, name === "you" ? "Your Score" : "Top Candidates"]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                    <Bar dataKey="you" name="you" radius={[4, 4, 0, 0]}>
                       {s.topBenchmarks.map((_, i) => <Cell key={i} fill="var(--primary)" fillOpacity={0.8} />)}
                     </Bar>
-                    <Bar dataKey="top" name="top" radius={[4,4,0,0]}>
+                    <Bar dataKey="top" name="top" radius={[4, 4, 0, 0]}>
                       {s.topBenchmarks.map((_, i) => <Cell key={i} fill="#e2e8f0" />)}
                     </Bar>
                   </BarChart>
@@ -823,8 +823,8 @@ export default function AtsAnalysisDashboard() {
                   </div>
                   <Badge className={cn("text-[9px] font-bold border-none",
                     imp.boost >= 4 ? "bg-red-50 text-red-700" :
-                    imp.boost >= 2 ? "bg-amber-50 text-amber-700" :
-                    "bg-slate-100 text-slate-600"
+                      imp.boost >= 2 ? "bg-amber-50 text-amber-700" :
+                        "bg-slate-100 text-slate-600"
                   )}>
                     {imp.boost >= 4 ? "High" : imp.boost >= 2 ? "Medium" : "Low"} Impact
                   </Badge>
@@ -858,8 +858,8 @@ export default function AtsAnalysisDashboard() {
                         <td className="py-3 px-4 text-center">
                           <span className={cn("font-black text-sm",
                             comp.score >= 90 ? "text-green-600" :
-                            comp.score >= 80 ? "text-blue-600" :
-                            comp.score >= 70 ? "text-amber-600" : "text-red-600"
+                              comp.score >= 80 ? "text-blue-600" :
+                                comp.score >= 70 ? "text-amber-600" : "text-red-600"
                           )}>{comp.score}%</span>
                         </td>
                         <td className="py-3 px-4 text-muted-foreground leading-normal">{comp.reason}</td>

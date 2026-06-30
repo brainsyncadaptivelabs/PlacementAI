@@ -13,6 +13,8 @@ import java.util.List;
 
 public class AtsDetailsDto {
 
+    private Long id;
+
     private Integer atsScore;
 
     private List<String> strengths;
@@ -21,7 +23,13 @@ public class AtsDetailsDto {
 
     private List<String> missingKeywords;
 
+    private List<String> matchedKeywords;
+
+    private List<String> suggestions;
+
     private String bestRole;
+
+    private String extractedText;
 
     private LocalDateTime createdAt;
 }

@@ -100,13 +100,17 @@ public class ResumeServiceImpl implements ResumeService {
                     .strengths(atsResponse.getStrengths())
                     .weaknesses(atsResponse.getWeaknesses())
                     .missingKeywords(atsResponse.getMissingKeywords())
+                    .matchedKeywords(atsResponse.getMatchedKeywords())
+                    .suggestions(atsResponse.getSuggestions())
                     .bestRole(atsResponse.getBestRole())
+                    .extractedText(extractedText)
                     .resume(resume)
                     .user(user)
                     .createdAt(LocalDateTime.now())
                     .build();
 
             atsAnalysisRepository.save(atsAnalysis);
+
             log.info("ATS analysis saved to database");
 
             return atsResponse;

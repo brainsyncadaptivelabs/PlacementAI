@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -21,102 +25,76 @@ public class AtsDetailsServiceImpl
     private final UserRepository userRepository;
 
     @Override
-    public AtsDetailsDto getDetails(
-            Long id
-    ) {
+    @Transactional(readOnly = true)
+    public AtsDetailsDto getDetails(Long id) {
 
         Authentication authentication =
                 SecurityContextHolder
                         .getContext()
                         .getAuthentication();
 
-        String email =
-                authentication.getName();
+        String email = authentication.getName();
 
         User user =
                 userRepository
                         .findByEmail(email)
                         .orElseThrow(
-                                () -> new RuntimeException(
-                                        "User not found"
-                                )
+                                () -> new RuntimeException("User not found")
                         );
 
         AtsAnalysis analysis =
                 atsAnalysisRepository
-                        .findByIdAndUser(
-                                id,
-                                user
-                        )
+                        .findByIdAndUser(id, user)
                         .orElseThrow(
-                                () -> new RuntimeException(
-                                        "ATS report not found"
+                                () -> new com.aiplacement.backend.exception.ResourceNotFoundException(
+                                        "ATS report not found for id: " + id
                                 )
                         );
 
         return AtsDetailsDto.builder()
-
-                .atsScore(
-                        analysis.getAtsScore()
-                )
-
-                .strengths(
-                        analysis.getStrengths()
-                )
-
-                .weaknesses(
-                        analysis.getWeaknesses()
-                )
-
-                .missingKeywords(
-                        analysis.getMissingKeywords()
-                )
-
-                .bestRole(
-                        analysis.getBestRole()
-                )
-
-                .createdAt(
-                        analysis.getCreatedAt()
-                )
-
+                .id(analysis.getId())
+                .atsScore(analysis.getAtsScore())
+                .strengths(safe(analysis.getStrengths()))
+                .weaknesses(safe(analysis.getWeaknesses()))
+                .missingKeywords(safe(analysis.getMissingKeywords()))
+                .matchedKeywords(safe(analysis.getMatchedKeywords()))
+                .suggestions(safe(analysis.getSuggestions()))
+                .bestRole(analysis.getBestRole())
+                .extractedText(analysis.getExtractedText() != null ? analysis.getExtractedText() : "")
+                .createdAt(analysis.getCreatedAt())
                 .build();
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
-    public void deleteAnalysis(
-            Long id
-    ) {
+    @Transactional
+    public void deleteAnalysis(Long id) {
+
         Authentication authentication =
                 SecurityContextHolder
                         .getContext()
                         .getAuthentication();
 
-        String email =
-                authentication.getName();
+        String email = authentication.getName();
 
         User user =
                 userRepository
                         .findByEmail(email)
                         .orElseThrow(
-                                () -> new RuntimeException(
-                                        "User not found"
-                                )
+                                () -> new RuntimeException("User not found")
                         );
 
         AtsAnalysis analysis =
                 atsAnalysisRepository
-                        .findByIdAndUser(
-                                id,
-                                user
-                        )
+                        .findByIdAndUser(id, user)
                         .orElseThrow(
-                                () -> new RuntimeException(
-                                        "ATS report not found"
-                                )
+                                () -> new RuntimeException("ATS report not found")
                         );
 
         atsAnalysisRepository.delete(analysis);
+    }
+
+    /** Null-safe wrapper — returns empty list instead of null for @ElementCollection fields */
+    private static List<String> safe(List<String> list) {
+        return list != null ? list : Collections.emptyList();
     }
 }
