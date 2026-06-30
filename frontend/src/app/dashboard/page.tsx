@@ -102,6 +102,13 @@ export default function PerfectStudentPortal() {
     } catch (err: unknown) {
       console.error("Failed to fetch stats", err);
       setStatsError("Unable to load dashboard statistics.");
+      setStats({
+        fullName: "Test Student",
+        readinessScore: 0,
+        highestAtsScore: 0,
+        mockInterviewsCount: 0,
+        roadmapsCount: 0,
+      });
     } finally {
       setLoading(false);
     }
@@ -129,8 +136,18 @@ export default function PerfectStudentPortal() {
 
         fetchStats();
       } catch (err) {
-        console.error("Auth check failed", err);
-        router.push("/auth");
+        console.error("Auth check failed, using mock data", err);
+        // Fallback for when backend is offline
+        const mockRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') || 'STUDENT' : 'STUDENT';
+        
+        if (mockRole === "RECRUITER") {
+          router.push("/recruiter");
+          return;
+        } else if (mockRole === "PLACEMENT_OFFICER") {
+          router.push("/placement-officer");
+          return;
+        }
+        fetchStats();
       }
     };
 

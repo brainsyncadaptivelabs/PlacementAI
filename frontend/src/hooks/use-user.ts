@@ -41,7 +41,9 @@ export function useUser() {
       const response = await api.get('/user/profile');
       setUser(response.data);
     } catch (err: unknown) {
-      console.error('Failed to fetch user profile', err);
+      // Do not fallback to mock user. If profile fetch fails, user is not authenticated or backend is down.
+      // This enforces true role-based authentication from the backend.
+      setUser(null);
       setError(getErrorMessage(err, 'Failed to load profile'));
     } finally {
       setLoading(false);

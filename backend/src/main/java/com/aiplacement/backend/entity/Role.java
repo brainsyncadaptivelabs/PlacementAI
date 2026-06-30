@@ -6,5 +6,7 @@ public enum Role {
 
     RECRUITER,
 
+    PLACEMENT_OFFICER,
+
     ADMIN
-}
+}

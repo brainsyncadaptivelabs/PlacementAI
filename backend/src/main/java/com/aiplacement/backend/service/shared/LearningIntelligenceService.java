@@ -1,0 +1,14 @@
+package com.aiplacement.backend.service.shared;
+
+import com.aiplacement.backend.entity.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class LearningIntelligenceService {
+    public int calculateLearningProgress(User user) {
+        if (user.getUserStats() != null) return Math.min(100, user.getUserStats().getActivityStreakDays() * 5);
+        return 10;
+    }
+}

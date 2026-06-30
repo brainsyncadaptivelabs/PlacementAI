@@ -79,6 +79,13 @@ public class SecurityConfig {
                         )
 
                         .requestMatchers(
+                                "/api/v1/placement-officer/**"
+                        ).hasAnyRole(
+                                "PLACEMENT_OFFICER",
+                                "ADMIN"
+                        )
+
+                        .requestMatchers(
                                 "/api/v1/student/**"
                         ).hasRole("STUDENT")
 

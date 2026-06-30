@@ -45,11 +45,19 @@ const handleResponseError = async (response: Response, url?: string) => {
 
 const api = {
   get: async (url: string, config?: any) => {
-    const response = await fetch(`${BASE_URL}${url}`, {
-      method: "GET",
-      headers: getHeaders(url),
-      ...config
-    });
+    let response;
+    try {
+      response = await fetch(`${BASE_URL}${url}`, {
+        method: "GET",
+        headers: getHeaders(url),
+        ...config
+      });
+    } catch (err: any) {
+      if (err.message === "Failed to fetch") {
+        throw new Error("Backend unavailable");
+      }
+      throw err;
+    }
     if (!response.ok) await handleResponseError(response, url);
     const data = await response.json();
     return { data };
@@ -62,12 +70,20 @@ const api = {
       delete headers["Content-Type"];
     }
 
-    const response = await fetch(`${BASE_URL}${url}`, {
-      method: "POST",
-      ...config,
-      headers,
-      body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
-    });
+    let response;
+    try {
+      response = await fetch(`${BASE_URL}${url}`, {
+        method: "POST",
+        ...config,
+        headers,
+        body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
+      });
+    } catch (err: any) {
+      if (err.message === "Failed to fetch") {
+        throw new Error("Backend unavailable");
+      }
+      throw err;
+    }
     if (!response.ok) await handleResponseError(response, url);
     // Only parse json if there's content
     const resText = await response.text();
@@ -87,12 +103,20 @@ const api = {
       delete headers["Content-Type"];
     }
 
-    const response = await fetch(`${BASE_URL}${url}`, {
-      method: "PUT",
-      ...config,
-      headers,
-      body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
-    });
+    let response;
+    try {
+      response = await fetch(`${BASE_URL}${url}`, {
+        method: "PUT",
+        ...config,
+        headers,
+        body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
+      });
+    } catch (err: any) {
+      if (err.message === "Failed to fetch") {
+        throw new Error("Backend unavailable");
+      }
+      throw err;
+    }
     if (!response.ok) await handleResponseError(response, url);
     // Only parse json if there's content
     const resText = await response.text();
@@ -105,11 +129,19 @@ const api = {
     return { data: resData };
   },
   delete: async (url: string, config?: any) => {
-    const response = await fetch(`${BASE_URL}${url}`, {
-      method: "DELETE",
-      headers: getHeaders(url),
-      ...config
-    });
+    let response;
+    try {
+      response = await fetch(`${BASE_URL}${url}`, {
+        method: "DELETE",
+        headers: getHeaders(url),
+        ...config
+      });
+    } catch (err: any) {
+      if (err.message === "Failed to fetch") {
+        throw new Error("Backend unavailable");
+      }
+      throw err;
+    }
     if (!response.ok) await handleResponseError(response, url);
     const resData = await response.json().catch(() => ({}));
     return { data: resData };
