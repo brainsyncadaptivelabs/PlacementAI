@@ -8,10 +8,15 @@ import com.aiplacement.backend.entity.interview.InterviewQuestion;
 import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.interview.MockInterviewRepository;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.aiplacement.backend.entity.interview.InterviewStatus;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +33,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     private final OllamaClient ollamaClient;
     private final MockInterviewRepository mockInterviewRepository;
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public MockInterviewResponseDto generateMockInterview(MockInterviewRequestDto request) {
@@ -160,6 +166,137 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                     .tips(Arrays.asList("Focus on fundamental concepts.", "State your solution clearly."))
                     .build();
         }
+    }
+
+    @Override
+    @Transactional
+    public AdaptiveStartResponseDto startAdaptiveInterview(MockInterviewRequestDto request) {
+        log.info("Starting adaptive mock interview");
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        MockInterview interview = MockInterview.builder()
+                .role(request.getRole())
+                .experienceLevel(request.getExperienceLevel())
+                .company(request.getCompany())
+                .topic(request.getTopic())
+                .status(InterviewStatus.IN_PROGRESS)
+                .currentQuestionIndex(0)
+                .user(user)
+                .build();
+        
+        // Build topics list based on the request
+        List<String> topicsLeft = new ArrayList<>();
+        if (request.getTopic() != null && !request.getTopic().isEmpty()) {
+            topicsLeft.add(request.getTopic());
+        } else {
+            topicsLeft.addAll(Arrays.asList("Introduction", "Technical Depth", "Problem Solving", "Cultural Fit"));
+        }
+        
+        Map<String, Object> state = new HashMap<>();
+        state.put("topicsCovered", new ArrayList<String>());
+        state.put("topicsLeft", topicsLeft);
+        state.put("targetQuestionCount", 5); // Goal is 5 questions
+        
+        try {
+            interview.setCurrentStateJson(objectMapper.writeValueAsString(state));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize initial state", e);
+            interview.setCurrentStateJson("{}");
+        }
+
+        mockInterviewRepository.save(interview);
+
+        String prompt = "You are an AI interviewer conducting an adaptive mock interview for a " + request.getRole() + " position. " +
+                "Generate the VERY FIRST introductory question. It should be a broad question about their background or the role. " +
+                "Respond with ONLY a JSON object: {\"nextQuestion\": \"...\"}";
+
+        String firstQuestion = "Tell me about yourself and your background.";
+        try {
+            com.fasterxml.jackson.databind.JsonNode response = ollamaClient.getJsonResponse(prompt, 0.7, e -> { throw new RuntimeException(e); });
+            if (response != null && response.has("nextQuestion")) {
+                firstQuestion = response.get("nextQuestion").asText();
+            }
+        } catch (Exception e) {
+            log.error("Failed to generate first adaptive question, using fallback.", e);
+        }
+
+        // We temporarily store the first question in transcript so we remember it on the next turn.
+        interview.setTranscript("Question 1: " + firstQuestion + "\n");
+        mockInterviewRepository.save(interview);
+
+        return AdaptiveStartResponseDto.builder()
+                .interviewId(interview.getId())
+                .firstQuestion(firstQuestion)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public AdaptiveAnswerResponseDto processAdaptiveAnswer(Long interviewId, String answer) {
+        log.info("Processing adaptive answer for interview id: {}", interviewId);
+        MockInterview interview = mockInterviewRepository.findById(interviewId)
+                .orElseThrow(() -> new RuntimeException("Interview not found"));
+
+        if (interview.getStatus() == InterviewStatus.COMPLETED) {
+            return AdaptiveAnswerResponseDto.builder()
+                    .isFinished(true)
+                    .nextQuestion("Interview is already completed.")
+                    .build();
+        }
+
+        // Update transcript with user's answer
+        String transcript = interview.getTranscript() != null ? interview.getTranscript() : "";
+        transcript += "Candidate Answer: " + answer + "\n";
+        
+        int currentIndex = interview.getCurrentQuestionIndex() + 1;
+        interview.setCurrentQuestionIndex(currentIndex);
+
+        Map<String, Object> state;
+        try {
+            state = objectMapper.readValue(interview.getCurrentStateJson(), Map.class);
+        } catch (Exception e) {
+            state = new HashMap<>();
+        }
+
+        int targetCount = state.containsKey("targetQuestionCount") ? (Integer) state.get("targetQuestionCount") : 5;
+        
+        if (currentIndex >= targetCount) {
+            interview.setStatus(InterviewStatus.COMPLETED);
+            interview.setCompletedAt(LocalDateTime.now());
+            interview.setTranscript(transcript);
+            mockInterviewRepository.save(interview);
+            return AdaptiveAnswerResponseDto.builder()
+                    .isFinished(true)
+                    .nextQuestion(null)
+                    .build();
+        }
+
+        String prompt = "You are an AI interviewer. Evaluate the candidate's last answer and generate the next question.\n" +
+                "Context Transcript so far:\n" + truncate(transcript, 1500) + "\n\n" +
+                "The candidate is applying for: " + interview.getRole() + "\n" +
+                "Current question number: " + (currentIndex + 1) + " out of " + targetCount + ".\n" +
+                "Generate a follow-up or move to a new topic. Return ONLY a JSON object: {\"nextQuestion\": \"...\"}";
+
+        String nextQuestion = "Could you elaborate more on your experience?";
+        try {
+            com.fasterxml.jackson.databind.JsonNode response = ollamaClient.getJsonResponse(prompt, 0.7, e -> { throw new RuntimeException(e); });
+            if (response != null && response.has("nextQuestion")) {
+                nextQuestion = response.get("nextQuestion").asText();
+            }
+        } catch (Exception e) {
+            log.error("Failed to generate next adaptive question, using fallback.", e);
+        }
+
+        transcript += "Question " + (currentIndex + 1) + ": " + nextQuestion + "\n";
+        interview.setTranscript(transcript);
+        mockInterviewRepository.save(interview);
+
+        return AdaptiveAnswerResponseDto.builder()
+                .isFinished(false)
+                .nextQuestion(nextQuestion)
+                .build();
     }
 
     @Override

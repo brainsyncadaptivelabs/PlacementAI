@@ -23,6 +23,22 @@ public class MockInterviewController {
         return mockInterviewService.generateMockInterview(request);
     }
 
+    @PostMapping("/adaptive/start")
+    public AdaptiveStartResponseDto startAdaptiveInterview(
+            @RequestBody MockInterviewRequestDto request
+    ) {
+        log.info("Starting adaptive mock interview for role: {}", request.getRole());
+        return mockInterviewService.startAdaptiveInterview(request);
+    }
+
+    @PostMapping("/adaptive/answer")
+    public AdaptiveAnswerResponseDto submitAdaptiveAnswer(
+            @RequestBody AdaptiveAnswerRequestDto request
+    ) {
+        log.info("Submitting adaptive answer for interview id: {}", request.getInterviewId());
+        return mockInterviewService.processAdaptiveAnswer(request.getInterviewId(), request.getAnswer());
+    }
+
     @PostMapping("/save")
     public MockInterviewDto saveInterviewResults(@RequestBody MockInterviewDto interviewDto) {
         log.info("Saving interview results for role: {}", interviewDto.getRole());

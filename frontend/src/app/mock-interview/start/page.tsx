@@ -17,6 +17,8 @@ export default function MockInterviewStartPage() {
     difficulty?: string;
     interviewType?: string;
     topic?: string;
+    isAdaptive?: boolean;
+    adaptiveInterviewId?: number;
   }) => {
     setInterviewData(data);
     router.push("/mock-interview/session");

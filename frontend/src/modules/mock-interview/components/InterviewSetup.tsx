@@ -199,7 +199,7 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
           />
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-3">
         <Button className="w-full font-bold" onClick={handleGenerate} disabled={!role || loading}>
           {loading ? (
             <>
@@ -209,9 +209,43 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Generate Mock Interview
+              Generate Standard Interview (5 Questions)
             </>
           )}
+        </Button>
+        <Button 
+          variant="outline" 
+          className="w-full font-bold border-primary text-primary hover:bg-primary/10" 
+          onClick={async () => {
+            if (!role) return;
+            setLoading(true);
+            try {
+              const request = {
+                role, experienceLevel, company: company || undefined, difficulty, interviewType,
+                jobDescription: jobDescription || undefined, resumeText: resumeText || undefined, topic: focusAreas || undefined
+              };
+              const response = await interviewService.startAdaptiveInterview(request);
+              onGenerated({
+                role, experienceLevel, company, difficulty, interviewType, topic: focusAreas,
+                questions: [response.firstQuestion], // Seed with first question
+                isAdaptive: true,
+                adaptiveInterviewId: response.interviewId
+              });
+            } catch (error) {
+              console.error(error);
+              alert("Failed to start adaptive interview.");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={!role || loading}
+        >
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Sparkles className="mr-2 h-4 w-4" />
+          )}
+          Start Adaptive AI Interview (Dynamic)
         </Button>
       </CardFooter>
     </Card>

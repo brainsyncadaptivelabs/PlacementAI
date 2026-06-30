@@ -8,6 +8,8 @@ interface InterviewState {
   difficulty?: string;
   interviewType?: string;
   topic?: string;
+  isAdaptive?: boolean;
+  adaptiveInterviewId?: number;
   setInterviewData: (data: { 
     role: string; 
     experienceLevel: string; 
@@ -16,6 +18,8 @@ interface InterviewState {
     difficulty?: string;
     interviewType?: string;
     topic?: string;
+    isAdaptive?: boolean;
+    adaptiveInterviewId?: number;
   }) => void;
   reset: () => void;
 }
@@ -28,7 +32,9 @@ export const useInterviewStore = create<InterviewState>((set) => ({
   difficulty: '',
   interviewType: '',
   topic: '',
+  isAdaptive: false,
+  adaptiveInterviewId: undefined,
   setInterviewData: (data) => set(data),
-  reset: () => set({ role: '', experienceLevel: '', questions: [], company: '', difficulty: '', interviewType: '', topic: '' }),
+  reset: () => set({ role: '', experienceLevel: '', questions: [], company: '', difficulty: '', interviewType: '', topic: '', isAdaptive: false, adaptiveInterviewId: undefined }),
 }));
 

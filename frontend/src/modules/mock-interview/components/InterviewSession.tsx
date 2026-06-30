@@ -239,7 +239,7 @@ export const InterviewSession = ({
   };
 
   // Skip, Previous, Next Navigation handlers
-  const handleNext = () => {
+  const handleNext = async () => {
     if (isRecording) stopLocalRecording();
 
     // Cache the typed/composed answer
@@ -248,16 +248,44 @@ export const InterviewSession = ({
       [currentQuestionIndex]: typedAnswer.trim()
     }));
 
-    const nextIndex = currentQuestionIndex + 1;
-    if (nextIndex < interviewData.questions.length) {
-      setCurrentQuestionIndex(nextIndex);
-      const nextQuestion = interviewData.questions[nextIndex];
-      setLastMessage(nextQuestion);
-      setTypedAnswer(answers[nextIndex] || "");
-      speakLocal(nextQuestion);
+    if (interviewData.isAdaptive && interviewData.adaptiveInterviewId) {
+      try {
+        const response = await interviewService.answerAdaptiveInterview(
+          interviewData.adaptiveInterviewId,
+          typedAnswer.trim()
+        );
+        if (response.isFinished) {
+          setCallStatus(CallStatus.FINISHED);
+          speakLocal("Mock interview completed successfully. Please generate your feedback report.");
+        } else if (response.nextQuestion) {
+          const nextIndex = currentQuestionIndex + 1;
+          
+          // Add question to global store so handleGenerateFeedback sees it
+          useInterviewStore.getState().setInterviewData({
+            ...interviewData,
+            questions: [...interviewData.questions, response.nextQuestion]
+          });
+          
+          setCurrentQuestionIndex(nextIndex);
+          setLastMessage(response.nextQuestion);
+          setTypedAnswer("");
+          speakLocal(response.nextQuestion);
+        }
+      } catch (err) {
+        console.error("Adaptive answer failed:", err);
+      }
     } else {
-      setCallStatus(CallStatus.FINISHED);
-      speakLocal("Mock interview completed successfully. Please generate your feedback report.");
+      const nextIndex = currentQuestionIndex + 1;
+      if (nextIndex < interviewData.questions.length) {
+        setCurrentQuestionIndex(nextIndex);
+        const nextQuestion = interviewData.questions[nextIndex];
+        setLastMessage(nextQuestion);
+        setTypedAnswer(answers[nextIndex] || "");
+        speakLocal(nextQuestion);
+      } else {
+        setCallStatus(CallStatus.FINISHED);
+        speakLocal("Mock interview completed successfully. Please generate your feedback report.");
+      }
     }
   };
 
@@ -404,6 +432,12 @@ export const InterviewSession = ({
     setCallStatus(CallStatus.CONNECTING);
     try {
       await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      if (interviewData.isAdaptive) {
+        console.log("Adaptive Mode active. Bypassing ElevenLabs autonomous agent to use managed Local Fallback.");
+        startLocalFallback();
+        return;
+      }
 
       const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
       if (!agentId) {

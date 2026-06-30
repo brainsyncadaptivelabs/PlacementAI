@@ -26,6 +26,14 @@ public class MockInterview {
     @Column(columnDefinition = "TEXT")
     private String transcript;
 
+    @Enumerated(EnumType.STRING)
+    private InterviewStatus status;
+
+    @Column(columnDefinition = "TEXT")
+    private String currentStateJson;
+
+    private Integer currentQuestionIndex;
+
     private LocalDateTime createdAt;
     private LocalDateTime completedAt;
 

@@ -7,6 +7,16 @@ export const interviewService = {
     return response.data;
   },
 
+  startAdaptiveInterview: async (request: MockInterviewRequest): Promise<{ interviewId: number, firstQuestion: string }> => {
+    const response = await api.post('/interview/adaptive/start', request);
+    return response.data;
+  },
+
+  answerAdaptiveInterview: async (interviewId: number, answer: string): Promise<{ isFinished: boolean, nextQuestion: string | null }> => {
+    const response = await api.post('/interview/adaptive/answer', { interviewId, answer });
+    return response.data;
+  },
+
   saveResults: async (interview: MockInterview): Promise<MockInterview> => {
     const response = await api.post('/interview/save', interview);
     return response.data;
