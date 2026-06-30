@@ -109,6 +109,32 @@ public class ResumeServiceImpl implements ResumeService {
                     .createdAt(LocalDateTime.now())
                     .build();
 
+            // Enforce maximum history limit of 10 ATS reports
+            java.util.List<AtsAnalysis> userAnalyses = atsAnalysisRepository.findByUserOrderByCreatedAtDesc(user);
+            if (userAnalyses.size() >= 10) {
+                log.info("User has {} analyses, enforcing limit of 10", userAnalyses.size());
+                for (int i = 9; i < userAnalyses.size(); i++) {
+                    AtsAnalysis oldest = userAnalyses.get(i);
+                    log.info("Deleting oldest ATS analysis report ID: {}", oldest.getId());
+                    if (oldest.getResume() != null) {
+                        String filePath = oldest.getResume().getFilePath();
+                        if (filePath != null && !filePath.startsWith("http://") && !filePath.startsWith("https://")) {
+                            try {
+                                java.io.File fileToDelete = new java.io.File(filePath);
+                                if (fileToDelete.exists()) {
+                                    fileToDelete.delete();
+                                    log.info("Deleted local resume file: {}", filePath);
+                                }
+                            } catch (Exception ex) {
+                                log.warn("Failed to delete local resume file: {}", filePath, ex);
+                            }
+                        }
+                    }
+                    atsAnalysisRepository.delete(oldest);
+                }
+                atsAnalysisRepository.flush();
+            }
+
             atsAnalysisRepository.save(atsAnalysis);
 
             log.info("ATS analysis saved to database");

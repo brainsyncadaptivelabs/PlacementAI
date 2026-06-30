@@ -22,6 +22,8 @@ type AtsHistoryItem = {
   id: number;
   bestRole: string;
   atsScore: number;
+  resumeName: string;
+  grade: string;
   createdAt: string;
 };
 
@@ -40,7 +42,7 @@ export default function ResumeHistoryPage() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const response = await api.get("/history/ats");
+        const response = await api.get("/ats/history");
         setHistory(response.data);
       } catch (err) {
         console.error("Failed to fetch history", err);
@@ -129,8 +131,10 @@ export default function ResumeHistoryPage() {
          <Table>
             <TableHeader className="bg-muted">
                <TableRow className="hover:bg-transparent">
-                  <TableHead className="font-bold text-foreground">Best Role Suggestion</TableHead>
+                  <TableHead className="font-bold text-foreground">Resume Name</TableHead>
+                  <TableHead className="font-bold text-foreground">Best Role</TableHead>
                   <TableHead className="font-bold text-foreground text-center">ATS Score</TableHead>
+                  <TableHead className="font-bold text-foreground text-center">Grade</TableHead>
                   <TableHead className="font-bold text-foreground">Upload Date</TableHead>
                   <TableHead className="font-bold text-foreground text-right">Actions</TableHead>
                </TableRow>
@@ -138,21 +142,32 @@ export default function ResumeHistoryPage() {
             <TableBody>
                {history.length === 0 ? (
                  <TableRow>
-                   <TableCell colSpan={4} className="text-center py-12 text-muted-foreground font-medium">
-                     No analysis history found. Start by uploading a resume!
+                   <TableCell colSpan={6} className="text-center py-12 text-muted-foreground font-medium">
+                     <p className="mb-4">No ATS reports found.</p>
+                     <Link href="/dashboard/ats">
+                       <Button className="bg-primary hover:bg-primary/90">Analyze Your Resume</Button>
+                     </Link>
                    </TableCell>
                  </TableRow>
                ) : (
                  history.map((resume) => (
                     <TableRow key={resume.id} className="hover:bg-muted/50 transition-colors">
+                       <TableCell className="font-medium text-foreground max-w-[200px] truncate">
+                          {resume.resumeName || "Unknown Resume"}
+                       </TableCell>
                        <TableCell>
                           <span className="text-sm font-semibold text-muted-foreground bg-muted px-2 py-1 rounded">
-                             {resume.bestRole}
+                             {resume.bestRole || "N/A"}
                           </span>
                        </TableCell>
                        <TableCell className="text-center">
-                          <Badge className={`${resume.atsScore > 70 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} hover:bg-opacity-100 border-none px-3 py-1 font-bold`}>
+                          <Badge className={`${resume.atsScore >= 70 ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'} hover:bg-opacity-100 border-none px-3 py-1 font-bold`}>
                              {resume.atsScore}%
+                          </Badge>
+                       </TableCell>
+                       <TableCell className="text-center">
+                          <Badge className={`${resume.atsScore >= 89 ? 'bg-emerald-100 text-emerald-800' : resume.atsScore >= 79 ? 'bg-green-100 text-green-800' : resume.atsScore >= 66 ? 'bg-blue-100 text-blue-800' : resume.atsScore >= 50 ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'} hover:bg-opacity-100 border-none px-3 py-1 font-bold`}>
+                             {resume.grade || "D"}
                           </Badge>
                        </TableCell>
                        <TableCell className="text-muted-foreground text-sm">

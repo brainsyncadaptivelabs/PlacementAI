@@ -56,7 +56,7 @@ public class AtsAnalysis {
     @Column(columnDefinition = "LONGTEXT")
     private String extractedText;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "resume_id")
     private Resume resume;
 

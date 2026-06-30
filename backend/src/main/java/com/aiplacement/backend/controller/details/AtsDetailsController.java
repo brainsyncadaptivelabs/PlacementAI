@@ -12,6 +12,12 @@ import org.springframework.web.bind.annotation.*;
 public class AtsDetailsController {
 
     private final AtsDetailsService atsDetailsService;
+    private final com.aiplacement.backend.service.history.AtsHistoryService atsHistoryService;
+
+    @GetMapping("/history")
+    public java.util.List<com.aiplacement.backend.dto.history.AtsHistoryDto> getHistory() {
+        return atsHistoryService.getHistory();
+    }
 
     @GetMapping("/{id}")
 

@@ -18,5 +18,9 @@ public class AtsHistoryDto {
 
     private String bestRole;
 
+    private String resumeName;
+
+    private String grade;
+
     private LocalDateTime createdAt;
 }
