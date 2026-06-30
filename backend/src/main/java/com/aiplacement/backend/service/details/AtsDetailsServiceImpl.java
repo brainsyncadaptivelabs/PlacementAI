@@ -95,6 +95,10 @@ public class AtsDetailsServiceImpl
 
     /** Null-safe wrapper — returns empty list instead of null for @ElementCollection fields */
     private static List<String> safe(List<String> list) {
-        return list != null ? list : Collections.emptyList();
+        if (list != null) {
+            list.size(); // Force load lazy collection proxy within transaction
+            return list;
+        }
+        return Collections.emptyList();
     }
 }
