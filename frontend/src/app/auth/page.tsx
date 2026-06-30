@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { YearDropdown } from "@/components/ui/year-dropdown";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle, ArrowRight } from "lucide-react";
+import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, ChevronRight, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
@@ -375,72 +375,99 @@ export default function AuthPage() {
   return (
     <div className="auth-root-container selection:bg-primary/10">
       <style>{`
-        /* Reset and Root CSS */
         .auth-root-container {
-          width: 100%;
+          width: 100vw;
           min-height: 100vh;
           display: flex;
-          background: #f9fafb;
+          align-items: center;
+          justify-content: center;
+          background: #f8fafc;
           font-family: inherit;
           position: relative;
+          overflow: hidden;
+        }
+
+        .auth-root-container::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+          background-size: 32px 32px;
+          opacity: 0.5;
+          pointer-events: none;
         }
 
         .auth-main-container {
           width: 100%;
+          max-width: 1600px;
+          height: 100vh;
           display: flex;
           flex-direction: row;
-          height: 100vh;
+          position: relative;
+        }
+
+        .auth-main-container::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 38%;
+          height: 100%;
+          background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+          z-index: 1;
         }
 
         /* Left Branding Panel */
         .auth-left-panel {
-          width: 45%;
-          height: 100vh;
-          background: linear-gradient(145deg, #1e1b4b, #312e81, #4338ca);
-          padding: 32px 48px;
+          width: 38%;
+          padding: 40px;
           display: flex;
           flex-direction: column;
           color: white;
           position: relative;
-          overflow: hidden;
           box-sizing: border-box;
-        }
-
-        /* Subtle background effects for left panel */
-        .auth-left-panel::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; bottom: 0;
-          background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
-                      radial-gradient(circle at bottom left, rgba(79, 70, 229, 0.15) 0%, transparent 40%);
-          pointer-events: none;
+          z-index: 10;
+          justify-content: flex-start;
         }
 
         .left-panel-logo-container {
           display: flex;
           align-items: center;
           gap: 12px;
-          margin-bottom: 32px;
+          margin-bottom: 16px;
           z-index: 10;
         }
 
+        .left-panel-logo-container .logo-box {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: white;
+          color: #4338ca;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: 800;
+          font-size: 18px;
+        }
+
         .left-panel-headline {
-          font-size: 32px;
+          font-size: 38px;
           font-weight: 700;
           line-height: 1.25;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
           z-index: 10;
         }
         
         .left-panel-headline span {
-          color: #a5b4fc;
+          color: #d8b4fe;
         }
 
         .left-panel-description {
           font-size: 15px;
           color: #cbd5e1;
           line-height: 1.5;
-          margin-bottom: 24px;
+          margin-bottom: 16px;
           max-width: 420px;
           z-index: 10;
         }
@@ -448,26 +475,29 @@ export default function AuthPage() {
         .features-list {
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          gap: 12px;
           z-index: 10;
         }
 
         .feature-item-new {
           display: flex;
-          align-items: flex-start;
+          align-items: center;
           gap: 16px;
+          background: rgba(49, 46, 129, 0.6);
+          border-radius: 12px;
+          padding: 16px;
         }
 
         .feature-icon-container {
           width: 40px;
           height: 40px;
-          border-radius: 10px;
-          background: rgba(99, 102, 241, 0.2);
+          border-radius: 12px;
+          background: rgba(99, 102, 241, 0.4);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          color: #a5b4fc;
+          color: white;
         }
 
         .feature-text-new h3 {
@@ -479,58 +509,34 @@ export default function AuthPage() {
 
         .feature-text-new p {
           font-size: 13px;
-          color: #94a3b8;
+          color: #cbd5e1;
           margin: 0;
           line-height: 1.4;
         }
 
-        .testimonial-box {
-          margin-top: auto;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 16px;
-          padding: 24px;
-          z-index: 10;
-        }
 
-        .testimonial-text {
-          font-size: 14px;
-          color: #cbd5e1;
-          line-height: 1.5;
-          margin-bottom: 16px;
-          font-style: italic;
-          position: relative;
-        }
-
-        .testimonial-author {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-
-        .author-info h4 {
-          font-size: 13px;
-          font-weight: 600;
-          margin: 0;
-          color: white;
-        }
-
-        .author-info p {
-          font-size: 11px;
-          color: #94a3b8;
-          margin: 0;
-        }
 
         .auth-right-panel {
-          width: 55%;
-          height: 100vh;
+          width: 62%;
+          height: calc(100vh - 32px);
+          margin: 16px 16px 16px 0;
           display: flex;
           flex-direction: column;
           align-items: center;
           position: relative;
-          padding: 40px;
+          background: transparent;
+          border-radius: 32px;
+          padding: 16px 24px;
           box-sizing: border-box;
           overflow-y: auto;
+          z-index: 10;
+          box-shadow: none;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        
+        .auth-right-panel::-webkit-scrollbar {
+          display: none;
         }
 
         .auth-top-nav {
@@ -550,140 +556,124 @@ export default function AuthPage() {
 
         .auth-card {
           width: 100%;
-          max-width: 480px;
+          max-width: 540px;
           background: white;
+          border: 1px solid #e2e8f0;
           border-radius: 24px;
-          padding: 24px 32px;
-          box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
-          border: 1px solid #f1f5f9;
+          padding: 32px 40px;
           box-sizing: border-box;
-          margin: auto;
+          margin: 0 auto;
+          box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05);
         }
 
         .auth-card-header {
-          text-align: center;
-          margin-bottom: 20px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin-bottom: 8px;
+        }
+        
+        .auth-header-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 12px;
+          background: #f3e8ff;
+          color: #7e22ce;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 4px;
+        }
+        
+        .auth-header-icon svg {
+          width: 20px;
+          height: 20px;
         }
 
         .auth-card-title {
-          font-size: 28px;
-          font-weight: 700;
-          color: #1e293b;
-          margin-bottom: 8px;
+          font-size: 20px;
+          font-weight: 800;
+          color: #0f172a;
+          margin-bottom: 2px;
         }
 
         .auth-card-subtitle {
-          font-size: 14px;
+          font-size: 15px;
           color: #64748b;
+          text-align: center;
         }
 
         /* Form Controls */
         .input-group {
-          margin-bottom: 14px;
+          margin-bottom: 4px;
           width: 100%;
-        }
-
-        .input-label-row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 8px;
         }
 
         .input-label-row label {
           font-size: 13px;
-          font-weight: 600;
-          color: #475569;
+          font-weight: 700;
+          color: #334155;
+          margin-bottom: 4px;
+          display: block;
         }
 
         .forgot-password-link {
           font-size: 12px;
+          color: #a855f7;
           font-weight: 600;
-          color: #4f46e5;
           text-decoration: none;
         }
 
         .input-wrapper {
           position: relative;
-          width: 100%;
         }
 
-        .input-wrapper svg {
+        .input-wrapper > svg:first-child {
           position: absolute;
           left: 16px;
           top: 50%;
           transform: translateY(-50%);
-          color: #94a3b8;
           width: 18px;
           height: 18px;
-        }
-        
-        .input-wrapper .password-toggle {
-          left: auto;
-          right: 16px;
-          cursor: pointer;
-          background: none;
-          border: none;
-          display: flex;
-          align-items: center;
-          padding: 0;
+          color: #818cf8;
+          z-index: 2;
         }
 
         input.auth-input-new {
           width: 100%;
-          height: 42px;
-          padding: 0 44px;
+          height: 36px;
+          padding: 0 36px 0 38px;
           border: 1px solid #e2e8f0 !important;
-          border-radius: 12px !important;
-          font-size: 14px;
+          border-radius: 8px !important;
+          font-size: 13px;
           color: #0f172a !important;
           background-color: #ffffff !important;
           transition: all 0.2s;
           box-sizing: border-box;
         }
-
-        .dark input.auth-input-new {
-          border: 1px solid #334155 !important;
-          color: #f8fafc !important;
-          background-color: #1e293b !important;
-        }
-
-        input.auth-input-new::placeholder {
-          color: #64748b !important;
-          opacity: 1 !important;
-        }
-
-        .dark input.auth-input-new::placeholder {
-          color: #94a3b8 !important;
-        }
-
-        input.auth-input-new:-webkit-autofill,
-        input.auth-input-new:-webkit-autofill:hover, 
-        input.auth-input-new:-webkit-autofill:focus, 
-        input.auth-input-new:-webkit-autofill:active {
-          -webkit-box-shadow: 0 0 0 30px white inset !important;
-          -webkit-text-fill-color: #0f172a !important;
-        }
-
-        .dark input.auth-input-new:-webkit-autofill,
-        .dark input.auth-input-new:-webkit-autofill:hover, 
-        .dark input.auth-input-new:-webkit-autofill:focus, 
-        .dark input.auth-input-new:-webkit-autofill:active {
-          -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
-          -webkit-text-fill-color: #f8fafc !important;
-        }
-
-        .auth-input-new:focus {
+        
+        input.auth-input-new:focus {
+          border-color: #a855f7 !important;
+          box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
           outline: none;
-          border-color: #6366f1;
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
         }
+        
+        input.auth-input-new:hover {
+          border-color: #cbd5e1 !important;
+        }
+
 
         .remember-row {
           display: flex;
           align-items: center;
-          gap: 8px;
+          justify-content: space-between;
           margin-bottom: 16px;
+        }
+
+        .remember-checkbox-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
 
         .remember-checkbox {
@@ -719,40 +709,44 @@ export default function AuthPage() {
 
         .auth-btn-primary {
           width: 100%;
-          height: 42px;
-          background: #6366f1;
+          height: 40px;
+          border-radius: 8px;
+          background: linear-gradient(to right, #4F46E5, #9333EA, #EC4899);
           color: white;
+          font-weight: 700;
+          font-size: 14px;
           border: none;
-          border-radius: 12px;
-          font-size: 15px;
-          font-weight: 600;
           cursor: pointer;
-          transition: all 0.2s;
           display: flex;
           align-items: center;
           justify-content: center;
+          gap: 6px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          margin-top: 4px;
         }
-
+        
         .auth-btn-primary:hover {
-          background: #4f46e5;
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.5);
         }
 
         .divider-container {
           display: flex;
           align-items: center;
-          margin: 16px 0;
+          margin: 24px 0;
         }
-
+        
         .divider-line {
           flex: 1;
           height: 1px;
           background: #e2e8f0;
         }
-
+        
         .divider-text {
+          padding: 0 16px;
           font-size: 12px;
           color: #94a3b8;
-          padding: 0 16px;
+          font-weight: 500;
         }
 
         .social-buttons {
@@ -763,7 +757,7 @@ export default function AuthPage() {
 
         .social-btn {
           width: 100%;
-          height: 38px;
+          height: 44px;
           background: white;
           border: 1px solid #e2e8f0;
           border-radius: 12px;
@@ -780,6 +774,7 @@ export default function AuthPage() {
 
         .social-btn:hover {
           background: #f8fafc;
+          border-color: #cbd5e1;
         }
 
         .card-footer {
@@ -859,27 +854,25 @@ export default function AuthPage() {
         
         /* Signup Specific */
         .signup-card {
-          max-width: 800px;
+          max-width: 100%;
         }
         
-        .signup-form-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 16px;
-        }
-        
-        .col-span-2 {
-          grid-column: span 2;
+        .auth-role-tabs {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 8px;
+          height: 36px;
         }
         
         .auth-role-btn {
           flex: 1;
-          padding: 12px;
-          border: 1px solid #e2e8f0 !important;
-          border-radius: 12px;
-          background: white !important;
-          color: var(--foreground, #0f172a) !important;
-          font-weight: 700 !important;
+          height: 100%;
+          padding: 0 12px;
+          border: 1px solid #e2e8f0;
+          border-radius: 16px;
+          background: white;
+          color: #64748b;
+          font-weight: 600;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -887,11 +880,26 @@ export default function AuthPage() {
           gap: 8px;
           transition: all 0.2s;
         }
+
+        .auth-role-btn:hover {
+          background: #f8fafc;
+          color: #334155;
+        }
         
         .auth-role-btn.active {
-          border-color: var(--primary, #4f46e5) !important;
-          background: rgba(99, 102, 241, 0.1) !important;
-          color: var(--primary, #4f46e5) !important;
+          border-color: #a855f7 !important;
+          background: #faf5ff !important;
+          color: #7e22ce !important;
+        }
+
+        .signup-form-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 4px 8px;
+        }
+        
+        .col-span-2 {
+          grid-column: span 2;
         }
       `}</style>
 
@@ -921,15 +929,22 @@ export default function AuthPage() {
         
         {/* Left Branding Panel */}
         <div className="auth-left-panel">
-          <div className="left-panel-logo-container">
-            <div className="w-8 h-8 rounded bg-indigo-500 flex items-center justify-center">
-              <Briefcase className="text-white w-5 h-5" />
+          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className="absolute top-10 right-2 w-48 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer" style={{ zIndex: 20 }} />
+          
+          <div className="left-panel-logo-container w-full" style={{ alignItems: 'flex-start' }}>
+            <div className="flex gap-3 relative z-10">
+              <div className="logo-box mt-1">
+                <Briefcase className="w-5 h-5" />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <span className="font-bold text-xl tracking-wide text-white">
+                  PlacementAI
+                </span>
+                <div className="flex items-center gap-2 bg-indigo-900/40 w-fit px-3 py-1 rounded-full border border-white/10">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-200">✨ AI-Powered Career Success</span>
+                </div>
+              </div>
             </div>
-            <span className="font-bold text-xl tracking-wide">PlacementAI</span>
-          </div>
-
-          <div className="flex items-center gap-2 bg-white/10 w-fit px-3 py-1.5 rounded-full mb-6 border border-white/10">
-            <span className="text-xs font-semibold text-white">✨ AI-Powered Career Success</span>
           </div>
 
           <h1 className="left-panel-headline">
@@ -938,7 +953,7 @@ export default function AuthPage() {
           </h1>
 
           <p className="left-panel-description">
-            Get AI-driven insights, practice interviews, build your resume, and land your dream job.
+            Get AI-driven insights, practice interviews,<br/>build your resume, and land your dream job.
           </p>
 
           <div className="features-list">
@@ -982,21 +997,18 @@ export default function AuthPage() {
               </div>
             </div>
           </div>
+          
 
-          <div className="mt-auto relative" style={{ height: '250px' }}>
-             {/* Robot Image Placeholder */}
-             <div className="absolute bottom-0 right-0 left-0 flex justify-center translate-y-8">
-               <div className="w-64 h-64 bg-indigo-800/30 rounded-full flex items-center justify-center border border-indigo-400/20 backdrop-blur-sm relative overflow-hidden">
-                 <div className="text-indigo-200/50 flex flex-col items-center">
-                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/><line x1="8" y1="16" x2="8" y2="16"/><line x1="16" y1="16" x2="16" y2="16"/></svg>
-                 </div>
-               </div>
-             </div>
-          </div>
         </div>
 
         {/* Right Auth Panel */}
-        <div className="auth-right-panel relative">
+        <div 
+          className="auth-right-panel relative"
+          style={{ 
+            justifyContent: 'center',
+            paddingBottom: activeTab === 'signup' && selectedRole === 'STUDENT' ? 0 : undefined 
+          }}
+        >
           
           {activeTab === 'login' ? (
             <div className="auth-card">
@@ -1016,7 +1028,7 @@ export default function AuthPage() {
                       id="email"
                       type="email" 
                       className="auth-input-new" 
-                      placeholder="Enter your email"
+                      placeholder=""
                       value={loginData.email}
                       onChange={(e) => setLoginData({...loginData, email: e.target.value})}
                     />
@@ -1026,7 +1038,6 @@ export default function AuthPage() {
                 <div className="input-group">
                   <div className="input-label-row">
                     <label htmlFor="password">Password</label>
-                    <Link href="/auth/forgot-password" className="forgot-password-link">Forgot password?</Link>
                   </div>
                   <div className="input-wrapper">
                     <Lock />
@@ -1034,28 +1045,31 @@ export default function AuthPage() {
                       id="password"
                       type={showPassword ? "text" : "password"}
                       className="auth-input-new" 
-                      placeholder="Enter your password"
+                      placeholder=""
                       value={loginData.password}
                       onChange={(e) => setLoginData({...loginData, password: e.target.value})}
                     />
                     <button 
                       type="button" 
-                      className="password-toggle"
+                      className="absolute right-0 top-0 h-full px-3 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors z-10"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? <EyeOff /> : <Eye />}
+                      {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
                     </button>
                   </div>
                 </div>
 
                 <div className="remember-row">
-                  <div 
-                    className={`remember-checkbox ${!rememberMe ? 'unchecked' : ''}`}
-                    onClick={() => setRememberMe(!rememberMe)}
-                  >
-                    {rememberMe && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                  <div className="remember-checkbox-group">
+                    <div 
+                      className={`remember-checkbox ${!rememberMe ? 'unchecked' : ''}`}
+                      onClick={() => setRememberMe(!rememberMe)}
+                    >
+                      {rememberMe && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                    </div>
+                    <span className="remember-text" onClick={() => setRememberMe(!rememberMe)}>Remember me</span>
                   </div>
-                  <span className="remember-text" onClick={() => setRememberMe(!rememberMe)}>Remember me</span>
+                  <Link href="/auth/forgot-password" className="forgot-password-link">Forgot password?</Link>
                 </div>
 
                 <button type="submit" className="auth-btn-primary" disabled={loading}>
@@ -1104,32 +1118,34 @@ export default function AuthPage() {
               </div>
             </div>
           ) : (
-            <div className="auth-card signup-card relative">
-              <div className="text-center mb-8 relative">
-                <h2 className="text-4xl font-bold text-slate-900 dark:text-white mb-2 flex items-center justify-center gap-2">
-                  <span className="text-slate-400">✦</span>
-                  Create your <span className="text-indigo-600">account</span>
-                  <span className="text-indigo-400">✦</span>
-                </h2>
-                <p className="text-slate-500 font-medium">Join <span className="text-indigo-600 font-bold">PlacementAI</span> and start your success journey</p>
+            <div className="auth-card signup-card relative w-full" style={{ marginTop: selectedRole === 'STUDENT' ? 'auto' : undefined }}>
+              <div className="auth-card-header">
+                <div className="auth-header-icon">
+                  <svg viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </div>
+                <h2 className="auth-card-title">Create Your Account</h2>
+                <p className="auth-card-subtitle">Join PlacementAI today and take the first step towards your dream career! 🚀</p>
               </div>
-              <form onSubmit={handleSignup}>
-                <div className="flex gap-4 mb-8">
+              
+              <form onSubmit={handleSignup} className="flex flex-col">
+                <div className="auth-role-tabs">
                   <button
                     type="button"
                     onClick={() => { setSelectedRole("STUDENT"); setError(""); }}
-                    className={`auth-role-btn flex-1 py-3 px-6 rounded-xl border flex items-center justify-center gap-2 font-semibold transition-all ${selectedRole === "STUDENT" ? "border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                    className={`auth-role-btn ${selectedRole === "STUDENT" ? "active" : "inactive"}`}
                   >
-                    <Book className="w-4 h-4" />
-                    <span>Student</span>
+                    <GraduationCap className="w-5 h-5" />
+                    Student
                   </button>
                   <button
                     type="button"
                     onClick={() => { setSelectedRole("RECRUITER"); setError(""); }}
-                    className={`auth-role-btn flex-1 py-3 px-6 rounded-xl border flex items-center justify-center gap-2 font-semibold transition-all ${selectedRole === "RECRUITER" ? "border-indigo-600 bg-indigo-50/50 text-indigo-700 shadow-sm" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                    className={`auth-role-btn ${selectedRole === "RECRUITER" ? "active" : "inactive"}`}
                   >
-                    <Briefcase className="w-4 h-4" />
-                    <span>Recruiter</span>
+                    <Briefcase className="w-5 h-5" />
+                    Recruiter
                   </button>
                 </div>
 
@@ -1138,35 +1154,36 @@ export default function AuthPage() {
                     <div className="input-label-row"><label>Full Name</label></div>
                     <div className="input-wrapper">
                       <User />
-                      <input className="auth-input-new" placeholder="John Doe" value={signupData.fullName} onChange={(e) => setSignupData({...signupData, fullName: e.target.value})} />
+                      <input className="auth-input-new" placeholder="" value={signupData.fullName} onChange={(e) => setSignupData({...signupData, fullName: e.target.value})} />
                     </div>
                   </div>
                   
                   <div className="input-group">
                     <div className="input-label-row"><label>Email</label></div>
-                    <div className="input-wrapper" style={{ paddingRight: '8px' }}>
+                    <div className="input-wrapper">
                       <Mail />
-                      <input type="email" className="auth-input-new flex-1" placeholder="name@example.com" value={signupData.email} onChange={(e) => setSignupData({...signupData, email: e.target.value})} disabled={isEmailVerified || showOtpInput} />
-                      {!isEmailVerified && (
-                        <button type="button" onClick={handleRequestOtp} disabled={sendingOtp || showOtpInput} className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 disabled:opacity-50 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 shrink-0">
-                          {sendingOtp ? 'Sending...' : (showOtpInput ? 'Sent' : 'Verify')}
+                      <input type="email" className="auth-input-new" placeholder="" value={signupData.email} onChange={(e) => { setSignupData({...signupData, email: e.target.value}); setIsEmailVerified(false); }} disabled={isEmailVerified || sendingOtp} />
+                      {!isEmailVerified && signupData.email.length > 5 && (
+                        <button type="button" onClick={handleRequestOtp} disabled={sendingOtp} className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-105 text-white px-4 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1 transition-all shadow-md">
+                          {sendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : <><Shield className="w-3 h-3"/> Verify</>}
                         </button>
                       )}
                       {isEmailVerified && (
-                        <span className="text-sm font-semibold text-green-600 shrink-0 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100 flex items-center gap-1">
-                          <CheckCircle className="w-4 h-4" /> Verified
-                        </span>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
+                          <CheckCircle className="w-5 h-5" />
+                        </div>
                       )}
                     </div>
                   </div>
                   
                   {showOtpInput && !isEmailVerified && (
-                    <div className="input-group col-span-2 mt-[-8px]">
-                      <div className="input-wrapper" style={{ paddingRight: '8px', background: 'rgba(99, 102, 241, 0.05)', borderColor: 'rgba(99, 102, 241, 0.2)' }}>
-                        <Lock className="text-indigo-500" />
-                        <input type="text" className="auth-input-new flex-1 tracking-[0.2em] font-mono text-lg bg-transparent" placeholder="Enter 6-digit OTP" value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0,6))} />
-                        <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otp.length !== 6} className="text-sm font-semibold text-white disabled:opacity-50 bg-indigo-600 hover:bg-indigo-700 px-4 py-1.5 rounded-lg shrink-0 transition-colors">
-                          {verifyingOtp ? 'Verifying...' : 'Submit'}
+                    <div className="input-group col-span-2">
+                      <div className="input-label-row"><label>Enter OTP</label></div>
+                      <div className="flex gap-2 relative input-wrapper">
+                        <Lock />
+                        <input type="text" className="auth-input-new" placeholder="" value={otp} onChange={(e) => setOtp(e.target.value)} maxLength={6} />
+                        <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || otp.length < 6} className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-100 hover:bg-green-200 text-green-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors">
+                          {verifyingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Confirm"}
                         </button>
                       </div>
                     </div>
@@ -1176,10 +1193,8 @@ export default function AuthPage() {
                     <div className="input-label-row"><label>Password</label></div>
                     <div className="input-wrapper">
                       <Lock />
-                      <input type={showPassword ? "text" : "password"} className="auth-input-new" placeholder="••••••••" value={signupData.password} onChange={(e) => setSignupData({...signupData, password: e.target.value})} />
-                      <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? <EyeOff /> : <Eye />}
-                      </button>
+                      <input type={showPassword ? "text" : "password"} className="auth-input-new" placeholder="" value={signupData.password} onChange={(e) => setSignupData({...signupData, password: e.target.value})} />
+                      <button type="button" className="absolute right-0 top-0 h-full px-3 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors z-10" onClick={() => setShowPassword(!showPassword)}>{showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}</button>
                     </div>
                   </div>
 
@@ -1187,25 +1202,23 @@ export default function AuthPage() {
                     <div className="input-label-row"><label>Confirm Password</label></div>
                     <div className="input-wrapper">
                       <Lock />
-                      <input type={showConfirmPassword ? "text" : "password"} className="auth-input-new" placeholder="••••••••" value={signupData.confirmPassword} onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})} />
-                      <button type="button" className="password-toggle" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
-                        {showConfirmPassword ? <EyeOff /> : <Eye />}
-                      </button>
+                      <input type={showConfirmPassword ? "text" : "password"} className="auth-input-new" placeholder="" value={signupData.confirmPassword} onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})} />
+                      <button type="button" className="absolute right-0 top-0 h-full px-3 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-colors z-10" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>{showConfirmPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}</button>
                     </div>
                   </div>
 
-                  <div className="input-group col-span-2">
-                    <div className="input-label-row"><label>Phone Number *</label></div>
+                  <div className="input-group">
+                    <div className="input-label-row"><label>Phone Number</label></div>
                     <div className="input-wrapper">
                       <Phone />
-                      <input type="tel" className="auth-input-new" placeholder="+1234567890" value={signupData.phone} onChange={(e) => setSignupData({...signupData, phone: e.target.value})} />
+                      <input type="tel" className="auth-input-new" placeholder="" value={signupData.phone} onChange={(e) => setSignupData({...signupData, phone: e.target.value})} />
                     </div>
                   </div>
 
                   {selectedRole === "STUDENT" ? (
                     <>
                       <div className="input-group">
-                          <div className="input-label-row"><label>Grad. Year *</label></div>
+                          <div className="input-label-row"><label>Graduation Year</label></div>
                           <div className="input-wrapper">
                             <Book />
                             <input 
@@ -1218,7 +1231,7 @@ export default function AuthPage() {
                                 if (val.length > 4) val = val.slice(0, 4);
                                 setSignupData({...signupData, graduationYear: val ? parseInt(val) : ("" as any)});
                               }}
-                              placeholder="e.g. 2026"
+                              placeholder=""
                               style={{ outline: 'none', boxShadow: 'none' }}
                             />
                             <datalist id="authGradYears">
@@ -1229,18 +1242,18 @@ export default function AuthPage() {
                           </div>
                       </div>
                       <div className="input-group">
-                        <div className="input-label-row"><label>College *</label></div>
+                        <div className="input-label-row"><label>College</label></div>
                         <div className="input-wrapper">
                           <GraduationCap />
-                          <input className="auth-input-new" placeholder="Stanford University" value={signupData.collegeName} onChange={(e) => setSignupData({...signupData, collegeName: e.target.value})} />
+                          <input className="auth-input-new" placeholder="" value={signupData.collegeName} onChange={(e) => setSignupData({...signupData, collegeName: e.target.value})} />
                         </div>
                       </div>
 
                       <div className="input-group">
-                        <div className="input-label-row"><label>Branch *</label></div>
+                        <div className="input-label-row"><label>Branch</label></div>
                         <div className="input-wrapper">
                           <Book />
-                          <input className="auth-input-new" placeholder="Computer Science" value={signupData.branch} onChange={(e) => setSignupData({...signupData, branch: e.target.value})} />
+                          <input className="auth-input-new" placeholder="" value={signupData.branch} onChange={(e) => setSignupData({...signupData, branch: e.target.value})} />
                         </div>
                       </div>
 
@@ -1248,71 +1261,72 @@ export default function AuthPage() {
                         <div className="input-label-row"><label>Current Semester</label></div>
                         <div className="input-wrapper">
                           <Book />
-                          <input type="number" min="1" max="8" className="auth-input-new" placeholder="1" value={signupData.currentSemester} onChange={(e) => setSignupData({...signupData, currentSemester: parseInt(e.target.value) || 1})} />
+                          <input 
+                            type="text"
+                            list="authSemesters"
+                            className="auth-input-new bg-transparent" 
+                            value={signupData.currentSemester || ""} 
+                            onChange={(e) => {
+                              let val = e.target.value.replace(/\D/g, "");
+                              if (val.length > 0) {
+                                let num = parseInt(val.charAt(0));
+                                if (num > 8) num = 8;
+                                if (num < 1) num = 1;
+                                val = num.toString();
+                              }
+                              setSignupData({...signupData, currentSemester: val ? parseInt(val) : ("" as any)});
+                            }}
+                            placeholder=""
+                            style={{ outline: 'none', boxShadow: 'none' }}
+                          />
+                          <datalist id="authSemesters">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(sem => (
+                              <option key={sem} value={sem}>{sem}</option>
+                            ))}
+                          </datalist>
                         </div>
                       </div>
 
                       <div className="input-group">
-                        <div className="input-label-row"><label>Preferred Role *</label></div>
+                        <div className="input-label-row"><label>Preferred Role</label></div>
                         <div className="input-wrapper">
                           <Briefcase />
-                          <input className="auth-input-new" placeholder="Software Engineer" value={signupData.preferredRole} onChange={(e) => setSignupData({...signupData, preferredRole: e.target.value})} />
+                          <input className="auth-input-new" placeholder="" value={signupData.preferredRole} onChange={(e) => setSignupData({...signupData, preferredRole: e.target.value})} />
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="input-group">
-                        <div className="input-label-row"><label>Company *</label></div>
+                        <div className="input-label-row"><label>Company</label></div>
                         <div className="input-wrapper">
                           <Briefcase />
-                          <input className="auth-input-new" placeholder="e.g. Stripe" value={signupData.companyName} onChange={(e) => setSignupData({...signupData, companyName: e.target.value})} />
+                          <input className="auth-input-new" placeholder="" value={signupData.companyName} onChange={(e) => setSignupData({...signupData, companyName: e.target.value})} />
                         </div>
                       </div>
                       <div className="input-group">
                         <div className="input-label-row"><label>Designation</label></div>
                         <div className="input-wrapper">
                           <Briefcase />
-                          <input className="auth-input-new" placeholder="e.g. Talent Lead" value={signupData.designation} onChange={(e) => setSignupData({...signupData, designation: e.target.value})} />
+                          <input className="auth-input-new" placeholder="" value={signupData.designation} onChange={(e) => setSignupData({...signupData, designation: e.target.value})} />
                         </div>
                       </div>
                     </>
                   )}
                 </div>
 
-                <button type="submit" className="auth-btn-primary mt-8 mb-6 bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 shadow-md flex items-center justify-center gap-2" disabled={loading}>
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Create Account <ArrowRight className="w-4 h-4" /></>}
-                </button>
+                <div className="mt-6">
+                  <button type="submit" className="auth-btn-primary" disabled={loading}>
+                    {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Create Account <ArrowRight className="w-5 h-5 ml-1" /></>}
+                  </button>
+                  
+                  <div className="auth-top-nav font-medium" style={{ marginTop: '12px', marginBottom: '8px' }}>
+                    Already have an account? <button onClick={() => { setActiveTab('login'); setError(''); }} className="text-purple-600 hover:text-purple-700">Sign in</button>
+                  </div>
+                  
+
+                </div>
               </form>
-              
-              <div className="auth-top-nav text-center mb-8">
-                <span className="text-slate-500 font-medium">Already have an account? </span>
-                <button onClick={() => { setActiveTab('login'); setError(''); }} className="text-indigo-600 font-semibold hover:text-indigo-700">Sign in</button>
-              </div>
-              
-              <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center"><Shield className="w-4 h-4 text-emerald-600"/></div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">100% Secure</div>
-                    <div className="text-[10px] text-slate-500">Your data is safe</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg></div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">AI-Powered</div>
-                    <div className="text-[10px] text-slate-500">Smarter guidance</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200">Career Growth</div>
-                    <div className="text-[10px] text-slate-500">Better opportunities</div>
-                  </div>
-                </div>
-              </div>
             </div>
           )}
 

@@ -26,9 +26,6 @@ export default function ProfileDashboard() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const shareCardRef = useRef<HTMLDivElement>(null);
 
-  const [editingPlatform, setEditingPlatform] = useState<'linkedin' | 'leetcode' | 'github' | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [isSavingLink, setIsSavingLink] = useState(false);
 
   const getExportDateStr = () => {
     return new Date().toLocaleDateString("en-GB", {
@@ -141,34 +138,6 @@ export default function ProfileDashboard() {
       toast.error("Unable to share your report. Please try again.");
     } finally {
       setIsSharing(false);
-    }
-  };
-
-  const handleSaveLink = async (platform: 'linkedin' | 'leetcode' | 'github') => {
-    setIsSavingLink(true);
-    try {
-      const updatedData = {
-        fullName: user?.fullName || "",
-        profileImage: user?.profileImage || "",
-        collegeName: user?.collegeName || "",
-        branch: user?.branch || "",
-        graduationYear: user?.graduationYear || null,
-        dateOfBirth: user?.dateOfBirth || null,
-        skills: user?.skills || "",
-        linkedinUrl: platform === 'linkedin' ? editValue : (user?.linkedinUrl || ""),
-        githubUrl: platform === 'github' ? editValue : (user?.githubUrl || ""),
-        leetcodeUrl: platform === 'leetcode' ? editValue : (user?.leetcodeUrl || ""),
-      };
-
-      await api.put("/user/profile", updatedData);
-      await mutate();
-      toast.success(`${platform.charAt(0).toUpperCase() + platform.slice(1)} link updated!`);
-      setEditingPlatform(null);
-    } catch (error) {
-      console.error("Failed to update link", error);
-      toast.error(`Failed to update ${platform} link`);
-    } finally {
-      setIsSavingLink(false);
     }
   };
 
@@ -297,171 +266,42 @@ export default function ProfileDashboard() {
                  <p className="text-xs font-semibold text-white/60 tracking-wider uppercase">Profiles</p>
                   <div className="flex items-center flex-wrap gap-4">
                     {/* LinkedIn */}
-                    {editingPlatform === 'linkedin' ? (
-                      <div className="flex items-center gap-2 bg-white/10 border border-[#0a66c2]/50 rounded-xl p-2 text-white shadow-[0_0_15px_rgba(10,102,194,0.3)]">
-                        <svg className="w-5 h-5 text-[#0a66c2] ml-2 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          placeholder="LinkedIn URL"
-                          className="bg-transparent border-none outline-none text-white w-56 text-sm px-2 py-1 placeholder:text-white/40"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveLink('linkedin');
-                            if (e.key === 'Escape') setEditingPlatform(null);
-                          }}
-                        />
-                        <button 
-                          onClick={() => handleSaveLink('linkedin')} 
-                          disabled={isSavingLink}
-                          className="hover:text-emerald-400 p-2 transition-colors"
-                          title="Save"
-                        >
-                          {isSavingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        </button>
-                        <button 
-                          onClick={() => setEditingPlatform(null)} 
-                          className="hover:text-rose-400 p-2 transition-colors"
-                          title="Cancel"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : user?.linkedinUrl ? (
-                      <div className="group flex items-center relative">
-                        <a href={user.linkedinUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-[#0a66c2]/20 border border-white/20 hover:border-[#0a66c2]/60 transition-all duration-300 shadow-md">
-                          <svg className="w-5 h-5 text-[#0a66c2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> 
-                          LinkedIn
-                        </a>
-                        <button 
-                          onClick={() => { setEditingPlatform('linkedin'); setEditValue(user.linkedinUrl || ''); }}
-                          className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 p-2 bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md rounded-full text-white transition-all duration-300 shadow-lg"
-                          title="Edit LinkedIn URL"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    {user?.linkedinUrl ? (
+                      <a href={user.linkedinUrl.startsWith('http') ? user.linkedinUrl : `https://${user.linkedinUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-[#0a66c2]/20 border border-white/20 hover:border-[#0a66c2]/60 transition-all duration-300 shadow-md">
+                        <svg className="w-5 h-5 text-[#0a66c2]" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg> 
+                        LinkedIn
+                      </a>
                     ) : (
-                      <button 
-                        onClick={() => { setEditingPlatform('linkedin'); setEditValue(''); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-[#0a66c2] bg-white/5 hover:bg-[#0a66c2]/15 border border-dashed border-white/30 hover:border-[#0a66c2]/50 transition-all duration-300 shadow-sm"
-                      >
-                        <Plus className="w-4 h-4" /> 
-                        Add LinkedIn
-                      </button>
+                      <div className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white/50 bg-white/5 border border-white/10 shadow-sm cursor-not-allowed">
+                        <svg className="w-5 h-5 text-white/40" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+                        LinkedIn
+                      </div>
                     )}
 
                     {/* LeetCode */}
-                    {editingPlatform === 'leetcode' ? (
-                      <div className="flex items-center gap-2 bg-white/10 border border-[#ffa116]/50 rounded-xl p-2 text-white shadow-[0_0_15px_rgba(255,161,22,0.3)]">
-                        <Code2 className="w-5 h-5 text-[#ffa116] ml-2 shrink-0" />
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          placeholder="LeetCode URL"
-                          className="bg-transparent border-none outline-none text-white w-56 text-sm px-2 py-1 placeholder:text-white/40"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveLink('leetcode');
-                            if (e.key === 'Escape') setEditingPlatform(null);
-                          }}
-                        />
-                        <button 
-                          onClick={() => handleSaveLink('leetcode')} 
-                          disabled={isSavingLink}
-                          className="hover:text-emerald-400 p-2 transition-colors"
-                          title="Save"
-                        >
-                          {isSavingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        </button>
-                        <button 
-                          onClick={() => setEditingPlatform(null)} 
-                          className="hover:text-rose-400 p-2 transition-colors"
-                          title="Cancel"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : user?.leetcodeUrl ? (
-                      <div className="group flex items-center relative">
-                        <a href={user.leetcodeUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-[#ffa116]/20 border border-white/20 hover:border-[#ffa116]/60 transition-all duration-300 shadow-md">
-                          <Code2 className="w-5 h-5 text-[#ffa116]" /> 
-                          LeetCode
-                        </a>
-                        <button 
-                          onClick={() => { setEditingPlatform('leetcode'); setEditValue(user.leetcodeUrl || ''); }}
-                          className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 p-2 bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md rounded-full text-white transition-all duration-300 shadow-lg"
-                          title="Edit LeetCode URL"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    {user?.leetcodeUrl ? (
+                      <a href={user.leetcodeUrl.startsWith('http') ? user.leetcodeUrl : `https://${user.leetcodeUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-[#ffa116]/20 border border-white/20 hover:border-[#ffa116]/60 transition-all duration-300 shadow-md">
+                        <Code2 className="w-5 h-5 text-[#ffa116]" /> 
+                        LeetCode
+                      </a>
                     ) : (
-                      <button 
-                        onClick={() => { setEditingPlatform('leetcode'); setEditValue(''); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-[#ffa116] bg-white/5 hover:bg-[#ffa116]/15 border border-dashed border-white/30 hover:border-[#ffa116]/50 transition-all duration-300 shadow-sm"
-                      >
-                        <Plus className="w-4 h-4" /> 
-                        Add LeetCode
-                      </button>
+                      <div className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white/50 bg-white/5 border border-white/10 shadow-sm cursor-not-allowed">
+                        <Code2 className="w-5 h-5 text-white/40" /> 
+                        LeetCode
+                      </div>
                     )}
 
                     {/* GitHub */}
-                    {editingPlatform === 'github' ? (
-                      <div className="flex items-center gap-2 bg-white/10 border border-white/60 rounded-xl p-2 text-white shadow-[0_0_15px_rgba(255,255,255,0.15)]">
-                        <svg className="w-5 h-5 text-white ml-2 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
-                        <input
-                          type="text"
-                          value={editValue}
-                          onChange={(e) => setEditValue(e.target.value)}
-                          placeholder="GitHub URL"
-                          className="bg-transparent border-none outline-none text-white w-56 text-sm px-2 py-1 placeholder:text-white/40"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') handleSaveLink('github');
-                            if (e.key === 'Escape') setEditingPlatform(null);
-                          }}
-                        />
-                        <button 
-                          onClick={() => handleSaveLink('github')} 
-                          disabled={isSavingLink}
-                          className="hover:text-emerald-400 p-2 transition-colors"
-                          title="Save"
-                        >
-                          {isSavingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                        </button>
-                        <button 
-                          onClick={() => setEditingPlatform(null)} 
-                          className="hover:text-rose-400 p-2 transition-colors"
-                          title="Cancel"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ) : user?.githubUrl ? (
-                      <div className="group flex items-center relative">
-                        <a href={user.githubUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/60 transition-all duration-300 shadow-md">
-                          <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg> 
-                          GitHub
-                        </a>
-                        <button 
-                          onClick={() => { setEditingPlatform('github'); setEditValue(user.githubUrl || ''); }}
-                          className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 p-2 bg-white/20 hover:bg-white/40 border border-white/30 backdrop-blur-md rounded-full text-white transition-all duration-300 shadow-lg"
-                          title="Edit GitHub URL"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                    {user?.githubUrl ? (
+                      <a href={user.githubUrl.startsWith('http') ? user.githubUrl : `https://${user.githubUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/60 transition-all duration-300 shadow-md">
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg> 
+                        GitHub
+                      </a>
                     ) : (
-                      <button 
-                        onClick={() => { setEditingPlatform('github'); setEditValue(''); }}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white/70 hover:text-white bg-white/5 hover:bg-white/15 border border-dashed border-white/30 hover:border-white/50 transition-all duration-300 shadow-sm"
-                      >
-                        <Plus className="w-4 h-4" /> 
-                        Add GitHub
-                      </button>
+                      <div className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm font-semibold text-white/50 bg-white/5 border border-white/10 shadow-sm cursor-not-allowed">
+                        <svg className="w-5 h-5 text-white/40" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                        GitHub
+                      </div>
                     )}
                   </div>
                </div>
