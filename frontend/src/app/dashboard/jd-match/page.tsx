@@ -77,6 +77,8 @@ type RecruiterFeedback = {
   opinion: string;
   critiques: string[];
   actionPoints: string[];
+  strengths?: string[];
+  weaknesses?: string[];
 };
 
 type ImprovementStep = {
@@ -84,6 +86,8 @@ type ImprovementStep = {
   action: string;
   estimatedTime: string;
   impact: string;
+  priority?: string;
+  difficulty?: string;
 };
 
 type ImprovementPlan = {
@@ -92,20 +96,26 @@ type ImprovementPlan = {
 };
 
 type Benchmark = {
-  technicalSkillsCandidate: number;
-  technicalSkillsAverage: number;
-  projectsCandidate: number;
-  projectsAverage: number;
-  atsCandidate: number;
-  atsAverage: number;
-  experienceCandidate: number;
-  experienceAverage: number;
+  category?: string;
+  score?: number;
+  percentile?: number;
+  explanation?: string;
+  technicalSkillsCandidate?: number;
+  technicalSkillsAverage?: number;
+  projectsCandidate?: number;
+  projectsAverage?: number;
+  atsCandidate?: number;
+  atsAverage?: number;
+  experienceCandidate?: number;
+  experienceAverage?: number;
 };
 
 type RiskAnalysis = {
   riskLevel: string;
   riskType: string;
   reasoning: string;
+  reason?: string;
+  recommendation?: string;
 };
 
 type SalaryPrediction = {
@@ -117,6 +127,8 @@ type SalaryPrediction = {
 type ConfidenceScore = {
   confidencePercentage: number;
   explanation: string;
+  reason?: string;
+  certainty?: number;
 };
 
 type JdMatchResponse = {
@@ -614,7 +626,7 @@ Certifications: ${selected.certifications || ""}
                   <CardContent className="p-0 flex items-center justify-center min-h-[300px]">
                     {isMounted && result.resumeRadar && result.resumeRadar.length > 0 ? (
                       <ResponsiveContainer width="100%" height={300}>
-                        <RadarChart cx="50%" cy="50%" radius="70%" data={result.resumeRadar}>
+                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={result.resumeRadar}>
                           <PolarGrid stroke="#cbd5e1" />
                           <PolarAngleAxis dataKey="subject" tick={{ fill: 'var(--foreground)', fontSize: 9 }} />
                           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: 'var(--muted-foreground)', fontSize: 8 }} />

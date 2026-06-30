@@ -36,7 +36,22 @@ public class MockInterviewController {
             @RequestBody AdaptiveAnswerRequestDto request
     ) {
         log.info("Submitting adaptive answer for interview id: {}", request.getInterviewId());
-        return mockInterviewService.processAdaptiveAnswer(request.getInterviewId(), request.getAnswer());
+        return mockInterviewService.processAdaptiveAnswer(request);
+    }
+
+    @PostMapping("/tts")
+    public org.springframework.http.ResponseEntity<byte[]> generateTts(
+            @RequestBody java.util.Map<String, String> request
+    ) {
+        String text = request.get("text");
+        log.info("Generating ElevenLabs TTS for text: {}", text);
+        byte[] audioBytes = mockInterviewService.generateSpeech(text);
+        if (audioBytes == null || audioBytes.length == 0) {
+            return org.springframework.http.ResponseEntity.badRequest().build();
+        }
+        return org.springframework.http.ResponseEntity.ok()
+                .contentType(org.springframework.http.MediaType.valueOf("audio/mpeg"))
+                .body(audioBytes);
     }
 
     @PostMapping("/save")

@@ -4,6 +4,7 @@ export interface MockInterview {
   experienceLevel: string;
   company?: string;
   topic?: string;
+  conversationalStyle?: string;
   transcript?: string;
   questions?: InterviewQuestion[];
   feedback?: InterviewFeedback;
@@ -14,6 +15,10 @@ export interface InterviewQuestion {
   questionText: string;
   answerText?: string;
   score?: number;
+  codeText?: string;
+  language?: string;
+  compilerOutput?: string;
+  aiFeedback?: string;
 }
 
 export interface InterviewFeedback {
@@ -21,6 +26,10 @@ export interface InterviewFeedback {
   technicalScore?: number;
   communicationScore?: number;
   confidenceScore?: number;
+  problemSolvingScore?: number;
+  codingScore?: number;
+  behavioralScore?: number;
+  roleReadiness?: number;
   finalAssessment: string;
   strengths: string[];
   areasForImprovement: string[];
@@ -33,6 +42,34 @@ export interface InterviewFeedback {
   expectedSalary?: string;
   recruiterVerdict?: string;
   finalRecommendation?: string;
+  competencies?: Competency[];
+  candidateSummary?: string;
+  technicalAbilityComment?: string;
+  communicationComment?: string;
+  leadershipComment?: string;
+  problemSolvingComment?: string;
+  cultureFitComment?: string;
+  teamFitComment?: string;
+  riskAssessment?: string;
+  recruiterNotes?: string;
+  interviewConfidence?: number;
+  benchmark?: Benchmark;
+}
+
+export interface Benchmark {
+  percentileCategory: string;
+  percentile: number;
+  roleAverage: number;
+  collegeAverage: number;
+  companyAverage: number;
+  globalAverage: number;
+  totalCompared: number;
+}
+
+export interface Competency {
+  category: string;
+  competency: string;
+  status: boolean;
 }
 
 export interface MockInterviewRequest {
@@ -44,6 +81,7 @@ export interface MockInterviewRequest {
   jobDescription?: string;
   resumeText?: string;
   topic?: string;
+  conversationalStyle?: string;
 }
 
 export interface MockInterviewResponse {

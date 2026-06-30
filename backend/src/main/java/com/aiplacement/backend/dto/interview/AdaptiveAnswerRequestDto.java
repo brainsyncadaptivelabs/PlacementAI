@@ -12,4 +12,7 @@ import lombok.NoArgsConstructor;
 public class AdaptiveAnswerRequestDto {
     private Long interviewId;
     private String answer;
+    private String code;
+    private String language;
+    private String terminalOutput;
 }

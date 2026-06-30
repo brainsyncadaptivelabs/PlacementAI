@@ -13,6 +13,7 @@ public class MockInterviewDto {
     private String experienceLevel;
     private String company;
     private String topic;
+    private String conversationalStyle;
     private String transcript;
     private List<InterviewQuestionDto> questions;
     private InterviewFeedbackDto feedback;

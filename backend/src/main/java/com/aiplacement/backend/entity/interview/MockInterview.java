@@ -22,6 +22,7 @@ public class MockInterview {
     private String experienceLevel;
     private String company;
     private String topic;
+    private String conversationalStyle;
     
     @Column(columnDefinition = "TEXT")
     private String transcript;

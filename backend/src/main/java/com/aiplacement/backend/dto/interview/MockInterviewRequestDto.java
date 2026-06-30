@@ -17,4 +17,5 @@ public class MockInterviewRequestDto {
     private String jobDescription;
     private String resumeText;
     private String topic;
+    private String conversationalStyle;
 }

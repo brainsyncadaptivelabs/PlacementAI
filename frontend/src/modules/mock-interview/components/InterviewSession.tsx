@@ -13,6 +13,7 @@ import { Mic, MicOff, PhoneOff, Play, Pause, ChevronLeft, ChevronRight, PlayCirc
 import { cn } from "@/lib/utils";
 import { interviewService } from "../services/interviewService";
 import { MockInterview, InterviewQuestion } from "../types/interview.types";
+import { useInterviewStore } from "../hooks/useInterviewStore";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -36,6 +37,8 @@ interface InterviewSessionProps {
     difficulty?: string;
     interviewType?: string;
     topic?: string;
+    isAdaptive?: boolean;
+    adaptiveInterviewId?: number;
   };
 }
 
@@ -164,6 +167,26 @@ export const InterviewSession = ({
     }
   };
 
+  const speakWithElevenLabs = async (text: string) => {
+    if (!text) return;
+    try {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      const audioBlob = await interviewService.generateSpeech(text);
+      if (audioBlob && audioBlob.size > 100) {
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        await audio.play();
+      } else {
+        speakLocal(text);
+      }
+    } catch (e) {
+      console.warn("ElevenLabs TTS failed, falling back to browser synthesis", e);
+      speakLocal(text);
+    }
+  };
+
   const startLocalFallback = () => {
     setIsFallbackMode(true);
     setCallStatus(CallStatus.ACTIVE);
@@ -175,7 +198,7 @@ export const InterviewSession = ({
       const firstMsg: SavedMessage = { role: "assistant", content: firstQuestion };
       setMessages([firstMsg]);
       setLastMessage(firstQuestion);
-      speakLocal(firstQuestion);
+      speakWithElevenLabs(firstQuestion);
     }
   };
 
@@ -252,11 +275,14 @@ export const InterviewSession = ({
       try {
         const response = await interviewService.answerAdaptiveInterview(
           interviewData.adaptiveInterviewId,
-          typedAnswer.trim()
+          typedAnswer.trim(),
+          isCodingRound ? code : undefined,
+          isCodingRound ? activeLang : undefined,
+          isCodingRound ? terminalOutput : undefined
         );
         if (response.isFinished) {
           setCallStatus(CallStatus.FINISHED);
-          speakLocal("Mock interview completed successfully. Please generate your feedback report.");
+          speakWithElevenLabs("Mock interview completed successfully. Please generate your feedback report.");
         } else if (response.nextQuestion) {
           const nextIndex = currentQuestionIndex + 1;
           
@@ -269,7 +295,7 @@ export const InterviewSession = ({
           setCurrentQuestionIndex(nextIndex);
           setLastMessage(response.nextQuestion);
           setTypedAnswer("");
-          speakLocal(response.nextQuestion);
+          speakWithElevenLabs(response.nextQuestion);
         }
       } catch (err) {
         console.error("Adaptive answer failed:", err);
@@ -281,10 +307,10 @@ export const InterviewSession = ({
         const nextQuestion = interviewData.questions[nextIndex];
         setLastMessage(nextQuestion);
         setTypedAnswer(answers[nextIndex] || "");
-        speakLocal(nextQuestion);
+        speakWithElevenLabs(nextQuestion);
       } else {
         setCallStatus(CallStatus.FINISHED);
-        speakLocal("Mock interview completed successfully. Please generate your feedback report.");
+        speakWithElevenLabs("Mock interview completed successfully. Please generate your feedback report.");
       }
     }
   };
@@ -304,7 +330,7 @@ export const InterviewSession = ({
       const prevQuestion = interviewData.questions[prevIndex];
       setLastMessage(prevQuestion);
       setTypedAnswer(answers[prevIndex] || "");
-      speakLocal(prevQuestion);
+      speakWithElevenLabs(prevQuestion);
     }
   };
 

@@ -12,8 +12,25 @@ export const interviewService = {
     return response.data;
   },
 
-  answerAdaptiveInterview: async (interviewId: number, answer: string): Promise<{ isFinished: boolean, nextQuestion: string | null }> => {
-    const response = await api.post('/interview/adaptive/answer', { interviewId, answer });
+  answerAdaptiveInterview: async (
+    interviewId: number,
+    answer: string,
+    code?: string,
+    language?: string,
+    terminalOutput?: string
+  ): Promise<{ isFinished: boolean, nextQuestion: string | null }> => {
+    const response = await api.post('/interview/adaptive/answer', {
+      interviewId,
+      answer,
+      code,
+      language,
+      terminalOutput
+    });
+    return response.data;
+  },
+
+  generateSpeech: async (text: string): Promise<Blob> => {
+    const response = await api.post('/interview/tts', { text }, { responseType: 'blob' });
     return response.data;
   },
 

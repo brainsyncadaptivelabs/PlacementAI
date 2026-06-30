@@ -60,6 +60,34 @@ public class InterviewFeedback {
     private String recruiterVerdict;
     private String finalRecommendation;
 
+    private Integer problemSolvingScore;
+    private Integer codingScore;
+    private Integer behavioralScore;
+    private Integer roleReadiness;
+
+    @Column(columnDefinition = "TEXT")
+    private String competenciesJson;
+
+    @Column(columnDefinition = "TEXT")
+    private String candidateSummary;
+    @Column(columnDefinition = "TEXT")
+    private String technicalAbilityComment;
+    @Column(columnDefinition = "TEXT")
+    private String communicationComment;
+    @Column(columnDefinition = "TEXT")
+    private String leadershipComment;
+    @Column(columnDefinition = "TEXT")
+    private String problemSolvingComment;
+    @Column(columnDefinition = "TEXT")
+    private String cultureFitComment;
+    @Column(columnDefinition = "TEXT")
+    private String teamFitComment;
+    @Column(columnDefinition = "TEXT")
+    private String riskAssessment;
+    @Column(columnDefinition = "TEXT")
+    private String recruiterNotes;
+    private Integer interviewConfidence;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mock_interview_id", nullable = false)
     private MockInterview mockInterview;

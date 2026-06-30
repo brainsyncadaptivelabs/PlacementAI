@@ -15,13 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import com.aiplacement.backend.entity.interview.InterviewStatus;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +32,64 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     private final OllamaClient ollamaClient;
     private final MockInterviewRepository mockInterviewRepository;
     private final UserRepository userRepository;
+    private final org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Value("${elevenlabs.api.key:dummy}")
+    private String elevenlabsApiKey;
+
+    @Value("${elevenlabs.voice.id:21m00Tcm4TlvDq8ikWAM}")
+    private String elevenlabsVoiceId;
+
+    @lombok.Data
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
+    @lombok.Builder
+    public static class AdaptiveState {
+        private String role;
+        private String experienceLevel;
+        private String company;
+        private String difficulty;
+        private String interviewType;
+        private String resumeText;
+        private String jobDescription;
+        @lombok.Builder.Default
+        private List<String> topicsCovered = new java.util.ArrayList<>();
+        @lombok.Builder.Default
+        private List<String> remainingObjectives = new java.util.ArrayList<>();
+        @lombok.Builder.Default
+        private List<String> previousQuestions = new java.util.ArrayList<>();
+        @lombok.Builder.Default
+        private List<String> previousAnswers = new java.util.ArrayList<>();
+        
+        // Running Scores (0-100)
+        @lombok.Builder.Default
+        private int technicalScore = 70;
+        @lombok.Builder.Default
+        private int communicationScore = 70;
+        @lombok.Builder.Default
+        private int confidenceScore = 70;
+        @lombok.Builder.Default
+        private int problemSolvingScore = 70;
+        @lombok.Builder.Default
+        private int codingScore = 70;
+        @lombok.Builder.Default
+        private int behavioralScore = 70;
+        @lombok.Builder.Default
+        private int roleReadiness = 70;
+        
+        @lombok.Builder.Default
+        private int totalQuestionsLimit = 10;
+        @lombok.Builder.Default
+        private String currentDifficulty = "Medium";
+        @lombok.Builder.Default
+        private boolean isCodingRound = false;
+        @lombok.Builder.Default
+        private String conversationalStyle = "Professional";
+        @lombok.Builder.Default
+        private List<InterviewFeedbackDto.CompetencyDto> competenciesChecked = new java.util.ArrayList<>();
+    }
+
 
     @Override
     public MockInterviewResponseDto generateMockInterview(MockInterviewRequestDto request) {
@@ -171,50 +227,85 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     @Override
     @Transactional
     public AdaptiveStartResponseDto startAdaptiveInterview(MockInterviewRequestDto request) {
-        log.info("Starting adaptive mock interview");
+        log.info("Starting adaptive mock interview for role: {}", request.getRole());
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String style = request.getConversationalStyle() != null ? request.getConversationalStyle() : "Professional";
+        String styleInstructions = "";
+        if ("Friendly".equalsIgnoreCase(style)) {
+            styleInstructions = "Adopt a warm, encouraging, positive, and supportive tone. Acknowledge candidate's efforts and greet them enthusiastically.";
+        } else if ("Strict".equalsIgnoreCase(style)) {
+            styleInstructions = "Adopt a highly rigorous, challenging, and scrutinizing tone. Be polite but demanding, focusing on assessing gaps and probing limitations.";
+        } else if ("Senior Engineer".equalsIgnoreCase(style)) {
+            styleInstructions = "Adopt a deep technical pragmatist persona. Focus on architecture, trade-offs, scaling, performance details, and real-world system optimization.";
+        } else {
+            styleInstructions = "Adopt a balanced, formal, objective, and professional recruiter tone. Keep a steady and professional dialogue flow.";
+        }
 
         MockInterview interview = MockInterview.builder()
                 .role(request.getRole())
                 .experienceLevel(request.getExperienceLevel())
                 .company(request.getCompany())
                 .topic(request.getTopic())
+                .conversationalStyle(style)
                 .status(InterviewStatus.IN_PROGRESS)
                 .currentQuestionIndex(0)
                 .user(user)
+                .questions(new ArrayList<>())
                 .build();
         
-        // Build topics list based on the request
         List<String> topicsLeft = new ArrayList<>();
         if (request.getTopic() != null && !request.getTopic().isEmpty()) {
-            topicsLeft.add(request.getTopic());
+            topicsLeft.addAll(Arrays.asList(request.getTopic().split(",")));
         } else {
             topicsLeft.addAll(Arrays.asList("Introduction", "Technical Depth", "Problem Solving", "Cultural Fit"));
         }
-        
-        Map<String, Object> state = new HashMap<>();
-        state.put("topicsCovered", new ArrayList<String>());
-        state.put("topicsLeft", topicsLeft);
-        state.put("targetQuestionCount", 5); // Goal is 5 questions
-        
+
+        AdaptiveState state = AdaptiveState.builder()
+                .role(request.getRole())
+                .experienceLevel(request.getExperienceLevel())
+                .company(request.getCompany() != null ? request.getCompany() : "General Tech Company")
+                .difficulty(request.getDifficulty() != null ? request.getDifficulty() : "Medium")
+                .interviewType(request.getInterviewType() != null ? request.getInterviewType() : "Technical")
+                .resumeText(request.getResumeText())
+                .jobDescription(request.getJobDescription())
+                .topicsCovered(new ArrayList<>())
+                .remainingObjectives(topicsLeft)
+                .previousQuestions(new ArrayList<>())
+                .previousAnswers(new ArrayList<>())
+                .technicalScore(70)
+                .communicationScore(70)
+                .confidenceScore(70)
+                .problemSolvingScore(70)
+                .codingScore(70)
+                .behavioralScore(70)
+                .roleReadiness(70)
+                .totalQuestionsLimit(10)
+                .currentDifficulty(request.getDifficulty() != null ? request.getDifficulty() : "Medium")
+                .isCodingRound("Technical Coding".equals(request.getInterviewType()) || "DSA Coding".equals(request.getInterviewType()) || "Data Structures & Algorithms".equals(request.getInterviewType()))
+                .conversationalStyle(style)
+                .build();
+
+        String prompt = "You are an AI interviewer conducting an adaptive mock interview.\n" +
+                "Role: " + state.getRole() + "\n" +
+                "Experience Level: " + state.getExperienceLevel() + "\n" +
+                "Target Company: " + state.getCompany() + "\n" +
+                "Interview Type: " + state.getInterviewType() + "\n" +
+                "Interviewer Tone / Persona Style: " + style + ". Guidelines: " + styleInstructions + "\n" +
+                "Company Specific Persona: " + getCompanyStyleInstructions(state.getCompany()) + "\n" +
+                (state.getResumeText() != null ? "Resume Summary: " + truncate(state.getResumeText(), 2000) + "\n" : "") +
+                (state.getJobDescription() != null ? "Job Description: " + truncate(state.getJobDescription(), 2000) + "\n" : "") +
+                "\n" +
+                "Generate the very first tailored introductory question for this candidate. " +
+                "Adopt the specified Interviewer Style and Company Specific Persona. Avoid a generic 'Tell me about yourself'. Instead, check their resume or the job description requirements " +
+                "and ask a tailored question about a project, a technology, or their background in relation to the role.\n" +
+                "Return ONLY a JSON object: {\"nextQuestion\": \"...\"}";
+
+        String firstQuestion = "Tell me about yourself and your background with " + request.getRole() + ".";
         try {
-            interview.setCurrentStateJson(objectMapper.writeValueAsString(state));
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize initial state", e);
-            interview.setCurrentStateJson("{}");
-        }
-
-        mockInterviewRepository.save(interview);
-
-        String prompt = "You are an AI interviewer conducting an adaptive mock interview for a " + request.getRole() + " position. " +
-                "Generate the VERY FIRST introductory question. It should be a broad question about their background or the role. " +
-                "Respond with ONLY a JSON object: {\"nextQuestion\": \"...\"}";
-
-        String firstQuestion = "Tell me about yourself and your background.";
-        try {
-            com.fasterxml.jackson.databind.JsonNode response = ollamaClient.getJsonResponse(prompt, 0.7, e -> { throw new RuntimeException(e); });
+            JsonNode response = ollamaClient.getJsonResponse(prompt, 0.7, e -> { throw new RuntimeException(e); });
             if (response != null && response.has("nextQuestion")) {
                 firstQuestion = response.get("nextQuestion").asText();
             }
@@ -222,8 +313,21 @@ public class MockInterviewServiceImpl implements MockInterviewService {
             log.error("Failed to generate first adaptive question, using fallback.", e);
         }
 
-        // We temporarily store the first question in transcript so we remember it on the next turn.
-        interview.setTranscript("Question 1: " + firstQuestion + "\n");
+        InterviewQuestion firstQuestionEntity = InterviewQuestion.builder()
+                .questionText(firstQuestion)
+                .mockInterview(interview)
+                .score(0)
+                .build();
+        interview.getQuestions().add(firstQuestionEntity);
+        interview.setTranscript("Interviewer: " + firstQuestion + "\n\n");
+
+        try {
+            interview.setCurrentStateJson(objectMapper.writeValueAsString(state));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize initial state", e);
+            interview.setCurrentStateJson("{}");
+        }
+
         mockInterviewRepository.save(interview);
 
         return AdaptiveStartResponseDto.builder()
@@ -234,9 +338,9 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
     @Override
     @Transactional
-    public AdaptiveAnswerResponseDto processAdaptiveAnswer(Long interviewId, String answer) {
-        log.info("Processing adaptive answer for interview id: {}", interviewId);
-        MockInterview interview = mockInterviewRepository.findById(interviewId)
+    public AdaptiveAnswerResponseDto processAdaptiveAnswer(AdaptiveAnswerRequestDto request) {
+        log.info("Processing adaptive answer for interview id: {}", request.getInterviewId());
+        MockInterview interview = mockInterviewRepository.findById(request.getInterviewId())
                 .orElseThrow(() -> new RuntimeException("Interview not found"));
 
         if (interview.getStatus() == InterviewStatus.COMPLETED) {
@@ -246,26 +350,215 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                     .build();
         }
 
-        // Update transcript with user's answer
-        String transcript = interview.getTranscript() != null ? interview.getTranscript() : "";
-        transcript += "Candidate Answer: " + answer + "\n";
-        
-        int currentIndex = interview.getCurrentQuestionIndex() + 1;
-        interview.setCurrentQuestionIndex(currentIndex);
-
-        Map<String, Object> state;
+        AdaptiveState state;
         try {
-            state = objectMapper.readValue(interview.getCurrentStateJson(), Map.class);
+            state = objectMapper.readValue(interview.getCurrentStateJson(), AdaptiveState.class);
         } catch (Exception e) {
-            state = new HashMap<>();
+            state = new AdaptiveState();
+            state.setRole(interview.getRole());
+            state.setExperienceLevel(interview.getExperienceLevel());
+            state.setCompany(interview.getCompany());
+            state.setDifficulty("Medium");
+            state.setInterviewType(interview.getTopic());
         }
 
-        int targetCount = state.containsKey("targetQuestionCount") ? (Integer) state.get("targetQuestionCount") : 5;
-        
-        if (currentIndex >= targetCount) {
+        // Find the current question being answered
+        int currentIndex = interview.getCurrentQuestionIndex();
+        InterviewQuestion currentQ = null;
+        if (interview.getQuestions() != null && currentIndex < interview.getQuestions().size()) {
+            currentQ = interview.getQuestions().get(currentIndex);
+        }
+
+        if (currentQ != null) {
+            currentQ.setAnswerText(request.getAnswer());
+            if (request.getCode() != null && !request.getCode().trim().isEmpty()) {
+                currentQ.setCodeText(request.getCode());
+                currentQ.setLanguage(request.getLanguage());
+                currentQ.setCompilerOutput(request.getTerminalOutput());
+            }
+        }
+
+        // Update transcript
+        String transcript = interview.getTranscript() != null ? interview.getTranscript() : "";
+        transcript += "Candidate: " + request.getAnswer() + "\n";
+        if (request.getCode() != null && !request.getCode().trim().isEmpty()) {
+            transcript += "[Code submitted: Language=" + request.getLanguage() + "]\n" + request.getCode() + "\n";
+            if (request.getTerminalOutput() != null && !request.getTerminalOutput().trim().isEmpty()) {
+                transcript += "[Execution Output]\n" + request.getTerminalOutput() + "\n";
+            }
+        }
+        transcript += "\n";
+        interview.setTranscript(transcript);
+
+        if (currentQ != null) {
+            state.getPreviousQuestions().add(currentQ.getQuestionText());
+            state.getPreviousAnswers().add(request.getAnswer());
+        }
+
+        int nextQuestionIndex = currentIndex + 1;
+        interview.setCurrentQuestionIndex(nextQuestionIndex);
+
+        // Call AI to evaluate current answer and generate next question
+        StringBuilder historyBuilder = new StringBuilder();
+        for (int i = 0; i < state.getPreviousQuestions().size(); i++) {
+            historyBuilder.append("Q: ").append(state.getPreviousQuestions().get(i)).append("\n");
+            historyBuilder.append("A: ").append(state.getPreviousAnswers().get(i)).append("\n\n");
+        }
+
+        String style = state.getConversationalStyle() != null ? state.getConversationalStyle() : "Professional";
+        String styleInstructions = "";
+        if ("Friendly".equalsIgnoreCase(style)) {
+            styleInstructions = "Adopt a warm, encouraging, positive, and supportive tone. Acknowledge the candidate's answer with enthusiasm and encouragement (e.g., 'Take your time', 'That's a really great explanation!'). Avoid harsh criticisms.";
+        } else if ("Strict".equalsIgnoreCase(style)) {
+            styleInstructions = "Adopt a highly rigorous, challenging, and scrutinizing tone. Acknowledge answer briefly but politely challenge weak answers or assumptions (e.g., 'I don't completely agree. Can you defend your approach?', 'Can you justify that decision?'). Focus on identifying gaps.";
+        } else if ("Senior Engineer".equalsIgnoreCase(style)) {
+            styleInstructions = "Adopt a deep technical pragmatist/manager persona. Focus heavily on architecture, engineering trade-offs, scaling, and real-world system optimization. Challenge shallow answers and probe design decisions (e.g., 'Let's dig deeper', 'I'm curious about how that would scale').";
+        } else {
+            styleInstructions = "Adopt a balanced, formal, objective, and professional recruiter tone. Use polite recruiter validations and transitions (e.g., 'Interesting', 'That's a good point', 'Let's move to another topic').";
+        }
+
+        StringBuilder competenciesBuilder = new StringBuilder();
+        if (state.getCompetenciesChecked() != null && !state.getCompetenciesChecked().isEmpty()) {
+            competenciesBuilder.append("Current Competency Assessment Status:\n");
+            for (InterviewFeedbackDto.CompetencyDto comp : state.getCompetenciesChecked()) {
+                competenciesBuilder.append("- Category: ").append(comp.getCategory())
+                                   .append(", Competency: ").append(comp.getCompetency())
+                                   .append(", Covered: ").append(comp.isStatus() ? "Yes" : "No").append("\n");
+            }
+        } else {
+            competenciesBuilder.append("No competencies have been evaluated yet. Please establish the initial key competencies list matching the role/JD requirements.\n");
+        }
+
+        String prompt = "You are an AI interviewer conducting an adaptive mock interview.\n" +
+                "Role: " + state.getRole() + "\n" +
+                "Experience Level: " + state.getExperienceLevel() + "\n" +
+                "Target Company: " + state.getCompany() + "\n" +
+                "Interview Type: " + state.getInterviewType() + "\n" +
+                "Current Difficulty: " + state.getCurrentDifficulty() + "\n" +
+                "Interviewer Tone / Persona Style: " + style + ". Guidelines: " + styleInstructions + "\n" +
+                "Company Specific Persona: " + getCompanyStyleInstructions(state.getCompany()) + "\n\n" +
+                (state.getResumeText() != null ? "Candidate Resume:\n" + truncate(state.getResumeText(), 2000) + "\n\n" : "") +
+                (state.getJobDescription() != null ? "Target Job Description:\n" + truncate(state.getJobDescription(), 2000) + "\n\n" : "") +
+                competenciesBuilder.toString() + "\n" +
+                "Conversation History:\n" + historyBuilder.toString() +
+                "Latest Turn details:\n" +
+                "- Question: " + (currentQ != null ? currentQ.getQuestionText() : "") + "\n" +
+                "- Candidate Answer: " + request.getAnswer() + "\n" +
+                (request.getCode() != null && !request.getCode().trim().isEmpty() ? 
+                    "- Coding Lang: " + request.getLanguage() + "\n- Candidate Code:\n" + request.getCode() + "\n- Compiler Output: " + request.getTerminalOutput() + "\n" : "") +
+                "\n" +
+                "Evaluate the latest answer. Calculate the updated running scores on a scale of 0 to 100 based on their performance.\n" +
+                "If they did well, increase difficulty (e.g. from Easy to Medium, Medium to Hard, Hard to Expert). If they struggled, decrease difficulty.\n" +
+                "Check if they introduced any interesting topics in their answer (e.g. they mentioned using Redis, or a specific design pattern) and branch into that topic to explore. Else, target a key requirement from the Resume/Job Description.\n\n" +
+                "CRITICAL 1 (Competency-Based Engine): Review the competencies evaluated so far. You must identify what core competencies are still missing/failed (status: No) and choose the next question specifically to probe one of those missing competencies. Only set `isFinished` to true once you have evaluated all critical competencies (minimum 5 questions, max 10).\n\n" +
+                "CRITICAL 2: Adopt the specified Interviewer Style. Your nextQuestion MUST begin with a natural conversational transition (e.g., 'Interesting.', 'That's a good point.', 'Can you explain that further?', 'Let's dig deeper.', 'I'm curious about something you mentioned.', 'Can you justify that decision?', 'I don't completely agree. Can you defend your approach?', 'Take your time.', 'Let's move to another topic.'). Acknowledge good answers, challenge weak assumptions or gaps, ask clarification questions, and keep the dialog organic and human-like. Avoid robotic, repetitive, or chatbot-like templates (e.g., do not say 'Moving on to next question...').\n\n" +
+                "CRITICAL 3 (Technical Answer Verification): You must verify the technical correctness of the candidate's answers. Scan for incorrect statements (e.g. asserting HashMap is thread safe), software engineering hallucinations, erroneous code explanations, and incorrect complexity analysis. If you detect any false claim, weak assumption, or factually incorrect assertion, you MUST immediately challenge it in your generated `nextQuestion` (e.g. ask: 'Can you explain why you say HashMap is thread-safe? How does it differ from ConcurrentHashMap?'). Do not let technical inaccuracies pass unchallenged.\n" +
+                "Ensure you never ask duplicate or very similar questions.\n\n" +
+                "Return ONLY a JSON object with this exact schema:\n" +
+                "{\n" +
+                "  \"technicalScore\": 80,\n" +
+                "  \"communicationScore\": 75,\n" +
+                "  \"confidenceScore\": 80,\n" +
+                "  \"problemSolvingScore\": 80,\n" +
+                "  \"codingScore\": 80,\n" +
+                "  \"behavioralScore\": 80,\n" +
+                "  \"roleReadiness\": 80,\n" +
+                "  \"evaluatedScore\": 85,\n" +
+                "  \"topicCovered\": \"Java Collections\",\n" +
+                "  \"difficultyProgression\": \"Hard\",\n" +
+                "  \"isFinished\": false,\n" +
+                "  \"nextQuestion\": \"Your next question here\",\n" +
+                "  \"competencies\": [\n" +
+                "    { \"category\": \"Java\", \"competency\": \"OOP\", \"status\": true },\n" +
+                "    { \"category\": \"Java\", \"competency\": \"Collections\", \"status\": true },\n" +
+                "    { \"category\": \"Java\", \"competency\": \"JVM\", \"status\": false }\n" +
+                "  ]\n" +
+                "}";
+
+        JsonNode aiJson = null;
+        try {
+            aiJson = ollamaClient.getJsonResponse(prompt, 0.6, e -> { throw new RuntimeException(e); });
+        } catch (Exception e) {
+            log.error("Failed to generate next question/evaluation from Ollama", e);
+        }
+
+        boolean isFinished = nextQuestionIndex >= state.getTotalQuestionsLimit();
+        String nextQuestion = "Could you tell me more about your technical experience?";
+
+        if (aiJson != null) {
+            try {
+                state.setTechnicalScore(parseSafeInt(aiJson, "technicalScore", state.getTechnicalScore()));
+                state.setCommunicationScore(parseSafeInt(aiJson, "communicationScore", state.getCommunicationScore()));
+                state.setConfidenceScore(parseSafeInt(aiJson, "confidenceScore", state.getConfidenceScore()));
+                state.setProblemSolvingScore(parseSafeInt(aiJson, "problemSolvingScore", state.getProblemSolvingScore()));
+                state.setCodingScore(parseSafeInt(aiJson, "codingScore", state.getCodingScore()));
+                state.setBehavioralScore(parseSafeInt(aiJson, "behavioralScore", state.getBehavioralScore()));
+                state.setRoleReadiness(parseSafeInt(aiJson, "roleReadiness", state.getRoleReadiness()));
+                state.setCurrentDifficulty(parseSafeString(aiJson, "difficultyProgression", state.getCurrentDifficulty()));
+
+                int evaluatedScore = parseSafeInt(aiJson, "evaluatedScore", 70);
+                if (currentQ != null) {
+                    currentQ.setScore(evaluatedScore);
+                }
+
+                String topicCovered = parseSafeString(aiJson, "topicCovered", "");
+                if (!topicCovered.isEmpty()) {
+                    state.getTopicsCovered().add(topicCovered);
+                }
+
+                if (aiJson.has("competencies") && aiJson.get("competencies").isArray()) {
+                    List<InterviewFeedbackDto.CompetencyDto> list = new ArrayList<>();
+                    for (JsonNode cNode : aiJson.get("competencies")) {
+                        String category = parseSafeString(cNode, "category", "General");
+                        String competencyName = parseSafeString(cNode, "competency", "Core");
+                        boolean status = cNode.has("status") && cNode.get("status").asBoolean();
+                        list.add(InterviewFeedbackDto.CompetencyDto.builder()
+                                .category(category)
+                                .competency(competencyName)
+                                .status(status)
+                                .build());
+                    }
+                    state.setCompetenciesChecked(list);
+                }
+
+                isFinished = aiJson.has("isFinished") ? aiJson.get("isFinished").asBoolean() : isFinished;
+                if (nextQuestionIndex < 5) {
+                    isFinished = false; // Force at least 5 questions
+                }
+                if (aiJson.has("nextQuestion") && !aiJson.get("nextQuestion").isNull()) {
+                    nextQuestion = aiJson.get("nextQuestion").asText();
+                }
+            } catch (Exception e) {
+                log.error("Error parsing AI evaluation JSON", e);
+            }
+        } else {
+            // Heuristic fallback turn
+            if (currentQ != null) {
+                currentQ.setScore(70);
+            }
+            List<String> fallbacks = getPredefinedQuestions(MockInterviewRequestDto.builder()
+                    .role(state.getRole())
+                    .experienceLevel(state.getExperienceLevel())
+                    .company(state.getCompany())
+                    .difficulty(state.getCurrentDifficulty())
+                    .interviewType(state.getInterviewType())
+                    .jobDescription(state.getJobDescription())
+                    .resumeText(state.getResumeText())
+                    .conversationalStyle(state.getConversationalStyle())
+                    .build());
+            if (nextQuestionIndex < fallbacks.size()) {
+                nextQuestion = fallbacks.get(nextQuestionIndex);
+            }
+        }
+
+        if (isFinished) {
             interview.setStatus(InterviewStatus.COMPLETED);
             interview.setCompletedAt(LocalDateTime.now());
-            interview.setTranscript(transcript);
+            try {
+                interview.setCurrentStateJson(objectMapper.writeValueAsString(state));
+            } catch (Exception e) {
+                log.error("Failed to serialize state", e);
+            }
             mockInterviewRepository.save(interview);
             return AdaptiveAnswerResponseDto.builder()
                     .isFinished(true)
@@ -273,24 +566,23 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                     .build();
         }
 
-        String prompt = "You are an AI interviewer. Evaluate the candidate's last answer and generate the next question.\n" +
-                "Context Transcript so far:\n" + truncate(transcript, 1500) + "\n\n" +
-                "The candidate is applying for: " + interview.getRole() + "\n" +
-                "Current question number: " + (currentIndex + 1) + " out of " + targetCount + ".\n" +
-                "Generate a follow-up or move to a new topic. Return ONLY a JSON object: {\"nextQuestion\": \"...\"}";
+        // Add next question to database
+        InterviewQuestion nextQ = InterviewQuestion.builder()
+                .questionText(nextQuestion)
+                .mockInterview(interview)
+                .score(0)
+                .build();
+        interview.getQuestions().add(nextQ);
 
-        String nextQuestion = "Could you elaborate more on your experience?";
+        transcript += "Interviewer: " + nextQuestion + "\n\n";
+        interview.setTranscript(transcript);
+
         try {
-            com.fasterxml.jackson.databind.JsonNode response = ollamaClient.getJsonResponse(prompt, 0.7, e -> { throw new RuntimeException(e); });
-            if (response != null && response.has("nextQuestion")) {
-                nextQuestion = response.get("nextQuestion").asText();
-            }
+            interview.setCurrentStateJson(objectMapper.writeValueAsString(state));
         } catch (Exception e) {
-            log.error("Failed to generate next adaptive question, using fallback.", e);
+            log.error("Failed to serialize state", e);
         }
 
-        transcript += "Question " + (currentIndex + 1) + ": " + nextQuestion + "\n";
-        interview.setTranscript(transcript);
         mockInterviewRepository.save(interview);
 
         return AdaptiveAnswerResponseDto.builder()
@@ -302,31 +594,73 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     @Override
     @Transactional
     public MockInterviewDto saveInterviewResults(MockInterviewDto interviewDto) {
-        log.info("Saving mock interview session results.");
+        log.info("Saving mock interview session results. ID: {}", interviewDto.getId());
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        MockInterview interview = MockInterview.builder()
-                .role(interviewDto.getRole())
-                .experienceLevel(interviewDto.getExperienceLevel())
-                .company(interviewDto.getCompany())
-                .topic(interviewDto.getTopic())
-                .transcript(interviewDto.getTranscript())
-                .user(user)
-                .completedAt(LocalDateTime.now())
-                .build();
+        MockInterview interview;
+        if (interviewDto.getId() != null) {
+            interview = mockInterviewRepository.findById(interviewDto.getId())
+                    .orElseThrow(() -> new RuntimeException("Interview not found"));
+            interview.setStatus(InterviewStatus.COMPLETED);
+            interview.setCompletedAt(LocalDateTime.now());
+            if (interviewDto.getTranscript() != null) {
+                interview.setTranscript(interviewDto.getTranscript());
+            }
+        } else {
+            interview = MockInterview.builder()
+                    .role(interviewDto.getRole())
+                    .experienceLevel(interviewDto.getExperienceLevel())
+                    .company(interviewDto.getCompany())
+                    .topic(interviewDto.getTopic())
+                    .conversationalStyle(interviewDto.getConversationalStyle())
+                    .transcript(interviewDto.getTranscript())
+                    .user(user)
+                    .status(InterviewStatus.COMPLETED)
+                    .completedAt(LocalDateTime.now())
+                    .build();
+        }
 
         if (interviewDto.getQuestions() != null) {
-            List<InterviewQuestion> questions = interviewDto.getQuestions().stream()
-                    .map(q -> InterviewQuestion.builder()
-                            .questionText(q.getQuestionText())
-                            .answerText(q.getAnswerText())
-                            .score(q.getScore() != null ? q.getScore() : 0)
+            if (interview.getQuestions() == null) {
+                interview.setQuestions(new ArrayList<>());
+            }
+            for (int i = 0; i < interviewDto.getQuestions().size(); i++) {
+                InterviewQuestionDto qDto = interviewDto.getQuestions().get(i);
+                if (i < interview.getQuestions().size()) {
+                    InterviewQuestion existingQ = interview.getQuestions().get(i);
+                    existingQ.setAnswerText(qDto.getAnswerText());
+                    if (qDto.getScore() != null && qDto.getScore() > 0) {
+                        existingQ.setScore(qDto.getScore());
+                    }
+                    if (qDto.getCodeText() != null) {
+                        existingQ.setCodeText(qDto.getCodeText());
+                        existingQ.setLanguage(qDto.getLanguage());
+                        existingQ.setCompilerOutput(qDto.getCompilerOutput());
+                    }
+                } else {
+                    InterviewQuestion newQ = InterviewQuestion.builder()
+                            .questionText(qDto.getQuestionText())
+                            .answerText(qDto.getAnswerText())
+                            .score(qDto.getScore() != null ? qDto.getScore() : 0)
+                            .codeText(qDto.getCodeText())
+                            .language(qDto.getLanguage())
+                            .compilerOutput(qDto.getCompilerOutput())
                             .mockInterview(interview)
-                            .build())
-                    .collect(Collectors.toList());
-            interview.setQuestions(questions);
+                            .build();
+                    interview.getQuestions().add(newQ);
+                }
+            }
+        }
+
+        AdaptiveState state = null;
+        if (interview.getCurrentStateJson() != null && !interview.getCurrentStateJson().isEmpty()) {
+            try {
+                state = objectMapper.readValue(interview.getCurrentStateJson(), AdaptiveState.class);
+            } catch (Exception e) {
+                log.error("Failed to parse adaptive state in saveResults", e);
+            }
         }
 
         // Generate Feedback using AI
@@ -337,6 +671,10 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                 "  \"technicalScore\": 85,\n" +
                 "  \"communicationScore\": 75,\n" +
                 "  \"confidenceScore\": 80,\n" +
+                "  \"problemSolvingScore\": 80,\n" +
+                "  \"codingScore\": 85,\n" +
+                "  \"behavioralScore\": 80,\n" +
+                "  \"roleReadiness\": 80,\n" +
                 "  \"finalAssessment\": \"Detailed breakdown assessment covering Communication Skills, Domain Knowledge, Analytical Thinking, Cultural & Role Fit, and Confidence and Clarity. Discuss each area clearly.\",\n" +
                 "  \"strengths\": [\"Strength 1\", \"Strength 2\"],\n" +
                 "  \"areasForImprovement\": [\"Area 1\", \"Area 2\"],\n" +
@@ -348,13 +686,31 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                 "  \"hiringProbability\": 70,\n" +
                 "  \"expectedSalary\": \"7.5 - 10.0 LPA\",\n" +
                 "  \"recruiterVerdict\": \"Strong Candidate\",\n" +
-                "  \"finalRecommendation\": \"Recommendation text\"\n" +
-                "}\n" +
-                "\n" +
+                "  \"finalRecommendation\": \"Recommendation text\",\n" +
+                "  \"candidateSummary\": \"A summary of the candidate's background and performance.\",\n" +
+                "  \"technicalAbilityComment\": \"Detailed comment on technical ability.\",\n" +
+                "  \"communicationComment\": \"Detailed comment on communication.\",\n" +
+                "  \"leadershipComment\": \"Detailed comment on leadership alignment.\",\n" +
+                "  \"problemSolvingComment\": \"Detailed comment on problem solving.\",\n" +
+                "  \"cultureFitComment\": \"Detailed comment on culture fit.\",\n" +
+                "  \"teamFitComment\": \"Detailed comment on team fit.\",\n" +
+                "  \"riskAssessment\": \"Detailed comment on hiring risks.\",\n" +
+                "  \"recruiterNotes\": \"Additional recruiter notes/observations.\",\n" +
+                "  \"interviewConfidence\": 85,\n" +
+                "  \"questionComments\": [\"Feedback comment for Question 1\", \"Feedback comment for Question 2\"]\n" +
+                "}\n\n" +
                 "Interview Role: " + interview.getRole() + "\n" +
                 "Experience Level: " + interview.getExperienceLevel() + "\n" +
                 "Company: " + interview.getCompany() + "\n" +
                 "Topic/Type: " + interview.getTopic() + "\n" +
+                (state != null ? "Baseline Scores from session: " +
+                        "Technical: " + state.getTechnicalScore() + ", " +
+                        "Communication: " + state.getCommunicationScore() + ", " +
+                        "Confidence: " + state.getConfidenceScore() + ", " +
+                        "Problem Solving: " + state.getProblemSolvingScore() + ", " +
+                        "Coding: " + state.getCodingScore() + ", " +
+                        "Behavioral: " + state.getBehavioralScore() + ", " +
+                        "Role Readiness: " + state.getRoleReadiness() + ".\n" : "") +
                 "Transcript:\n" + truncate(interview.getTranscript(), 2500);
 
         JsonNode feedbackJson = null;
@@ -382,6 +738,10 @@ public class MockInterviewServiceImpl implements MockInterviewService {
             int technicalScore = parseSafeInt(feedbackJson, "technicalScore", totalScore);
             int communicationScore = parseSafeInt(feedbackJson, "communicationScore", totalScore);
             int confidenceScore = parseSafeInt(feedbackJson, "confidenceScore", totalScore);
+            int problemSolvingScore = parseSafeInt(feedbackJson, "problemSolvingScore", totalScore);
+            int codingScore = parseSafeInt(feedbackJson, "codingScore", totalScore);
+            int behavioralScore = parseSafeInt(feedbackJson, "behavioralScore", totalScore);
+            int roleReadiness = parseSafeInt(feedbackJson, "roleReadiness", totalScore);
             
             String finalAssessment = parseSafeString(feedbackJson, "finalAssessment", "Evaluation completed successfully via local estimator.");
             List<String> strengths = parseSafeStringList(feedbackJson, "strengths");
@@ -397,11 +757,51 @@ public class MockInterviewServiceImpl implements MockInterviewService {
             String recruiterVerdict = parseSafeString(feedbackJson, "recruiterVerdict", totalScore >= 75 ? "Strong Candidate" : "Needs Improvement");
             String finalRecommendation = parseSafeString(feedbackJson, "finalRecommendation", "Focus on core computer science fundamentals.");
 
+            String candidateSummary = parseSafeString(feedbackJson, "candidateSummary", "No summary provided.");
+            String technicalAbilityComment = parseSafeString(feedbackJson, "technicalAbilityComment", "Evaluated technically stable.");
+            String communicationComment = parseSafeString(feedbackJson, "communicationComment", "Articulate and fluent response delivery.");
+            String leadershipComment = parseSafeString(feedbackJson, "leadershipComment", "Demonstrated basic collaboration and ownership values.");
+            String problemSolvingComment = parseSafeString(feedbackJson, "problemSolvingComment", "Methodical solution architecture explanation.");
+            String cultureFitComment = parseSafeString(feedbackJson, "cultureFitComment", "Aligned with core software engineering values.");
+            String teamFitComment = parseSafeString(feedbackJson, "teamFitComment", "Demonstrates positive collaboration compatibility.");
+            String riskAssessment = parseSafeString(feedbackJson, "riskAssessment", "Low hiring risk associated with core technical fluency.");
+            String recruiterNotes = parseSafeString(feedbackJson, "recruiterNotes", "Candidate presented well; strong basic engineering background.");
+            int interviewConfidence = parseSafeInt(feedbackJson, "interviewConfidence", totalScore + 3);
+            List<String> questionComments = parseSafeStringList(feedbackJson, "questionComments");
+
+            String competenciesJsonStr = null;
+            if (state != null && state.getCompetenciesChecked() != null && !state.getCompetenciesChecked().isEmpty()) {
+                try {
+                    competenciesJsonStr = objectMapper.writeValueAsString(state.getCompetenciesChecked());
+                } catch (Exception e) {
+                    log.error("Failed to serialize competencies checked", e);
+                }
+            }
+
+            if (competenciesJsonStr == null) {
+                List<InterviewFeedbackDto.CompetencyDto> defaultList = new ArrayList<>();
+                defaultList.add(new InterviewFeedbackDto.CompetencyDto("Domain Knowledge", "Core Concepts", technicalScore >= 70));
+                defaultList.add(new InterviewFeedbackDto.CompetencyDto("Communication", "Clarity & Confidence", communicationScore >= 70));
+                defaultList.add(new InterviewFeedbackDto.CompetencyDto("Problem Solving", "Analytical Thinking", problemSolvingScore >= 70));
+                if (interview.getTopic() != null && interview.getTopic().toLowerCase().contains("coding")) {
+                    defaultList.add(new InterviewFeedbackDto.CompetencyDto("Coding Ability", "Syntactic Correctness", codingScore >= 70));
+                }
+                try {
+                    competenciesJsonStr = objectMapper.writeValueAsString(defaultList);
+                } catch (Exception e) {
+                    log.error("Failed to serialize fallback competencies list", e);
+                }
+            }
+
             InterviewFeedback feedback = InterviewFeedback.builder()
                     .totalScore(totalScore)
                     .technicalScore(technicalScore)
                     .communicationScore(communicationScore)
                     .confidenceScore(confidenceScore)
+                    .problemSolvingScore(problemSolvingScore)
+                    .codingScore(codingScore)
+                    .behavioralScore(behavioralScore)
+                    .roleReadiness(roleReadiness)
                     .finalAssessment(finalAssessment)
                     .strengths(strengths)
                     .areasForImprovement(areas)
@@ -415,16 +815,52 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                     .recruiterVerdict(recruiterVerdict)
                     .finalRecommendation(finalRecommendation)
                     .mockInterview(interview)
+                    .competenciesJson(competenciesJsonStr)
+                    .candidateSummary(candidateSummary)
+                    .technicalAbilityComment(technicalAbilityComment)
+                    .communicationComment(communicationComment)
+                    .leadershipComment(leadershipComment)
+                    .problemSolvingComment(problemSolvingComment)
+                    .cultureFitComment(cultureFitComment)
+                    .teamFitComment(teamFitComment)
+                    .riskAssessment(riskAssessment)
+                    .recruiterNotes(recruiterNotes)
+                    .interviewConfidence(interviewConfidence)
                     .build();
             interview.setFeedback(feedback);
+
+            List<InterviewQuestion> questionsList = interview.getQuestions();
+            if (questionsList != null) {
+                for (int i = 0; i < questionsList.size(); i++) {
+                    InterviewQuestion q = questionsList.get(i);
+                    String comment = null;
+                    if (questionComments != null && i < questionComments.size()) {
+                        comment = questionComments.get(i);
+                    }
+                    if (comment == null || comment.trim().isEmpty()) {
+                        int qScore = q.getScore() != null ? q.getScore() : 70;
+                        if (qScore >= 80) {
+                            comment = "Clear response, correctly addressing core elements of the question.";
+                        } else if (qScore >= 60) {
+                            comment = "Solid answer, but could be refined with more structural detail.";
+                        } else {
+                            comment = "Struggled to articulate core concepts cleanly; review foundational topics.";
+                        }
+                    }
+                    q.setAiFeedback(comment);
+                }
+            }
         } catch (Exception e) {
             log.error("Failed to map evaluation feedback", e);
-            // Revert to static clean safe map
             interview.setFeedback(InterviewFeedback.builder()
                     .totalScore(70)
                     .technicalScore(70)
                     .communicationScore(70)
                     .confidenceScore(70)
+                    .problemSolvingScore(70)
+                    .codingScore(70)
+                    .behavioralScore(70)
+                    .roleReadiness(70)
                     .finalAssessment("Feedback generated successfully.")
                     .strengths(Arrays.asList("Active response", "Cooperative tone"))
                     .areasForImprovement(Arrays.asList("Technical elaboration"))
@@ -594,6 +1030,10 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         fallback.put("technicalScore", technicalScore);
         fallback.put("communicationScore", communicationScore);
         fallback.put("confidenceScore", confidenceScore);
+        fallback.put("problemSolvingScore", totalScore);
+        fallback.put("codingScore", totalScore);
+        fallback.put("behavioralScore", totalScore);
+        fallback.put("roleReadiness", totalScore);
         fallback.put("finalAssessment", "Evaluation completed successfully via local performance estimator. The candidate answered questions for " + interview.getRole() + " demonstrating solid fundamentals.");
         
         com.fasterxml.jackson.databind.node.ArrayNode strengths = mapper.createArrayNode();
@@ -639,12 +1079,17 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                 .experienceLevel(interview.getExperienceLevel())
                 .company(interview.getCompany())
                 .topic(interview.getTopic())
+                .conversationalStyle(interview.getConversationalStyle())
                 .transcript(interview.getTranscript())
                 .questions(interview.getQuestions() != null ? interview.getQuestions().stream()
                         .map(q -> InterviewQuestionDto.builder()
                                 .questionText(q.getQuestionText())
                                 .answerText(q.getAnswerText())
                                 .score(q.getScore())
+                                .codeText(q.getCodeText())
+                                .language(q.getLanguage())
+                                .compilerOutput(q.getCompilerOutput())
+                                .aiFeedback(q.getAiFeedback())
                                 .build())
                         .collect(Collectors.toList()) : null)
                 .feedback(interview.getFeedback() != null ? InterviewFeedbackDto.builder()
@@ -652,6 +1097,10 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                         .technicalScore(interview.getFeedback().getTechnicalScore())
                         .communicationScore(interview.getFeedback().getCommunicationScore())
                         .confidenceScore(interview.getFeedback().getConfidenceScore())
+                        .problemSolvingScore(interview.getFeedback().getProblemSolvingScore())
+                        .codingScore(interview.getFeedback().getCodingScore())
+                        .behavioralScore(interview.getFeedback().getBehavioralScore())
+                        .roleReadiness(interview.getFeedback().getRoleReadiness())
                         .finalAssessment(interview.getFeedback().getFinalAssessment())
                         .strengths(interview.getFeedback().getStrengths() != null ? new ArrayList<>(interview.getFeedback().getStrengths()) : null)
                         .areasForImprovement(interview.getFeedback().getAreasForImprovement() != null ? new ArrayList<>(interview.getFeedback().getAreasForImprovement()) : null)
@@ -664,8 +1113,90 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                         .expectedSalary(interview.getFeedback().getExpectedSalary())
                         .recruiterVerdict(interview.getFeedback().getRecruiterVerdict())
                         .finalRecommendation(interview.getFeedback().getFinalRecommendation())
+                        .competencies(parseCompetenciesJson(interview.getFeedback().getCompetenciesJson()))
+                        .candidateSummary(interview.getFeedback().getCandidateSummary())
+                        .technicalAbilityComment(interview.getFeedback().getTechnicalAbilityComment())
+                        .communicationComment(interview.getFeedback().getCommunicationComment())
+                        .leadershipComment(interview.getFeedback().getLeadershipComment())
+                        .problemSolvingComment(interview.getFeedback().getProblemSolvingComment())
+                        .cultureFitComment(interview.getFeedback().getCultureFitComment())
+                        .teamFitComment(interview.getFeedback().getTeamFitComment())
+                        .riskAssessment(interview.getFeedback().getRiskAssessment())
+                        .recruiterNotes(interview.getFeedback().getRecruiterNotes())
+                        .interviewConfidence(interview.getFeedback().getInterviewConfidence())
+                        .benchmark(calculateBenchmark(interview))
                         .build() : null)
                 .build();
+    }
+
+    private List<InterviewFeedbackDto.CompetencyDto> parseCompetenciesJson(String json) {
+        if (json == null || json.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<List<InterviewFeedbackDto.CompetencyDto>>() {});
+        } catch (Exception e) {
+            log.error("Failed to deserialize competencies json", e);
+            return new ArrayList<>();
+        }
+    }
+
+    private String getCompanyStyleInstructions(String company) {
+        if (company == null || company.trim().isEmpty()) {
+            return "General Tech: Adopt a standard, comprehensive tech industry interview style assessing balanced competencies.";
+        }
+        String c = company.trim().toLowerCase();
+        if (c.contains("google")) {
+            return "Google Style: Emphasize rigorous algorithms, mathematical reasoning, deep problem solving, complexity bounds (Big O), and structural design. Adopt a highly analytical, inquisitive, and intellectually demanding tone. The rubric focuses on deep analytical reasoning and algorithmic edge cases.";
+        } else if (c.contains("amazon")) {
+            return "Amazon Style: Emphasize Amazon Leadership Principles (Ownership, Customer Obsession, Bias for Action, Dive Deep). Interweave questions assessing how they handle customer feedback, project ownership, or trade-offs. Adopt a direct, pragmatic, STAR-method oriented tone. The evaluation rubric focuses on leadership behavior and action.";
+        } else if (c.contains("microsoft")) {
+            return "Microsoft Style: Emphasize collaboration, system design thinking, accessibility, inclusive user-experience, and iterative software engineering. Adopt a highly collaborative, constructive, and product-design-oriented tone. The rubric focuses on clean design patterns and teamwork compatibility.";
+        } else if (c.contains("oracle")) {
+            return "Oracle Style: Emphasize Java programming language internals, JVM memory model (Heap/Stack), Garbage Collection, low-level concurrency, and memory safety. Adopt a highly precise, detail-oriented, and rigid tone. The rubric focuses on strict execution accuracy and internal language specs.";
+        } else if (c.contains("nvidia")) {
+            return "NVIDIA Style: Emphasize parallel computing foundations, CUDA programming, high-performance computing (HPC), GPU hardware architecture, threading models, and memory bandwidth optimization. Adopt an extreme performance-focused, hardware-centric tone. The rubric focuses on maximum hardware utilization and code efficiency.";
+        } else if (c.contains("infosys")) {
+            return "Infosys Style: Emphasize core IT engineering fundamentals, basic syntax, database queries (SQL), OOP definitions, and foundational code logic. Adopt a patient, standard textbook-based recruiter tone. The rubric focuses on correct textbook syntax and basics.";
+        } else if (c.contains("tcs")) {
+            return "TCS Style: Emphasize baseline communication clarity, fundamental conceptual definitions, and readiness to adapt/learn. Adopt a friendly, supportive, and conversational tone. The rubric focuses on articulate explanations and core computer basics.";
+        } else {
+            return company + " Style: Adopt a tailored questioning style matching " + company + "'s core business domains and standard tech interview rubrics.";
+        }
+    }
+
+    @Override
+    public byte[] generateSpeech(String text) {
+        if (text == null || text.trim().isEmpty() || "dummy".equalsIgnoreCase(elevenlabsApiKey)) {
+            log.warn("ElevenLabs TTS key unconfigured or text empty.");
+            return new byte[0];
+        }
+        try {
+            String url = "https://api.elevenlabs.io/v1/text-to-speech/" + elevenlabsVoiceId;
+            Map<String, Object> body = new HashMap<>();
+            body.put("text", text);
+            body.put("model_id", "eleven_monolingual_v1");
+            
+            Map<String, Object> settings = new HashMap<>();
+            settings.put("stability", 0.5);
+            settings.put("similarity_boost", 0.75);
+            body.put("voice_settings", settings);
+
+            return webClientBuilder.build()
+                    .post()
+                    .uri(url)
+                    .header("xi-api-key", elevenlabsApiKey)
+                    .header("Content-Type", "application/json")
+                    .header("accept", "audio/mpeg")
+                    .bodyValue(body)
+                    .retrieve()
+                    .bodyToMono(byte[].class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();
+        } catch (Exception e) {
+            log.error("Failed to generate speech from ElevenLabs", e);
+            return new byte[0];
+        }
     }
 
     private int parseSafeInt(JsonNode node, String fieldName, int defaultValue) {
@@ -707,5 +1238,80 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     private String truncate(String text, int limit) {
         if (text == null || text.length() <= limit) return text;
         return text.substring(0, limit);
+    }
+
+    private InterviewFeedbackDto.BenchmarkDto calculateBenchmark(MockInterview interview) {
+        if (interview.getFeedback() == null || interview.getFeedback().getTotalScore() == null) {
+            return null;
+        }
+        int candidateScore = interview.getFeedback().getTotalScore();
+
+        List<MockInterview> allInterviews = mockInterviewRepository.findAll().stream()
+                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
+                .collect(Collectors.toList());
+
+        if (allInterviews.isEmpty()) {
+            return InterviewFeedbackDto.BenchmarkDto.builder()
+                    .percentileCategory("Average")
+                    .percentile(50.0)
+                    .roleAverage(70.0)
+                    .collegeAverage(70.0)
+                    .companyAverage(70.0)
+                    .globalAverage(70.0)
+                    .totalCompared(1)
+                    .build();
+        }
+
+        List<Integer> globalScores = allInterviews.stream()
+                .map(m -> m.getFeedback().getTotalScore())
+                .sorted()
+                .collect(Collectors.toList());
+
+        double globalAvg = globalScores.stream().mapToInt(Integer::intValue).average().orElse(70.0);
+
+        long scoresBelow = globalScores.stream().filter(s -> s < candidateScore).count();
+        long scoresEqual = globalScores.stream().filter(s -> s == candidateScore).count();
+        double percentile = allInterviews.size() <= 1 ? 50.0 : 
+                ((double) scoresBelow + (0.5 * scoresEqual)) / allInterviews.size() * 100.0;
+
+        String category;
+        if (percentile >= 90.0) {
+            category = "Top 10%";
+        } else if (percentile >= 75.0) {
+            category = "Top 25%";
+        } else if (percentile >= 50.0) {
+            category = "Above Average";
+        } else if (percentile >= 35.0) {
+            category = "Average";
+        } else {
+            category = "Needs Improvement";
+        }
+
+        double roleAvg = allInterviews.stream()
+                .filter(m -> interview.getRole() != null && interview.getRole().equalsIgnoreCase(m.getRole()))
+                .mapToInt(m -> m.getFeedback().getTotalScore())
+                .average().orElse(globalAvg);
+
+        double collegeAvg = allInterviews.stream()
+                .filter(m -> m.getUser() != null && interview.getUser() != null &&
+                        interview.getUser().getCollegeName() != null &&
+                        interview.getUser().getCollegeName().equalsIgnoreCase(m.getUser().getCollegeName()))
+                .mapToInt(m -> m.getFeedback().getTotalScore())
+                .average().orElse(globalAvg);
+
+        double companyAvg = allInterviews.stream()
+                .filter(m -> interview.getCompany() != null && interview.getCompany().equalsIgnoreCase(m.getCompany()))
+                .mapToInt(m -> m.getFeedback().getTotalScore())
+                .average().orElse(globalAvg);
+
+        return InterviewFeedbackDto.BenchmarkDto.builder()
+                .percentile(Math.round(percentile * 10.0) / 10.0)
+                .percentileCategory(category)
+                .roleAverage(Math.round(roleAvg * 10.0) / 10.0)
+                .collegeAverage(Math.round(collegeAvg * 10.0) / 10.0)
+                .companyAverage(Math.round(companyAvg * 10.0) / 10.0)
+                .globalAverage(Math.round(globalAvg * 10.0) / 10.0)
+                .totalCompared(allInterviews.size())
+                .build();
     }
 }

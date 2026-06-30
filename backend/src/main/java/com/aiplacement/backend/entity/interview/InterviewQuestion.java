@@ -23,6 +23,17 @@ public class InterviewQuestion {
 
     private Integer score;
 
+    @Column(columnDefinition = "TEXT")
+    private String codeText;
+
+    private String language;
+
+    @Column(columnDefinition = "TEXT")
+    private String compilerOutput;
+
+    @Column(columnDefinition = "TEXT")
+    private String aiFeedback;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mock_interview_id", nullable = false)
     private MockInterview mockInterview;

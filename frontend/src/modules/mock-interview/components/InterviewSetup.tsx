@@ -18,6 +18,9 @@ interface InterviewSetupProps {
     difficulty?: string; 
     interviewType?: string; 
     topic?: string; 
+    isAdaptive?: boolean;
+    adaptiveInterviewId?: number;
+    conversationalStyle?: string;
   }) => void;
 }
 
@@ -27,6 +30,7 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
   const [company, setCompany] = useState("");
   const [difficulty, setDifficulty] = useState("Medium");
   const [interviewType, setInterviewType] = useState("Technical Coding");
+  const [conversationalStyle, setConversationalStyle] = useState("Professional");
   const [jobDescription, setJobDescription] = useState("");
   const [resumeText, setResumeText] = useState("");
   const [focusAreas, setFocusAreas] = useState("");
@@ -44,7 +48,8 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
         interviewType,
         jobDescription: jobDescription || undefined,
         resumeText: resumeText || undefined,
-        topic: focusAreas || undefined
+        topic: focusAreas || undefined,
+        conversationalStyle
       };
       const response = await interviewService.generateInterview(request);
       onGenerated({
@@ -54,7 +59,8 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
         company,
         difficulty,
         interviewType,
-        topic: focusAreas
+        topic: focusAreas,
+        conversationalStyle
       });
     } catch (error) {
       console.error("Failed to generate interview:", error);
@@ -146,6 +152,8 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
               <option value="Capgemini">Capgemini</option>
               <option value="Deloitte">Deloitte</option>
               <option value="JP Morgan">JP Morgan</option>
+              <option value="Oracle">Oracle</option>
+              <option value="NVIDIA">NVIDIA</option>
             </select>
           </div>
           <div className="space-y-2">
@@ -163,18 +171,33 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="experience">Experience Level</Label>
-          <select 
-            className={selectClassName}
-            value={experienceLevel} 
-            onChange={(e) => setExperienceLevel(e.target.value)}
-          >
-            <option value="Entry Level">Entry Level (Fresher)</option>
-            <option value="Intermediate">Intermediate (1-4 Years)</option>
-            <option value="Senior">Senior (5+ Years)</option>
-            <option value="Lead">Lead / Architect</option>
-          </select>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="experience">Experience Level</Label>
+            <select 
+              className={selectClassName}
+              value={experienceLevel} 
+              onChange={(e) => setExperienceLevel(e.target.value)}
+            >
+              <option value="Entry Level">Entry Level (Fresher)</option>
+              <option value="Intermediate">Intermediate (1-4 Years)</option>
+              <option value="Senior">Senior (5+ Years)</option>
+              <option value="Lead">Lead / Architect</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="style">Interviewer Style / Tone</Label>
+            <select 
+              className={selectClassName}
+              value={conversationalStyle} 
+              onChange={(e) => setConversationalStyle(e.target.value)}
+            >
+              <option value="Professional">Professional (Recruiter)</option>
+              <option value="Friendly">Friendly (Warm & Positive)</option>
+              <option value="Strict">Strict (Challenging & Rigorous)</option>
+              <option value="Senior Engineer">Senior Engineer (Deep Technical)</option>
+            </select>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -222,14 +245,16 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
             try {
               const request = {
                 role, experienceLevel, company: company || undefined, difficulty, interviewType,
-                jobDescription: jobDescription || undefined, resumeText: resumeText || undefined, topic: focusAreas || undefined
+                jobDescription: jobDescription || undefined, resumeText: resumeText || undefined, topic: focusAreas || undefined,
+                conversationalStyle
               };
               const response = await interviewService.startAdaptiveInterview(request);
               onGenerated({
                 role, experienceLevel, company, difficulty, interviewType, topic: focusAreas,
                 questions: [response.firstQuestion], // Seed with first question
                 isAdaptive: true,
-                adaptiveInterviewId: response.interviewId
+                adaptiveInterviewId: response.interviewId,
+                conversationalStyle
               });
             } catch (error) {
               console.error(error);

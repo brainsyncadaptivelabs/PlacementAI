@@ -91,6 +91,14 @@ public class AdminPortalController {
                 .body(csvData);
     }
 
+    @GetMapping("/college-analytics")
+    public ResponseEntity<Map<String, Object>> getCollegeAnalytics(
+            @RequestParam(value = "college", required = false) String college,
+            @RequestParam(value = "branch", required = false) String branch
+    ) {
+        return ResponseEntity.ok(adminPortalService.getCollegeAnalytics(college, branch));
+    }
+
     @PutMapping("/users/{id}/plan")
     public ResponseEntity<Map<String, Object>> updateUserPlan(
             @PathVariable("id") Long id,

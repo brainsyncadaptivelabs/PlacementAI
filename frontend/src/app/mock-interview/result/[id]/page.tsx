@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { InterviewResult } from "@/modules/mock-interview/components/InterviewResult";
 import { interviewService } from "@/modules/mock-interview/services/interviewService";
 import { MockInterview } from "@/modules/mock-interview/types/interview.types";
+import { useInterviewStore } from "@/modules/mock-interview/hooks/useInterviewStore";
 import { Loader2 } from "lucide-react";
 
 export default function MockInterviewResultPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [interview, setInterview] = useState<MockInterview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,20 @@ export default function MockInterviewResultPage() {
     const fetchResult = async () => {
       try {
         const data = await interviewService.getById(id);
-        setInterview(data);
+        if (data && !data.feedback) {
+          useInterviewStore.getState().setInterviewData({
+            role: data.role,
+            experienceLevel: data.experienceLevel,
+            questions: data.questions ? data.questions.map(q => q.questionText) : [],
+            company: data.company,
+            isAdaptive: true,
+            adaptiveInterviewId: data.id,
+            conversationalStyle: data.conversationalStyle
+          });
+          router.push("/mock-interview/session");
+        } else {
+          setInterview(data);
+        }
       } catch (error) {
         console.error("Failed to fetch result:", error);
       } finally {
@@ -25,7 +40,7 @@ export default function MockInterviewResultPage() {
       }
     };
     if (id) fetchResult();
-  }, [id]);
+  }, [id, router]);
 
   if (loading) {
     return (

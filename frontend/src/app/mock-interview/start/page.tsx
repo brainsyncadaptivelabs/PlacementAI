@@ -19,6 +19,7 @@ export default function MockInterviewStartPage() {
     topic?: string;
     isAdaptive?: boolean;
     adaptiveInterviewId?: number;
+    conversationalStyle?: string;
   }) => {
     setInterviewData(data);
     router.push("/mock-interview/session");
