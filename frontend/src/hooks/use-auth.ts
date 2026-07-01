@@ -6,11 +6,12 @@ export const useAuth = () => {
   const { user, session, isAuthenticated, isLoading, clearAuth } = useAuthStore();
   const supabase = createClient();
 
-  const signInWithProvider = async (provider: Provider) => {
+  const signInWithProvider = async (provider: Provider, role?: string) => {
+    const redirectUrl = `${window.location.origin}/auth/callback${role ? `?role=${encodeURIComponent(role)}` : ''}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: redirectUrl,
       },
     });
     if (error) throw error;

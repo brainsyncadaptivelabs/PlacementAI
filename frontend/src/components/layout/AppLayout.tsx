@@ -10,6 +10,7 @@ import { SearchBar } from "@/components/search-bar";
 import { UserNav } from "@/components/dashboard/user-nav";
 import { Sidebar } from "./Sidebar";
 import { useUser } from "@/hooks/use-user";
+import { useAuthStore } from '@/store/auth-store';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, role }: AppLayoutProps) {
   const { user, loading } = useUser();
+  const isAuthLoading = useAuthStore((state) => state.isLoading);
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme } = useTheme();
@@ -28,7 +30,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
   }, []);
   
   React.useEffect(() => {
-    if (loading) return;
+    if (loading || isAuthLoading) return;
 
     if (!user) {
       router.push("/auth");
@@ -36,17 +38,14 @@ export function AppLayout({ children, role }: AppLayoutProps) {
     }
 
     if (!user.profileCompleted) {
-      switch (user.role) {
-        case "RECRUITER":
-          router.push("/complete-profile/recruiter");
-          break;
-        case "PLACEMENT_OFFICER":
-          router.push("/complete-profile/placement-officer");
-          break;
-        case "STUDENT":
-        default:
-          router.push("/complete-profile/student");
-          break;
+      if (user.role === "RECRUITER") {
+        router.push("/complete-profile/recruiter");
+      } else if (user.role === "PLACEMENT_OFFICER") {
+        router.push("/complete-profile/placement-officer");
+      } else if (user.role === "STUDENT") {
+        router.push("/complete-profile/student");
+      } else {
+        router.push("/auth");
       }
       return;
     }
@@ -62,17 +61,19 @@ export function AppLayout({ children, role }: AppLayoutProps) {
         router.push("/recruiter");
       } else if (user.role === "PLACEMENT_OFFICER") {
         router.push("/placement-officer");
-      } else {
+      } else if (user.role === "STUDENT") {
         router.push("/dashboard");
+      } else {
+        router.push("/auth");
       }
       return;
     }
-  }, [user, loading, pathname, router, role]);
+  }, [user, loading, isAuthLoading, pathname, router, role]);
 
   const isWorkspaceMode = pathname?.includes('/resume-builder/editor');
   const isChatMode = pathname === '/dashboard/chat' || pathname === '/dashboard/chatbot';
 
-  if (loading) {
+  if (loading || isAuthLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />

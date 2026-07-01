@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,9 +11,10 @@ import api from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useUser } from "@/hooks/use-user";
 
 export default function CompleteProfilePage() {
-  const [role, setRole] = useState<string | null>(null);
+  const { user, loading: userLoading } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -26,17 +27,13 @@ export default function CompleteProfilePage() {
     companyName: "",
   });
 
-  useEffect(() => {
-    const storedRole = localStorage.getItem("role");
-    const token = localStorage.getItem("token");
-    
-    if (!token) {
-      router.push("/auth");
-      return;
-    }
-    
-    setRole(storedRole);
-  }, [router]);
+
+  const role = user?.role;
+  if (userLoading) return null;
+  if (!user) {
+    router.push("/auth");
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +47,8 @@ export default function CompleteProfilePage() {
       setTimeout(() => {
         if (role === "RECRUITER") {
           router.push("/recruiter");
+        } else if (role === "PLACEMENT_OFFICER") {
+          router.push("/placement-officer");
         } else {
           router.push("/dashboard");
         }

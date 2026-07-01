@@ -84,59 +84,31 @@ public class GeminiServiceImpl implements GeminiService {
         }
 
         try {
-            int atsScore = aiJson.has("atsScore") ? aiJson.get("atsScore").asInt() : 65;
+            Integer atsScore = aiJson.has("atsScore") && aiJson.get("atsScore").isNumber() ? aiJson.get("atsScore").asInt() : null;
             List<String> strengths = getList(aiJson, "strengths");
             List<String> weaknesses = getList(aiJson, "weaknesses");
             List<String> missingKeywords = getList(aiJson, "missingKeywords");
             List<String> matchedKeywords = getList(aiJson, "matchedKeywords");
             List<String> suggestions = getList(aiJson, "suggestions");
-            String bestRole = aiJson.has("bestRole") ? aiJson.get("bestRole").asText() : "Software Engineer";
+            String bestRole = aiJson.has("bestRole") ? aiJson.get("bestRole").asText() : null;
             
             Map<String, Integer> sectionScores = parseSafeMap(aiJson, "sectionScores");
-            // Fill default section scores if empty
-            if (sectionScores.isEmpty()) {
-                sectionScores.put("Contact Information", 85);
-                sectionScores.put("Professional Summary", 70);
-                sectionScores.put("Skills", 75);
-                sectionScores.put("Projects", 70);
-                sectionScores.put("Experience", 75);
-                sectionScores.put("Education", 80);
-                sectionScores.put("Formatting", 80);
-                sectionScores.put("Keywords", 65);
-                sectionScores.put("Grammar", 85);
-                sectionScores.put("Readability", 80);
-            }
+            // Do not inject default section scores; leave empty if AI did not provide them
 
             String recruiterFeedback = aiJson.has("recruiterFeedback") ? aiJson.get("recruiterFeedback").asText() : "Strong fundamentals.";
             List<String> recommendedRoles = getList(aiJson, "recommendedRoles");
             
             Map<String, Integer> companyReadiness = parseSafeMap(aiJson, "companyReadiness");
-            if (companyReadiness.isEmpty()) {
-                companyReadiness.put("Google", 60);
-                companyReadiness.put("Microsoft", 65);
-                companyReadiness.put("Amazon", 55);
-                companyReadiness.put("TCS", 80);
-                companyReadiness.put("Infosys", 85);
-                companyReadiness.put("Accenture", 82);
-            }
+            // Do not populate mocked company readiness values here
 
-            String minSalary = aiJson.has("minSalary") ? aiJson.get("minSalary").asText() : "5 LPA";
-            String maxSalary = aiJson.has("maxSalary") ? aiJson.get("maxSalary").asText() : "8 LPA";
-            String salaryExplanation = aiJson.has("salaryExplanation") ? aiJson.get("salaryExplanation").asText() : "Standard market estimates.";
+            String minSalary = aiJson.has("minSalary") ? aiJson.get("minSalary").asText() : null;
+            String maxSalary = aiJson.has("maxSalary") ? aiJson.get("maxSalary").asText() : null;
+            String salaryExplanation = aiJson.has("salaryExplanation") ? aiJson.get("salaryExplanation").asText() : null;
 
             List<AtsResponseDto.AtsSuggestionDto> detailedSuggestions = parseDetailedSuggestions(aiJson, "detailedSuggestions");
-            if (detailedSuggestions.isEmpty() && !suggestions.isEmpty()) {
-                for (String sug : suggestions) {
-                    detailedSuggestions.add(AtsResponseDto.AtsSuggestionDto.builder()
-                            .text(sug)
-                            .impact("Medium")
-                            .difficulty("Medium")
-                            .estimatedImprovement("+4%")
-                            .build());
-                }
-            }
+            // leave detailedSuggestions empty if AI did not provide structured details
 
-            return AtsResponseDto.builder()
+                return AtsResponseDto.builder()
                     .atsScore(atsScore)
                     .strengths(strengths)
                     .weaknesses(weaknesses)
@@ -204,82 +176,20 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     private AtsResponseDto getFallbackAts(String resumeText) {
-        log.warn("Gemini/Ollama analyzer offline. Generating local ATS analysis.");
-        
-        List<String> strengths = Arrays.asList(
-                "Good contact information format",
-                "Education credentials clearly listed"
-        );
-        List<String> weaknesses = Arrays.asList(
-                "Missing industry-standard containerization tools",
-                "Ats optimization score can be improved by adding metrics and project keywords"
-        );
-        List<String> missingKeywords = Arrays.asList(
-                "Docker", "AWS", "Kubernetes", "CI/CD", "Redis", "Kafka"
-        );
-        List<String> matchedKeywords = Arrays.asList(
-                "Java", "SQL", "Git", "HTML", "CSS"
-        );
-        List<String> suggestions = Arrays.asList(
-                "Add docker and containerization keywords",
-                "Incorporate measurable results in experience sections"
-        );
-
-        List<AtsResponseDto.AtsSuggestionDto> detailedSuggestions = Arrays.asList(
-                AtsResponseDto.AtsSuggestionDto.builder()
-                        .text("Incorporate docker and containerization keywords to match infrastructure roles")
-                        .impact("High")
-                        .difficulty("Easy")
-                        .estimatedImprovement("+8%")
-                        .build(),
-                AtsResponseDto.AtsSuggestionDto.builder()
-                        .text("Quantify experience outcomes with percentages or LPA savings metrics")
-                        .impact("High")
-                        .difficulty("Medium")
-                        .estimatedImprovement("+6%")
-                        .build()
-        );
-
-        Map<String, Integer> sectionScores = new HashMap<>();
-        sectionScores.put("Contact Information", 90);
-        sectionScores.put("Professional Summary", 70);
-        sectionScores.put("Skills", 65);
-        sectionScores.put("Projects", 75);
-        sectionScores.put("Experience", 60);
-        sectionScores.put("Education", 85);
-        sectionScores.put("Formatting", 80);
-        sectionScores.put("Keywords", 55);
-        sectionScores.put("Grammar", 90);
-        sectionScores.put("Readability", 80);
-
-        Map<String, Integer> companyReadiness = new HashMap<>();
-        companyReadiness.put("Google", 45);
-        companyReadiness.put("Microsoft", 50);
-        companyReadiness.put("Amazon", 40);
-        companyReadiness.put("TCS", 75);
-        companyReadiness.put("Infosys", 80);
-        companyReadiness.put("Accenture", 78);
-        companyReadiness.put("Capgemini", 72);
-        companyReadiness.put("Deloitte", 74);
-        companyReadiness.put("Oracle", 55);
+        log.warn("Gemini/Ollama analyzer offline. Returning empty ATS response without mocked analytics.");
 
         return AtsResponseDto.builder()
-                .atsScore(68)
-                .strengths(strengths)
-                .weaknesses(weaknesses)
-                .missingKeywords(missingKeywords)
-                .matchedKeywords(matchedKeywords)
-                .suggestions(suggestions)
-                .detailedSuggestions(detailedSuggestions)
-                .bestRole("Software Engineer")
-                .sectionScores(sectionScores)
-                .recruiterFeedback("The candidate demonstrates clear foundational software programming capabilities. Improving cloud keywords and system design metrics will elevate the profile matching potential.")
-                .recommendedRoles(Arrays.asList("Junior Developer", "Java Full Stack Developer", "Software Engineer"))
-                .companyReadiness(companyReadiness)
-                .minSalary("5.5 LPA")
-                .maxSalary("8.0 LPA")
-                .salaryExplanation("Estimated standard market package range for Junior Developer roles.")
-                .build();
+            .atsScore(null)
+            .strengths(List.of())
+            .weaknesses(List.of())
+            .missingKeywords(List.of())
+            .matchedKeywords(List.of())
+            .suggestions(List.of())
+            .sectionScores(Map.of())
+            .recommendedRoles(List.of())
+            .companyReadiness(Map.of())
+            .detailedSuggestions(List.of())
+            .build();
     }
 }
 

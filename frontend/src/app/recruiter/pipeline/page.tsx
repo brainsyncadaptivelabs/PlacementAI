@@ -1,125 +1,264 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Star, Clock, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { 
+  Star, MoreHorizontal, ChevronDown, Loader2,
+  Target, Code2, TrendingUp, Users, Briefcase
+} from "lucide-react";
+import Link from "next/link";
+import api from "@/lib/api";
+import { toast } from "sonner";
 
-// Kanban Columns
-const initialColumns = {
-  applied: { id: "applied", title: "Applied", candidateIds: ["c1"] },
-  ats_passed: { id: "ats_passed", title: "ATS Passed", candidateIds: ["c2"] },
-  interview: { id: "interview", title: "Technical Interview", candidateIds: ["c3", "c4"] },
-  hr: { id: "hr", title: "HR Round", candidateIds: [] },
-  offer: { id: "offer", title: "Offer Extended", candidateIds: [] },
+const STAGE_META: Record<string, { label: string; color: string; bg: string }> = {
+  APPLIED:    { label: "Applied",         color: "text-slate-600",   bg: "bg-slate-100 dark:bg-slate-800/50" },
+  SHORTLISTED:{ label: "Shortlisted",     color: "text-violet-600",  bg: "bg-violet-50 dark:bg-violet-900/20" },
+  ATS_PASSED: { label: "ATS Passed",      color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-900/20" },
+  JD_MATCHED: { label: "JD Matched",      color: "text-blue-600",    bg: "bg-blue-50 dark:bg-blue-900/20" },
+  CODING:     { label: "Coding Round",    color: "text-amber-600",   bg: "bg-amber-50 dark:bg-amber-900/20" },
+  TECHNICAL:  { label: "Technical",       color: "text-orange-600",  bg: "bg-orange-50 dark:bg-orange-900/20" },
+  MANAGER:    { label: "Manager Round",   color: "text-pink-600",    bg: "bg-pink-50 dark:bg-pink-900/20" },
+  HR:         { label: "HR Round",        color: "text-indigo-600",  bg: "bg-indigo-50 dark:bg-indigo-900/20" },
+  OFFER:      { label: "Offer Extended",  color: "text-teal-600",    bg: "bg-teal-50 dark:bg-teal-900/20" },
+  JOINED:     { label: "Joined",          color: "text-green-700",   bg: "bg-green-50 dark:bg-green-900/20" },
+  REJECTED:   { label: "Rejected",        color: "text-rose-600",    bg: "bg-rose-50 dark:bg-rose-900/20" },
 };
 
-// Candidates Data
-const initialCandidates = {
-  c1: { id: "c1", name: "Rajat Gupta", college: "IIT Madras", score: 85, band: "Gold" },
-  c2: { id: "c2", name: "Sneha Reddy", college: "NIT Warangal", score: 92, band: "Platinum" },
-  c3: { id: "c3", name: "Aryan Sharma", college: "IIT Bombay", score: 96, band: "Platinum" },
-  c4: { id: "c4", name: "Kunal Jain", college: "BITS Pilani", score: 88, band: "Gold" },
+const BAND_PILL: Record<string, string> = {
+  "Platinum":          "bg-gradient-to-r from-slate-300 to-slate-500 text-white",
+  "Gold":              "bg-gradient-to-r from-amber-400 to-amber-600 text-white",
+  "Silver":            "bg-gradient-to-r from-zinc-300 to-zinc-500 text-white",
+  "Needs Improvement": "bg-zinc-100 text-zinc-600",
 };
+
+interface Job { id: number; title: string; status: string; }
+interface Application {
+  applicationId: number;
+  studentId: number;
+  studentName: string;
+  collegeName: string;
+  branch: string;
+  atsScore: number;
+  codingScore: number;
+  readinessScore: number;
+  hiringProbability: number;
+  candidateBand: string;
+  status: string;
+}
+interface PipelineData {
+  jobId: number;
+  jobTitle: string;
+  columns: Record<string, Application[]>;
+  columnOrder: string[];
+}
 
 export default function HiringPipeline() {
-  const [columns, setColumns] = useState<any>(initialColumns);
-  const [candidates, setCandidates] = useState<any>(initialCandidates);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const [pipeline, setPipeline] = useState<PipelineData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [movingId, setMovingId] = useState<number | null>(null);
 
-  const onDragEnd = (result: any) => {
-    const { destination, source, draggableId } = result;
+  useEffect(() => {
+    api.get("/recruiter/jobs").then(r => {
+      const active = r.data.filter((j: Job) => j.status === "ACTIVE" || j.status === "CLOSED");
+      setJobs(r.data);
+      if (active.length > 0) loadPipeline(active[0].id);
+      else if (r.data.length > 0) loadPipeline(r.data[0].id);
+    }).catch(() => toast.error("Failed to load jobs"));
+  }, []);
 
-    if (!destination) return;
-    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
-
-    const sourceCol = columns[source.droppableId];
-    const destCol = columns[destination.droppableId];
-
-    const newSourceCandidateIds = Array.from(sourceCol.candidateIds);
-    newSourceCandidateIds.splice(source.index, 1);
-
-    const newDestCandidateIds = Array.from(destCol.candidateIds);
-    newDestCandidateIds.splice(destination.index, 0, draggableId);
-
-    setColumns({
-      ...columns,
-      [source.droppableId]: { ...sourceCol, candidateIds: newSourceCandidateIds },
-      [destination.droppableId]: { ...destCol, candidateIds: newDestCandidateIds },
-    });
+  const loadPipeline = async (jobId: number) => {
+    setSelectedJobId(jobId);
+    setLoading(true);
+    try {
+      const res = await api.get(`/recruiter/pipeline/jobs/${jobId}`);
+      setPipeline(res.data);
+    } catch {
+      toast.error("Failed to load pipeline");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const onDragEnd = async (result: any) => {
+    const { destination, source, draggableId } = result;
+    if (!destination || !pipeline) return;
+    if (destination.droppableId === source.droppableId && destination.index === source.index) return;
+
+    const srcStage = source.droppableId;
+    const dstStage = destination.droppableId;
+    const appId = Number(draggableId);
+
+    // Optimistic update
+    const newCols = { ...pipeline.columns };
+    const srcArr = [...(newCols[srcStage] || [])];
+    const dstArr = srcStage === dstStage ? srcArr : [...(newCols[dstStage] || [])];
+    const [moved] = srcArr.splice(source.index, 1);
+    moved.status = dstStage;
+    dstArr.splice(destination.index, 0, moved);
+
+    setPipeline(prev => prev ? {
+      ...prev,
+      columns: { ...prev.columns, [srcStage]: srcArr, [dstStage]: dstArr }
+    } : prev);
+
+    // Persist
+    try {
+      setMovingId(appId);
+      await api.patch(`/recruiter/pipeline/applications/${appId}/status`, { status: dstStage });
+    } catch {
+      toast.error("Failed to move candidate — refresh to sync");
+      // Rollback
+      loadPipeline(selectedJobId!);
+    } finally {
+      setMovingId(null);
+    }
+  };
+
+  const columnOrder = pipeline?.columnOrder || Object.keys(STAGE_META);
+
   return (
-    <div className="p-8 h-[calc(100vh-64px)] flex flex-col font-sans">
-      <div className="mb-6">
-        <h1 className="text-3xl font-black text-foreground tracking-tight font-heading">
-          Hiring Pipeline
-        </h1>
-        <p className="text-muted-foreground font-medium">Drag and drop candidates across hiring stages.</p>
+    <div className="p-6 h-[calc(100vh-64px)] flex flex-col">
+      {/* Header */}
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-foreground tracking-tight font-heading">Hiring Pipeline</h1>
+          <p className="text-muted-foreground font-medium text-sm mt-1">Drag candidates across stages. Changes persist automatically.</p>
+        </div>
+        {/* Job Selector */}
+        <div className="flex items-center gap-3">
+          <Briefcase className="w-4 h-4 text-muted-foreground" />
+          <select
+            className="border border-border bg-card text-foreground rounded-xl px-3 py-2 text-sm font-medium focus:outline-none focus:ring-1 focus:ring-primary"
+            value={selectedJobId || ""}
+            onChange={e => loadPipeline(Number(e.target.value))}
+          >
+            {jobs.length === 0 && <option value="">No jobs found</option>}
+            {jobs.map(j => (
+              <option key={j.id} value={j.id}>{j.title}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto">
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex gap-6 h-full pb-4">
-            {Object.values(columns).map((col: any) => (
-              <div key={col.id} className="w-80 flex-shrink-0 flex flex-col bg-muted/30 rounded-xl border border-border overflow-hidden">
-                <div className="p-4 border-b border-border bg-muted/50 flex justify-between items-center">
-                  <h3 className="font-bold text-foreground">{col.title}</h3>
-                  <Badge variant="secondary" className="bg-background text-muted-foreground">{col.candidateIds.length}</Badge>
-                </div>
-                
-                <Droppable droppableId={col.id}>
-                  {(provided, snapshot) => (
-                    <div
-                      ref={provided.innerRef}
-                      {...provided.droppableProps}
-                      className={`flex-1 p-4 overflow-y-auto min-h-[150px] transition-colors ${snapshot.isDraggingOver ? 'bg-primary/5' : ''}`}
-                    >
-                      {col.candidateIds.map((candidateId: string, index: number) => {
-                        const candidate = candidates[candidateId];
-                        return (
-                          <Draggable key={candidate.id} draggableId={candidate.id} index={index}>
-                            {(provided, snapshot) => (
-                              <Card
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                className={`mb-4 cursor-grab active:cursor-grabbing border-border shadow-sm transition-shadow ${snapshot.isDragging ? 'shadow-md border-primary/50' : ''}`}
-                              >
-                                <CardContent className="p-4">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <div className="font-bold text-foreground">{candidate.name}</div>
-                                    <button className="text-muted-foreground hover:text-foreground">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </button>
+      {/* Pipeline */}
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto" />
+            <p className="text-muted-foreground text-sm">Loading pipeline...</p>
+          </div>
+        </div>
+      ) : !pipeline ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Users className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-muted-foreground">Select a job to view the hiring pipeline.</p>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-x-auto">
+          <DragDropContext onDragEnd={onDragEnd}>
+            <div className="flex gap-3 h-full pb-4 min-w-max">
+              {columnOrder.map(stage => {
+                const meta = STAGE_META[stage] || { label: stage, color: "text-foreground", bg: "bg-muted/30" };
+                const apps = pipeline.columns[stage] || [];
+                return (
+                  <div key={stage} className="w-72 flex-shrink-0 flex flex-col rounded-2xl border border-border overflow-hidden bg-card">
+                    {/* Column Header */}
+                    <div className={`px-4 py-3 border-b border-border ${meta.bg} flex items-center justify-between`}>
+                      <span className={`text-xs font-bold uppercase tracking-wide ${meta.color}`}>{meta.label}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${meta.bg} ${meta.color} border border-current/20`}>
+                        {apps.length}
+                      </span>
+                    </div>
+
+                    {/* Cards */}
+                    <Droppable droppableId={stage}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.droppableProps}
+                          className={`flex-1 p-3 overflow-y-auto space-y-2.5 min-h-[120px] transition-colors ${
+                            snapshot.isDraggingOver ? "bg-primary/5" : ""
+                          }`}
+                        >
+                          {apps.length === 0 && !snapshot.isDraggingOver && (
+                            <div className="text-center py-8 text-muted-foreground/40 text-xs">Drop here</div>
+                          )}
+                          {apps.map((app, index) => (
+                            <Draggable
+                              key={String(app.applicationId)}
+                              draggableId={String(app.applicationId)}
+                              index={index}
+                            >
+                              {(provided, snapshot) => (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={`rounded-xl border bg-background p-3 cursor-grab active:cursor-grabbing transition-all ${
+                                    snapshot.isDragging
+                                      ? "shadow-xl border-primary/40 rotate-1 scale-105"
+                                      : "border-border hover:border-primary/30 hover:shadow-sm"
+                                  } ${movingId === app.applicationId ? "opacity-60" : ""}`}
+                                >
+                                  {/* Name + Band */}
+                                  <div className="flex items-start justify-between gap-2 mb-2">
+                                    <Link
+                                      href={`/recruiter/candidates/${app.studentId}`}
+                                      className="font-bold text-sm text-foreground hover:text-primary transition-colors leading-tight"
+                                      onClick={e => e.stopPropagation()}
+                                    >
+                                      {app.studentName}
+                                    </Link>
+                                    <MoreHorizontal className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                                   </div>
-                                  <div className="text-xs text-muted-foreground mb-3">{candidate.college}</div>
-                                  <div className="flex justify-between items-center">
-                                    <Badge className={`text-[10px] py-0 px-2 ${
-                                      candidate.band === 'Platinum' ? 'bg-gradient-to-r from-slate-300 to-slate-500 text-white' : 'bg-yellow-500 text-white'
-                                    }`}>
-                                      {candidate.band}
-                                    </Badge>
-                                    <div className="flex items-center gap-1 text-yellow-500">
-                                      <Star className="w-3 h-3 fill-current" />
-                                      <span className="text-xs font-bold text-foreground">{candidate.score}</span>
+                                  <div className="text-xs text-muted-foreground mb-2 truncate">
+                                    {app.collegeName || "—"} • {app.branch || "—"}
+                                  </div>
+
+                                  {/* Band */}
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${BAND_PILL[app.candidateBand] || BAND_PILL["Needs Improvement"]}`}>
+                                    {app.candidateBand}
+                                  </span>
+
+                                  {/* Scores */}
+                                  <div className="mt-2.5 space-y-1">
+                                    <div className="flex items-center gap-1.5">
+                                      <Target className="w-3 h-3 text-muted-foreground" />
+                                      <div className="flex-1 bg-muted rounded-full h-1">
+                                        <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${app.atsScore || 0}%` }} />
+                                      </div>
+                                      <span className="text-[10px] font-bold text-muted-foreground w-5 text-right">{app.atsScore || 0}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <TrendingUp className="w-3 h-3 text-muted-foreground" />
+                                      <div className="flex-1 bg-muted rounded-full h-1">
+                                        <div className="h-full bg-primary rounded-full" style={{ width: `${app.readinessScore || 0}%` }} />
+                                      </div>
+                                      <span className="text-[10px] font-bold text-muted-foreground w-5 text-right">{app.readinessScore || 0}</span>
                                     </div>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            )}
-                          </Draggable>
-                        );
-                      })}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </div>
-            ))}
-          </div>
-        </DragDropContext>
-      </div>
+                                </div>
+                              )}
+                            </Draggable>
+                          ))}
+                          {provided.placeholder}
+                        </div>
+                      )}
+                    </Droppable>
+                  </div>
+                );
+              })}
+            </div>
+          </DragDropContext>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,6 +17,13 @@ export interface PlacementIntelligenceDto {
   hiringProbability: number;
   riskAnalysis: string[];
   aiSummary: string;
+  candidateStrengths: string[];
+  weaknesses: string[];
+  skillGaps: string[];
+  skillGapScore: number;
+  recommendations: string[];
+  improvementPlan: string;
+  hiringRecommendation: string;
 }
 
 export class PlacementIntelligenceService {

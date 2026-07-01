@@ -28,6 +28,7 @@ public class UserController {
     private final com.aiplacement.backend.repository.AtsAnalysisRepository atsAnalysisRepository;
     private final com.aiplacement.backend.repository.ResumeRepository resumeRepository;
     private final com.aiplacement.backend.repository.interview.MockInterviewRepository mockInterviewRepository;
+    private final com.aiplacement.backend.service.shared.PlacementReadinessService placementReadinessService;
 
     @GetMapping("/profile")
     public ResponseEntity<UserProfileDto> getUserProfile() {
@@ -149,8 +150,16 @@ public class UserController {
                          + user.getUserStats().getQuestionsHard();
         }
         
-        int readinessScore = (int) (averageAts != null ? averageAts * 0.8 + 10 : 0);
-        if (readinessScore > 100) readinessScore = 100;
+        // Use PlacementReadinessService as single source of truth for readiness.
+        int readinessScore = 0;
+        try {
+            com.aiplacement.backend.dto.shared.PlacementIntelligenceDto intel = placementReadinessService.getIntelligence(user);
+            if (intel != null) {
+                readinessScore = intel.getOverallPlacementReadiness();
+            }
+        } catch (Exception e) {
+            // PlacementReadinessService failure should surface rather than recomputing readiness locally.
+        }
         
         // Calculate profile completion percentage
         int filledFields = 0;

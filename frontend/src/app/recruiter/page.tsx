@@ -23,11 +23,17 @@ export default function RecruiterDashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<any>(null);
 
+  const [analytics, setAnalytics] = useState<any>(null);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await api.get("/recruiter/dashboard/stats");
-        setStats(response.data);
+        const [dashRes, analyticsRes] = await Promise.allSettled([
+          api.get("/recruiter/dashboard/stats"),
+          api.get("/recruiter/analytics"),
+        ]);
+        if (dashRes.status === "fulfilled") setStats(dashRes.value.data);
+        if (analyticsRes.status === "fulfilled") setAnalytics(analyticsRes.value.data);
       } catch (err: any) {
         toast.error("Failed to load dashboard statistics.");
       } finally {

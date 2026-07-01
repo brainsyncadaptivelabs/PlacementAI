@@ -18,12 +18,10 @@ const handleResponseError = async (response: Response, url?: string) => {
       const isAdmin = url && url.startsWith("/admin");
       if (isAdmin) {
         localStorage.removeItem("admin_token");
-        localStorage.removeItem("admin_role");
         localStorage.removeItem("admin_csrf");
         window.location.href = "/admin";
       } else {
         localStorage.removeItem("token");
-        localStorage.removeItem("role");
         window.location.href = "/auth";
       }
     }

@@ -46,12 +46,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const mockToken = `${header}.${payload}.${base64UrlEncode("signature")}`;
 
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-        const requestBody = {
+        const requestedRole = typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('role')
+        : null;
+      const validRoles = ["STUDENT", "RECRUITER", "PLACEMENT_OFFICER", "ADMIN", "SUPER_ADMIN"];
+      const role = requestedRole && validRoles.includes(requestedRole) ? requestedRole : undefined;
+
+      const requestBody: any = {
           idToken: mockToken,
-          role: "STUDENT",
           provider: session.user.app_metadata?.provider || "google"
         };
-        console.log(`[AUTH_SYNC] POST ${API_URL}/auth/google`, requestBody);
+      if (role) {
+        requestBody.role = role;
+      }
+      console.log(`[AUTH_SYNC] POST ${API_URL}/auth/google`, requestBody);
         
         const response = await fetch(`${API_URL}/auth/google`, {
           method: "POST",
@@ -65,7 +73,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const data = await response.json();
           console.log(`[AUTH_SYNC] Success. JWT: ${data.accessToken}, User Role: ${data.role}`);
           localStorage.setItem("token", data.accessToken);
-          localStorage.setItem("role", data.role);
+          if (typeof window !== 'undefined' && window.history.replaceState) {
+            const searchParams = new URLSearchParams(window.location.search);
+            searchParams.delete('role');
+            const cleanUrl = `${window.location.pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
+            window.history.replaceState(null, '', cleanUrl);
+          }
           // Dispatch a custom event to notify any listeners that the token is now available
           window.dispatchEvent(new Event("storage"));
         } else {
@@ -108,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
           clearAuth();
           localStorage.removeItem("token");
-          localStorage.removeItem("role");
         } else {
           setAuth(session?.user ?? null, session);
           if (session) {

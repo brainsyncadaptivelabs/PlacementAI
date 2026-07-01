@@ -14,9 +14,11 @@ import {
   BookOpen,
   Briefcase,
   Users,
-  Search,
   Building,
-  GraduationCap
+  GraduationCap,
+  Calendar,
+  GitBranch,
+  Search
 } from "lucide-react";
 
 export type MenuItem = {
@@ -45,14 +47,11 @@ export const studentMenu: MenuItem[] = [
 export const recruiterMenu: MenuItem[] = [
   { title: "Dashboard", icon: LayoutDashboard, url: "/recruiter" },
   { title: "Jobs", icon: Briefcase, url: "/recruiter/jobs" },
-  { title: "Candidate Explorer", icon: Users, url: "/recruiter/candidates" },
-  { title: "Search Candidates", icon: Search, url: "/recruiter/search" },
-  { title: "Hiring Pipeline", icon: Map, url: "/recruiter/pipeline" },
-  { title: "Interview Replay", icon: Mic2, url: "/recruiter/interviews" },
-  { title: "Coding Reports", icon: Code2, url: "/recruiter/coding" },
-  { title: "ATS Reports", icon: FileText, url: "/recruiter/ats-reports" },
+  { title: "Candidates", icon: Users, url: "/recruiter/candidates" },
+  { title: "Hiring Pipeline", icon: GitBranch, url: "/recruiter/pipeline" },
+  { title: "Interviews", icon: Calendar, url: "/recruiter/interviews" },
   { title: "Analytics", icon: BarChart3, url: "/recruiter/analytics" },
-  { title: "Company Profile", icon: Building, url: "/recruiter/company" }
+  { title: "Company Workspace", icon: Building, url: "/recruiter/company" },
 ];
 
 export const placementOfficerMenu: MenuItem[] = [

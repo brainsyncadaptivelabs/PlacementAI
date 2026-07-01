@@ -1,13 +1,12 @@
 package com.aiplacement.backend.dto.recruiter;
 
-import com.aiplacement.backend.entity.ApplicationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @Builder
@@ -18,27 +17,46 @@ public class JobDto {
     private Long id;
     private String title;
     private String companyName;
+    private String companyLogoUrl;
     private String description;
-    
-    // Skills required for the job, comma-separated
+
+    // Skills required (comma-separated)
     private String skills;
-    
-    private String packageDetails;
+
     private String location;
-    private String workMode; // "Remote", "Hybrid", "On-site"
-    
-    // Eligibility criteria
+
+    // Remote, Hybrid, On-site
+    private String workMode;
+
+    // Salary range in LPA
+    private Long salaryMin;
+    private Long salaryMax;
+
+    // Eligibility
+    private Double minCgpa;
+    private Integer minAtsScore;
     private String eligibility;
-    private String departments; // comma-separated
-    private String experience; // e.g., "0-2 years"
-    
-    private LocalDateTime lastDate;
-    
-    private ApplicationStatus status; // Is the job ACTIVE, ARCHIVED, CLOSED?
-    
-    // Recruiter who created the job
+
+    // Comma-separated eligible departments
+    private String departments;
+
+    // Experience level (e.g., "0-2 years", "Fresher")
+    private String experience;
+
+    // Application deadline
+    private LocalDate deadline;
+
+    // DRAFT, ACTIVE, CLOSED, ARCHIVED
+    private String status;
+
+    // Runtime stats (not stored — derived from DB counts)
+    private Long applicantCount;
+    private Long shortlistedCount;
+
+    // Link back to recruiter and company
     private Long recruiterId;
-    
+    private Long companyProfileId;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -100,7 +100,7 @@ export default function AuthPage() {
     try {
       setLoading(true);
       setError("");
-      await signInWithProvider(provider);
+      await signInWithProvider(provider, selectedRole);
     } catch (err: any) {
       setError(err.message || `Failed to sign in with ${provider}`);
       setLoading(false);
@@ -245,16 +245,20 @@ export default function AuthPage() {
       }
 
       localStorage.setItem("token", backendData.accessToken);
-      localStorage.setItem("role", backendData.role);
 
       setSuccess("Account created successfully! Redirecting...");
       
       setTimeout(() => {
-        if (!backendData.planSelected) {
-          router.push("/plans");
-        } else {
-          router.push("/dashboard");
-        }
+        const destination = !backendData.planSelected
+          ? "/plans"
+          : backendData.role === "RECRUITER"
+          ? "/recruiter"
+          : backendData.role === "PLACEMENT_OFFICER"
+          ? "/placement-officer"
+          : backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN"
+          ? "/admin"
+          : "/dashboard";
+        router.push(destination);
       }, 1500);
     } catch (err: any) {
       setError(err.message || "Signup failed");
@@ -311,13 +315,17 @@ export default function AuthPage() {
       }
       
       localStorage.setItem("token", backendData.accessToken);
-      localStorage.setItem("role", backendData.role);
 
-      if (!backendData.planSelected) {
-        router.push("/plans");
-      } else {
-        router.push("/dashboard");
-      }
+      const destination = !backendData.planSelected
+        ? "/plans"
+        : backendData.role === "RECRUITER"
+        ? "/recruiter"
+        : backendData.role === "PLACEMENT_OFFICER"
+        ? "/placement-officer"
+        : backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN"
+        ? "/admin"
+        : "/dashboard";
+      router.push(destination);
     } catch (err: any) {
       setError(err.message || "Login failed");
       if (err.message === "Please verify your email first.") {

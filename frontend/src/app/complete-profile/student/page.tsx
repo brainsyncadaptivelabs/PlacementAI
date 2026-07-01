@@ -46,7 +46,6 @@ export default function CompleteStudentProfile() {
 
     try {
       await api.post("/profile/student", formData);
-      localStorage.setItem("role", "STUDENT");
       router.push("/success/student");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));

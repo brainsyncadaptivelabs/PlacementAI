@@ -157,7 +157,6 @@ function VerifyEmailContent() {
       }
 
       localStorage.setItem("token", backendData.accessToken);
-      localStorage.setItem("role", backendData.role);
 
       setSuccess("Email verified successfully!");
       setVerified(true);

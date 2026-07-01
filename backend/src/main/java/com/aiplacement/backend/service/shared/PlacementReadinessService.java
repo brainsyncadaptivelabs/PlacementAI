@@ -56,6 +56,16 @@ public class PlacementReadinessService {
         String hiringRecommendation = recruiterSummaryService.generateHiringRecommendation(user, hiringProbability);
         String aiSummary = recruiterSummaryService.generateSummary(user, overallPlacementReadiness, strengths);
 
+        // Ensure no-null collections for DTO
+        if (strengths == null) strengths = List.of();
+        if (weaknesses == null) weaknesses = List.of();
+        if (riskAnalysis == null) riskAnalysis = List.of();
+
+        // Skill gaps and recommendations (phase 1 deterministic placeholders)
+        List<String> skillGaps = weaknesses;
+        List<String> recommendations = List.of(improvementPlan != null ? improvementPlan : "Focus on core areas like algorithms and system design.");
+        int skillGapScore = Math.min(100, (skillGaps == null || skillGaps.isEmpty()) ? 0 : skillGaps.size() * 25);
+
         return PlacementIntelligenceDto.builder()
                 .version("v2")
                 .generatedAt(Instant.now().toString())
@@ -74,6 +84,9 @@ public class PlacementReadinessService {
                 .candidateStrengths(strengths)
                 .weaknesses(weaknesses)
                 .riskAnalysis(riskAnalysis)
+                .skillGaps(skillGaps)
+                .skillGapScore(skillGapScore)
+                .recommendations(recommendations)
                 .improvementPlan(improvementPlan)
                 .hiringRecommendation(hiringRecommendation)
                 .aiSummary(aiSummary)

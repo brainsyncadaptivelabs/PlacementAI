@@ -29,6 +29,9 @@ public class PlacementIntelligenceDto {
     private List<String> candidateStrengths;
     private List<String> weaknesses;
     private List<String> riskAnalysis;
+    private List<String> skillGaps;
+    private int skillGapScore;
+    private List<String> recommendations;
     private String improvementPlan;
     private String hiringRecommendation;
     private String aiSummary; // Recruiter Summary

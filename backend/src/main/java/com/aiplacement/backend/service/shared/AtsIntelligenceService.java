@@ -12,9 +12,9 @@ public class AtsIntelligenceService {
         if (user.getAtsAnalyses() == null || user.getAtsAnalyses().isEmpty()) {
             return 0;
         }
-        // Take average ATS score across all analyses
+        // Take average ATS score across all analyses, guard nulls
         double avg = user.getAtsAnalyses().stream()
-                .mapToInt(a -> a.getAtsScore())
+                .mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0)
                 .average()
                 .orElse(0.0);
         return (int) Math.round(avg);

@@ -8,7 +8,11 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class LearningIntelligenceService {
     public int calculateLearningProgress(User user) {
-        if (user.getUserStats() != null) return Math.min(100, user.getUserStats().getActivityStreakDays() * 5);
+        if (user.getUserStats() != null) {
+            Integer streak = user.getUserStats().getActivityStreakDays();
+            if (streak == null) return 10;
+            return Math.min(100, streak * 5);
+        }
         return 10;
     }
 }

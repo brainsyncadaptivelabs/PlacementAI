@@ -14,11 +14,11 @@ timeout_retry_block = """                            .timeout(Duration.ofSeconds
                             })
                             .block();"""
 
-timeout_retry_block_gemini = """                    .timeout(Duration.ofSeconds(30))
+        timeout_retry_block_gemini = """                    .timeout(Duration.ofSeconds(30))
                     .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)))
                     .onErrorResume(e -> {
                         log.error("Ollama API failed: {}", e.getMessage());
-                        return Mono.just("{\\\"response\\\": \\\"{\\\\\\\"atsScore\\\\\\\": 0, \\\\\\\"strengths\\\\\\\": [], \\\\\\\"weaknesses\\\\\\\": [], \\\\\\\"missingKeywords\\\\\\\": [], \\\\\\\"suggestions\\\\\\\": [\\\\\\\"AI service is currently unavailable. Please try again later.\\\\\\\"], \\\\\\\"bestRole\\\\\\\": \\\\\\\"Unknown\\\\\\\"}\\\"}");
+                        return Mono.just("{\\\"response\\\": \\\"AI service is currently unavailable.\\\"}");
                     })
                     .block();"""
 

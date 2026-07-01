@@ -29,7 +29,6 @@ export default function CompletePlacementOfficerProfile() {
 
     try {
       await api.post("/profile/placement-officer", formData);
-      localStorage.setItem("role", "PLACEMENT_OFFICER");
       router.push("/placement-officer");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));

@@ -23,7 +23,7 @@ public class InterviewSchedule {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_id", nullable = false)
+    @JoinColumn(name = "application_id")
     private JobApplication application;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,10 +41,29 @@ public class InterviewSchedule {
 
     private String meetingLink;
 
+    // Round name: "Technical Round 1", "HR Round", etc.
+    private String round;
+
+    // Duration in minutes
+    @Builder.Default
+    private Integer duration = 60;
+
+    // Interviewer info
+    private String interviewerName;
+    private String interviewerEmail;
+
+    // Legacy field kept for backward compat
     private String interviewerDetails;
 
     @Builder.Default
+    private Boolean reminderSent = false;
+
+    @Builder.Default
     private boolean isCompleted = false;
+
+    // Status: SCHEDULED, COMPLETED, CANCELLED, RESCHEDULED
+    @Builder.Default
+    private String status = "SCHEDULED";
 
     @CreationTimestamp
     private LocalDateTime createdAt;

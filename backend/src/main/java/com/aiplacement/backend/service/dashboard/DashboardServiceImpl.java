@@ -22,6 +22,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
     private final InterviewRecordRepository interviewRecordRepository;
+    private final com.aiplacement.backend.service.shared.PlacementReadinessService placementReadinessService;
 
     @Override
     @Cacheable(value = "dashboard_stats", key = "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
@@ -43,9 +44,16 @@ public class DashboardServiceImpl implements DashboardService {
             Double averageScore = atsAnalysisRepository.findAverageAtsScoreByUser(user);
             Integer highestScore = atsAnalysisRepository.findHighestAtsScoreByUser(user);
 
-            // Calculate readiness score based on average ATS score and activity
-            int readinessScore = (int) (averageScore != null ? averageScore * 0.8 + 10 : 0);
-            if (readinessScore > 100) readinessScore = 100;
+            // Use PlacementReadinessService for canonical readiness.
+            int readinessScore = 0;
+            try {
+                com.aiplacement.backend.dto.shared.PlacementIntelligenceDto intel = placementReadinessService.getIntelligence(user);
+                if (intel != null) {
+                    readinessScore = intel.getOverallPlacementReadiness();
+                }
+            } catch (Exception ex) {
+                log.warn("Unable to resolve placement readiness from service, defaulting to 0 readiness.", ex);
+            }
 
             Long interviewCount = interviewRecordRepository.countByUser(user);
             

@@ -29,7 +29,6 @@ export default function CompleteRecruiterProfile() {
 
     try {
       await api.post("/profile/recruiter", formData);
-      localStorage.setItem("role", "RECRUITER");
       router.push("/success/recruiter");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));

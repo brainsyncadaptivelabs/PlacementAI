@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Settings, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { roleMenus } from "@/config/menu-config";
 
 import {
@@ -24,7 +25,22 @@ interface SidebarProps {
 
 export function Sidebar({ role, hasPlan = true }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { signOut } = useAuth();
   const menuItems = hasPlan ? (roleMenus[role] || []) : [];
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error("Logout failed", err);
+    } finally {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("token");
+      }
+      router.push("/auth");
+    }
+  };
 
   const settingsItems = [
     { title: "Settings", icon: Settings, url: `/${role.toLowerCase().replace('_', '-')}/settings` }
@@ -88,7 +104,7 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
       <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/auth" />} className="hover:bg-destructive/10 hover:text-destructive transition-colors py-6">
+            <SidebarMenuButton onClick={handleLogout} render={<button />} className="hover:bg-destructive/10 hover:text-destructive transition-colors py-6">
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
             </SidebarMenuButton>

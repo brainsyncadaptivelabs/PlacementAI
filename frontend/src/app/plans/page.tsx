@@ -95,12 +95,28 @@ export default function PlansPage() {
   }, []);
 
   const handleNextRedirect = () => {
-    const role = user?.role || localStorage.getItem("role") || "STUDENT";
+    const role = user?.role;
+    if (!role) {
+      router.push("/auth");
+      return;
+    }
+
     if (role === "RECRUITER") {
       router.push("/recruiter");
-    } else {
-      router.push("/dashboard");
+      return;
     }
+
+    if (role === "PLACEMENT_OFFICER") {
+      router.push("/placement-officer");
+      return;
+    }
+
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      router.push("/admin");
+      return;
+    }
+
+    router.push("/dashboard");
   };
 
   const handleContinue = async () => {

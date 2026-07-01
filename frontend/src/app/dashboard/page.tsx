@@ -117,14 +117,18 @@ export default function PerfectStudentPortal() {
   useEffect(() => {
     const checkProfile = async () => {
       try {
-        const profileRes = await api.get("/profile/me");
+        const profileRes = await api.get("/user/profile");
         const { profileCompleted, planSelected, role } = profileRes.data;
 
         if (profileCompleted === false) {
           if (role === "RECRUITER") {
             router.push("/complete-profile/recruiter");
-          } else {
+          } else if (role === "PLACEMENT_OFFICER") {
+            router.push("/complete-profile/placement-officer");
+          } else if (role === "STUDENT") {
             router.push("/complete-profile/student");
+          } else {
+            router.push("/auth");
           }
           return;
         }
@@ -136,18 +140,9 @@ export default function PerfectStudentPortal() {
 
         fetchStats();
       } catch (err) {
-        console.error("Auth check failed, using mock data", err);
-        // Fallback for when backend is offline
-        const mockRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') || 'STUDENT' : 'STUDENT';
-        
-        if (mockRole === "RECRUITER") {
-          router.push("/recruiter");
-          return;
-        } else if (mockRole === "PLACEMENT_OFFICER") {
-          router.push("/placement-officer");
-          return;
-        }
-        fetchStats();
+        console.error("Auth check failed", err);
+        setStatsError("Unable to load dashboard data. Please refresh or contact support.");
+        setLoading(false);
       }
     };
 

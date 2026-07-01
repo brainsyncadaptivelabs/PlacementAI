@@ -4,10 +4,11 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
+  const role = searchParams.get('role');
   // if "next" is in search params, use it as the redirect path, otherwise default to dashboard
   const next = searchParams.get('next') ?? '/dashboard';
 
-  console.log("[AUTH_CALLBACK] Route hit. Code: " + (code ? "present" : "absent") + ", Next: " + next);
+  console.log("[AUTH_CALLBACK] Route hit. Code: " + (code ? "present" : "absent") + ", Next: " + next + ", Role: " + (role || 'none'));
 
   if (code) {
     try {
@@ -31,8 +32,12 @@ export async function GET(request: Request) {
       console.log("[AUTH_CALLBACK] Session error from getSession():", sessionError);
 
       if (session) {
-        console.log("[AUTH_CALLBACK] Session successfully created. Redirecting to: " + `${origin}${next}`);
-        return NextResponse.redirect(`${origin}${next}`);
+        const destination = new URL(`${origin}${next}`);
+        if (role) {
+          destination.searchParams.set('role', role);
+        }
+        console.log("[AUTH_CALLBACK] Session successfully created. Redirecting to: " + destination.toString());
+        return NextResponse.redirect(destination.toString());
       } else {
         console.error("[AUTH_CALLBACK] No session exists even after exchangeCodeForSession!");
       }
