@@ -42,8 +42,9 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
     }
   };
 
+  const basePath = role === "STUDENT" ? "/dashboard" : `/${role.toLowerCase().replace('_', '-')}`;
   const settingsItems = [
-    { title: "Settings", icon: Settings, url: `/${role.toLowerCase().replace('_', '-')}/settings` }
+    { title: "Settings", icon: Settings, url: `${basePath}/settings` }
   ];
 
   return (

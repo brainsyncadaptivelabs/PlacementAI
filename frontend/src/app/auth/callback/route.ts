@@ -32,7 +32,8 @@ export async function GET(request: Request) {
     console.log(`[AUTH_CALLBACK] Session obtained for: ${userEmail}`);
 
     // ── Exchange Supabase token for PlacementAI JWT ────────────────────────
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+    // For server-side requests in Docker, replace 'localhost' with the service name 'backend'
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1').replace('localhost', 'backend');
     const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];
     const validatedRole = role && validRoles.includes(role) ? role : undefined;
 

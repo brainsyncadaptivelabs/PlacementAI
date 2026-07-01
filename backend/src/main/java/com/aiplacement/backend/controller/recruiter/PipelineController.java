@@ -35,7 +35,7 @@ public class PipelineController {
     public ResponseEntity<List<JobApplicationDto>> bulkMove(@RequestBody Map<String, Object> body) {
         @SuppressWarnings("unchecked")
         List<Long> ids = ((List<Integer>) body.get("applicationIds"))
-                .stream().map(Long::valueOf).toList();
+                .stream().map(i -> i.longValue()).toList();
         ApplicationStatus status = ApplicationStatus.valueOf((String) body.get("status"));
         return ResponseEntity.ok(pipelineService.bulkMove(ids, status));
     }

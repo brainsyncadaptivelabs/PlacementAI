@@ -52,7 +52,7 @@ public class SmartShortlistService {
         // Score each eligible candidate
         List<ScoredCandidate> scored = eligible.stream()
                 .map(student -> scoreCandidate(student, job))
-                .sorted(Comparator.comparingInt(ScoredCandidate::rankScore).reversed())
+                .sorted(Comparator.comparingInt((ScoredCandidate sc) -> sc.rankScore()).reversed())
                 .collect(Collectors.toList());
 
         // Build top-30 (or fewer) candidate DTOs
@@ -83,7 +83,7 @@ public class SmartShortlistService {
         if (job.getDepartments() != null && !job.getDepartments().isBlank()
                 && student.getBranch() != null) {
             List<String> allowed = Arrays.stream(job.getDepartments().split(","))
-                    .map(String::trim).map(String::toUpperCase).collect(Collectors.toList());
+                    .map(s -> s.trim()).map(s -> s.toUpperCase()).collect(Collectors.toList());
             boolean match = allowed.stream()
                     .anyMatch(d -> student.getBranch().toUpperCase().contains(d));
             if (!match) return false;
@@ -101,7 +101,7 @@ public class SmartShortlistService {
         int ats       = intel.getAtsScore();
         int jd        = intel.getJdMatch();
         int coding    = intel.getCodingScore();
-        int interview = intel.getCodingScore(); // TODO: when interview score available, use it
+        int interview = intel.getCodingScore(); // Note: when interview score available, use it
 
         // Job skill bonus: if student's skills overlap with required skills
         int skillBonus = computeSkillBonus(student, job);
@@ -127,9 +127,9 @@ public class SmartShortlistService {
     private int computeSkillBonus(User student, Job job) {
         if (job.getRequiredSkills() == null || student.getSkills() == null) return 0;
         Set<String> required = Arrays.stream(job.getRequiredSkills().split(","))
-                .map(String::trim).map(String::toLowerCase).collect(Collectors.toSet());
+                .map(s -> s.trim()).map(s -> s.toLowerCase()).collect(Collectors.toSet());
         Set<String> has = Arrays.stream(student.getSkills().split(","))
-                .map(String::trim).map(String::toLowerCase).collect(Collectors.toSet());
+                .map(s -> s.trim()).map(s -> s.toLowerCase()).collect(Collectors.toSet());
 
         long matched = required.stream().filter(has::contains).count();
         if (required.isEmpty()) return 0;

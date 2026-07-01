@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class DeprecatedPpoController {
 
+    @Deprecated(since = "Phase 1", forRemoval = true)
     @GetMapping("/stats")
     public ResponseEntity<PlacementAnalyticsDto> getDashboardStatsLegacy() {
         return ResponseEntity.ok(new PlacementAnalyticsDto());

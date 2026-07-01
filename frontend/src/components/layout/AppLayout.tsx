@@ -33,7 +33,13 @@ export function AppLayout({ children, role }: AppLayoutProps) {
     if (loading || isAuthLoading) return;
 
     if (!user) {
-      router.push("/auth");
+      if (role === "RECRUITER") {
+        router.push("/auth/recruiter");
+      } else if (role === "PLACEMENT_OFFICER") {
+        router.push("/auth/placement-officer");
+      } else {
+        router.push("/auth");
+      }
       return;
     }
 

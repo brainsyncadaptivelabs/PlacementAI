@@ -22,7 +22,14 @@ const handleResponseError = async (response: Response, url?: string) => {
         window.location.href = "/admin";
       } else {
         localStorage.removeItem("token");
-        window.location.href = "/auth";
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith("/recruiter")) {
+          window.location.href = "/auth/recruiter";
+        } else if (currentPath.startsWith("/placement-officer")) {
+          window.location.href = "/auth/placement-officer";
+        } else {
+          window.location.href = "/auth";
+        }
       }
     }
   }

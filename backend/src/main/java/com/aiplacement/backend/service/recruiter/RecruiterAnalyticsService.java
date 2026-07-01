@@ -57,19 +57,19 @@ public class RecruiterAnalyticsService {
         // ─── Score Averages ──────────────────────────────────────────────────────
         OptionalDouble avgAts = allApplications.stream()
                 .filter(a -> a.getAtsScore() != null)
-                .mapToInt(JobApplication::getAtsScore).average();
+                .mapToInt(a -> a.getAtsScore()).average();
 
         OptionalDouble avgJd = allApplications.stream()
                 .filter(a -> a.getJdMatchScore() != null)
-                .mapToInt(JobApplication::getJdMatchScore).average();
+                .mapToInt(a -> a.getJdMatchScore()).average();
 
         OptionalDouble avgCoding = allApplications.stream()
                 .filter(a -> a.getCodingScore() != null)
-                .mapToInt(JobApplication::getCodingScore).average();
+                .mapToInt(a -> a.getCodingScore()).average();
 
         OptionalDouble avgInterview = allApplications.stream()
                 .filter(a -> a.getInterviewScore() != null)
-                .mapToInt(JobApplication::getInterviewScore).average();
+                .mapToInt(a -> a.getInterviewScore()).average();
 
         // Readiness = avg of all scores
         double avgReadiness = 0;
@@ -86,20 +86,20 @@ public class RecruiterAnalyticsService {
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(10)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(),
                         (e1, e2) -> e1, LinkedHashMap::new));
 
         // ─── Top Skills ──────────────────────────────────────────────────────────
         Map<String, Long> topSkills = allApplications.stream()
                 .filter(a -> a.getStudent().getSkills() != null)
                 .flatMap(a -> Arrays.stream(a.getStudent().getSkills().split(",")))
-                .map(String::trim)
+                .map(s -> s.trim())
                 .filter(s -> !s.isBlank())
                 .collect(Collectors.groupingBy(s -> s, Collectors.counting()))
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(10)
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                .collect(Collectors.toMap(e -> e.getKey(), e -> e.getValue(),
                         (e1, e2) -> e1, LinkedHashMap::new));
 
         // ─── Offer & Acceptance ──────────────────────────────────────────────────

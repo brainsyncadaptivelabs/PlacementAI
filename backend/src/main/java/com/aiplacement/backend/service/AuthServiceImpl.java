@@ -142,6 +142,19 @@ public class AuthServiceImpl implements AuthService {
                     changed = true;
                 }
 
+                if (requestedRole != null) {
+                    try {
+                        Role newRole = Role.valueOf(requestedRole.toUpperCase());
+                        if (user.getRole() != newRole) {
+                            log.info("Updating user role from {} to {}", user.getRole(), newRole);
+                            user.setRole(newRole);
+                            changed = true;
+                        }
+                    } catch (IllegalArgumentException e) {
+                        log.error("[SOCIAL_LOGIN] Invalid role requested: {}", requestedRole);
+                    }
+                }
+
                 if (changed) {
                     user.setUpdatedAt(LocalDateTime.now());
                     user = userRepository.save(user);
@@ -483,7 +496,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public TokenResponse login(LoginRequest request) {
         log.info("Login request received for email: {}", request.getEmail());
         
@@ -501,9 +514,24 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Please verify your email first.");
         }
 
+        if (request.getRole() != null) {
+            try {
+                Role newRole = Role.valueOf(request.getRole().toUpperCase());
+                if (user.getRole() != newRole) {
+                    log.info("Updating user role from {} to {}", user.getRole(), newRole);
+                    user.setRole(newRole);
+                    user.setUpdatedAt(LocalDateTime.now());
+                    user = userRepository.save(user);
+                }
+            } catch (IllegalArgumentException e) {
+                log.error("[LOGIN] Invalid role requested: {}", request.getRole());
+            }
+        }
+
         log.info("Login authentication successful for user: {}", user.getEmail());
         String accessToken = jwtService.generateAccessToken(user.getEmail());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
+
 
         return TokenResponse.builder()
                 .accessToken(accessToken)

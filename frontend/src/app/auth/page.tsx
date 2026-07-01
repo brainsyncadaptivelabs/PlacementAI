@@ -65,7 +65,9 @@ export default function AuthPage() {
   const isPpoPath = pathname === "/auth/placement-officer";
   const isRoleLocked = isRecruiterPath || isPpoPath;
 
-  const [selectedRole, setSelectedRole] = useState<"STUDENT" | "RECRUITER" | "PLACEMENT_OFFICER">("STUDENT");
+  const [selectedRole, setSelectedRole] = useState<"STUDENT" | "RECRUITER" | "PLACEMENT_OFFICER">(
+    isRecruiterPath ? "RECRUITER" : isPpoPath ? "PLACEMENT_OFFICER" : "STUDENT"
+  );
 
   useEffect(() => {
     if (isRecruiterPath) {
@@ -295,7 +297,8 @@ export default function AuthPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: loginData.email,
-          password: loginData.password
+          password: loginData.password,
+          role: selectedRole
         })
       });
 
@@ -973,11 +976,16 @@ export default function AuthPage() {
 
           <h1 className="left-panel-headline">
             Your AI-Powered<br />
-            Placement <span>Partner</span>
+            {selectedRole === "RECRUITER" ? <span>Recruitment</span> : selectedRole === "PLACEMENT_OFFICER" ? <span>Placement</span> : <span>Placement</span>} 
+            {selectedRole === "RECRUITER" ? " Partner" : selectedRole === "PLACEMENT_OFFICER" ? " Analytics" : " Partner"}
           </h1>
 
           <p className="left-panel-description">
-            Get AI-driven insights, practice interviews,<br/>build your resume, and land your dream job.
+            {selectedRole === "RECRUITER" 
+              ? "Access top student talent, streamline your hiring pipeline, and find the perfect match." 
+              : selectedRole === "PLACEMENT_OFFICER" 
+              ? "Monitor institution performance, track student progress, and boost placement rates."
+              : "Get AI-driven insights, practice interviews, build your resume, and land your dream job."}
           </p>
 
           <div className="features-list">
@@ -1037,8 +1045,12 @@ export default function AuthPage() {
           {activeTab === 'login' ? (
             <div className="auth-card">
               <div className="auth-card-header">
-                <h2 className="auth-card-title">Welcome Back</h2>
-                <p className="auth-card-subtitle">Login to continue your placement journey</p>
+                <h2 className="auth-card-title">
+                  {selectedRole === "RECRUITER" ? "Recruiter Portal" : selectedRole === "PLACEMENT_OFFICER" ? "Placement Officer Portal" : "Welcome Back"}
+                </h2>
+                <p className="auth-card-subtitle">
+                  {selectedRole === "RECRUITER" ? "Login to access your ATS Dashboard" : selectedRole === "PLACEMENT_OFFICER" ? "Login to access Institution Analytics" : "Login to continue your placement journey"}
+                </p>
               </div>
 
               <form onSubmit={handleLogin}>
