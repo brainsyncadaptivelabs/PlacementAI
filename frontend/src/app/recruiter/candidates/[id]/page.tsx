@@ -437,7 +437,7 @@ export default function CandidateProfilePage() {
                       </div>
                     </div>
                     <div className={`text-lg font-black ${Number(score) >= 80 ? "text-emerald-500" : Number(score) >= 65 ? "text-amber-500" : "text-rose-500"}`}>
-                      {score}%
+                      {String(score)}%
                     </div>
                   </CardContent>
                 </Card>

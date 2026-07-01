@@ -152,7 +152,9 @@ public class GeminiServiceImpl implements GeminiService {
                     try {
                         map.put(entry.getKey(), Integer.parseInt(entry.getValue().asText()));
                     } catch (Exception e) {
-                        map.put(entry.getKey(), 70);
+                        // Skip entries with non-numeric values — never fabricate readiness scores
+                        log.debug("Skipping non-numeric company readiness entry for key '{}': {}",
+                                entry.getKey(), entry.getValue().asText());
                     }
                 }
             }

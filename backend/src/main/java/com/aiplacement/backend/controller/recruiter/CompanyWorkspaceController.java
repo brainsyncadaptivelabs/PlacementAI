@@ -10,7 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/recruiter/company")
+@RequestMapping("/api/v1/recruiters/company")
 @RequiredArgsConstructor
 public class CompanyWorkspaceController {
 

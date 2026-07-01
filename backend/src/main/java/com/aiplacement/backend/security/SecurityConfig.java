@@ -71,10 +71,35 @@ public class SecurityConfig {
                                 "/api/v1/admin/**"
                         ).hasRole("SUPER_ADMIN")
 
+                        // Standardized enterprise URL hierarchy (Phase 1)
+                        .requestMatchers(
+                                "/api/v1/recruiters/**"
+                        ).hasAnyRole(
+                                "RECRUITER",
+                                "ADMIN"
+                        )
+
+                        // Deprecated: kept for backward compatibility — use /api/v1/recruiters/** instead
                         .requestMatchers(
                                 "/api/v1/recruiter/**"
                         ).hasAnyRole(
                                 "RECRUITER",
+                                "ADMIN"
+                        )
+
+                        // Standardized enterprise URL hierarchy (Phase 1)
+                        .requestMatchers(
+                                "/api/v1/placement-officers/**"
+                        ).hasAnyRole(
+                                "PLACEMENT_OFFICER",
+                                "ADMIN"
+                        )
+
+                        // Deprecated: kept for backward compatibility — use /api/v1/placement-officers/** instead
+                        .requestMatchers(
+                                "/api/v1/ppo/**"
+                        ).hasAnyRole(
+                                "PLACEMENT_OFFICER",
                                 "ADMIN"
                         )
 

@@ -109,7 +109,7 @@ export default function HiringPipeline() {
     // Persist
     try {
       setMovingId(appId);
-      await api.patch(`/recruiter/pipeline/applications/${appId}/status`, { status: dstStage });
+      await api.put(`/recruiters/pipeline/applications/${appId}/status`, { status: dstStage });
     } catch {
       toast.error("Failed to move candidate — refresh to sync");
       // Rollback
@@ -223,7 +223,7 @@ export default function HiringPipeline() {
                                   </div>
 
                                   {/* Band */}
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${BAND_PILL[app.candidateBand] || BAND_PILL["Needs Improvement"]}`}>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${BAND_PILL[app.candidateBand as keyof typeof BAND_PILL] || BAND_PILL["Needs Improvement"]}`}>
                                     {app.candidateBand}
                                   </span>
 

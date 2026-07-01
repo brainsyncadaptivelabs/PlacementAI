@@ -15,6 +15,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "next-themes";
 
+import { usePathname } from "next/navigation";
+
 const PREDEFINED_SKILLS = [
   "Java",
   "Python",
@@ -36,6 +38,7 @@ export default function AuthPage() {
   const [success, setSuccess] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
   const { setTheme } = useTheme();
   
   useEffect(() => {
@@ -58,7 +61,20 @@ export default function AuthPage() {
     "QA Engineer"
   ];
 
-  const [selectedRole, setSelectedRole] = useState<"STUDENT" | "RECRUITER">("STUDENT");
+  const isRecruiterPath = pathname === "/auth/recruiter";
+  const isPpoPath = pathname === "/auth/placement-officer";
+  const isRoleLocked = isRecruiterPath || isPpoPath;
+
+  const [selectedRole, setSelectedRole] = useState<"STUDENT" | "RECRUITER" | "PLACEMENT_OFFICER">("STUDENT");
+
+  useEffect(() => {
+    if (isRecruiterPath) {
+      setSelectedRole("RECRUITER");
+    } else if (isPpoPath) {
+      setSelectedRole("PLACEMENT_OFFICER");
+    }
+  }, [isRecruiterPath, isPpoPath]);
+
   const [skillsSearch, setSkillsSearch] = useState("");
   const [skillsDropdownOpen, setSkillsDropdownOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
@@ -1138,24 +1154,26 @@ export default function AuthPage() {
               </div>
               
               <form onSubmit={handleSignup} className="flex flex-col">
-                <div className="auth-role-tabs">
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedRole("STUDENT"); setError(""); }}
-                    className={`auth-role-btn ${selectedRole === "STUDENT" ? "active" : "inactive"}`}
-                  >
-                    <GraduationCap className="w-5 h-5" />
-                    Student
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setSelectedRole("RECRUITER"); setError(""); }}
-                    className={`auth-role-btn ${selectedRole === "RECRUITER" ? "active" : "inactive"}`}
-                  >
-                    <Briefcase className="w-5 h-5" />
-                    Recruiter
-                  </button>
-                </div>
+                {!isRoleLocked && (
+                  <div className="auth-role-tabs">
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedRole("STUDENT"); setError(""); }}
+                      className={`auth-role-btn ${selectedRole === "STUDENT" ? "active" : "inactive"}`}
+                    >
+                      <GraduationCap className="w-5 h-5" />
+                      Student
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setSelectedRole("RECRUITER"); setError(""); }}
+                      className={`auth-role-btn ${selectedRole === "RECRUITER" ? "active" : "inactive"}`}
+                    >
+                      <Briefcase className="w-5 h-5" />
+                      Recruiter
+                    </button>
+                  </div>
+                )}
 
                 <div className="signup-form-grid">
                   <div className="input-group">

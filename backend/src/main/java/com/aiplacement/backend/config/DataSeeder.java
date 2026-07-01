@@ -1,27 +1,30 @@
 package com.aiplacement.backend.config;
 
-import com.aiplacement.backend.entity.AtsAnalysis;
 import com.aiplacement.backend.entity.Event;
-import com.aiplacement.backend.entity.InterviewRecord;
-import com.aiplacement.backend.repository.AtsAnalysisRepository;
 import com.aiplacement.backend.repository.EventRepository;
-import com.aiplacement.backend.repository.InterviewRecordRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Development data seeder.
+ *
+ * <p>Seeds only user-facing scheduling data (Events) for the first registered user,
+ * ensuring the dashboard is non-empty in development without injecting fabricated analytics.
+ *
+ * <p><b>Zero Mock Rule:</b> This seeder MUST NOT seed ATS scores, interview scores,
+ * readiness metrics, or any other analytics. All metrics must flow through
+ * {@link com.aiplacement.backend.service.shared.PlacementReadinessService}.
+ */
 @Configuration
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
-    private final AtsAnalysisRepository atsAnalysisRepository;
-    private final InterviewRecordRepository interviewRecordRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -46,41 +49,6 @@ public class DataSeeder implements CommandLineRunner {
                         .build();
 
                 eventRepository.saveAll(List.of(event1, event2));
-            }
-
-            if (atsAnalysisRepository.count() == 0) {
-                AtsAnalysis analysis1 = AtsAnalysis.builder()
-                        .atsScore(65)
-                        .user(user)
-                        .createdAt(LocalDateTime.now().minusDays(10))
-                        .build();
-                AtsAnalysis analysis2 = AtsAnalysis.builder()
-                        .atsScore(72)
-                        .user(user)
-                        .createdAt(LocalDateTime.now().minusDays(5))
-                        .build();
-                AtsAnalysis analysis3 = AtsAnalysis.builder()
-                        .atsScore(85)
-                        .user(user)
-                        .createdAt(LocalDateTime.now().minusDays(1))
-                        .build();
-                atsAnalysisRepository.saveAll(List.of(analysis1, analysis2, analysis3));
-            }
-
-            if (interviewRecordRepository.count() == 0) {
-                InterviewRecord record1 = InterviewRecord.builder()
-                        .role("Java Developer")
-                        .score(70)
-                        .user(user)
-                        .interviewDate(LocalDateTime.now().minusDays(7))
-                        .build();
-                InterviewRecord record2 = InterviewRecord.builder()
-                        .role("Backend Engineer")
-                        .score(85)
-                        .user(user)
-                        .interviewDate(LocalDateTime.now().minusDays(2))
-                        .build();
-                interviewRecordRepository.saveAll(List.of(record1, record2));
             }
         });
     }

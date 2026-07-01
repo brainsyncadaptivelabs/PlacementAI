@@ -13,6 +13,26 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Aggregates hiring analytics for a specific recruiter's job pipeline.
+ *
+ * <p><b>Architecture note:</b> This service intentionally reads score fields from the
+ * {@code JobApplication} entity (e.g., {@code atsScore}, {@code jdMatchScore},
+ * {@code codingScore}, {@code interviewScore}) rather than calling
+ * {@link com.aiplacement.backend.service.shared.PlacementReadinessService}.
+ *
+ * <p>This is by design:
+ * <ul>
+ *   <li>{@code PlacementReadinessService} computes <em>per-student, real-time</em> placement
+ *       intelligence. It is the single source of truth for individual student readiness.</li>
+ *   <li>{@code RecruiterAnalyticsService} aggregates <em>historical snapshot</em> data across
+ *       all applications for a recruiter's posted jobs. These scores represent what was
+ *       recorded at application time and are used for recruiter-scoped funnel analytics.</li>
+ * </ul>
+ *
+ * <p>No per-student readiness is re-computed here. The two layers serve different consumers
+ * and different time horizons.
+ */
 @Service
 @RequiredArgsConstructor
 public class RecruiterAnalyticsService {

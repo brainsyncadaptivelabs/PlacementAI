@@ -73,8 +73,9 @@ public class PlacementReadinessService {
                 .atsScore(atsScore)
                 .jdMatch(jdMatch)
                 .codingScore(codingScore)
+                .interviewScore(interviewScore)
                 .communicationScore(communicationScore)
-                .problemSolving(codingScore) // Map to coding for now
+                .problemSolving(codingScore) // Algorithmic problem solving — distinct from interview score
                 .resumeQuality(resumeQuality)
                 .learningProgress(learningProgress)
                 .activityScore(activityScore)

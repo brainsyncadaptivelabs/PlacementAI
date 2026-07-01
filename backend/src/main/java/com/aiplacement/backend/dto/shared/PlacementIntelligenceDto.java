@@ -15,6 +15,7 @@ public class PlacementIntelligenceDto {
     private int atsScore;
     private int jdMatch;
     private int codingScore;
+    private int interviewScore;
     private int communicationScore;
     private int problemSolving;
     private int resumeQuality;

@@ -1,19 +1,61 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/auth-store';
 
+/**
+ * AuthProvider — runs once on mount.
+ *
+ * OAuth flow:
+ *   Google → Supabase → /auth/callback (route.ts) → /dashboard?_pat=JWT&_role=STUDENT
+ *                                                              ↑
+ *                                          AuthProvider picks up _pat + _role here,
+ *                                          stores them, and cleans the URL.
+ *
+ * Email/password flow:
+ *   /auth/login → POST /api/v1/auth/login → stores JWT directly in localStorage.
+ *
+ * The provider does NOT fabricate tokens. If no backend token is present after
+ * a Supabase session sync, it calls POST /auth/google with the real Supabase
+ * access_token to obtain a PlacementAI JWT.
+ */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setAuth, clearAuth } = useAuthStore();
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
+
+    // ── Step 1: Pick up tokens injected by /auth/callback via query params ──
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const pat = params.get('_pat');   // PlacementAI Token
+      const role = params.get('_role'); // Confirmed backend role
+
+      if (pat) {
+        localStorage.setItem('token', pat);
+        console.log(`[AUTH_PROVIDER] Stored PlacementAI token from callback. role=${role ?? 'unknown'}`);
+
+        // Clean the URL — remove _pat and _role from browser address bar
+        params.delete('_pat');
+        params.delete('_role');
+        const cleanUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+        window.history.replaceState(null, '', cleanUrl);
+
+        // Dispatch so any other listeners (e.g., api.ts) pick up the new token
+        window.dispatchEvent(new Event('storage'));
+      }
+    }
+
+    // ── Step 2: Sync Supabase session → backend (for page refreshes / email login) ──
     const syncBackend = async (session: any) => {
       if (!session?.user) return;
 
-      // Check if we have a valid, unexpired token for the current user
-      const existingToken = localStorage.getItem("token");
+      // Check if stored token is still valid for this user
+      const existingToken = localStorage.getItem('token');
       if (existingToken) {
         try {
           const parts = existingToken.split('.');
@@ -21,88 +63,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
             const email = payload.sub || payload.email;
             const exp = payload.exp;
-            // Token is valid if it matches user email and has at least 60 seconds left before expiration
-            if (email === session.user.email && exp && (exp * 1000) > (Date.now() + 60000)) {
-              return; // already synced and token is valid
+            // Valid if matches user email and has >60s until expiry
+            if (email === session.user.email && exp && exp * 1000 > Date.now() + 60_000) {
+              return; // Already synced — no need to re-exchange
             }
           }
-        } catch (e) {
-          console.warn("Failed to parse existing JWT token, will re-sync:", e);
+        } catch {
+          // Corrupt token — fall through and re-sync
         }
       }
 
+      // No valid token — exchange the real Supabase access_token for a PlacementAI JWT
       try {
-        const base64UrlEncode = (str: string) => {
-          return btoa(unescape(encodeURIComponent(str)))
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=+$/, '');
-        };
-        const header = base64UrlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-        const payload = base64UrlEncode(JSON.stringify({
-          email: session.user.email,
-          name: session.user.user_metadata?.full_name || session.user.email
-        }));
-        const mockToken = `${header}.${payload}.${base64UrlEncode("signature")}`;
+        const supabaseAccessToken = session.access_token;
+        if (!supabaseAccessToken) {
+          console.warn('[AUTH_PROVIDER] No Supabase access_token on session — skipping backend sync');
+          return;
+        }
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-        const requestedRole = typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('role')
-        : null;
-      const validRoles = ["STUDENT", "RECRUITER", "PLACEMENT_OFFICER", "ADMIN", "SUPER_ADMIN"];
-      const role = requestedRole && validRoles.includes(requestedRole) ? requestedRole : undefined;
+        // Read role from URL if present (e.g. during a fresh OAuth redirect)
+        const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+        const urlRole = params?.get('role') ?? params?.get('_role') ?? undefined;
+        const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];
+        const role = urlRole && validRoles.includes(urlRole) ? urlRole : undefined;
 
-      const requestBody: any = {
-          idToken: mockToken,
-          provider: session.user.app_metadata?.provider || "google"
+        const requestBody: any = {
+          idToken: supabaseAccessToken, // Real Supabase JWT — not a fabricated mock
+          provider: session.user.app_metadata?.provider ?? 'google',
         };
-      if (role) {
-        requestBody.role = role;
-      }
-      console.log(`[AUTH_SYNC] POST ${API_URL}/auth/google`, requestBody);
-        
+        if (role) requestBody.role = role;
+
+        console.log(`[AUTH_PROVIDER] POST ${API_URL}/auth/google (re-sync on refresh)`);
+
         const response = await fetch(`${API_URL}/auth/google`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody),
         });
-        
-        console.log(`[AUTH_SYNC] Response Status Code: ${response.status}`);
-        
+
         if (response.ok) {
           const data = await response.json();
-          console.log(`[AUTH_SYNC] Success. JWT: ${data.accessToken}, User Role: ${data.role}`);
-          localStorage.setItem("token", data.accessToken);
-          if (typeof window !== 'undefined' && window.history.replaceState) {
-            const searchParams = new URLSearchParams(window.location.search);
-            searchParams.delete('role');
-            const cleanUrl = `${window.location.pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-            window.history.replaceState(null, '', cleanUrl);
-          }
-          // Dispatch a custom event to notify any listeners that the token is now available
-          window.dispatchEvent(new Event("storage"));
+          localStorage.setItem('token', data.accessToken);
+          console.log(`[AUTH_PROVIDER] Re-synced. role=${data.role}`);
+          window.dispatchEvent(new Event('storage'));
         } else {
-          try {
-            const errText = await response.text();
-            console.error(`[AUTH_SYNC] Sync failed. Response body: ${errText}`);
-          } catch (_) {
-            console.error(`[AUTH_SYNC] Sync failed without response body.`);
-          }
+          const errText = await response.text();
+          console.error(`[AUTH_PROVIDER] Backend sync failed (${response.status}): ${errText}`);
         }
       } catch (err) {
-        console.error("Backend auth sync failed:", err);
+        console.error('[AUTH_PROVIDER] Backend sync error:', err);
       }
     };
 
-    // Check active sessions and sets the user
+    // ── Step 3: Initialize session state ────────────────────────────────────
     const initializeAuth = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+      const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error) {
-        console.error('Error fetching session:', error);
+        console.error('[AUTH_PROVIDER] getSession error:', error);
         clearAuth();
         return;
       }
@@ -115,25 +133,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth();
 
-    // Listen for changes on auth state (log in, sign out, etc.)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          clearAuth();
-          localStorage.removeItem("token");
-        } else {
-          setAuth(session?.user ?? null, session);
-          if (session) {
-            await syncBackend(session);
-          }
+    // ── Step 4: React to auth state changes (login, logout, token refresh) ──
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`[AUTH_PROVIDER] onAuthStateChange: ${event}`);
+
+      if (event === 'SIGNED_OUT') {
+        clearAuth();
+        localStorage.removeItem('token');
+      } else {
+        setAuth(session?.user ?? null, session);
+        if (session) {
+          await syncBackend(session);
         }
       }
-    );
+    });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [setAuth, clearAuth, supabase.auth]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <>{children}</>;
 }

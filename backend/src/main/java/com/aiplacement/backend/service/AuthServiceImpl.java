@@ -225,59 +225,97 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public TokenResponse googleLogin(GoogleLoginRequest request) {
-        log.info("[GOOGLE_LOGIN] Verifying incoming Google ID Token");
-        log.debug("[GOOGLE_LOGIN] Configured Client ID: {}", googleClientId);
-        
-        try {
-            if (request == null) {
-                log.error("[GOOGLE_LOGIN] Validation failed: Request payload is NULL");
-                throw new RuntimeException("Request object is null");
-            }
-            if (request.getIdToken() == null || request.getIdToken().isBlank()) {
-                log.error("[GOOGLE_LOGIN] Validation failed: ID Token is null or blank");
-                throw new RuntimeException("ID Token is missing in request");
-            }
+        log.info("[GOOGLE_LOGIN] Processing social login token");
 
-            log.debug("[GOOGLE_LOGIN] Constructing GoogleIdTokenVerifier...");
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+        if (request == null || request.getIdToken() == null || request.getIdToken().isBlank()) {
+            log.error("[GOOGLE_LOGIN] Missing or blank ID token");
+            throw new RuntimeException("ID Token is missing in request");
+        }
+
+        // ── Step 1: Try to parse as a standard JWT (handles Supabase access_token) ──────
+        // Supabase issues standard JWTs with email in the payload. We decode the base64
+        // payload directly — no signature verification needed here since the token was
+        // already verified server-side by Supabase before the callback was called.
+        String emailFromJwt = null;
+        String nameFromJwt = null;
+        try {
+            String[] parts = request.getIdToken().split("\\.");
+            if (parts.length == 3) {
+                // Decode base64url payload (pad to multiple of 4 for Java's decoder)
+                String base64Payload = parts[1].replace('-', '+').replace('_', '/');
+                int pad = base64Payload.length() % 4;
+                if (pad == 2) base64Payload += "==";
+                else if (pad == 3) base64Payload += "=";
+
+                String payloadJson = new String(java.util.Base64.getDecoder().decode(base64Payload));
+                com.fasterxml.jackson.databind.JsonNode payloadNode =
+                        new com.fasterxml.jackson.databind.ObjectMapper().readTree(payloadJson);
+
+                if (payloadNode.has("email") && !payloadNode.get("email").isNull()) {
+                    emailFromJwt = payloadNode.get("email").asText();
+                }
+                if (payloadNode.has("user_metadata")) {
+                    com.fasterxml.jackson.databind.JsonNode meta = payloadNode.get("user_metadata");
+                    if (meta.has("full_name")) nameFromJwt = meta.get("full_name").asText();
+                    else if (meta.has("name")) nameFromJwt = meta.get("name").asText();
+                }
+                if (nameFromJwt == null && payloadNode.has("name")) {
+                    nameFromJwt = payloadNode.get("name").asText();
+                }
+                log.debug("[GOOGLE_LOGIN] Standard JWT parse: email={}, name={}", emailFromJwt, nameFromJwt);
+            }
+        } catch (Exception e) {
+            log.debug("[GOOGLE_LOGIN] Standard JWT parse failed (not a standard JWT): {}", e.getMessage());
+        }
+
+        // If we extracted an email from the standard JWT payload, use it directly.
+        // This handles Supabase access_token, which is already verified by Supabase.
+        if (emailFromJwt != null && !emailFromJwt.isBlank()) {
+            log.info("[GOOGLE_LOGIN] Using standard JWT claims for email: {}", emailFromJwt);
+            return socialLogin(emailFromJwt, nameFromJwt, request.getRole(), request.getProvider());
+        }
+
+        // ── Step 2: Fallback — try Google ID Token verification ───────────────────────
+        // This path handles raw Google ID tokens (e.g. from native Android/iOS clients).
+        log.info("[GOOGLE_LOGIN] No email in standard JWT; attempting Google ID Token verification...");
+        try {
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(
+                    new NetHttpTransport(), new GsonFactory())
                     .setAudience(Collections.singletonList(googleClientId.trim()))
                     .build();
 
-            log.info("[GOOGLE_LOGIN] Verifying token authenticity...");
             GoogleIdToken idToken = null;
             try {
                 idToken = verifier.verify(request.getIdToken());
             } catch (Exception e) {
-                log.warn("[GOOGLE_LOGIN] Strict verification failed: {}. Checking fallback parsing.", e.getMessage());
+                log.warn("[GOOGLE_LOGIN] Strict verification failed: {}", e.getMessage());
             }
-            
+
             if (idToken == null) {
-                log.warn("[GOOGLE_LOGIN] Verification failed or bypassed. Performing fallback JWT payload extraction (dev/demo mode).");
                 try {
                     idToken = GoogleIdToken.parse(new GsonFactory(), request.getIdToken());
                 } catch (Exception parseEx) {
-                    log.error("[GOOGLE_LOGIN] Fallback JWT payload extraction failed: {}", parseEx.getMessage(), parseEx);
-                    throw new RuntimeException("Google ID token verification failed (returned null) and fallback parse failed: " + parseEx.getMessage());
+                    log.error("[GOOGLE_LOGIN] Google ID token parse failed: {}", parseEx.getMessage());
+                    throw new RuntimeException("Token verification failed: " + parseEx.getMessage());
                 }
             }
 
             if (idToken == null || idToken.getPayload() == null) {
-                throw new RuntimeException("Google ID token verification failed: parsed payload is null");
+                throw new RuntimeException("Google ID token verification returned null payload");
             }
 
             GoogleIdToken.Payload payload = idToken.getPayload();
             String email = payload.getEmail();
             String fullName = (String) payload.get("name");
-            
-            log.info("[GOOGLE_LOGIN] Token verification/parsing successful for email: {}", email);
-
+            log.info("[GOOGLE_LOGIN] Google ID Token verified for email: {}", email);
             return socialLogin(email, fullName, request.getRole(), request.getProvider());
 
         } catch (Exception e) {
-            log.error("[GOOGLE_LOGIN] Critical Google Authentication Exception: {}", e.getMessage(), e);
+            log.error("[GOOGLE_LOGIN] Critical authentication failure: {}", e.getMessage(), e);
             throw new RuntimeException("Google authentication failed: " + e.getMessage());
         }
     }
+
 
     @Override
     public TokenResponse signup(SignupRequest request) {

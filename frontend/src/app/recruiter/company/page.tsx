@@ -27,11 +27,11 @@ export default function CompanyWorkspacePage() {
   const [form, setForm] = useState<any>({});
 
   useEffect(() => {
-    api.get("/recruiter/company")
+    api.get("/recruiters/company")
       .then(r => {
-        if (r.status !== 204) {
+        if (r.data) {
           setWorkspace(r.data);
-          setForm(r.data || {});
+          setForm(r.data);
         } else {
           setEditing(true);
         }

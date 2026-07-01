@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/recruiter/pipeline")
+@RequestMapping("/api/v1/recruiters/pipeline")
 @RequiredArgsConstructor
 public class PipelineController {
 

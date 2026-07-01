@@ -59,10 +59,15 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/admin') &&
     request.nextUrl.pathname !== '/'
   ) {
-    console.log(`[SUPABASE_MIDDLEWARE] Redirecting unauthenticated user from ${request.nextUrl.pathname} to /auth`);
-    // No user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = '/auth';
+    if (request.nextUrl.pathname.startsWith('/recruiter')) {
+      url.pathname = '/auth/recruiter';
+    } else if (request.nextUrl.pathname.startsWith('/placement-officer')) {
+      url.pathname = '/auth/placement-officer';
+    } else {
+      url.pathname = '/auth';
+    }
+    console.log(`[SUPABASE_MIDDLEWARE] Redirecting unauthenticated user from ${request.nextUrl.pathname} to ${url.pathname}`);
     return NextResponse.redirect(url);
   }
 
