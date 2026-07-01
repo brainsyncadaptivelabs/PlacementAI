@@ -147,7 +147,7 @@ export function UserNav() {
               </Link>
 
               <Link 
-                href="/dashboard/profile"
+                href={user?.role === "RECRUITER" ? "/recruiter/settings" : user?.role === "PLACEMENT_OFFICER" ? "/placement-officer/settings" : "/dashboard/profile"}
                 onClick={() => setIsOpen(false)}
                 className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
               >

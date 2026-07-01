@@ -36,6 +36,14 @@
   --input: var(--bg-elevated);
   --ring: var(--border-focus);
   --radius: 24px;
+  
+  /* Sidebar standard variables */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #09090b;
+  
+  /* Recruiter Sidebar Custom Variables */
+  --recruiter-sidebar: #2D1B4E;
+  --recruiter-sidebar-foreground: #ffffff;
 }
 
 .dark {
@@ -73,14 +81,17 @@
   --border: var(--border-subtle);
   --input: var(--bg-elevated);
   --ring: var(--border-focus);
+  
+  /* Sidebar standard variables */
+  --sidebar: #0B1020;
+  --sidebar-foreground: #F8FAFC;
+  
+  /* Recruiter Sidebar Custom Variables */
+  --recruiter-sidebar: #1A0B33;
+  --recruiter-sidebar-foreground: #ffffff;
 }
 
-/* Page base background linear-gradient */
-body {
-  background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%) !important;
-  color: var(--text-primary) !important;
-  min-height: 100vh;
-}
+/* Removed conflicting body styles */
 
 /* Scrollbar override */
 ::-webkit-scrollbar {

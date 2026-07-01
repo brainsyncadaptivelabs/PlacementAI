@@ -43,7 +43,7 @@ export default function CompanyWorkspacePage() {
   const save = async () => {
     setSaving(true);
     try {
-      const res = await api.put("/recruiter/company", form);
+      const res = await api.put("/recruiters/company", form);
       setWorkspace(res.data);
       setForm(res.data);
       setEditing(false);

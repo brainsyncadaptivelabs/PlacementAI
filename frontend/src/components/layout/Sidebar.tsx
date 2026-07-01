@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { roleMenus } from "@/config/menu-config";
 
@@ -48,64 +48,89 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
   ];
 
   return (
-    <ShadcnSidebar className="bg-sidebar border-r border-border">
+    <ShadcnSidebar 
+      style={{ 
+        "--sidebar": role === "RECRUITER" ? "var(--recruiter-sidebar)" : undefined,
+        "--sidebar-foreground": role === "RECRUITER" ? "var(--recruiter-sidebar-foreground)" : undefined 
+      } as React.CSSProperties}
+      className={role === "RECRUITER" ? "border-r-0 dark:border-r dark:border-border" : "border-r border-border"}
+    >
       <SidebarHeader className="h-[80px] w-full flex items-center justify-center shrink-0 p-0">
         <Link 
           href={hasPlan ? (roleMenus[role]?.[0]?.url || "/") : "/plans"} 
           className="h-full w-[90%] flex items-center justify-center gap-3 m-auto p-0 scale-75 origin-center transition-opacity duration-200 hover:opacity-85"
         >
-          <div className="w-[54px] h-[54px] bg-primary rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20 shrink-0">
+          <div className={role === "RECRUITER" 
+            ? "w-[54px] h-[54px] bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shrink-0" 
+            : "w-[54px] h-[54px] bg-primary rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20 shrink-0"}>
             <span className="text-2xl">A</span>
           </div>
-          <span className="font-heading font-semibold text-[30px] tracking-tighter text-foreground leading-none whitespace-nowrap">
+          <span className={`font-heading font-semibold text-[30px] tracking-tighter leading-none whitespace-nowrap ${role === "RECRUITER" ? "text-white dark:text-foreground" : "text-foreground"}`}>
             AI Placement
           </span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="px-3 py-4">
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                render={<Link href={item.url} />}
-                isActive={pathname === item.url || pathname.startsWith(item.url + '/')}
-                className="hover:bg-muted transition-colors py-6"
-                tooltip={item.title}
-              >
-                <item.icon className={`w-5 h-5 ${pathname === item.url || pathname.startsWith(item.url + '/') ? 'text-primary' : 'text-muted-foreground'}`} />
-                <span className={`font-medium ${pathname === item.url || pathname.startsWith(item.url + '/') ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {menuItems.map((item) => {
+            const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  render={<Link href={item.url} />}
+                  isActive={isActive}
+                  className={role === "RECRUITER" 
+                    ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-white/10 dark:bg-sidebar-accent text-white dark:text-sidebar-accent-foreground hover:bg-white/15 dark:hover:bg-sidebar-accent' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
+                    : "hover:bg-muted transition-colors py-6"}
+                  tooltip={item.title}
+                >
+                  <item.icon className={`w-5 h-5 ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary' : 'text-muted-foreground')}`} />
+                  <span className={`font-medium ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground font-semibold' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary font-semibold' : 'text-foreground')}`}>{item.title}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
         </SidebarMenu>
         
         {menuItems.length > 0 && (
           <>
             <div className="mt-8 mb-2 px-3">
-              <span className="text-xs font-semibold text-muted-foreground/70 uppercase tracking-wider">Account</span>
+              <span className={`text-xs font-semibold uppercase tracking-wider ${role === "RECRUITER" ? "text-white/50 dark:text-muted-foreground/70" : "text-muted-foreground/70"}`}>Account</span>
             </div>
             <SidebarMenu>
-              {settingsItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    render={<Link href={item.url} />}
-                    isActive={pathname === item.url}
-                    className="hover:bg-muted transition-colors py-6"
-                    tooltip={item.title}
-                  >
-                    <item.icon className={`w-5 h-5 ${pathname === item.url ? 'text-primary' : 'text-muted-foreground'}`} />
-                    <span className={`font-medium ${pathname === item.url ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {settingsItems.map((item) => {
+                const isActive = pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      render={<Link href={item.url} />}
+                      isActive={isActive}
+                      className={role === "RECRUITER" 
+                        ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-white/10 dark:bg-sidebar-accent text-white dark:text-sidebar-accent-foreground hover:bg-white/15 dark:hover:bg-sidebar-accent' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
+                        : "hover:bg-muted transition-colors py-6"}
+                      tooltip={item.title}
+                    >
+                      <item.icon className={`w-5 h-5 ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary' : 'text-muted-foreground')}`} />
+                      <span className={`font-medium ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground font-semibold' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary font-semibold' : 'text-foreground')}`}>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </>
         )}
       </SidebarContent>
+
       <SidebarFooter className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} render={<button />} className="hover:bg-destructive/10 hover:text-destructive transition-colors py-6">
+            <SidebarMenuButton 
+              onClick={handleLogout} 
+              render={<button />} 
+              className={role === "RECRUITER" 
+                ? "hover:bg-white/10 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground text-white/70 dark:text-sidebar-foreground/70 transition-colors py-6 rounded-xl"
+                : "hover:bg-destructive/10 hover:text-destructive transition-colors py-6"}
+            >
                 <LogOut className="w-5 h-5" />
                 <span className="font-medium">Logout</span>
             </SidebarMenuButton>

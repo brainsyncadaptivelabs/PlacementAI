@@ -22,7 +22,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
   const isAuthLoading = useAuthStore((state) => state.isLoading);
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   
   React.useEffect(() => {
@@ -101,7 +101,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-transparent">
         <Sidebar role={role} hasPlan={user.planSelected} />
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Topbar */}
@@ -115,11 +115,11 @@ export function AppLayout({ children, role }: AppLayoutProps) {
                  <Button 
                    variant="ghost" 
                    size="icon" 
-                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                   onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
                    className="text-muted-foreground hover:bg-muted rounded-xl transition-colors"
                    title="Toggle Theme"
                  >
-                   {mounted ? (theme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />) : <Sun className="w-5 h-5" />}
+                   {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
                  </Button>
                  <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors">
                     <Bell className="w-5 h-5" />

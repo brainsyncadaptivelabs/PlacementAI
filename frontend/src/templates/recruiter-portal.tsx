@@ -24,7 +24,7 @@ import {
 
 export default function PerfectRecruiterPortal() {
   return (
-    <div className="min-h-screen bg-[#fafbfc] p-8 space-y-8 font-sans">
+    <div className="min-h-screen bg-[#fafbfc] dark:bg-background p-8 space-y-8 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
@@ -67,10 +67,10 @@ export default function PerfectRecruiterPortal() {
          <Card className="border-none shadow-sm bg-card overflow-hidden group cursor-pointer">
             <CardContent className="p-6">
                <div className="flex justify-between items-center mb-6">
-                  <div className="p-2.5 bg-blue-50 rounded-xl group-hover:bg-blue-600 transition-colors">
-                     <Users className="w-6 h-6 text-blue-600 group-hover:text-white transition-colors" />
+                  <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-xl group-hover:bg-blue-600 transition-colors">
+                     <Users className="w-6 h-6 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
                   </div>
-                  <Badge className="bg-blue-100 text-blue-700 border-none font-bold">45 New</Badge>
+                  <Badge className="bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 border-none font-bold">45 New</Badge>
                </div>
                <p className="text-4xl font-black text-foreground mb-1">284</p>
                <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">Total Applicants</p>
@@ -78,7 +78,7 @@ export default function PerfectRecruiterPortal() {
                   <div className="flex -space-x-2">
                      {[1,2,3,4].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-muted" />)}
                   </div>
-                  <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider underline">Review Now</span>
+                  <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider underline">Review Now</span>
                </div>
             </CardContent>
          </Card>
@@ -86,10 +86,10 @@ export default function PerfectRecruiterPortal() {
          <Card className="border-none shadow-sm bg-card overflow-hidden group cursor-pointer">
             <CardContent className="p-6">
                <div className="flex justify-between items-center mb-6">
-                  <div className="p-2.5 bg-green-50 rounded-xl group-hover:bg-green-600 transition-colors">
-                     <CheckCircle2 className="w-6 h-6 text-green-600 group-hover:text-white transition-colors" />
+                  <div className="p-2.5 bg-green-50 dark:bg-green-900/30 rounded-xl group-hover:bg-green-600 transition-colors">
+                     <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 group-hover:text-white transition-colors" />
                   </div>
-                  <div className="flex items-center gap-1 text-green-600 text-xs font-bold">
+                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400 text-xs font-bold">
                      <TrendingUp className="w-3 h-3" /> +5%
                   </div>
                </div>
@@ -113,7 +113,7 @@ export default function PerfectRecruiterPortal() {
                <Button variant="ghost" size="sm" className="text-primary font-bold text-xs uppercase tracking-widest h-10">Export CSV</Button>
             </CardHeader>
             <div className="p-0">
-               <div className="divide-y divide-slate-50">
+               <div className="divide-y divide-slate-50 dark:divide-slate-800">
                   {[
                      { name: "Shreya Singh", role: "Full Stack Intern", score: 96, status: "Interviewing", date: "2h ago" },
                      { name: "Rahul Verma", role: "Backend Developer", score: 92, status: "Screened", date: "5h ago" },
@@ -141,7 +141,7 @@ export default function PerfectRecruiterPortal() {
                            <div className="hidden sm:block w-32">
                               <p className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest mb-1">Status</p>
                               <div className="flex items-center gap-1.5">
-                                 <div className={`w-1.5 h-1.5 rounded-full ${app.status === 'Interviewing' ? 'bg-blue-500' : 'bg-slate-300'}`} />
+                                 <div className={`w-1.5 h-1.5 rounded-full ${app.status === 'Interviewing' ? 'bg-blue-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
                                  <span className="text-xs font-bold text-foreground">{app.status}</span>
                               </div>
                            </div>
