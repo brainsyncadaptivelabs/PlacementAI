@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mic, History, BarChart2, PlayCircle, Check, Loader2, Sparkles } from "lucide-react";
+import { Mic, History, BarChart2, PlayCircle, Check, Loader2, Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/ui/theme-components";
@@ -16,6 +16,14 @@ export default function MockInterviewLandingPage() {
   const router = useRouter();
   const setInterviewData = useInterviewStore((state) => state.setInterviewData);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+    } else {
+      router.push("/dashboard");
+    }
+  };
 
   const startModuleInterview = async (moduleId: string, moduleName: string, level: string, focusAreas: string[]) => {
     setLoadingId(moduleId);
@@ -71,6 +79,25 @@ export default function MockInterviewLandingPage() {
 
   return (
     <PageShell>
+      {/* Navigation Header / Back Button bar */}
+      <div className="flex items-center gap-3 mb-6 select-none">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleBack}
+          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground pl-2 pr-3 py-1.5 h-8 rounded-lg transition-colors border border-transparent hover:border-border"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span className="text-xs font-semibold">Back</span>
+        </Button>
+        <div className="h-4 w-px bg-border" />
+        <div className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+          <Link href="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
+          <span>/</span>
+          <span className="text-foreground font-semibold">Mock Interviews</span>
+        </div>
+      </div>
+
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 border-b border-border pb-6">
         <div>
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground flex items-center gap-2">

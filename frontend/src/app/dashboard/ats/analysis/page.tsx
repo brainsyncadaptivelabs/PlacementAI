@@ -453,16 +453,6 @@ export default function AtsAnalysisDashboard() {
 
   const s = buildScoringEngine(analysis);
 
-  const downloadJson = () => {
-    const blob = new Blob([JSON.stringify(analysis, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "ats-analysis-report.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8 print:p-0 print:max-w-full">
 
@@ -480,9 +470,6 @@ export default function AtsAnalysisDashboard() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={downloadJson}>
-            <Download className="w-4 h-4 mr-1.5" /> JSON Report
-          </Button>
           <Button size="sm" onClick={() => window.print()} className="bg-slate-900 hover:bg-slate-800 text-white">
             <Download className="w-4 h-4 mr-1.5" /> PDF Report
           </Button>

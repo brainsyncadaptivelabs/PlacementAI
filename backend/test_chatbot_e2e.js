@@ -12,6 +12,8 @@ async function runTests() {
       fullName: "Abhinav Sarma",
       email: email,
       password: "password123",
+      confirmPassword: "password123",
+      phone: "+12345678901",
       role: "STUDENT",
       collegeName: "Government Engineering College",
       branch: "Computer Science",

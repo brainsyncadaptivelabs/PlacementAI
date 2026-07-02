@@ -18,7 +18,8 @@ import {
   Loader2, 
   MoreHorizontal,
   Trash2,
-  Paperclip
+  Paperclip,
+  Share
 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 
@@ -80,7 +81,7 @@ const normalizeMarkdown = (text: string): string => {
   result = result.replace(/\*{4,}/g, "**");
 
   // Fix collapsed adjacent bold markers
-  result = result.replace(/\*\*\*\*/g, "** **");
+  result = result.replace(/\*\*\*\*\*/g, "** **");
 
   // Fix headings with no space, e.g. ##Heading to ## Heading
   result = result.replace(/^(#{1,3})([A-Za-z0-9])/gm, "$1 $2");
@@ -99,25 +100,45 @@ const MessageItem = memo(({
   msg, 
   onCopy, 
   onRegenerate,
-  isGenerating = false
+  isGenerating = false,
+  feedbackState,
+  onFeedback
 }: { 
   msg: Message; 
   onCopy: (content: string) => void;
   onRegenerate?: (content: string) => void;
   isGenerating?: boolean;
+  feedbackState?: 'like' | 'dislike';
+  onFeedback?: (type: 'like' | 'dislike') => void;
 }) => {
   const [copied, setCopied] = useState(false);
+  const [toastText, setToastText] = useState<string | null>(null);
 
   const handleCopy = () => {
     onCopy(msg.content);
     setCopied(true);
+    setToastText("Copied to clipboard ✓");
     setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setToastText(null), 2000);
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'PlacementAI Conversation Response',
+        text: msg.content
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(msg.content);
+      setToastText("Share link copied to clipboard ✓");
+      setTimeout(() => setToastText(null), 2000);
+    }
   };
 
   const isAi = msg.role === 'ai';
 
   return (
-    <div className="w-full flex justify-center mb-6 last:mb-0 animate-message">
+    <div className="w-full flex justify-center mb-6 last:mb-0 animate-message group/msg relative">
       <div className={`w-full max-w-[1800px] px-6 flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
         <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-primary border-primary/10 text-white' : 'bg-muted border-border text-muted-foreground'}`}>
           {isAi ? (
@@ -127,11 +148,11 @@ const MessageItem = memo(({
           )}
         </Avatar>
         
-        <div className={`flex flex-col ${isAi ? 'items-start w-[92%]' : 'items-end max-w-[70%]'} min-w-0 flex-1`}>
+        <div className={`flex flex-col ${isAi ? 'items-start w-[92%]' : 'items-end max-w-[70%]'} min-w-0 flex-1 relative`}>
           {/* Metadata */}
           <div className="flex items-center gap-2 mb-1.5">
             <span className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wider">
-              {isAi ? 'Career Assistant' : 'You'}
+              {isAi ? 'AI Career Copilot' : 'You'}
             </span>
             <span className="text-[10px] text-muted-foreground/50 font-medium">
               {msg.time}
@@ -142,8 +163,8 @@ const MessageItem = memo(({
           <div 
             className={`message-content ${
               isAi 
-                ? 'bg-[#111827] text-foreground border border-border/30 shadow-sm' 
-                : 'bg-[#4F46E5] text-white shadow-sm'
+                ? 'bg-zinc-900/90 dark:bg-[#111827] text-foreground border border-border/30 shadow-sm' 
+                : 'bg-indigo-600 dark:bg-[#4F46E5] text-white shadow-sm'
             } w-full`}
             style={{ 
               whiteSpace: 'pre-wrap', 
@@ -157,101 +178,191 @@ const MessageItem = memo(({
               gap: isAi ? '10px' : undefined,
             }}
           >
-            {isAi ? (
-              msg.content ? (
-                <SafeMarkdownBoundary fallbackText={msg.content}>
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeSanitize]}
-                    components={{
-                      h1: ({children}) => <h1 style={{ fontSize: '34px', fontWeight: 700, lineHeight: '1.1', marginTop: '8px', marginBottom: '14px', color: 'var(--text-primary)' }}>{children}</h1>,
-                      h2: ({children}) => <h2 style={{ fontSize: '24px', fontWeight: 650, lineHeight: '1.15', marginTop: '18px', marginBottom: '10px', color: 'var(--text-primary)' }}>{children}</h2>,
-                      h3: ({children}) => <h3 style={{ fontSize: '20px', fontWeight: 600, lineHeight: '1.2', marginTop: '10px', marginBottom: '8px', color: 'var(--text-secondary)' }}>{children}</h3>,
-                      p: ({children}) => <p style={{ fontSize: '17px', lineHeight: '1.6', fontWeight: 400, marginTop: '0px', marginBottom: '10px', color: 'var(--text-secondary)' }}>{children}</p>,
-                      ul: ({children}) => <ul style={{ paddingLeft: '18px', marginTop: '6px', marginBottom: '10px', listStyleType: 'disc' }}>{children}</ul>,
-                      ol: ({children}) => <ol style={{ paddingLeft: '20px', marginTop: '6px', marginBottom: '10px', listStyleType: 'decimal' }}>{children}</ol>,
-                      li: ({children}) => <li style={{ display: 'list-item', marginTop: '0px', marginBottom: '6px', padding: '0px', lineHeight: '1.45', fontSize: '17px', color: 'var(--text-secondary)', verticalAlign: 'top' }}>{children}</li>,
-                      strong: ({children}) => <strong style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{children}</strong>,
-                      b: ({children}) => <strong style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{children}</strong>,
-                      code: ({className, children, ...props}) => {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isInline = !match && !String(children).includes('\n');
-                        return !isInline ? (
-                          <div className="relative my-4 group/code w-full">
-                            <div className="absolute right-3 top-3 opacity-0 group-hover/code:opacity-100 transition-opacity">
-                              <button 
-                                onClick={() => navigator.clipboard.writeText(String(children))}
-                                className="p-1.5 rounded-md bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
-                              >
-                                <Copy className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                            <pre className="bg-zinc-950 text-zinc-50 p-5 rounded-xl overflow-x-auto text-[13px] font-mono leading-relaxed shadow-md border border-white/5 w-full min-w-full">
-                              <code className={className}>{children}</code>
-                            </pre>
-                          </div>
-                        ) : (
-                          <code className="bg-muted px-2 py-0.5 rounded-md text-primary font-mono text-[0.9em] font-medium" {...props}>{children}</code>
-                        );
-                      },
+                    {isAi ? (
+                      msg.content ? (
+                        <SafeMarkdownBoundary fallbackText={msg.content}>
+                          <div className="space-y-4 w-full">
+                            {/* Interactive Skill Trees & Timeline Parser */}
+                            {msg.content.includes("├──") && (
+                              <div className="p-4 bg-black/40 border border-border/50 rounded-xl font-mono text-xs text-indigo-400 space-y-1 my-3 select-none">
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider mb-2">⚡ Visual Skill Tree</div>
+                                {msg.content.split("\n").filter(line => line.includes("├──") || line.includes("└──")).map((line, idx) => {
+                                  const isComplete = line.includes("✓") || line.includes("Complete") || idx < 3;
+                                  return (
+                                    <div key={idx} className={`flex items-center gap-2 ${isComplete ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                                      <span>{line}</span>
+                                      {isComplete ? (
+                                        <span className="px-1.5 py-0.5 rounded text-[8px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase font-extrabold">Complete</span>
+                                      ) : (
+                                        <span className="px-1.5 py-0.5 rounded text-[8px] bg-zinc-800 text-zinc-500 border border-zinc-700/50 uppercase font-bold">Locked</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
 
-                      blockquote: ({children}) => <blockquote style={{ borderLeft: '4px solid var(--border-subtle)', paddingLeft: '16px', fontStyle: 'italic', margin: '12px 0', color: 'var(--text-secondary)' }}>{children}</blockquote>,
-                      table: ({children}) => (
-                        <div className="overflow-x-auto my-4 border border-border rounded-lg">
-                          <table className="min-w-full divide-y divide-border/10">{children}</table>
+                            {/* Circular / Progress Dashboard Widgets Parser */}
+                            {msg.content.includes("Readiness Score:") && (
+                              <div className="grid grid-cols-2 gap-3 my-4">
+                                <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
+                                  <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Readiness Score</span>
+                                  <div className="text-2xl font-black text-indigo-500">6%</div>
+                                  <div className="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
+                                    <div className="bg-indigo-500 h-full rounded-full" style={{ width: '6%' }} />
+                                  </div>
+                                </div>
+                                <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
+                                  <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">ATS Score</span>
+                                  <div className="text-2xl font-black text-emerald-500">0%</div>
+                                  <div className="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
+                                    <div className="bg-emerald-500 h-full rounded-full" style={{ width: '0%' }} />
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Timeline Visual Progress Parser */}
+                            {msg.content.includes("↓") && (
+                              <div className="flex flex-col gap-2 my-4 relative pl-4 border-l-2 border-indigo-500/30">
+                                <div className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider mb-2">📅 Learning Timeline</div>
+                                {msg.content.split("↓").map((step, idx) => {
+                                  const cleanStep = step.replace(/[#*`~_\[\]()\-]/g, "").trim();
+                                  if (!cleanStep) return null;
+                                  return (
+                                    <div key={idx} className="flex items-start gap-2 text-xs text-foreground bg-muted/40 p-2.5 rounded-lg border border-border/50">
+                                      <span className="font-extrabold text-indigo-400">Step {idx + 1}:</span>
+                                      <span className="font-medium">{cleanStep}</span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            <ReactMarkdown 
+                              remarkPlugins={[remarkGfm]}
+                              rehypePlugins={[rehypeSanitize]}
+                              components={{
+                                h1: ({children}) => <h1 className="text-2xl font-bold mt-4 mb-2 tracking-tight text-slate-900 dark:text-white">{children}</h1>,
+                                h2: ({children}) => <h2 className="text-xl font-bold mt-4 mb-2 tracking-tight text-slate-800 dark:text-slate-100">{children}</h2>,
+                                h3: ({children}) => <h3 className="text-lg font-semibold mt-3 mb-1.5 text-slate-800 dark:text-slate-200">{children}</h3>,
+                                p: ({children}) => <p className="text-base leading-relaxed mb-3 text-slate-700 dark:text-slate-350">{children}</p>,
+                                ul: ({children}) => <ul className="list-disc pl-5 mb-4 space-y-1">{children}</ul>,
+                                ol: ({children}) => <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>,
+                                li: ({children}) => <li className="text-base leading-relaxed text-slate-700 dark:text-slate-350">{children}</li>,
+                                strong: ({children}) => <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>,
+                                b: ({children}) => <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>,
+                                code: ({className, children, ...props}) => {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  const isInline = !match && !String(children).includes('\n');
+                                  return !isInline ? (
+                                    <div className="relative my-4 group/code w-full">
+                                      <div className="absolute right-3 top-3 opacity-0 group-hover/code:opacity-100 transition-opacity flex gap-1.5">
+                                        <button 
+                                          onClick={() => {
+                                            navigator.clipboard.writeText(String(children));
+                                            setToastText("Code copied to clipboard ✓");
+                                            setTimeout(() => setToastText(null), 2000);
+                                          }}
+                                          className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded bg-zinc-800 text-zinc-400 hover:text-white transition-colors border border-zinc-700"
+                                        >
+                                          Copy Code
+                                        </button>
+                                      </div>
+                                      <pre className="bg-zinc-950 text-zinc-50 p-5 rounded-xl overflow-x-auto text-[13px] font-mono leading-relaxed shadow-md border border-white/5 w-full min-w-full">
+                                        <code className={className}>{children}</code>
+                                      </pre>
+                                    </div>
+                                  ) : (
+                                    <code className="bg-muted px-2 py-0.5 rounded-md text-primary font-mono text-[0.9em] font-medium" {...props}>{children}</code>
+                                  );
+                                },
+
+                                blockquote: ({children}) => <blockquote style={{ borderLeft: '4px solid var(--border-subtle)', paddingLeft: '16px', fontStyle: 'italic', margin: '12px 0', color: 'var(--text-secondary)' }}>{children}</blockquote>,
+                                table: ({children}) => (
+                                  <div className="overflow-x-auto my-4 border border-border rounded-lg shadow-sm">
+                                    <table className="min-w-full divide-y divide-border/10 bg-[#18181b]/50">{children}</table>
+                                  </div>
+                                ),
+                                thead: ({children}) => <thead className="bg-zinc-800/80 sticky top-0">{children}</thead>,
+                                tbody: ({children}) => <tbody className="divide-y divide-border/10 bg-transparent">{children}</tbody>,
+                                tr: ({children}) => <tr className="hover:bg-zinc-800/30 transition-colors">{children}</tr>,
+                                th: ({children}) => <th className="px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{children}</th>,
+                                td: ({children}) => <td className="px-4 py-3 text-sm text-zinc-300 font-medium">{children}</td>
+                              }}
+                            >
+                              {msg.content + (isGenerating ? " ▋" : "")}
+                            </ReactMarkdown>
+                          </div>
+                        </SafeMarkdownBoundary>
+                      ) : (
+                        <div className="flex gap-1.5 items-center py-2">
+                          <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
+                          <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
+                          <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" />
                         </div>
-                      ),
-                      thead: ({children}) => <thead className="bg-muted">{children}</thead>,
-                      tbody: ({children}) => <tbody className="divide-y divide-border/10 bg-transparent">{children}</tbody>,
-                      tr: ({children}) => <tr>{children}</tr>,
-                      th: ({children}) => <th className="px-4 py-2 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{children}</th>,
-                      td: ({children}) => <td className="px-4 py-2 text-sm text-muted-foreground">{children}</td>
-                    }}
-                  >
-                    {msg.content + (isGenerating ? " ▋" : "")}
-                  </ReactMarkdown>
-                </SafeMarkdownBoundary>
-              ) : (
-                <div className="flex gap-1.5 items-center py-2">
-                  <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
-                  <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
-                  <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" />
-                </div>
-              )
-            ) : (
-              <div style={{ fontSize: '18px', fontWeight: 400, lineHeight: '1.85', letterSpacing: '-0.01em' }}>{msg.content}</div>
-            )}
+                      )
+                    ) : (
+                      <div style={{ fontSize: '18px', fontWeight: 400, lineHeight: '1.85', letterSpacing: '-0.01em' }}>{msg.content}</div>
+                    )}
           </div>
 
-          {/* Assistant Actions */}
-          {isAi && msg.content && (
-            <div className="mt-2.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {/* Toast Notification */}
+          {toastText && (
+            <div className="absolute -top-10 right-2 px-3 py-1 bg-zinc-950 text-white text-[10px] font-bold uppercase rounded-lg shadow-lg border border-white/10 animate-in fade-in slide-in-from-bottom-1 duration-200 z-50">
+              {toastText}
+            </div>
+          )}
+
+          {/* Assistant Actions Toolbar - Sticky at the bottom right of the message container */}
+          {isAi && msg.content && !isGenerating && (
+            <div className="mt-2.5 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm border border-border/80 px-2.5 py-1.5 rounded-xl shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200 self-end select-none">
               <button 
                 onClick={handleCopy}
                 title="Copy response"
-                className={`p-1.5 rounded-md transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${
+                className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${
                   copied ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
                 }`}
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Copied" : "Copy"}
+                Copy
               </button>
               {onRegenerate && (
                 <button 
                   onClick={() => onRegenerate(msg.content)}
                   title="Regenerate response"
-                  className="p-1.5 rounded-md text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
+                  className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Regenerate
                 </button>
               )}
-              <div className="w-px h-3 bg-border mx-1" />
-              <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-green-500 hover:bg-muted transition-all" title="Like response">
+              <div className="w-px h-3 bg-border mx-0.5" />
+              <button 
+                onClick={() => onFeedback?.('like')}
+                className={`p-1.5 rounded-lg transition-all ${
+                  feedbackState === 'like' ? 'text-emerald-500 bg-emerald-500/10' : 'text-muted-foreground/70 hover:text-emerald-500 hover:bg-muted'
+                }`} 
+                title="Like response"
+              >
                 <ThumbsUp className="w-3.5 h-3.5" />
               </button>
-              <button className="p-1.5 rounded-md text-muted-foreground/70 hover:text-red-500 hover:bg-muted transition-all" title="Dislike response">
+              <button 
+                onClick={() => onFeedback?.('dislike')}
+                className={`p-1.5 rounded-lg transition-all ${
+                  feedbackState === 'dislike' ? 'text-rose-500 bg-rose-500/10' : 'text-muted-foreground/70 hover:text-rose-500 hover:bg-muted'
+                }`} 
+                title="Dislike response"
+              >
                 <ThumbsDown className="w-3.5 h-3.5" />
+              </button>
+              <div className="w-px h-3 bg-border mx-0.5" />
+              <button 
+                onClick={handleShare}
+                className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all"
+                title="Share response"
+              >
+                <Share className="w-3.5 h-3.5" />
               </button>
             </div>
           )}
@@ -269,11 +380,55 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [generationState, setGenerationState] = useState<"IDLE" | "GENERATING" | "COMPLETE" | "STOPPED">("IDLE");
+  const [feedback, setFeedback] = useState<Record<number, 'like' | 'dislike'>>({});
   const generationComplete = generationState !== "GENERATING";
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const limitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stuckTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load chat history and feedback on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("placementai_chat_history");
+      if (stored) {
+        try {
+          setMessages(JSON.parse(stored));
+        } catch (e) {
+          console.error("Failed to parse stored chat history", e);
+        }
+      }
+      const storedFeedback = localStorage.getItem("placementai_chat_feedback");
+      if (storedFeedback) {
+        try {
+          setFeedback(JSON.parse(storedFeedback));
+        } catch (e) {
+          console.error("Failed to parse stored feedback", e);
+        }
+      }
+    }
+  }, []);
+
+  // Save chat history when messages change
+  useEffect(() => {
+    if (typeof window !== "undefined" && messages.length > 0) {
+      localStorage.setItem("placementai_chat_history", JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // Save feedback when feedback changes
+  const handleFeedback = (msgId: number, type: 'like' | 'dislike') => {
+    setFeedback(prev => {
+      const updated = { ...prev };
+      if (updated[msgId] === type) {
+        delete updated[msgId];
+      } else {
+        updated[msgId] = type;
+      }
+      localStorage.setItem("placementai_chat_feedback", JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   useEffect(() => {
     return () => {
@@ -347,6 +502,11 @@ export default function ChatPage() {
 
   const handleClearChat = () => {
     setMessages([]);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("placementai_chat_history");
+      localStorage.removeItem("placementai_chat_feedback");
+    }
+    setFeedback({});
   };
 
   const handleSend = async (retryCount = 0, overrideInput?: string) => {
@@ -387,9 +547,9 @@ export default function ChatPage() {
 
     let fullContent = retryCount > 0 ? messages.find(m => m.id === aiMsgId)?.content || "" : "";
 
-    // Dynamic prompt-specific timeouts
+    // Dynamic prompt-specific timeouts (allowing ample time for local models to generate large responses)
     const promptLower = finalInput.toLowerCase();
-    let timeLimit = 12000; // default 12s
+    let timeLimit = 30000; // default 30s
     if (
       finalInput.length < 15 || 
       promptLower === "hi" || 
@@ -397,7 +557,7 @@ export default function ChatPage() {
       promptLower === "ok" || 
       promptLower.split(/\s+/).length < 4
     ) {
-      timeLimit = 5000; // short prompt: 5s
+      timeLimit = 15000; // short prompt: 15s
     } else if (
       promptLower.includes("resume") || 
       promptLower.includes("roadmap") || 
@@ -405,7 +565,7 @@ export default function ChatPage() {
       promptLower.includes("analysis") || 
       finalInput.length > 100
     ) {
-      timeLimit = 20000; // long/complex prompts: 20s
+      timeLimit = 180000; // long/complex prompts: 180s (3 mins)
     }
 
     if (abortControllerRef.current) {
@@ -513,17 +673,6 @@ export default function ChatPage() {
 
             if (contentUpdated) {
               console.debug("rawChunk:", rawChunk, "assembledText:", currentAssembled, "renderedText:", fullContent);
-
-              // Token threshold check
-              if (fullContent.length > 4000) {
-                console.warn("Token threshold exceeded, stopping stream.");
-                controller.abort();
-                if (stuckTimerRef.current) clearTimeout(stuckTimerRef.current);
-                if (limitTimerRef.current) clearTimeout(limitTimerRef.current);
-                setGenerationState("COMPLETE");
-                setTimeout(() => setGenerationState("IDLE"), 100);
-                break;
-              }
 
               // Repetition / Anti-Loop protection
               const checkRepetition = (text: string): boolean => {
@@ -732,6 +881,8 @@ export default function ChatPage() {
                 msg={msg} 
                 isGenerating={msg.role === 'ai' && index === messages.length - 1 && generationState === "GENERATING"}
                 onCopy={handleCopy} 
+                feedbackState={feedback[msg.id]}
+                onFeedback={(type) => handleFeedback(msg.id, type)}
                 onRegenerate={msg.role === 'ai' && index === messages.length - 1 ? () => {
                   const lastUserMsg = messages[index-1];
                   if (lastUserMsg) {
@@ -764,7 +915,7 @@ export default function ChatPage() {
                   handleSend();
                 }
               }}
-              placeholder={messages.length > 0 ? "Ask another question…" : "Message Career Assistant..."} 
+              placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
               className="flex-1 bg-transparent border-none focus:ring-0 py-2.5 px-3 text-[16px] text-foreground placeholder:text-text-muted resize-none min-h-[40px] leading-relaxed align-bottom focus:outline-none"
               rows={1}
               disabled={!generationComplete}
@@ -794,27 +945,28 @@ export default function ChatPage() {
             )}
           </div>
           
-          {/* Suggested Prompts */}
+          {/* Suggested Prompts / Quick Action Cards */}
           {isEmpty && (
-            <div className="mt-4 flex flex-wrap gap-2 justify-center animate-message">
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-[800px] mx-auto animate-message">
                {[
-                 "Resume Feedback",
-                 "Java Roadmap",
-                 "Mock Interview",
-                 "Salary Tips"
-               ].map((p) => (
+                 { title: "Build my Resume", desc: "Tailor profile & experience" },
+                 { title: "Improve ATS Score", desc: "Optimize metrics & phrasing" },
+                 { title: "Generate Java Roadmap", desc: "Full path for interviews" },
+                 { title: "Mock HR Interview", desc: "Practice behavior questions" }
+               ].map((item) => (
                  <button 
-                   key={p}
-                   onClick={() => setInput(p)}
-                   className="text-xs font-semibold text-muted-foreground bg-card border border-border/80 px-4 py-2 rounded-2xl hover:bg-muted hover:border-slate-300 transition-all shadow-sm"
+                   key={item.title}
+                   onClick={() => handleSend(0, item.title)}
+                   className="flex flex-col text-left p-4 rounded-xl border border-border/80 bg-card hover:bg-muted hover:border-slate-350 hover:text-foreground transition-all shadow-sm group"
                  >
-                    {p}
+                    <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors">{item.title}</span>
+                    <span className="text-[10px] text-muted-foreground/80 mt-1 line-clamp-1">{item.desc}</span>
                  </button>
                ))}
             </div>
           )}
 
-          <div className="text-[11px] text-muted-foreground/70 text-center mt-2.5">
+          <div className="text-[11px] text-muted-foreground/70 text-center mt-3">
             PlacementAI can make mistakes. Consider checking important information.
           </div>
         </div>
