@@ -19,9 +19,13 @@ import {
   MoreHorizontal,
   Trash2,
   Paperclip,
-  Share
+  Share,
+  Sun,
+  Moon,
+  Search
 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
+import { useTheme } from "next-themes";
 
 type Message = {
   id: number;
@@ -161,18 +165,14 @@ const MessageItem = memo(({
 
           {/* Bubble Container */}
           <div 
-            className={`message-content ${
-              isAi 
-                ? 'bg-zinc-900/90 dark:bg-[#111827] text-foreground border border-border/30 shadow-sm' 
-                : 'bg-indigo-600 dark:bg-[#4F46E5] text-white shadow-sm'
-            } w-full`}
+            className={`message-content bg-transparent text-foreground ${isAi ? 'w-full' : 'w-fit text-right'}`}
             style={{ 
               whiteSpace: 'pre-wrap', 
               wordBreak: 'normal',
               overflowWrap: 'break-word',
               letterSpacing: '-0.01em',
-              padding: '16px 24px',
-              borderRadius: '24px',
+              padding: '8px 0px',
+              borderRadius: '0px',
               display: isAi ? 'flex' : undefined,
               flexDirection: isAi ? 'column' : undefined,
               gap: isAi ? '10px' : undefined,
@@ -243,15 +243,15 @@ const MessageItem = memo(({
                               remarkPlugins={[remarkGfm]}
                               rehypePlugins={[rehypeSanitize]}
                               components={{
-                                h1: ({children}) => <h1 className="text-2xl font-bold mt-4 mb-2 tracking-tight text-slate-900 dark:text-white">{children}</h1>,
-                                h2: ({children}) => <h2 className="text-xl font-bold mt-4 mb-2 tracking-tight text-slate-800 dark:text-slate-100">{children}</h2>,
-                                h3: ({children}) => <h3 className="text-lg font-semibold mt-3 mb-1.5 text-slate-800 dark:text-slate-200">{children}</h3>,
-                                p: ({children}) => <p className="text-base leading-relaxed mb-3 text-slate-700 dark:text-slate-350">{children}</p>,
+                                h1: ({children}) => <h1 className="text-2xl font-bold mt-4 mb-2 tracking-tight">{children}</h1>,
+                                h2: ({children}) => <h2 className="text-xl font-bold mt-4 mb-2 tracking-tight">{children}</h2>,
+                                h3: ({children}) => <h3 className="text-lg font-semibold mt-3 mb-1.5">{children}</h3>,
+                                p: ({children}) => <p className="text-base leading-relaxed mb-3">{children}</p>,
                                 ul: ({children}) => <ul className="list-disc pl-5 mb-4 space-y-1">{children}</ul>,
                                 ol: ({children}) => <ol className="list-decimal pl-5 mb-4 space-y-1">{children}</ol>,
-                                li: ({children}) => <li className="text-base leading-relaxed text-slate-700 dark:text-slate-350">{children}</li>,
-                                strong: ({children}) => <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>,
-                                b: ({children}) => <strong className="font-bold text-slate-900 dark:text-white">{children}</strong>,
+                                li: ({children}) => <li className="text-base leading-relaxed">{children}</li>,
+                                strong: ({children}) => <strong className="font-bold">{children}</strong>,
+                                b: ({children}) => <strong className="font-bold">{children}</strong>,
                                 code: ({className, children, ...props}) => {
                                   const match = /language-(\w+)/.exec(className || '');
                                   const isInline = !match && !String(children).includes('\n');
@@ -281,14 +281,14 @@ const MessageItem = memo(({
                                 blockquote: ({children}) => <blockquote style={{ borderLeft: '4px solid var(--border-subtle)', paddingLeft: '16px', fontStyle: 'italic', margin: '12px 0', color: 'var(--text-secondary)' }}>{children}</blockquote>,
                                 table: ({children}) => (
                                   <div className="overflow-x-auto my-4 border border-border rounded-lg shadow-sm">
-                                    <table className="min-w-full divide-y divide-border/10 bg-[#18181b]/50">{children}</table>
+                                    <table className="min-w-full divide-y divide-border/10 bg-muted/50">{children}</table>
                                   </div>
                                 ),
-                                thead: ({children}) => <thead className="bg-zinc-800/80 sticky top-0">{children}</thead>,
+                                thead: ({children}) => <thead className="bg-muted/80 sticky top-0">{children}</thead>,
                                 tbody: ({children}) => <tbody className="divide-y divide-border/10 bg-transparent">{children}</tbody>,
-                                tr: ({children}) => <tr className="hover:bg-zinc-800/30 transition-colors">{children}</tr>,
+                                tr: ({children}) => <tr className="hover:bg-muted/50 transition-colors">{children}</tr>,
                                 th: ({children}) => <th className="px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{children}</th>,
-                                td: ({children}) => <td className="px-4 py-3 text-sm text-zinc-300 font-medium">{children}</td>
+                                td: ({children}) => <td className="px-4 py-3 text-sm font-medium">{children}</td>
                               }}
                             >
                               {msg.content + (isGenerating ? " ▋" : "")}
@@ -376,8 +376,16 @@ MessageItem.displayName = "MessageItem";
 
 export default function ChatPage() {
   const { user, loading: userLoading } = useUser();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [isTyping, setIsTyping] = useState(false);
   const [generationState, setGenerationState] = useState<"IDLE" | "GENERATING" | "COMPLETE" | "STOPPED">("IDLE");
   const [feedback, setFeedback] = useState<Record<number, 'like' | 'dislike'>>({});
@@ -386,6 +394,7 @@ export default function ChatPage() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const limitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const stuckTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load chat history and feedback on mount
   useEffect(() => {
@@ -491,8 +500,10 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 220)}px`;
+      textareaRef.current.style.height = '40px';
+      if (input) {
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 220)}px`;
+      }
     }
   }, [input]);
 
@@ -510,7 +521,11 @@ export default function ChatPage() {
   };
 
   const handleSend = async (retryCount = 0, overrideInput?: string) => {
-    const finalInput = (overrideInput || input).trim();
+    let finalInput = (overrideInput || input).trim();
+    if (attachedFile && !overrideInput) {
+      finalInput = `[Attached file: ${attachedFile.name}]\n\n${finalInput}`.trim();
+      setAttachedFile(null);
+    }
     if (!finalInput && retryCount === 0) return;
     if (generationState === "GENERATING" && retryCount === 0) return;
 
@@ -828,6 +843,22 @@ export default function ChatPage() {
           </div>
         </div>
         
+        {/* Center: Search Bar Trigger */}
+        <div className="hidden md:flex flex-1 max-w-md mx-8 relative">
+          <button 
+            style={{ outline: 'none', boxShadow: 'none', WebkitTapHighlightColor: 'transparent' }}
+            className="flex items-center w-full h-10 px-4 bg-card border border-border/60 rounded-full text-muted-foreground transition-all hover:bg-muted/50 hover:border-border cursor-pointer group !outline-none !ring-0 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 select-none"
+          >
+            <Search className="w-4 h-4 mr-3 text-muted-foreground/70 group-hover:text-foreground transition-colors" />
+            <span className="text-sm font-medium flex-1 truncate text-left text-muted-foreground/70 group-hover:text-foreground transition-colors">
+              Search resumes, ATS, roadmap...
+            </span>
+            <div className="flex items-center gap-1 shrink-0 ml-2 h-5 px-1.5 bg-muted/80 rounded-full text-[10px] font-bold text-muted-foreground/80">
+              Ctrl K
+            </div>
+          </button>
+        </div>
+
         <div className="flex items-center gap-3">
           {!generationComplete && (
             <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/5 rounded-full border border-primary/10 transition-all animate-in fade-in zoom-in duration-300">
@@ -842,6 +873,13 @@ export default function ChatPage() {
           >
             <Trash2 className="w-4 h-4" />
             <span>Clear Chat</span>
+          </button>
+          <button 
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+            className="p-2 rounded-xl text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted transition-colors"
+            title="Toggle Theme"
+          >
+            {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
           </button>
           <button className="p-2 rounded-xl text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted transition-colors">
             <MoreHorizontal className="w-5 h-5" />
@@ -896,11 +934,30 @@ export default function ChatPage() {
       </main>
 
       {/* Sticky Bottom Input Area */}
-      <div className="w-full shrink-0 border-t border-border bg-card/85 backdrop-blur-md py-4 shadow-lg shadow-black/20 dark:shadow-none">
+      <div className="w-full shrink-0 py-4 pb-6 relative z-10">
         <div className="max-w-[820px] mx-auto px-6 relative">
-          <div className="relative flex items-end bg-muted border border-border/80 rounded-[24px] focus-within:border-border-focus focus-within:ring-1 focus-within:ring-border-focus/30 transition-all p-1.5 pl-4 pr-3 min-h-[56px]">
+          
+          {/* Attached File Pill */}
+          {attachedFile && (
+            <div className="absolute -top-10 left-6 bg-muted border border-border px-3 py-1.5 rounded-full flex items-center gap-2 text-xs text-foreground shadow-sm animate-in fade-in slide-in-from-bottom-2">
+              <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="font-medium max-w-[200px] truncate">{attachedFile.name}</span>
+              <button onClick={() => setAttachedFile(null)} className="text-muted-foreground hover:text-foreground">✕</button>
+            </div>
+          )}
+
+          <div className="relative flex items-center bg-white dark:bg-[#111827] shadow-md border border-slate-200 dark:border-slate-800 rounded-full transition-all py-1 pl-4 pr-2 min-h-[56px]">
             {/* Attach button */}
-            <button className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-bg-elevated transition-colors shrink-0 mb-0.5">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              onChange={(e) => setAttachedFile(e.target.files?.[0] || null)} 
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-bg-elevated transition-colors shrink-0"
+            >
               <Paperclip className="w-5 h-5" />
             </button>
             
@@ -916,7 +973,7 @@ export default function ChatPage() {
                 }
               }}
               placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-              className="flex-1 bg-transparent border-none focus:ring-0 py-2.5 px-3 text-[16px] text-foreground placeholder:text-text-muted resize-none min-h-[40px] leading-relaxed align-bottom focus:outline-none"
+              className="flex-1 !bg-transparent !border-none !border-0 !outline-none !ring-0 !shadow-none focus:!border-none focus:!border-0 focus:!outline-none focus:!ring-0 focus:!shadow-none py-4 px-3 text-[16px] text-slate-900 dark:text-slate-100 placeholder:text-slate-400 resize-none min-h-[56px] leading-relaxed align-bottom"
               rows={1}
               disabled={!generationComplete}
             />
@@ -925,7 +982,7 @@ export default function ChatPage() {
             {generationState === "GENERATING" ? (
               <button 
                 onClick={handleStop}
-                className="w-9 h-9 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-sm shrink-0 mb-0.5 transition-all"
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-sm shrink-0 transition-all"
                 title="Stop generating"
               >
                 <div className="w-3.5 h-3.5 bg-card rounded-xs" />
@@ -933,11 +990,11 @@ export default function ChatPage() {
             ) : (
               <button 
                 onClick={() => handleSend()}
-                disabled={!input.trim() || !generationComplete}
-                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 mb-0.5 ${
-                  input.trim() && generationComplete 
-                  ? 'bg-black text-white hover:bg-zinc-800 shadow-sm' 
-                  : 'bg-muted text-muted-foreground/50'
+                disabled={(!input.trim() && !attachedFile) || !generationComplete}
+                className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 ${
+                  (input.trim() || attachedFile) && generationComplete 
+                  ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-sm dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200' 
+                  : 'bg-transparent text-slate-400'
                 }`}
               >
                 <Send className="w-4 h-4" />

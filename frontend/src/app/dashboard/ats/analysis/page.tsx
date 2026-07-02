@@ -33,6 +33,31 @@ interface AtsAnalysisData {
   recommendedRoles?: string[];
 }
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-background border border-border p-3 rounded-lg shadow-sm text-xs">
+        <p className="font-bold mb-2 text-foreground">{label}</p>
+        <div className="space-y-1">
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center gap-2">
+              <div 
+                className="w-2.5 h-2.5 rounded-sm" 
+                style={{ backgroundColor: entry.name === "you" ? "var(--primary)" : "var(--muted-foreground)" }} 
+              />
+              <span className="text-foreground">
+                {entry.name === "you" ? "Your Score" : "Top Candidates"}: <span className="font-bold">{entry.value}%</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
+
 // ─────────────────────────────────────────────────────────────────────────────
 // SCORING ENGINE  (pure, deterministic – every value derived from resume text)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -484,7 +509,6 @@ export default function AtsAnalysisDashboard() {
 
           {/* ATS Score Gauge */}
           <Card className="border-none shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-1.5 bg-primary" />
             <CardHeader className="text-center pb-2">
               <span className="text-xs uppercase font-bold text-muted-foreground tracking-widest">Overall ATS Score</span>
             </CardHeader>
@@ -517,16 +541,16 @@ export default function AtsAnalysisDashboard() {
           {/* Radar + Progress Breakdown */}
           <Card className="border-none shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Category Performance</CardTitle>
+              <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Category Performance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="h-[190px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart cx="50%" cy="50%" outerRadius="75%" data={s.radarData}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={9} tickLine={false} />
+                    <PolarGrid stroke="var(--foreground)" strokeOpacity={0.4} strokeWidth={2} />
+                    <PolarAngleAxis dataKey="subject" stroke="var(--foreground)" fontWeight={600} fontSize={10} tickLine={false} />
                     <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                    <Radar name="You" dataKey="value" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.2} />
+                    <Radar name="You" dataKey="value" stroke="var(--primary)" strokeWidth={2.5} fill="var(--primary)" fillOpacity={0.3} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
@@ -547,7 +571,7 @@ export default function AtsAnalysisDashboard() {
           {/* Placement Readiness™ */}
           <Card className="border-none shadow-sm bg-gradient-to-br from-primary/5 to-primary/0 border border-primary/10">
             <CardHeader>
-              <CardTitle className="text-sm font-extrabold text-primary uppercase tracking-wider flex items-center gap-1.5">
+              <CardTitle className="text-sm font-black text-primary uppercase tracking-wider flex items-center gap-1.5">
                 <TrendingUp className="w-4 h-4" /> Placement Readiness™
               </CardTitle>
             </CardHeader>
@@ -574,7 +598,7 @@ export default function AtsAnalysisDashboard() {
           {/* Recruiter Assessment */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-2">
                 <UserCheck className="w-4 h-4 text-primary" /> Recruiter Assessment
               </CardTitle>
             </CardHeader>
@@ -601,26 +625,26 @@ export default function AtsAnalysisDashboard() {
           </Card>
 
           {/* Salary Prediction */}
-          <Card className="border-none shadow-sm bg-slate-900 text-slate-100">
+          <Card className="border-none shadow-sm bg-emerald-500/5 border border-emerald-500/20">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs uppercase font-extrabold text-slate-400 tracking-widest flex items-center gap-1.5">
-                <DollarSign className="w-4 h-4 text-emerald-400" /> CTC Package Forecast
+              <CardTitle className="text-xs uppercase font-black text-foreground tracking-widest flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-emerald-500" /> CTC Package Forecast
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-3 gap-3 pt-1">
                 {[
-                  { label: "Current", value: s.salary.current, color: "text-slate-300" },
-                  { label: "Potential", value: s.salary.potential, color: "text-blue-400" },
-                  { label: "Stretch", value: s.salary.stretch, color: "text-emerald-400" },
+                  { label: "Current", value: s.salary.current, color: "text-foreground" },
+                  { label: "Potential", value: s.salary.potential, color: "text-blue-600 dark:text-blue-400" },
+                  { label: "Stretch", value: s.salary.stretch, color: "text-emerald-600 dark:text-emerald-400" },
                 ].map((tier, i) => (
-                  <div key={i} className="text-center p-2 rounded-lg bg-slate-800/60">
-                    <span className="text-[9px] text-slate-500 uppercase font-bold block">{tier.label}</span>
-                    <span className={cn("text-sm font-black block mt-1", tier.color)}>{tier.value}</span>
+                  <div key={i} className="text-center p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/10">
+                    <span className="text-[10px] text-muted-foreground uppercase font-extrabold block">{tier.label}</span>
+                    <span className={cn("text-base font-black block mt-1", tier.color)}>{tier.value}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed border-t border-slate-800 pt-2">
+              <p className="text-xs font-semibold text-foreground/80 leading-relaxed border-t border-emerald-500/20 pt-2">
                 Basis: {s.salary.basis}. Estimates are conservative market benchmarks.
               </p>
             </CardContent>
@@ -629,7 +653,7 @@ export default function AtsAnalysisDashboard() {
           {/* AI Confidence */}
           <Card className="border-none shadow-sm">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xs uppercase font-bold text-muted-foreground tracking-wider flex items-center gap-1">
+              <CardTitle className="text-xs uppercase font-black text-foreground tracking-wider flex items-center gap-1">
                 <Info className="w-3.5 h-3.5 text-primary" /> AI Analysis Confidence
               </CardTitle>
             </CardHeader>
@@ -662,7 +686,7 @@ export default function AtsAnalysisDashboard() {
           {/* Recruiter Funnel */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
+              <CardTitle className="text-base font-black flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" /> Recruiter Probability Funnel
               </CardTitle>
             </CardHeader>
@@ -690,7 +714,7 @@ export default function AtsAnalysisDashboard() {
           {/* Benchmark vs Top Candidates */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
+              <CardTitle className="text-base font-black flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" /> Benchmark vs Top Candidates
               </CardTitle>
             </CardHeader>
@@ -700,12 +724,15 @@ export default function AtsAnalysisDashboard() {
                   <BarChart data={s.topBenchmarks} barCategoryGap="25%">
                     <XAxis dataKey="metric" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
                     <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                    <Tooltip formatter={(value: any, name: any) => [`${value}%`, name === "you" ? "Your Score" : "Top Candidates"]} contentStyle={{ fontSize: 11, borderRadius: 8 }} />
+                    <Tooltip 
+                      content={<CustomTooltip />}
+                      cursor={{ fill: 'var(--muted)' }}
+                    />
                     <Bar dataKey="you" name="you" radius={[4, 4, 0, 0]}>
                       {s.topBenchmarks.map((_, i) => <Cell key={i} fill="var(--primary)" fillOpacity={0.8} />)}
                     </Bar>
                     <Bar dataKey="top" name="top" radius={[4, 4, 0, 0]}>
-                      {s.topBenchmarks.map((_, i) => <Cell key={i} fill="#e2e8f0" />)}
+                      {s.topBenchmarks.map((_, i) => <Cell key={i} className="fill-slate-200 dark:fill-slate-700" />)}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -717,7 +744,7 @@ export default function AtsAnalysisDashboard() {
           {/* Keywords Analysis */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold">🏷 Keyword Diagnostics</CardTitle>
+              <CardTitle className="text-base font-black">🏷 Keyword Diagnostics</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="space-y-2">
@@ -742,48 +769,48 @@ export default function AtsAnalysisDashboard() {
           {/* Missing Skills — 3 Tiers */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
+              <CardTitle className="text-base font-black flex items-center gap-2">
                 <ShieldAlert className="w-5 h-5 text-rose-600" /> Missing Skills Analysis
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Critical */}
-                <div className="p-3.5 rounded-xl bg-red-50/70 border border-red-100 space-y-2">
+                <div className="p-3.5 rounded-xl bg-red-50/70 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-red-600" />
-                    <span className="text-[11px] font-black text-red-700 uppercase tracking-wider">Critical</span>
+                    <XCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
+                    <span className="text-[11px] font-black text-red-700 dark:text-red-400 uppercase tracking-wider">Critical</span>
                   </div>
-                  <p className="text-[10px] text-red-600 mb-2">Significantly lowers ATS score</p>
+                  <p className="text-[10px] text-red-600 dark:text-red-400/80 mb-2">Significantly lowers ATS score</p>
                   <div className="space-y-1.5">
                     {s.criticalMissing.map((kw, i) => (
-                      <Badge key={i} className="bg-red-100 text-red-800 border border-red-200 font-bold text-xs block text-center">{kw}</Badge>
+                      <Badge key={i} className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800/50 font-bold text-xs block text-center">{kw}</Badge>
                     ))}
                   </div>
                 </div>
                 {/* Important */}
-                <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-100 space-y-2">
+                <div className="p-3.5 rounded-xl bg-orange-50/70 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <MinusCircle className="w-4 h-4 text-orange-600" />
-                    <span className="text-[11px] font-black text-orange-700 uppercase tracking-wider">Important</span>
+                    <MinusCircle className="w-4 h-4 text-orange-600 dark:text-orange-500" />
+                    <span className="text-[11px] font-black text-orange-700 dark:text-orange-400 uppercase tracking-wider">Important</span>
                   </div>
-                  <p className="text-[10px] text-orange-600 mb-2">Moderately impacts job fit</p>
+                  <p className="text-[10px] text-orange-600 dark:text-orange-400/80 mb-2">Moderately impacts job fit</p>
                   <div className="space-y-1.5">
                     {s.importantMissing.map((kw, i) => (
-                      <Badge key={i} className="bg-orange-100 text-orange-800 border border-orange-200 font-bold text-xs block text-center">{kw}</Badge>
+                      <Badge key={i} className="bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50 font-bold text-xs block text-center">{kw}</Badge>
                     ))}
                   </div>
                 </div>
                 {/* Nice to Have */}
-                <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-100 space-y-2">
+                <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 space-y-2">
                   <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                    <span className="text-[11px] font-black text-blue-700 uppercase tracking-wider">Nice to Have</span>
+                    <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-500" />
+                    <span className="text-[11px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wider">Nice to Have</span>
                   </div>
-                  <p className="text-[10px] text-blue-600 mb-2">Differentiates from peers</p>
+                  <p className="text-[10px] text-blue-600 dark:text-blue-400/80 mb-2">Differentiates from peers</p>
                   <div className="space-y-1.5">
                     {s.niceToHaveMissing.map((kw, i) => (
-                      <Badge key={i} className="bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs block text-center">{kw}</Badge>
+                      <Badge key={i} className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 font-bold text-xs block text-center">{kw}</Badge>
                     ))}
                   </div>
                 </div>
@@ -794,13 +821,13 @@ export default function AtsAnalysisDashboard() {
           {/* Improvement Impact */}
           <Card className="border-none shadow-sm">
             <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2">
+              <CardTitle className="text-base font-black flex items-center gap-2">
                 <Zap className="w-5 h-5 text-primary" /> Improvement Impact Roadmap
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {s.improvements.map((imp, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                   <div className="flex-shrink-0 w-14 text-center">
                     <span className="text-lg font-black text-primary">+{imp.boost}%</span>
                   </div>
@@ -809,9 +836,9 @@ export default function AtsAnalysisDashboard() {
                     <p className="text-xs text-muted-foreground">{imp.note}</p>
                   </div>
                   <Badge className={cn("text-[9px] font-bold border-none",
-                    imp.boost >= 4 ? "bg-red-50 text-red-700" :
-                      imp.boost >= 2 ? "bg-amber-50 text-amber-700" :
-                        "bg-slate-100 text-slate-600"
+                    imp.boost >= 4 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400" :
+                      imp.boost >= 2 ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400" :
+                        "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
                   )}>
                     {imp.boost >= 4 ? "High" : imp.boost >= 2 ? "Medium" : "Low"} Impact
                   </Badge>
@@ -826,12 +853,12 @@ export default function AtsAnalysisDashboard() {
           {/* Company Compatibility */}
           <Card className="border-none shadow-sm overflow-hidden">
             <CardHeader>
-              <CardTitle className="text-base font-bold">🏢 Company Compatibility</CardTitle>
+              <CardTitle className="text-base font-black">🏢 Company Compatibility</CardTitle>
             </CardHeader>
             <CardContent className="p-0 border-t">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b">
+                  <thead className="bg-slate-50 dark:bg-slate-900 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b border-border">
                     <tr>
                       <th className="py-3 px-4">Company</th>
                       <th className="py-3 px-4 text-center">Match</th>
@@ -861,7 +888,7 @@ export default function AtsAnalysisDashboard() {
           {/* Final AI Verdict */}
           <Card className="border-none shadow-sm border border-primary/10 bg-gradient-to-br from-primary/5 to-transparent">
             <CardHeader>
-              <CardTitle className="text-base font-bold flex items-center gap-2 text-primary">
+              <CardTitle className="text-base font-black flex items-center gap-2 text-primary">
                 <Sparkles className="w-5 h-5" /> Final AI Recruiter Verdict
               </CardTitle>
             </CardHeader>
