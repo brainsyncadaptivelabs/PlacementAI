@@ -205,15 +205,15 @@ aside.sidebar {
 [data-sidebar=menu-button] {
   transition: background-color 150ms ease !important;
 }
-[data-sidebar=menu-button][data-active=true],
-.sidebar-link.active {
-  background-color: var(--bg-elevated) !important;
-  color: var(--text-primary) !important;
-}
 [data-sidebar=menu-button]:hover,
 .sidebar-link:hover {
-  background-color: var(--bg-hover) !important;
-  color: var(--text-primary) !important;
+  background-color: var(--sidebar-accent, var(--bg-hover)) !important;
+  color: var(--sidebar-accent-foreground, var(--text-primary)) !important;
+}
+[data-sidebar=menu-button][data-active=true],
+.sidebar-link.active {
+  background-color: var(--sidebar-accent, var(--bg-elevated)) !important;
+  color: var(--sidebar-accent-foreground, var(--text-primary)) !important;
 }
 
 /* Modals / Dialogs style reset */

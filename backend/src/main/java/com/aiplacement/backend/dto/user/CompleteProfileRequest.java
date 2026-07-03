@@ -20,4 +20,6 @@ public class CompleteProfileRequest {
     private String companyWebsite;
     private String companySize;
     private String skills;
+    private String phone;
+    private String designation;
 }

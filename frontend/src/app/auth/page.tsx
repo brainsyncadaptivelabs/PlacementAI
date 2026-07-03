@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { YearDropdown } from "@/components/ui/year-dropdown";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, ChevronRight, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle, ArrowRight } from "lucide-react";
+import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, ChevronRight, Mail, Lock, Eye, EyeOff, FileText, Shield, User, Map, Book, Phone, CheckCircle, ArrowRight, UserSearch, Calendar, Users, BarChart3, Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
@@ -399,8 +399,107 @@ export default function AuthPage() {
     return fieldErr ? `${baseClass} has-error` : baseClass;
   };
 
+
+  const getThemeVars = () => {
+    if (selectedRole === 'RECRUITER') {
+      return {
+        '--auth-bg-gradient': 'linear-gradient(135deg, #4A154B 0%, #2D1B4E 100%)',
+        '--auth-logo-color': '#832838',
+        '--auth-headline-span': '#F9A8D4',
+        '--auth-feature-bg': 'rgba(131, 40, 56, 0.4)',
+        '--auth-icon-bg': 'rgba(131, 40, 56, 0.8)',
+        '--auth-btn-color': '#832838',
+        '--auth-icon-color': '#832838',
+        '--auth-icon-bg-light': '#FDF2F8',
+        '--auth-focus-ring': 'rgba(131, 40, 56, 0.2)',
+        '--auth-primary-btn': 'linear-gradient(to right, #832838, #9D364A)',
+        '--auth-primary-shadow': 'rgba(131, 40, 56, 0.5)',
+        '--auth-active-tab-bg': '#FDF2F8',
+        '--auth-active-tab-text': '#832838',
+        '--auth-active-tab-border': '#832838',
+        '--auth-headline-size': '32px',
+        '--auth-headline-mb': '8px',
+        '--auth-desc-size': '13px',
+        '--auth-desc-mb': '12px',
+        '--auth-features-gap': '6px',
+        '--auth-feature-item-gap': '12px',
+        '--auth-feature-item-padding': '8px 12px',
+        '--auth-icon-size': '32px',
+        '--auth-icon-radius': '8px',
+        '--auth-svg-size': '16px',
+        '--auth-h3-size': '13px',
+        '--auth-h3-mb': '2px',
+        '--auth-p-size': '11px',
+        '--auth-p-lh': '1.3',
+      };
+    } else if (selectedRole === 'PLACEMENT_OFFICER') {
+      return {
+        '--auth-bg-gradient': 'linear-gradient(135deg, #222539 0%, #171827 100%)',
+        '--auth-logo-color': '#7B61FF',
+        '--auth-headline-span': '#A78BFA',
+        '--auth-feature-bg': 'rgba(34, 37, 57, 0.8)',
+        '--auth-icon-bg': 'rgba(123, 97, 255, 0.2)',
+        '--auth-btn-color': '#7B61FF',
+        '--auth-icon-color': '#7B61FF',
+        '--auth-icon-bg-light': 'rgba(123, 97, 255, 0.1)',
+        '--auth-focus-ring': 'rgba(123, 97, 255, 0.2)',
+        '--auth-primary-btn': 'linear-gradient(to right, #6D5DF4, #8873F6)',
+        '--auth-primary-shadow': 'rgba(109, 93, 244, 0.5)',
+        '--auth-active-tab-bg': '#222539',
+        '--auth-active-tab-text': '#7B61FF',
+        '--auth-active-tab-border': '#7B61FF',
+        '--auth-headline-size': '38px',
+        '--auth-headline-mb': '12px',
+        '--auth-desc-size': '15px',
+        '--auth-desc-mb': '16px',
+        '--auth-features-gap': '12px',
+        '--auth-feature-item-gap': '16px',
+        '--auth-feature-item-padding': '16px',
+        '--auth-icon-size': '40px',
+        '--auth-icon-radius': '12px',
+        '--auth-svg-size': '20px',
+        '--auth-h3-size': '15px',
+        '--auth-h3-mb': '4px',
+        '--auth-p-size': '13px',
+        '--auth-p-lh': '1.4',
+      };
+    } else {
+      return {
+        '--auth-bg-gradient': 'linear-gradient(135deg, #312e81 0%, #1e1b4b 100%)',
+        '--auth-logo-color': '#4338ca',
+        '--auth-headline-span': '#d8b4fe',
+        '--auth-feature-bg': 'rgba(49, 46, 129, 0.6)',
+        '--auth-icon-bg': 'rgba(99, 102, 241, 0.4)',
+        '--auth-btn-color': '#4f46e5',
+        '--auth-icon-color': '#7e22ce',
+        '--auth-icon-bg-light': '#f3e8ff',
+        '--auth-focus-ring': 'rgba(168, 85, 247, 0.2)',
+        '--auth-primary-btn': 'linear-gradient(to right, #4F46E5, #9333EA, #EC4899)',
+        '--auth-primary-shadow': 'rgba(147, 51, 234, 0.5)',
+        '--auth-active-tab-bg': '#faf5ff',
+        '--auth-active-tab-text': '#7e22ce',
+        '--auth-active-tab-border': '#a855f7',
+        '--auth-headline-size': '38px',
+        '--auth-headline-mb': '12px',
+        '--auth-desc-size': '15px',
+        '--auth-desc-mb': '16px',
+        '--auth-features-gap': '12px',
+        '--auth-feature-item-gap': '16px',
+        '--auth-feature-item-padding': '16px',
+        '--auth-icon-size': '40px',
+        '--auth-icon-radius': '12px',
+        '--auth-svg-size': '20px',
+        '--auth-h3-size': '15px',
+        '--auth-h3-mb': '4px',
+        '--auth-p-size': '13px',
+        '--auth-p-lh': '1.4',
+      };
+    }
+  };
+  const themeVars = getThemeVars();
+
   return (
-    <div className="auth-root-container selection:bg-primary/10">
+    <div className="auth-root-container selection:bg-primary/10" style={themeVars as React.CSSProperties}>
       <style>{`
         .auth-root-container {
           width: 100vw;
@@ -440,7 +539,7 @@ export default function AuthPage() {
           left: 0;
           width: 38%;
           height: 100%;
-          background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+          background: var(--auth-bg-gradient);
           z-index: 1;
         }
 
@@ -470,7 +569,7 @@ export default function AuthPage() {
           height: 36px;
           border-radius: 8px;
           background: white;
-          color: #4338ca;
+          color: var(--auth-logo-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -479,22 +578,22 @@ export default function AuthPage() {
         }
 
         .left-panel-headline {
-          font-size: 38px;
+          font-size: var(--auth-headline-size);
           font-weight: 700;
           line-height: 1.25;
-          margin-bottom: 12px;
+          margin-bottom: var(--auth-headline-mb);
           z-index: 10;
         }
         
         .left-panel-headline span {
-          color: #d8b4fe;
+          color: var(--auth-headline-span);
         }
 
         .left-panel-description {
-          font-size: 15px;
+          font-size: var(--auth-desc-size);
           color: #cbd5e1;
-          line-height: 1.5;
-          margin-bottom: 16px;
+          line-height: var(--auth-p-lh);
+          margin-bottom: var(--auth-desc-mb);
           max-width: 420px;
           z-index: 10;
         }
@@ -502,43 +601,48 @@ export default function AuthPage() {
         .features-list {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: var(--auth-features-gap);
           z-index: 10;
         }
 
         .feature-item-new {
           display: flex;
           align-items: center;
-          gap: 16px;
-          background: rgba(49, 46, 129, 0.6);
+          gap: var(--auth-feature-item-gap);
+          background: var(--auth-feature-bg);
           border-radius: 12px;
-          padding: 16px;
+          padding: var(--auth-feature-item-padding);
         }
 
         .feature-icon-container {
-          width: 40px;
-          height: 40px;
-          border-radius: 12px;
-          background: rgba(99, 102, 241, 0.4);
+          width: var(--auth-icon-size);
+          height: var(--auth-icon-size);
+          border-radius: var(--auth-icon-radius);
+          background: var(--auth-icon-bg);
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
           color: white;
         }
+        
+        .feature-icon-container svg {
+          width: var(--auth-svg-size);
+          height: var(--auth-svg-size);
+        }
 
         .feature-text-new h3 {
-          font-size: 15px;
+          font-size: var(--auth-h3-size);
           font-weight: 600;
-          margin: 0 0 4px 0;
+          margin: 0 0 var(--auth-h3-mb) 0;
           color: white;
         }
 
         .feature-text-new p {
-          font-size: 13px;
+          font-size: var(--auth-p-size);
           color: #cbd5e1;
           margin: 0;
-          line-height: 1.4;
+          line-height: var(--auth-p-lh);
         }
 
 
@@ -574,7 +678,7 @@ export default function AuthPage() {
         }
 
         .auth-top-nav button {
-          color: #4f46e5;
+          color: var(--auth-btn-color);
           font-weight: 600;
           background: none;
           border: none;
@@ -597,15 +701,15 @@ export default function AuthPage() {
           display: flex;
           flex-direction: column;
           align-items: center;
-          margin-bottom: 8px;
+          margin-bottom: var(--auth-headline-mb);
         }
         
         .auth-header-icon {
           width: 36px;
           height: 36px;
           border-radius: 12px;
-          background: #f3e8ff;
-          color: #7e22ce;
+          background: var(--auth-icon-bg-light);
+          color: var(--auth-icon-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -646,7 +750,7 @@ export default function AuthPage() {
 
         .forgot-password-link {
           font-size: 12px;
-          color: #a855f7;
+          color: var(--auth-active-tab-border);
           font-weight: 600;
           text-decoration: none;
         }
@@ -662,7 +766,7 @@ export default function AuthPage() {
           transform: translateY(-50%);
           width: 18px;
           height: 18px;
-          color: #818cf8;
+          color: var(--auth-btn-color);
           z-index: 2;
         }
 
@@ -680,8 +784,8 @@ export default function AuthPage() {
         }
         
         input.auth-input-new:focus {
-          border-color: #a855f7 !important;
-          box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
+          border-color: var(--auth-active-tab-border) !important;
+          box-shadow: 0 0 0 3px var(--auth-focus-ring) !important;
           outline: none;
         }
         
@@ -704,11 +808,11 @@ export default function AuthPage() {
         }
 
         .remember-checkbox {
-          width: 16px;
-          height: 16px;
+          width: var(--auth-svg-size);
+          height: var(--auth-svg-size);
           border-radius: 4px;
-          border: 1px solid #4f46e5;
-          background: #4f46e5;
+          border: 1px solid var(--auth-btn-color);
+          background: var(--auth-btn-color);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -738,7 +842,7 @@ export default function AuthPage() {
           width: 100%;
           height: 40px;
           border-radius: 8px;
-          background: linear-gradient(to right, #4F46E5, #9333EA, #EC4899);
+          background: var(--auth-primary-btn);
           color: white;
           font-weight: 700;
           font-size: 14px;
@@ -747,14 +851,14 @@ export default function AuthPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
+          gap: var(--auth-features-gap);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           margin-top: 4px;
         }
         
         .auth-btn-primary:hover {
           transform: translateY(-2px) scale(1.02);
-          box-shadow: 0 10px 25px -5px rgba(147, 51, 234, 0.5);
+          box-shadow: 0 10px 25px -5px var(--auth-primary-shadow);
         }
 
         .divider-container {
@@ -887,7 +991,7 @@ export default function AuthPage() {
         .auth-role-tabs {
           display: flex;
           gap: 8px;
-          margin-bottom: 8px;
+          margin-bottom: var(--auth-headline-mb);
           height: 36px;
         }
         
@@ -914,9 +1018,9 @@ export default function AuthPage() {
         }
         
         .auth-role-btn.active {
-          border-color: #a855f7 !important;
-          background: #faf5ff !important;
-          color: #7e22ce !important;
+          border-color: var(--auth-active-tab-border) !important;
+          background: var(--auth-active-tab-bg) !important;
+          color: var(--auth-active-tab-text) !important;
         }
 
         .signup-form-grid {
@@ -956,7 +1060,7 @@ export default function AuthPage() {
         
         {/* Left Branding Panel */}
         <div className="auth-left-panel">
-          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className="absolute top-10 right-2 w-48 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer" style={{ zIndex: 20 }} />
+          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className="absolute top-4 right-4 w-52 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer" style={{ zIndex: 20 }} />
           
           <div className="left-panel-logo-container w-full" style={{ alignItems: 'flex-start' }}>
             <div className="flex gap-3 relative z-10">
@@ -976,58 +1080,176 @@ export default function AuthPage() {
 
           <h1 className="left-panel-headline">
             Your AI-Powered<br />
-            {selectedRole === "RECRUITER" ? <span>Recruitment</span> : selectedRole === "PLACEMENT_OFFICER" ? <span>Placement</span> : <span>Placement</span>} 
-            {selectedRole === "RECRUITER" ? " Partner" : selectedRole === "PLACEMENT_OFFICER" ? " Analytics" : " Partner"}
+            {selectedRole === "RECRUITER" ? <span>Recruitment</span> : selectedRole === "PLACEMENT_OFFICER" ? <span>Placement Office</span> : <span>Placement</span>} 
+            {selectedRole === "RECRUITER" ? " Partner" : selectedRole === "PLACEMENT_OFFICER" ? " Partner" : " Partner"}
           </h1>
 
           <p className="left-panel-description">
             {selectedRole === "RECRUITER" 
-              ? "Access top student talent, streamline your hiring pipeline, and find the perfect match." 
+              ? "Streamline hiring, find the right talent faster, and build high-performing teams with AI." 
               : selectedRole === "PLACEMENT_OFFICER" 
-              ? "Monitor institution performance, track student progress, and boost placement rates."
+              ? "Simplify placement operations, analyze outcomes, and drive better results for your institution."
               : "Get AI-driven insights, practice interviews, build your resume, and land your dream job."}
           </p>
 
           <div className="features-list">
-            <div className="feature-item-new">
-              <div className="feature-icon-container">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-              </div>
-              <div className="feature-text-new">
-                <h3>AI Mock Interviews</h3>
-                <p>Practice with AI and improve your confidence</p>
-              </div>
-            </div>
+            {selectedRole === "RECRUITER" ? (
+              <>
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <UserSearch className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>AI Candidate Sourcing</h3>
+                    <p>Discover and attract top talent from multiple channels using AI-powered recommendations.</p>
+                  </div>
+                </div>
 
-            <div className="feature-item-new">
-              <div className="feature-icon-container">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div className="feature-text-new">
-                <h3>Resume Builder</h3>
-                <p>Create ATS-friendly resumes in minutes</p>
-              </div>
-            </div>
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Candidate Evaluation & Ranking</h3>
+                    <p>Evaluate resumes and rank candidates based on skills, experience, and job fit automatically.</p>
+                  </div>
+                </div>
 
-            <div className="feature-item-new">
-              <div className="feature-icon-container">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-              </div>
-              <div className="feature-text-new">
-                <h3>AI Career Assistant</h3>
-                <p>Get answers to your career questions</p>
-              </div>
-            </div>
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Interview Management</h3>
+                    <p>Schedule interviews, share calendars, and track candidate progress in one place.</p>
+                  </div>
+                </div>
 
-            <div className="feature-item-new">
-              <div className="feature-icon-container">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="18" y="3" width="4" height="18"></rect><rect x="10" y="8" width="4" height="13"></rect><rect x="2" y="13" width="4" height="8"></rect></svg>
-              </div>
-              <div className="feature-text-new">
-                <h3>Smart Job Matching</h3>
-                <p>Find jobs that match your skills</p>
-              </div>
-            </div>
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Talent Pipeline</h3>
+                    <p>Build and manage your talent pipeline for future roles with AI insights and engagement tracking.</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <BarChart3 className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Hiring Analytics</h3>
+                    <p>Get real-time insights on sourcing, hiring funnel, and team performance to make data-driven decisions.</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <Bell className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Offer & Onboarding</h3>
+                    <p>Create offers, send communications, and track onboarding to ensure a smooth candidate experience.</p>
+                  </div>
+                </div>
+              </>
+            ) : selectedRole === "PLACEMENT_OFFICER" ? (
+              <>
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Placement Analytics Dashboard</h3>
+                    <p>Get real-time insights on placement statistics, offers, and trends to make data-driven decisions.</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Student Placement Tracking</h3>
+                    <p>Track student eligibility, progress, and placement status throughout the placement cycle.</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Recruiter & Drive Management</h3>
+                    <p>Manage recruiter relationships, placement drives, and streamline communication in one place.</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Reports & Outcome Analysis</h3>
+                    <p>Generate comprehensive reports and analyze placement outcomes to improve future performance.</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <Bell className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Notifications & Announcements</h3>
+                    <p>Send important updates, drive announcements, and reminders to students and faculty instantly.</p>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>AI Mock Interviews</h3>
+                    <p>Practice with AI and improve your confidence</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Resume Builder</h3>
+                    <p>Create ATS-friendly resumes in minutes</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>AI Career Assistant</h3>
+                    <p>Get answers to your career questions</p>
+                  </div>
+                </div>
+
+                <div className="feature-item-new">
+                  <div className="feature-icon-container">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="18" y="3" width="4" height="18"></rect><rect x="10" y="8" width="4" height="13"></rect><rect x="2" y="13" width="4" height="8"></rect></svg>
+                  </div>
+                  <div className="feature-text-new">
+                    <h3>Smart Job Matching</h3>
+                    <p>Find jobs that match your skills</p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           
 
@@ -1128,12 +1350,24 @@ export default function AuthPage() {
                     </svg>
                     Continue with Google
                   </button>
-                  <button type="button" className="social-btn" onClick={() => handleOAuth('github')} disabled={loading}>
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-                    </svg>
-                    Continue with GitHub
-                  </button>
+                  {selectedRole === 'STUDENT' ? (
+                    <button type="button" className="social-btn" onClick={() => handleOAuth('github')} disabled={loading}>
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
+                      </svg>
+                      Continue with GitHub
+                    </button>
+                  ) : (
+                    <button type="button" className="social-btn" onClick={() => handleOAuth('azure')} disabled={loading}>
+                      <svg viewBox="0 0 24 24" width="20" height="20">
+                        <rect x="2" y="2" width="9" height="9" fill="#f25022"/>
+                        <rect x="13" y="2" width="9" height="9" fill="#7fba00"/>
+                        <rect x="2" y="13" width="9" height="9" fill="#00a4ef"/>
+                        <rect x="13" y="13" width="9" height="9" fill="#ffb900"/>
+                      </svg>
+                      Continue with Microsoft
+                    </button>
+                  )}
                 </div>
 
                 <div className="card-footer">

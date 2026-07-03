@@ -47,6 +47,8 @@ public class User {
     private String branch;
 
     private String phone;
+    
+    private String designation;
 
     @Column(name = "graduation_year")
     private Integer graduationYear;

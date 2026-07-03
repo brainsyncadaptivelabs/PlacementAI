@@ -51,7 +51,9 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
     <ShadcnSidebar 
       style={{ 
         "--sidebar": role === "RECRUITER" ? "var(--recruiter-sidebar)" : undefined,
-        "--sidebar-foreground": role === "RECRUITER" ? "var(--recruiter-sidebar-foreground)" : undefined 
+        "--sidebar-foreground": role === "RECRUITER" ? "var(--recruiter-sidebar-foreground)" : undefined,
+        "--sidebar-accent": role === "RECRUITER" ? "#832838" : undefined,
+        "--sidebar-accent-foreground": role === "RECRUITER" ? "#ffffff" : undefined
       } as React.CSSProperties}
       className={role === "RECRUITER" ? "border-r-0 dark:border-r dark:border-border" : "border-r border-border"}
     >
@@ -73,14 +75,17 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
       <SidebarContent className="px-3 py-4">
         <SidebarMenu>
           {menuItems.map((item) => {
-            const isActive = pathname === item.url || pathname.startsWith(item.url + '/');
+            const isRootUrl = item.url.split('/').length <= 2;
+            const isActive = isRootUrl 
+              ? pathname === item.url 
+              : (pathname === item.url || pathname.startsWith(item.url + '/'));
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   render={<Link href={item.url} />}
                   isActive={isActive}
                   className={role === "RECRUITER" 
-                    ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-white/10 dark:bg-sidebar-accent text-white dark:text-sidebar-accent-foreground hover:bg-white/15 dark:hover:bg-sidebar-accent' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
+                    ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
                     : "hover:bg-muted transition-colors py-6"}
                   tooltip={item.title}
                 >
@@ -106,7 +111,7 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
                       render={<Link href={item.url} />}
                       isActive={isActive}
                       className={role === "RECRUITER" 
-                        ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-white/10 dark:bg-sidebar-accent text-white dark:text-sidebar-accent-foreground hover:bg-white/15 dark:hover:bg-sidebar-accent' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
+                        ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
                         : "hover:bg-muted transition-colors py-6"}
                       tooltip={item.title}
                     >

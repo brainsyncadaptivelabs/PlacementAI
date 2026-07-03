@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { ChevronRight, Bell, Shield, Download, Trash2, Key, Sun, Moon, Monitor, Eye, User, CreditCard } from "lucide-react";
+import { ChevronRight, Bell, Shield, Download, Trash2, Key, Sun, Moon, Monitor, Eye, User, CreditCard, Building } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "next-themes";

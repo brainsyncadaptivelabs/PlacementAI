@@ -78,6 +78,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .companyWebsite(user.getCompanyWebsite())
                 .companySize(user.getCompanySize())
                 .skills(user.getSkills())
+                .phone(user.getPhone())
+                .designation(user.getDesignation())
                 .profileCompleted(user.isProfileCompleted())
                 .planSelected(user.isPlanSelected())
                 .paymentCompleted(user.isPaymentCompleted())
@@ -107,6 +109,8 @@ public class ProfileServiceImpl implements ProfileService {
                 .companyWebsite(user.getCompanyWebsite())
                 .companySize(user.getCompanySize())
                 .skills(user.getSkills())
+                .phone(user.getPhone())
+                .designation(user.getDesignation())
                 .profileCompleted(user.isProfileCompleted())
                 .profileImage(user.getProfileImage())
                 .build();
@@ -127,6 +131,8 @@ public class ProfileServiceImpl implements ProfileService {
         if (request.getCompanyWebsite() != null) user.setCompanyWebsite(request.getCompanyWebsite());
         if (request.getCompanySize() != null) user.setCompanySize(request.getCompanySize());
         if (request.getSkills() != null) user.setSkills(request.getSkills());
+        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getDesignation() != null) user.setDesignation(request.getDesignation());
         userRepository.save(user);
     }
 

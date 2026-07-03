@@ -96,7 +96,7 @@ export default function JobsDashboard() {
 
   const fetchJobs = async () => {
     try {
-      const res = await api.get("/recruiter/jobs");
+      const res = await api.get("/recruiters/jobs");
       setJobs(res.data);
     } catch {
       toast.error("Failed to load jobs");
@@ -149,10 +149,10 @@ export default function JobsDashboard() {
       };
 
       if (editingJob) {
-        await api.put(`/recruiter/jobs/${editingJob.id}`, payload);
+        await api.put(`/recruiters/jobs/${editingJob.id}`, payload);
         toast.success("Job updated");
       } else {
-        await api.post("/recruiter/jobs", payload);
+        await api.post("/recruiters/jobs", payload);
         toast.success("Job created as draft");
       }
       setDrawerOpen(false);
@@ -169,19 +169,19 @@ export default function JobsDashboard() {
     try {
       if (action === "delete") {
         if (!confirm("Delete this job? This cannot be undone.")) return;
-        await api.delete(`/recruiter/jobs/${jobId}`);
+        await api.delete(`/recruiters/jobs/${jobId}`);
         toast.success("Job deleted");
       } else if (action === "publish") {
-        await api.post(`/recruiter/jobs/${jobId}/publish`);
+        await api.post(`/recruiters/jobs/${jobId}/publish`);
         toast.success("Job published and is now active");
       } else if (action === "close") {
-        await api.post(`/recruiter/jobs/${jobId}/close`);
+        await api.post(`/recruiters/jobs/${jobId}/close`);
         toast.success("Job closed");
       } else if (action === "archive") {
-        await api.post(`/recruiter/jobs/${jobId}/archive`);
+        await api.post(`/recruiters/jobs/${jobId}/archive`);
         toast.success("Job archived");
       } else if (action === "duplicate") {
-        await api.post(`/recruiter/jobs/${jobId}/duplicate`);
+        await api.post(`/recruiters/jobs/${jobId}/duplicate`);
         toast.success("Job duplicated as draft");
       }
       fetchJobs();

@@ -28,6 +28,8 @@ export type UserProfile = {
   twoFactorEnabled?: boolean;
   language?: string;
   skills?: string;
+  phone?: string;
+  designation?: string;
   createdAt?: string;
   authProvider?: 'LOCAL' | 'GOOGLE' | 'GITHUB';
 };
