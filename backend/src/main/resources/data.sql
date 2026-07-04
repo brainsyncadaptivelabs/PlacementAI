@@ -1,6 +1,6 @@
 -- Insert dummy user (id = 1)
-INSERT INTO users (id, full_name, email, password, role, profile_completed, delete_failed_attempts)
-VALUES (1, 'Admin', 'admin@example.com', '$2a$10$xyz', 'ADMIN', false, 0);
+INSERT INTO users (id, full_name, email, password, role, profile_completed, delete_failed_attempts, credits_remaining, credits_used)
+VALUES (1, 'Admin', 'admin@example.com', '$2a$10$xyz', 'ADMIN', false, 0, 100, 0);
 
 -- Insert dummy mock interview (id = 1)
 INSERT INTO mock_interviews (id, role, experience_level, company, topic, user_id, created_at)

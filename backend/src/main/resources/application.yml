@@ -1,0 +1,192 @@
+# ============================================================
+# PlacementAI – Main Application Configuration
+# ============================================================
+# All sensitive values MUST be supplied via environment variables.
+# Defaults are provided only for local development convenience.
+# Never commit real credentials to source control.
+# ============================================================
+
+spring:
+  application:
+    name: backend
+
+  # ── Async / SSE ──────────────────────────────────────────
+  mvc:
+    async:
+      request-timeout: 300000
+
+  servlet:
+    session:
+      timeout: 30m
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+
+  # ── Performance ──────────────────────────────────────────
+  main:
+    lazy-initialization: true
+  threads:
+    virtual:
+      enabled: true
+
+  # ── JPA / Datasource ─────────────────────────────────────
+  jpa:
+    open-in-view: false
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: false
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        order_inserts: true
+        order_updates: true
+
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/placementai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 8
+      connection-timeout: 5000
+      idle-timeout: 30000
+      max-lifetime: 600000
+
+  # ── Flyway ───────────────────────────────────────────────
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 5
+    enabled: true
+
+  # ── Caching ──────────────────────────────────────────────
+  cache:
+    type: simple
+    cache-names: roadmaps,jd_analysis,skills_gap,dashboard_stats
+
+  # ── Redis ────────────────────────────────────────────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  # ── Email ────────────────────────────────────────────────
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# ── Server ───────────────────────────────────────────────────
+server:
+  port: 8080
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 1024
+
+# ── Logging ──────────────────────────────────────────────────
+logging:
+  level:
+    root: WARN
+    com.aiplacement.backend: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+  file:
+    name: logs/backend.log
+
+# ============================================================
+# NVIDIA Build API Configuration
+# ============================================================
+# Required: Set NVIDIA_API_KEY environment variable.
+# Obtain your API key from: https://build.nvidia.com
+# ============================================================
+nvidia:
+  ai:
+    # API key — override with NVIDIA_API_KEY env var in production
+    api-key: ${NVIDIA_API_KEY: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}
+
+    # NVIDIA Build API endpoint (OpenAI-compatible chat completions)
+    base-url: ${NVIDIA_API_URL:https://integrate.api.nvidia.com/v1/chat/completions}
+
+    # Model — llama-3.3-70b matches your API usage
+    model: ${NVIDIA_MODEL:meta/llama-3.1-8b-instruct}
+
+    # Sampling parameters (matched from your API snippet)
+    temperature: ${NVIDIA_TEMPERATURE:0.2}
+    top-p: ${NVIDIA_TOP_P:0.7}
+    max-tokens: ${NVIDIA_MAX_TOKENS:1024}
+
+    # Reliability settings
+    timeout-seconds: ${NVIDIA_TIMEOUT_SECONDS:120}
+    retry-attempts: ${NVIDIA_RETRY_ATTEMPTS:3}
+    retry-delay-ms: ${NVIDIA_RETRY_DELAY_MS:1000}
+
+# ── Code Execution (Piston) ───────────────────────────────────
+piston:
+  api:
+    url: ${PISTON_API_URL:http://localhost:2000/api/v2}
+
+# ── Chatbot ───────────────────────────────────────────────────
+chatbot:
+  context-size: 10
+  max-tokens: 1000
+  truncate-limit: 1000
+
+# ── Security ─────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:ThisIsMyVerySecretKeyForJwtTokenGeneration123456789}
+
+# ── Cloudinary (Resume Storage) ──────────────────────────────
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:dummy}
+  api-key: ${CLOUDINARY_API_KEY:dummy}
+  api-secret: ${CLOUDINARY_API_SECRET:dummy}
+
+# ── Google OAuth ─────────────────────────────────────────────
+google:
+  client-id: ${GOOGLE_CLIENT_ID:dummy}
+
+# ── Admin ────────────────────────────────────────────────────
+admin:
+  registration:
+    code: ${ADMIN_REGISTRATION_CODE:ADMIN123}
+
+# ── Frontend ─────────────────────────────────────────────────
+frontend:
+  url: ${FRONTEND_URL:http://localhost:3000}
+
+# ── Actuator / Management ────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  health:
+    redis:
+      enabled: false
+    mail:
+      enabled: false
+
+# ── Payments (Razorpay) ───────────────────────────────────────
+razorpay:
+  key:
+    id: ${RAZORPAY_KEY_ID:rzp_test_SyxPfm0CnhaMos}
+    secret: ${RAZORPAY_KEY_SECRET:UnRx6egZosu7DtQSBib5wVrk}
+
+# ── Web Push (VAPID) ─────────────────────────────────────────
+vapid:
+  public:
+    key: ${VAPID_PUBLIC_KEY:dummy}
+  private:
+    key: ${VAPID_PRIVATE_KEY:dummy}
+  subject: ${VAPID_SUBJECT:mailto:support@aiplacement.com}

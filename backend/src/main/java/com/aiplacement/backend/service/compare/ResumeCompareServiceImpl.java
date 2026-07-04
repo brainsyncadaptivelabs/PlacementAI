@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service.compare;
 
-import com.aiplacement.backend.ai.OllamaClient;
+import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.compare.ResumeCompareRequestDto;
 import com.aiplacement.backend.dto.compare.ResumeCompareResponseDto;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -17,7 +17,11 @@ import java.util.List;
 @Slf4j
 public class ResumeCompareServiceImpl implements ResumeCompareService {
 
-    private final OllamaClient ollamaClient;
+    private static final String SYSTEM_PROMPT =
+            "You are PlacementAI, an expert HR and resume comparison specialist. " +
+            "Compare resumes objectively and return ONLY valid JSON — no markdown, no extra text.";
+
+    private final AIClient aiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -46,8 +50,8 @@ public class ResumeCompareServiceImpl implements ResumeCompareService {
         String fallbackJson = "{\"betterResume\": \"Resume 1\", \"comparisonSummary\": \"Failed to compare due to AI downtime.\", \"resume1Strengths\": [], \"resume2Strengths\": [], \"recommendation\": \"Please try again later.\"}";
 
         try {
-            log.info("Sending resume comparison request to OllamaClient");
-            JsonNode aiJson = ollamaClient.getJsonResponse(prompt, 0.7, e -> fallbackJson);
+            log.info("Sending resume comparison request to AI provider");
+            JsonNode aiJson = aiClient.generateJson(SYSTEM_PROMPT, prompt, 0.7, 2048, e -> fallbackJson);
 
             return ResumeCompareResponseDto.builder()
                     .betterResume(aiJson.has("betterResume") ? aiJson.get("betterResume").asText() : "Unknown")

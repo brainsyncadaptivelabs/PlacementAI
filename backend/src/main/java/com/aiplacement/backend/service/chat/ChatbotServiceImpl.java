@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service.chat;
 
-import com.aiplacement.backend.ai.OllamaClient;
+import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.ai.CopilotBrain;
 import com.aiplacement.backend.ai.PromptContext;
 import com.aiplacement.backend.ai.multimodal.MultimodalRouter;
@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ChatbotServiceImpl implements ChatbotService {
 
-    private final OllamaClient ollamaClient;
+    private final AIClient aiClient;
     private final UserRepository userRepository;
     private final PlacementReadinessService placementReadinessService;
     private final CopilotBrain copilotBrain = new CopilotBrain();
@@ -58,11 +58,13 @@ public class ChatbotServiceImpl implements ChatbotService {
             history = history.subList(history.size() - 10, history.size());
         }
         String prompt = buildPrompt(request.getQuestion(), history, request.getAttachments());
-        String fallbackText = "AI service is currently unavailable. Please try again later.";
 
         try {
-            log.info("Sending chat question to OllamaClient with context size: {}", contextSize);
-            return ollamaClient.getChatResponse(prompt, 0.7, fallbackText);
+            log.info("Sending chat question to AI provider with context size: {}", contextSize);
+            return aiClient.generate(
+                    "You are PlacementAI Copilot, an expert career and placement intelligence assistant. " +
+                    "Answer placement, career, resume, coding and interview questions helpfully and accurately.",
+                    prompt, 0.7, maxTokens);
         } catch (Exception e) {
             log.error("Failed to generate chatbot response", e);
             throw new RuntimeException("Failed to generate chatbot response");
@@ -77,8 +79,11 @@ public class ChatbotServiceImpl implements ChatbotService {
             history = history.subList(history.size() - 10, history.size());
         }
         String prompt = buildPrompt(truncate(request.getQuestion(), truncateLimit), history, request.getAttachments());
-        log.info("Streaming chat question to OllamaClient with max tokens: {}", maxTokens);
-        return ollamaClient.streamChatResponse(prompt, 0.7);
+        log.info("Streaming chat question to AI provider with max tokens: {}", maxTokens);
+        return aiClient.stream(
+                "You are PlacementAI Copilot, an expert career and placement intelligence assistant. " +
+                "Answer placement, career, resume, coding and interview questions helpfully and accurately.",
+                prompt, 0.7, maxTokens);
     }
 
     private String buildPrompt(String question, List<ChatMessageDto> history, List<ChatAttachmentDto> attachments) {

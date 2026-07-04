@@ -479,8 +479,17 @@ This makes the project similar to a startup-grade SaaS backend architecture.
 | Phase | Status |
 |---|---|
 | Phase 1 — Backend Infrastructure | ✅ Completed |
-| Phase 2 — Frontend Development | 👨‍💻 In Progress |
-| Phase 3 — Advanced AI Features | 🚀 Planned |
+| Phase 2 — Frontend Development & AI Widgets | ✅ Completed / Stabilized |
+| Phase 3 — Advanced AI Features & Optimizations | 🚀 Highly Optimized & Production Ready |
+
+---
+
+# 🚀 Recent Stability & Performance Improvements
+
+- **⚡ Docker BuildKit Dependency Caching:** Integrated BuildKit cache mounts (`--mount=type=cache,target=/root/.m2`) in the `backend/Dockerfile`. Subsequent Maven builds run near-instantly since dependencies are cached on the host.
+- **🛡️ Null-Safety Compliance:** Fixed Eclipse JDT null-safety compiler warnings in the Java backend (`NvidiaBuildClient`) by migrating `HttpStatusCode` method references to type-inferred lambdas.
+- **🔌 Robust API Parsers:** Enhanced the frontend `api.ts` module with safe JSON parsing capabilities. Plain-text API responses (e.g., extracted raw resume text) no longer throw JSON parsing exceptions.
+- **💬 Chatbot Hydration Fixes:** Resolved a missing import for `ConversationSidebar` and casing resolution conflicts under the Next.js Turbopack resolver on macOS.
 
 ---
 

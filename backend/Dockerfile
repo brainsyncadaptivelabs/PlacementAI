@@ -7,12 +7,14 @@ COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw .
 
-# Resolve and cache dependencies
-RUN chmod +x mvnw && ./mvnw dependency:go-offline -B
+# Resolve and cache dependencies using BuildKit cache mount
+RUN --mount=type=cache,target=/root/.m2 \
+    chmod +x mvnw && ./mvnw dependency:go-offline -B
 
-# Copy remaining source code and build package
+# Copy remaining source code and build package using BuildKit cache mount
 COPY . .
-RUN ./mvnw clean package -DskipTests
+RUN --mount=type=cache,target=/root/.m2 \
+    ./mvnw clean package -DskipTests
 
 # Stage 2: Create the execution image
 FROM eclipse-temurin:21

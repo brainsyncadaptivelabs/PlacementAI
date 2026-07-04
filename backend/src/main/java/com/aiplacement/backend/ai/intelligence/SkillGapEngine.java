@@ -2,7 +2,6 @@ package com.aiplacement.backend.ai.intelligence;
 
 import com.aiplacement.backend.ai.PromptContext;
 import com.aiplacement.backend.dto.shared.PlacementIntelligenceDto;
-import java.util.ArrayList;
 import java.util.List;
 
 public class SkillGapEngine {

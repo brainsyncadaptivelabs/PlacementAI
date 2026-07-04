@@ -35,13 +35,14 @@ import {
 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useTheme } from "next-themes";
-import { WidgetRenderer, MermaidDiagram } from "@/components/chat/widgets";
+import { WidgetRenderer, MermaidDiagram } from "@/components/chat/widgets/index";
 import { useConversationManager } from "@/components/chat/useConversationManager";
 import { Message } from "@/components/chat/ConversationStorage";
 import { CommandPalette } from "@/components/chat/command/CommandPalette";
 import { WorkspaceTabs } from "@/components/workspace/WorkspaceTabs";
 import { NotificationCenter } from "@/components/workspace/NotificationCenter";
 import { SavedArtifacts } from "@/components/workspace/SavedArtifacts";
+import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useRouter } from "next/navigation";
 
 // Safe Markdown Error Boundary with plain text fallback
@@ -107,6 +108,22 @@ const normalizeMarkdown = (text: string): string => {
   result = result.replace(/\n{3,}/g, "\n\n");
 
   return result;
+};
+
+// JSON extractor helper
+const extractJsonFromMarkdown = (content: string): string => {
+  if (!content) return "";
+  const jsonBlockRegex = /```json\s*([\s\S]*?)\s*```/;
+  const match = content.match(jsonBlockRegex);
+  if (match && match[1]) {
+    return match[1].trim();
+  }
+  const start = content.indexOf("{");
+  const end = content.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    return content.substring(start, end + 1).trim();
+  }
+  return content.trim();
 };
 
 // Premium Code Block Component
@@ -332,7 +349,7 @@ const MessageItem = memo(({
                       {/* Standard Widget Engine Parser */}
                       {msg.content.includes("```json") && msg.content.includes("widget") && (
                         <div className="my-4 border border-border/80 rounded-2xl overflow-hidden shadow-sm bg-card/25 w-full">
-                          <WidgetRenderer content={msg.content} />
+                          <WidgetRenderer rawJson={extractJsonFromMarkdown(msg.content)} isStreaming={isGenerating} />
                         </div>
                       )}
 

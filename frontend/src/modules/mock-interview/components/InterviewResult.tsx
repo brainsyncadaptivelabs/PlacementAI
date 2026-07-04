@@ -193,7 +193,7 @@ export const InterviewResult = ({ interview }: InterviewResultProps) => {
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wider text-primary mb-2">Executive Summary</h3>
                 <p className="text-sm text-foreground leading-relaxed italic bg-card p-4 rounded-xl border border-border">
-                  "{feedback.candidateSummary || "Detailed candidate behavioral profile pending evaluation."}"
+                  &quot;{feedback.candidateSummary || "Detailed candidate behavioral profile pending evaluation."}&quot;
                 </p>
               </div>
 
@@ -685,7 +685,7 @@ export const InterviewResult = ({ interview }: InterviewResultProps) => {
                       )}
                     </div>
                     <p className="text-sm font-semibold text-foreground leading-relaxed">
-                      "{activeQ.questionText}"
+                      &quot;{activeQ.questionText}&quot;
                     </p>
                   </div>
                   
@@ -703,7 +703,7 @@ export const InterviewResult = ({ interview }: InterviewResultProps) => {
                     <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block">Candidate Answer Submission</span>
                     {activeQ.answerText ? (
                       <p className="text-sm text-muted-foreground italic leading-relaxed">
-                        "{activeQ.answerText}"
+                        &quot;{activeQ.answerText}&quot;
                       </p>
                     ) : (
                       <p className="text-xs text-muted-foreground/60 italic">No verbal answer logged.</p>
@@ -795,7 +795,7 @@ export const InterviewResult = ({ interview }: InterviewResultProps) => {
                   {q.answerText && (
                     <div>
                       <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Candidate Answer</h4>
-                      <p className="text-sm text-muted-foreground italic leading-relaxed">"{q.answerText}"</p>
+                      <p className="text-sm text-muted-foreground italic leading-relaxed">&quot;{q.answerText}&quot;</p>
                     </div>
                   )}
                   {q.codeText && (

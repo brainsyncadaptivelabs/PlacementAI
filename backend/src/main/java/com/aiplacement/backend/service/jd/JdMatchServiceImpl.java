@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service.jd;
 
-import com.aiplacement.backend.ai.OllamaClient;
+import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.jd.JdMatchRequestDto;
 import com.aiplacement.backend.dto.jd.JdMatchResponseDto;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -17,7 +17,7 @@ import java.util.*;
 @Slf4j
 public class JdMatchServiceImpl implements JdMatchService {
 
-    private final OllamaClient ollamaClient;
+    private final AIClient aiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -103,23 +103,23 @@ public class JdMatchServiceImpl implements JdMatchService {
         JsonNode aiJson = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
             try {
-                log.info("Sending job description match request to OllamaClient, attempt: {}", attempt);
-                aiJson = ollamaClient.getJsonResponse(prompt, 0.7, e -> {
-                    throw new RuntimeException("Ollama request failed", e);
-                });
+                log.info("Sending job description match request to AI provider, attempt: {}", attempt);
+                aiJson = aiClient.generateJson(
+                        "You are PlacementAI, an expert ATS and JD matching analyst. Respond ONLY with valid JSON.",
+                        prompt, 0.7, 4096, e -> { throw new RuntimeException("AI request failed", e); });
                 
                 if (aiJson != null && aiJson.has("matchedSkills")) {
-                    log.info("Ollama response received and verified on attempt: {}", attempt);
+                    log.info("AI response received and verified on attempt: {}", attempt);
                     break;
                 }
             } catch (Exception e) {
-                log.warn("Ollama attempt {} failed: {}", attempt, e.getMessage());
+                log.warn("AI attempt {} failed: {}", attempt, e.getMessage());
                 log.error("AI Response extraction error on attempt {}", attempt, e);
             }
         }
         
         if (aiJson == null) {
-            log.error("Ollama matching failed after 2 attempts. Raw AI response was invalid or connection failed.");
+            log.error("AI matching failed after 2 attempts. Raw AI response was invalid or connection failed.");
             throw new RuntimeException("AI returned invalid JSON.");
         }
 

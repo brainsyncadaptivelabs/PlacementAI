@@ -331,7 +331,7 @@ export default function AtsAnalysisFromHistoryPage() {
           <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
           <h2 className="text-xl font-bold">Analysis Not Found</h2>
           <p className="text-muted-foreground text-sm mt-2 mb-6">
-            This analysis record no longer exists or you don't have access to it.
+            This analysis record no longer exists or you don&apos;t have access to it.
           </p>
           <div className="flex gap-3 w-full">
             <Button variant="outline" onClick={() => router.back()} className="flex-1">Go Back</Button>

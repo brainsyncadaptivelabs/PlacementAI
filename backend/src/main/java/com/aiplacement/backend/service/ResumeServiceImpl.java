@@ -90,7 +90,7 @@ public class ResumeServiceImpl implements ResumeService {
             resumeRepository.save(resume);
             log.info("Resume saved to database");
 
-            log.info("Sending resume to OllamaClient for ATS analysis");
+            log.info("Sending resume to AI provider for ATS analysis");
             AtsResponseDto atsResponse = geminiService.analyzeResume(extractedText);
             atsResponse.setExtractedText(extractedText);
             log.info("ATS analysis completed successfully");

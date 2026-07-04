@@ -64,8 +64,14 @@ const api = {
       throw err;
     }
     if (!response.ok) await handleResponseError(response, url);
-    const data = await response.json();
-    return { data };
+    const resText = await response.text();
+    let resData;
+    try {
+      resData = resText ? JSON.parse(resText) : {};
+    } catch (e) {
+      resData = resText;
+    }
+    return { data: resData };
   },
   post: async (url: string, data?: any, config?: any) => {
     const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;

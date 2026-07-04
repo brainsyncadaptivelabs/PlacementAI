@@ -15,9 +15,7 @@ public class ResumeAnalyzer {
         List<String> tags = new ArrayList<>();
 
         // Section coverage rules
-        boolean hasEducation = true;
         boolean hasExperience = content.contains("resume") || content.contains("cv") || content.contains("internship");
-        boolean hasSkills = true;
         boolean hasProjects = content.contains("project");
 
         strengths.add("Found solid 'Education' section.");

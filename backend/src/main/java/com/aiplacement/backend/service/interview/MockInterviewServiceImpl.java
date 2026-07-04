@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service.interview;
 
-import com.aiplacement.backend.ai.OllamaClient;
+import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.interview.*;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.interview.InterviewFeedback;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MockInterviewServiceImpl implements MockInterviewService {
 
-    private final OllamaClient ollamaClient;
+    private final AIClient aiClient;
     private final MockInterviewRepository mockInterviewRepository;
     private final UserRepository userRepository;
     private final org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
@@ -178,21 +178,23 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         JsonNode aiJson = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
             try {
-                log.info("Sending mock interview generate request to Ollama, attempt: {}", attempt);
-                aiJson = ollamaClient.getJsonResponse(prompt, 0.7, e -> {
-                    throw new RuntimeException("Ollama generate failed", e);
+                log.info("Sending mock interview generate request to AI provider, attempt: {}", attempt);
+                aiJson = aiClient.generateJson(
+                        "You are an expert technical interviewer. Generate interview questions. Respond ONLY with valid JSON.",
+                        prompt, 0.7, 4096, e -> {
+                    throw new RuntimeException("AI generate failed", e);
                 });
                 if (aiJson != null && aiJson.has("questions")) {
                     break;
                 }
             } catch (Exception e) {
-                log.error("Ollama generate failed on attempt {}: {}", attempt, e.getMessage());
+                log.error("AI generate failed on attempt {}: {}", attempt, e.getMessage());
             }
         }
 
         // Custom Fallback questions generator (Phase 3 requirement)
         if (aiJson == null) {
-            log.warn("Ollama unavailable or failed. Loading predefined fallback questions.");
+            log.warn("AI unavailable or failed. Loading predefined fallback questions.");
             List<String> questions = getPredefinedQuestions(request);
             List<String> tips = Arrays.asList("Explain your thought process aloud.", "Structure technical answers using structural examples.");
             return MockInterviewResponseDto.builder()
@@ -305,7 +307,9 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
         String firstQuestion = "Tell me about yourself and your background with " + request.getRole() + ".";
         try {
-            JsonNode response = ollamaClient.getJsonResponse(prompt, 0.7, e -> { throw new RuntimeException(e); });
+            JsonNode response = aiClient.generateJson(
+                    "You are an expert technical interviewer conducting an adaptive mock interview. Respond ONLY with valid JSON.",
+                    prompt, 0.7, 2048, e -> { throw new RuntimeException(e); });
             if (response != null && response.has("nextQuestion")) {
                 firstQuestion = response.get("nextQuestion").asText();
             }
@@ -477,9 +481,11 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
         JsonNode aiJson = null;
         try {
-            aiJson = ollamaClient.getJsonResponse(prompt, 0.6, e -> { throw new RuntimeException(e); });
+            aiJson = aiClient.generateJson(
+                    "You are an expert technical interviewer evaluating candidate answers. Respond ONLY with valid JSON.",
+                    prompt, 0.6, 4096, e -> { throw new RuntimeException(e); });
         } catch (Exception e) {
-            log.error("Failed to generate next question/evaluation from Ollama", e);
+            log.error("Failed to generate next question/evaluation from AI provider", e);
         }
 
         boolean isFinished = nextQuestionIndex >= state.getTotalQuestionsLimit();
@@ -716,20 +722,22 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         JsonNode feedbackJson = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
             try {
-                log.info("Sending mock interview feedback request to Ollama, attempt: {}", attempt);
-                feedbackJson = ollamaClient.getJsonResponse(feedbackPrompt, 0.5, e -> {
-                    throw new RuntimeException("Ollama feedback failed", e);
+                log.info("Sending mock interview feedback request to AI provider, attempt: {}", attempt);
+                feedbackJson = aiClient.generateJson(
+                        "You are an expert interviewer generating comprehensive interview feedback. Respond ONLY with valid JSON.",
+                        feedbackPrompt, 0.5, 4096, e -> {
+                    throw new RuntimeException("AI feedback failed", e);
                 });
                 if (feedbackJson != null && feedbackJson.has("totalScore")) {
                     break;
                 }
             } catch (Exception e) {
-                log.error("Ollama feedback analysis failed on attempt {}: {}", attempt, e.getMessage());
+                log.error("AI feedback analysis failed on attempt {}: {}", attempt, e.getMessage());
             }
         }
 
         if (feedbackJson == null) {
-            log.warn("Ollama feedback unavailable. Loading heuristic fallback feedback.");
+            log.warn("AI feedback unavailable. Loading heuristic fallback feedback.");
             feedbackJson = getFallbackEvaluation(interview);
         }
 

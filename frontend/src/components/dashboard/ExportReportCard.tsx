@@ -163,7 +163,7 @@ export function ExportReportCard({
         
         <div style={{ textAlign: "center" }}>
           <h1 style={{ fontSize: "30px", fontWeight: 900, color: "#FFFFFF", letterSpacing: "0.1em", textTransform: "uppercase", margin: 0 }}>MY PLACEMENT DATA</h1>
-          <p style={{ fontSize: "14px", color: "#A5B4FC", fontWeight: 600, letterSpacing: "0.025em", marginTop: "4px", margin: 0 }}>"Your journey. Your data. Your success."</p>
+          <p style={{ fontSize: "14px", color: "#A5B4FC", fontWeight: 600, letterSpacing: "0.025em", marginTop: "4px", margin: 0 }}>&quot;Your journey. Your data. Your success.&quot;</p>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px", backgroundColor: "rgba(255, 255, 255, 0.05)", border: "1px solid rgba(255, 255, 255, 0.1)", padding: "8px 16px", borderRadius: "12px", textAlign: "right" }}>

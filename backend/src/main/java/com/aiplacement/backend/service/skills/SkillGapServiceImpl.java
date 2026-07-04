@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service.skills;
 
-import com.aiplacement.backend.ai.OllamaClient;
+import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.skills.SkillGapRequestDto;
 import com.aiplacement.backend.dto.skills.SkillGapResponseDto;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -17,7 +17,12 @@ import java.util.List;
 @Slf4j
 public class SkillGapServiceImpl implements SkillGapService {
 
-    private final OllamaClient ollamaClient;
+    private static final String SYSTEM_PROMPT =
+            "You are PlacementAI, an expert career skills analyst. " +
+            "Analyze resumes and identify skill gaps accurately. " +
+            "Respond ONLY with valid JSON — no markdown, no extra text.";
+
+    private final AIClient aiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -46,8 +51,8 @@ public class SkillGapServiceImpl implements SkillGapService {
         String fallbackJson = "{\"strongSkills\": [], \"missingSkills\": [], \"recommendedSkills\": [], \"careerLevel\": \"Unknown\"}";
 
         try {
-            log.info("Sending skill gap analysis request to OllamaClient");
-            JsonNode aiJson = ollamaClient.getJsonResponse(prompt, 0.7, e -> fallbackJson);
+            log.info("Sending skill gap analysis request to AI provider");
+            JsonNode aiJson = aiClient.generateJson(SYSTEM_PROMPT, prompt, 0.7, 2048, e -> fallbackJson);
 
             return SkillGapResponseDto.builder()
                     .strongSkills(objectMapper.convertValue(

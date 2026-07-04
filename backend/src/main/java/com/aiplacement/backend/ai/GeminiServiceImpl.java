@@ -1,5 +1,6 @@
 package com.aiplacement.backend.ai;
 
+import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.AtsResponseDto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,7 +15,7 @@ import java.util.*;
 @Slf4j
 public class GeminiServiceImpl implements GeminiService {
 
-    private final OllamaClient ollamaClient;
+    private final AIClient aiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -67,15 +68,17 @@ public class GeminiServiceImpl implements GeminiService {
         JsonNode aiJson = null;
         for (int attempt = 1; attempt <= 2; attempt++) {
             try {
-                log.info("Sending resume to OllamaClient for detailed ATS analysis, attempt: {}", attempt);
-                aiJson = ollamaClient.getJsonResponse(prompt, 0.4, e -> {
-                    throw new RuntimeException("Ollama request failed", e);
+                log.info("Sending resume to AI provider for detailed ATS analysis, attempt: {}", attempt);
+                aiJson = aiClient.generateJson(
+                        "You are PlacementAI, an expert ATS resume analyser. Respond ONLY with valid JSON.",
+                        prompt, 0.4, 4096, e -> {
+                    throw new RuntimeException("AI request failed", e);
                 });
                 if (aiJson != null && aiJson.has("atsScore")) {
                     break;
                 }
             } catch (Exception e) {
-                log.error("Ollama ATS request failed on attempt {}: {}", attempt, e.getMessage());
+                log.error("AI ATS request failed on attempt {}: {}", attempt, e.getMessage());
             }
         }
 
@@ -178,7 +181,7 @@ public class GeminiServiceImpl implements GeminiService {
     }
 
     private AtsResponseDto getFallbackAts(String resumeText) {
-        log.warn("Gemini/Ollama analyzer offline. Returning empty ATS response without mocked analytics.");
+        log.warn("AI analyzer offline. Returning empty ATS response without mocked analytics.");
 
         return AtsResponseDto.builder()
             .atsScore(null)

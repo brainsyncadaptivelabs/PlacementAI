@@ -1377,7 +1377,7 @@ export default function AuthPage() {
               </form>
               
               <div className="auth-top-nav">
-                Don't have an account? <button onClick={() => { setActiveTab('signup'); setError(''); }}>Sign up</button>
+                Don&apos;t have an account? <button onClick={() => { setActiveTab('signup'); setError(''); }}>Sign up</button>
               </div>
               <div className="global-footer">
                 <div>© 2026 PlacementAI. All rights reserved.</div>
