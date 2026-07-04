@@ -7,4 +7,5 @@ import java.util.List;
 public class ChatRequestDto {
     private String question;
     private List<ChatMessageDto> history;
+    private List<ChatAttachmentDto> attachments;
 }
