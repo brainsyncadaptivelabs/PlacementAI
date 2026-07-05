@@ -154,18 +154,18 @@ const CodeBlock = memo(({ className, children }: { className?: string; children:
   };
 
   return (
-    <div className="relative my-4 group/code w-full border border-border/80 rounded-xl overflow-hidden shadow-sm font-mono text-[13px] leading-relaxed bg-zinc-950 text-zinc-50 text-left">
+    <div className="relative my-4 group/code w-full border border-border/80 rounded-xl overflow-hidden shadow-sm font-mono text-[13px] leading-relaxed bg-muted text-foreground text-left">
       {/* Code Header Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-white/5 select-none text-[10px] uppercase font-bold text-zinc-400">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-secondary border-b border-border select-none text-[10px] uppercase font-bold text-muted-foreground">
         <span>{lang}</span>
         <div className="flex items-center gap-3.5 opacity-80 group-hover/code:opacity-100 transition-opacity">
-          <button onClick={() => setWordWrap(!wordWrap)} className="hover:text-white transition-colors cursor-pointer">
+          <button onClick={() => setWordWrap(!wordWrap)} className="hover:text-foreground transition-colors cursor-pointer">
             {wordWrap ? "No Wrap" : "Wrap"}
           </button>
-          <button onClick={handleDownload} className="hover:text-white transition-colors cursor-pointer">
+          <button onClick={handleDownload} className="hover:text-foreground transition-colors cursor-pointer">
             Download
           </button>
-          <button onClick={handleCopy} className="hover:text-white transition-colors cursor-pointer">
+          <button onClick={handleCopy} className="hover:text-foreground transition-colors cursor-pointer">
             {copied ? "Copied ✓" : "Copy"}
           </button>
         </div>
@@ -173,13 +173,13 @@ const CodeBlock = memo(({ className, children }: { className?: string; children:
 
       {/* Code Body */}
       <div className={`overflow-x-auto w-full ${isLongCode && collapsed ? "max-h-60" : "max-h-none"}`} style={{ whiteSpace: wordWrap ? "pre-wrap" : "pre" }}>
-        <pre className="p-4 bg-transparent m-0 overflow-visible text-slate-100"><code>{children}</code></pre>
+        <pre className="p-4 bg-transparent m-0 overflow-visible text-foreground"><code>{children}</code></pre>
       </div>
 
       {isLongCode && (
         <button 
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full py-1.5 bg-zinc-900 hover:bg-zinc-805 border-t border-white/5 text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-white transition-colors text-center cursor-pointer"
+          className="w-full py-1.5 bg-secondary hover:bg-secondary/80 border-t border-border text-[10px] font-bold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors text-center cursor-pointer"
         >
           {collapsed ? `Expand Snippet (${codeLines.length - 12} more lines)` : "Collapse Snippet"}
         </button>
@@ -238,9 +238,9 @@ const MessageItem = memo(({
   return (
     <div className="w-full flex justify-center mb-6 last:mb-0 animate-message group/msg relative">
       <div className={`w-full max-w-[1800px] px-6 flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-primary border-primary/10 text-white' : 'bg-muted border-border text-muted-foreground'}`}>
+        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-primary border-primary/10 text-foreground' : 'bg-muted border-border text-muted-foreground'}`}>
           {isAi ? (
-            <Sparkles className="w-4.5 h-4.5 text-white" />
+            <Sparkles className="w-4.5 h-4.5 text-foreground" />
           ) : (
             <User className="w-4.5 h-4.5 text-muted-foreground" />
           )}
@@ -273,15 +273,15 @@ const MessageItem = memo(({
             }}
           >
             {!isAi && isEditing ? (
-              <div className="w-full flex flex-col gap-2 bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+              <div className="w-full flex flex-col gap-2 bg-secondary border border-border p-3 rounded-2xl">
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="w-full bg-transparent outline-none border-0 text-slate-100 text-sm resize-none min-h-[60px]"
+                  className="w-full bg-transparent outline-none border-0 text-foreground text-sm resize-none min-h-[60px]"
                 />
                 <div className="flex justify-end gap-2 text-xs font-bold">
-                  <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-lg border border-slate-700 hover:bg-slate-800 cursor-pointer">Cancel</button>
-                  <button onClick={() => { if (onEdit) onEdit(msg.id, editText); setIsEditing(false); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer">Save & Resend</button>
+                  <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary cursor-pointer">Cancel</button>
+                  <button onClick={() => { if (onEdit) onEdit(msg.id, editText); setIsEditing(false); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-foreground cursor-pointer">Save & Resend</button>
                 </div>
               </div>
             ) : (
@@ -291,17 +291,17 @@ const MessageItem = memo(({
                     <div className="space-y-4 w-full">
                       {/* Interactive Skill Trees & Timeline Parser */}
                       {msg.content.includes("├──") && (
-                        <div className="p-4 bg-black/40 border border-border/50 rounded-xl font-mono text-xs text-indigo-400 space-y-1 my-3 select-none">
+                        <div className="p-4 bg-muted/40 border border-border/50 rounded-xl font-mono text-xs text-indigo-400 space-y-1 my-3 select-none">
                           <div className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider mb-2">⚡ Visual Skill Tree</div>
                           {msg.content.split("\n").filter(line => line.includes("├──") || line.includes("└──")).map((line, idx) => {
                             const isComplete = line.includes("✓") || line.includes("Complete") || idx < 3;
                             return (
-                              <div key={idx} className={`flex items-center gap-2 ${isComplete ? 'text-emerald-400' : 'text-zinc-500'}`}>
+                              <div key={idx} className={`flex items-center gap-2 ${isComplete ? 'text-emerald-500' : 'text-muted-foreground'}`}>
                                 <span>{line}</span>
                                 {isComplete ? (
                                   <span className="px-1.5 py-0.5 rounded text-[8px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase font-extrabold">Complete</span>
                                 ) : (
-                                  <span className="px-1.5 py-0.5 rounded text-[8px] bg-zinc-800 text-zinc-500 border border-zinc-700/50 uppercase font-bold">Locked</span>
+                                  <span className="px-1.5 py-0.5 rounded text-[8px] bg-secondary text-muted-foreground border border-border/50 uppercase font-bold">Locked</span>
                                 )}
                               </div>
                             );
@@ -315,14 +315,14 @@ const MessageItem = memo(({
                           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
                             <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Readiness Score</span>
                             <div className="text-2xl font-black text-indigo-500">6%</div>
-                            <div className="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
+                            <div className="w-full bg-secondary h-1 rounded-full mt-2 overflow-hidden">
                               <div className="bg-indigo-500 h-full rounded-full" style={{ width: '6%' }} />
                             </div>
                           </div>
                           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
                             <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">ATS Score</span>
                             <div className="text-2xl font-black text-emerald-500">0%</div>
-                            <div className="w-full bg-zinc-800 h-1 rounded-full mt-2 overflow-hidden">
+                            <div className="w-full bg-secondary h-1 rounded-full mt-2 overflow-hidden">
                               <div className="bg-emerald-500 h-full rounded-full" style={{ width: '0%' }} />
                             </div>
                           </div>
@@ -432,7 +432,7 @@ const MessageItem = memo(({
                               <div className="relative group/table my-5 border border-border rounded-xl shadow-sm overflow-hidden bg-card/40">
                                 <button 
                                   onClick={handleCopyTable}
-                                  className="absolute right-2 top-2 opacity-0 group-hover/table:opacity-100 transition-opacity px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700 z-10 cursor-pointer"
+                                  className="absolute right-2 top-2 opacity-0 group-hover/table:opacity-100 transition-opacity px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded bg-secondary text-muted-foreground hover:text-foreground border border-border z-10 cursor-pointer"
                                 >
                                   Copy Table
                                 </button>
@@ -474,7 +474,7 @@ const MessageItem = memo(({
             <div className={`flex flex-wrap gap-2 mt-2 w-full ${isAi ? 'justify-start' : 'justify-end'}`}>
               {msg.attachments.map((att: any, idx: number) => (
                 <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-card shadow-sm text-xs font-semibold hover:bg-muted transition-colors max-w-[240px] truncate cursor-pointer select-none">
-                  <Paperclip className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                  <Paperclip className="w-3.5 h-3.5 text-indigo-500" />
                   <span className="truncate flex-1">{att.name}</span>
                   <span className="text-[9px] text-muted-foreground uppercase font-bold shrink-0">{att.mimeType?.split("/")?.[1] || "File"}</span>
                 </div>
@@ -484,7 +484,7 @@ const MessageItem = memo(({
 
           {/* Toast Notification */}
           {toastText && (
-            <div className="absolute -top-10 right-2 px-3 py-1 bg-zinc-950 text-white text-[10px] font-bold uppercase rounded-lg shadow-lg border border-white/10 animate-in fade-in slide-in-from-bottom-1 duration-200 z-50">
+            <div className="absolute -top-10 right-2 px-3 py-1 bg-popover text-popover-foreground text-[10px] font-bold uppercase rounded-lg shadow-lg border border-border animate-in fade-in slide-in-from-bottom-1 duration-200 z-50">
               {toastText}
             </div>
           )}
@@ -1068,7 +1068,7 @@ export default function ChatPage() {
       />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0d1117] text-slate-100">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-background text-foreground">
         
         {/* Sticky Header (64px) */}
         <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-border/40 bg-card/85 backdrop-blur-md sticky top-0 z-30 select-none">
@@ -1090,14 +1090,14 @@ export default function ChatPage() {
             )}
             <button
               onClick={() => setCommandPaletteOpen(true)}
-              className="px-3 py-1.5 bg-slate-900 border border-border/60 hover:bg-slate-800 text-xs font-semibold rounded-xl flex items-center gap-1 cursor-pointer"
+              className="px-3 py-1.5 bg-secondary/50 border border-border/60 hover:bg-secondary text-xs font-semibold rounded-xl flex items-center gap-1 cursor-pointer"
             >
               <Sliders className="w-4 h-4 text-indigo-400" />
               <span>Palette</span>
             </button>
             <button
               onClick={() => setNotificationsOpen(prev => !prev)}
-              className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-400 hover:bg-slate-900 transition-colors relative cursor-pointer"
+              className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-400 hover:bg-secondary transition-colors relative cursor-pointer"
             >
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500" />
@@ -1105,14 +1105,14 @@ export default function ChatPage() {
             <button 
               onClick={handleClearChat}
               title="Delete Active Chat"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/80 text-muted-foreground hover:text-red-500 hover:bg-slate-900 transition-all text-xs font-semibold cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/80 text-muted-foreground hover:text-red-500 hover:bg-secondary transition-all text-xs font-semibold cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
               <span>Delete Chat</span>
             </button>
             <button 
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               title="Toggle Theme"
             >
               {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
@@ -1142,13 +1142,13 @@ export default function ChatPage() {
             <div className="flex-1 p-8 text-left space-y-4">
               <h2 className="text-xl font-bold">Interactive Roadmaps</h2>
               <p className="text-sm text-muted-foreground">Select or build a custom developer interview preparation roadmap.</p>
-              <button onClick={() => { handleExecuteCommand("JAVA_ROADMAP"); }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold mt-2 cursor-pointer">Generate Java Roadmap</button>
+              <button onClick={() => { handleExecuteCommand("JAVA_ROADMAP"); }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-foreground rounded-xl text-xs font-bold mt-2 cursor-pointer">Generate Java Roadmap</button>
             </div>
           ) : activeTab === "resume" ? (
             <div className="flex-1 p-8 text-left space-y-4">
               <h2 className="text-xl font-bold">Resume Operations</h2>
               <p className="text-sm text-muted-foreground">Tailor your resume against company profiles and track ATS scores.</p>
-              <button onClick={() => { handleExecuteCommand("ANALYZE_RESUME"); }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold mt-2 cursor-pointer">Run Resume Analysis</button>
+              <button onClick={() => { handleExecuteCommand("ANALYZE_RESUME"); }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-foreground rounded-xl text-xs font-bold mt-2 cursor-pointer">Run Resume Analysis</button>
             </div>
           ) : (
             // Default CHAT tab view
@@ -1165,32 +1165,32 @@ export default function ChatPage() {
                       <div className="w-16 h-16 rounded-[24px] bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-5 shadow-lg">
                         <Sparkles className="w-8 h-8 animate-pulse" />
                       </div>
-                      <h2 className="text-3xl font-extrabold text-white tracking-tight mb-1.5">Welcome to PlacementAI Workspace</h2>
+                      <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-1.5">Welcome to PlacementAI Workspace</h2>
                       <p className="text-sm text-muted-foreground font-medium">Your premium career readiness operations panel. Select a helper below to start.</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="p-4 bg-slate-900/60 border border-border/80 rounded-2xl flex flex-col justify-between">
+                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Readiness Score</span>
                           <Target className="w-4 h-4 text-indigo-400" />
                         </div>
                         <div className="text-3xl font-black text-indigo-400">78%</div>
-                        <div className="w-full bg-slate-850 h-1.5 rounded-full mt-2 overflow-hidden">
+                        <div className="w-full bg-secondary h-1.5 rounded-full mt-2 overflow-hidden">
                           <div className="bg-indigo-400 h-full rounded-full" style={{ width: '78%' }} />
                         </div>
                       </div>
 
-                      <div className="p-4 bg-slate-900/60 border border-border/80 rounded-2xl flex flex-col justify-between">
+                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Daily Mission</span>
                           <Award className="w-4 h-4 text-emerald-400" />
                         </div>
-                        <div className="text-xs font-semibold text-slate-200">Refactor Projects in STAR structure</div>
+                        <div className="text-xs font-semibold text-foreground">Refactor Projects in STAR structure</div>
                         <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">+100 XP Goal</div>
                       </div>
 
-                      <div className="p-4 bg-slate-900/60 border border-border/80 rounded-2xl flex flex-col justify-between">
+                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Current Streak</span>
                           <Flame className="w-4 h-4 text-amber-500" />
@@ -1199,12 +1199,12 @@ export default function ChatPage() {
                         <div className="text-[9px] text-muted-foreground font-medium mt-1">Keep it up! Streak breaks in 13h</div>
                       </div>
 
-                      <div className="p-4 bg-slate-900/60 border border-border/80 rounded-2xl flex flex-col justify-between">
+                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total XP</span>
                           <Zap className="w-4 h-4 text-indigo-500" />
                         </div>
-                        <div className="text-3xl font-black text-white">450 <span className="text-xs text-muted-foreground">XP</span></div>
+                        <div className="text-3xl font-black text-foreground">450 <span className="text-xs text-muted-foreground">XP</span></div>
                         <div className="text-[9px] text-muted-foreground font-medium mt-1">Level 4 Candidate</div>
                       </div>
                     </div>
@@ -1213,14 +1213,14 @@ export default function ChatPage() {
                       <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80">Suggested Next Action</h3>
                       <button 
                         onClick={() => handleSend(0, "Prepare me for TCS Backend Developer interview questions")}
-                        className="flex items-center justify-between w-full p-4 bg-slate-900/40 hover:bg-slate-900/80 border border-border/80 rounded-2xl transition-all text-left cursor-pointer group"
+                        className="flex items-center justify-between w-full p-4 bg-secondary/40 hover:bg-secondary/80 border border-border/80 rounded-2xl transition-all text-left cursor-pointer group"
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div>
-                            <div className="text-sm font-bold text-slate-100 group-hover:text-indigo-400 transition-colors">Prepare for TCS Backend Developer interview</div>
+                            <div className="text-sm font-bold text-foreground group-hover:text-indigo-400 transition-colors">Prepare for TCS Backend Developer interview</div>
                             <div className="text-[11px] text-muted-foreground mt-0.5">Estimated time: 10 mins • Proactive recommendation based on profile</div>
                           </div>
                         </div>
@@ -1240,7 +1240,7 @@ export default function ChatPage() {
                            <button 
                              key={item.title}
                              onClick={() => handleSend(0, item.title)}
-                             className="flex flex-col text-left p-4 rounded-xl border border-border/80 bg-card hover:bg-slate-900/60 hover:border-indigo-500/40 transition-all shadow-sm group cursor-pointer"
+                             className="flex flex-col text-left p-4 rounded-xl border border-border/80 bg-card hover:bg-secondary/60 hover:border-indigo-500/40 transition-all shadow-sm group cursor-pointer"
                            >
                               <span className="text-xs font-bold text-foreground group-hover:text-indigo-400 transition-colors">{item.title}</span>
                               <span className="text-[10px] text-muted-foreground/85 mt-1 line-clamp-1">{item.desc}</span>
@@ -1300,7 +1300,7 @@ export default function ChatPage() {
                     </div>
                   )}
 
-                  <div className="relative flex items-center bg-slate-900 border border-slate-800 rounded-full transition-all py-1 pl-4 pr-2 min-h-[56px]">
+                  <div className="relative flex items-center bg-secondary border border-border rounded-full transition-all py-1 pl-4 pr-2 min-h-[56px]">
                     {/* Attach button */}
                     <input 
                       type="file" 
@@ -1315,7 +1315,7 @@ export default function ChatPage() {
                     />
                     <button 
                       onClick={() => fileInputRef.current?.click()}
-                      className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+                      className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer"
                     >
                       <Paperclip className="w-5 h-5" />
                     </button>
@@ -1332,7 +1332,7 @@ export default function ChatPage() {
                         }
                       }}
                       placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-                      className="flex-1 !bg-transparent !border-none !border-0 !outline-none !ring-0 !shadow-none focus:!border-none focus:!border-0 focus:!outline-none focus:!ring-0 focus:!shadow-none py-4 px-3 text-[16px] text-slate-100 placeholder:text-slate-500 resize-none min-h-[56px] leading-relaxed align-bottom"
+                      className="flex-1 !bg-transparent !border-none !border-0 !outline-none !ring-0 !shadow-none focus:!border-none focus:!border-0 focus:!outline-none focus:!ring-0 focus:!shadow-none py-4 px-3 text-[16px] text-foreground placeholder:text-slate-500 resize-none min-h-[56px] leading-relaxed align-bottom"
                       rows={1}
                       disabled={!generationComplete}
                     />
@@ -1341,7 +1341,7 @@ export default function ChatPage() {
                     {generationState === "GENERATING" ? (
                       <button 
                         onClick={handleStop}
-                        className="w-9 h-9 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-white shadow-sm shrink-0 transition-all cursor-pointer"
+                        className="w-9 h-9 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-foreground shadow-sm shrink-0 transition-all cursor-pointer"
                         title="Stop generating"
                       >
                         <div className="w-3.5 h-3.5 bg-card rounded-xs" />
@@ -1381,3 +1381,4 @@ export default function ChatPage() {
     </div>
   );
 }
+

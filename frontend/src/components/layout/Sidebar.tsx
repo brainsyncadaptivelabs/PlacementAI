@@ -38,7 +38,12 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("token");
       }
-      router.push("/auth");
+      let logoutPath = "/auth";
+      if (role === "RECRUITER") logoutPath = "/auth/recruiter";
+      else if (role === "PLACEMENT_OFFICER") logoutPath = "/auth/placement-officer";
+      else if (role === "ADMIN" || role === "SUPER_ADMIN") logoutPath = "/admin";
+      
+      router.push(logoutPath);
     }
   };
 

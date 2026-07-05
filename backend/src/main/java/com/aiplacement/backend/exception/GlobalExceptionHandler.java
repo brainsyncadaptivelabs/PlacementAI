@@ -70,15 +70,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
         ex.printStackTrace(); // Log for debugging
         String message = ex.getMessage();
-        if (message != null && (message.toLowerCase().contains("cache") || 
-                                message.toLowerCase().contains("redis") || 
-                                message.toLowerCase().contains("connection") || 
-                                message.toLowerCase().contains("serialization") || 
-                                message.toLowerCase().contains("convert") || 
-                                message.toLowerCase().contains("hibernate") || 
-                                message.toLowerCase().contains("sql"))) {
-            message = "Unable to analyze the Job Description. Please try again.";
-        }
+
         ApiErrorResponse error = ApiErrorResponse.builder()
                 .message(message)
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())

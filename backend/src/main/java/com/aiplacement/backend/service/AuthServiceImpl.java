@@ -115,9 +115,21 @@ public class AuthServiceImpl implements AuthService {
         User user = null;
         try {
             Optional<User> userOptional = userRepository.findByEmailIgnoreCase(email);
+
             if (userOptional.isPresent()) {
-                log.info("Existing user found");
                 user = userOptional.get();
+                // Allow role update if requested role is different and valid
+                if (requestedRole != null && !requestedRole.equalsIgnoreCase(user.getRole().name())) {
+                    try {
+                        Role newRole = Role.valueOf(requestedRole.toUpperCase());
+                        user.setRole(newRole);
+                        user = userRepository.save(user);
+                        log.info("[GOOGLE_LOGIN] Updated existing user {} role to {}", email, newRole);
+                    } catch (IllegalArgumentException e) {
+                        log.warn("[GOOGLE_LOGIN] Invalid role requested for existing user: {}", requestedRole);
+                    }
+                }
+                log.info("Existing user found");
                 boolean changed = false;
 
                 if (user.getAuthProvider() != authProv) {
@@ -142,18 +154,6 @@ public class AuthServiceImpl implements AuthService {
                     changed = true;
                 }
 
-                if (requestedRole != null) {
-                    try {
-                        Role newRole = Role.valueOf(requestedRole.toUpperCase());
-                        if (user.getRole() != newRole) {
-                            log.info("Updating user role from {} to {}", user.getRole(), newRole);
-                            user.setRole(newRole);
-                            changed = true;
-                        }
-                    } catch (IllegalArgumentException e) {
-                        log.error("[SOCIAL_LOGIN] Invalid role requested: {}", requestedRole);
-                    }
-                }
 
                 if (changed) {
                     user.setUpdatedAt(LocalDateTime.now());
@@ -233,6 +233,18 @@ public class AuthServiceImpl implements AuthService {
                 .plan(user.getPlan())
                 .paymentStatus(user.getPaymentStatus())
                 .build();
+    }
+    
+    @Override
+    @Transactional
+    public void testClearUsers() {
+        // Delete all users who are not ADMIN
+        List<User> users = userRepository.findAll();
+        for (User u : users) {
+            if (u.getRole() != Role.ADMIN) {
+                userRepository.delete(u);
+            }
+        }
     }
 
     @Override
@@ -514,19 +526,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RuntimeException("Please verify your email first.");
         }
 
-        if (request.getRole() != null) {
-            try {
-                Role newRole = Role.valueOf(request.getRole().toUpperCase());
-                if (user.getRole() != newRole) {
-                    log.info("Updating user role from {} to {}", user.getRole(), newRole);
-                    user.setRole(newRole);
-                    user.setUpdatedAt(LocalDateTime.now());
-                    user = userRepository.save(user);
-                }
-            } catch (IllegalArgumentException e) {
-                log.error("[LOGIN] Invalid role requested: {}", request.getRole());
-            }
-        }
+
 
         log.info("Login authentication successful for user: {}", user.getEmail());
         String accessToken = jwtService.generateAccessToken(user.getEmail());

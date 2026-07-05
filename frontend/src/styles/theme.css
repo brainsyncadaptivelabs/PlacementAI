@@ -91,6 +91,25 @@
   --recruiter-sidebar-foreground: #ffffff;
 }
 
+.theme-placement-officer {
+  /* Copper/Orange Theme for Placement Officer */
+  --accent: #C25E2D;
+  --primary: #C25E2D;
+  --primary-foreground: #ffffff;
+  --sidebar-accent: #FFF3EB;
+  --sidebar-accent-foreground: #C25E2D;
+  --ring: rgba(194, 94, 45, 0.25);
+}
+
+.dark .theme-placement-officer {
+  --accent: #D96A30;
+  --primary: #D96A30;
+  --primary-foreground: #ffffff;
+  --sidebar-accent: rgba(217, 106, 48, 0.15);
+  --sidebar-accent-foreground: #D96A30;
+  --ring: rgba(217, 106, 48, 0.25);
+}
+
 /* Removed conflicting body styles */
 
 /* Scrollbar override */

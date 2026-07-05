@@ -12,6 +12,9 @@ export const useAuth = () => {
       provider,
       options: {
         redirectTo: redirectUrl,
+        queryParams: {
+          prompt: 'select_account'
+        }
       },
     });
     if (error) throw error;

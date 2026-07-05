@@ -17,6 +17,8 @@ public interface AuthService {
             com.aiplacement.backend.dto.auth.GoogleLoginRequest request
     );
 
+    void testClearUsers();
+
     TokenResponse refreshToken(
             String refreshToken
     );

@@ -30,3 +30,8 @@ INSERT INTO interview_questions (question_text, mock_interview_id) VALUES ('What
 
 -- Initial Companies and Roles info can be handled in the UI or a separate config table if needed.
 -- But the requirement asked for hardcoded data for Companies and Roles too.
+
+ALTER TABLE users ALTER COLUMN id RESTART WITH 1000;
+ALTER TABLE mock_interviews ALTER COLUMN id RESTART WITH 1000;
+ALTER TABLE interview_questions ALTER COLUMN id RESTART WITH 1000;
+

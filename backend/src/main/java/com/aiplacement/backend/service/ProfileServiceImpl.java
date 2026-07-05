@@ -59,6 +59,20 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    public void completePlacementOfficerProfile(CompleteProfileRequest request) {
+        if (request.getCollegeName() == null || request.getCollegeName().isBlank()) throw new IllegalArgumentException("College name is required");
+
+        User user = getCurrentUser();
+        user.setRole(Role.PLACEMENT_OFFICER);
+        user.setCollegeName(request.getCollegeName());
+        if (request.getDepartment() != null) user.setBranch(request.getDepartment());
+        if (request.getDesignation() != null) user.setDesignation(request.getDesignation());
+        
+        user.setProfileCompleted(true);
+        userRepository.save(user);
+    }
+
+    @Override
     public UserProfileDto getMyProfile() {
         User user = getCurrentUser();
         return UserProfileDto.builder()

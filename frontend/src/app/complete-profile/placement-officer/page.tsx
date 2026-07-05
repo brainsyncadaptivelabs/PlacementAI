@@ -39,45 +39,9 @@ export default function CompletePlacementOfficerProfile() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{__html: `
-        :root {
-          --bg-primary: #171827 !important;
-          --bg-secondary: #1C1D2C !important;
-          --bg-surface: #222539 !important;
-          --bg-elevated: #2A2D43 !important;
-          --bg-hover: #2A2D43 !important;
-          --text-primary: #FFFFFF !important;
-          --text-secondary: #CBD5E1 !important;
-          --text-muted: #94A3B8 !important;
-          --accent: #7B61FF !important;
-          --border-subtle: rgba(255, 255, 255, 0.05) !important;
-          --border-focus: rgba(123, 97, 255, 0.2) !important;
-          --background: #171827 !important;
-          --foreground: #FFFFFF !important;
-          --card: #222539 !important;
-          --card-foreground: #FFFFFF !important;
-          --popover: #222539 !important;
-          --popover-foreground: #FFFFFF !important;
-          --primary: #7B61FF !important;
-          --primary-foreground: #ffffff !important;
-          --secondary: #2A2D43 !important;
-          --secondary-foreground: #FFFFFF !important;
-          --muted: #1C1D2C !important;
-          --muted-foreground: #94A3B8 !important;
-          --border: rgba(255, 255, 255, 0.05) !important;
-          --input: #2A2D43 !important;
-          --ring: rgba(123, 97, 255, 0.2) !important;
-          color-scheme: dark !important;
-        }
-        body {
-          background-color: var(--background) !important;
-          color: var(--foreground) !important;
-          background-image: none !important;
-        }
-      `}} />
-      <div className="dark min-h-screen bg-background flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#7B61FF]/10 rounded-full blur-3xl -z-10" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#7B61FF]/10 rounded-full blur-3xl -z-10" />
+      <div className="theme-placement-officer min-h-screen bg-background flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-300">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#C25E2D]/10 rounded-full blur-3xl -z-10" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#C25E2D]/10 rounded-full blur-3xl -z-10" />
 
       <AnimatePresence mode="wait">
         {error && (

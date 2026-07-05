@@ -22,4 +22,5 @@ public class CompleteProfileRequest {
     private String skills;
     private String phone;
     private String designation;
+    private String department;
 }

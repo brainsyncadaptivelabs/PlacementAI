@@ -32,8 +32,7 @@ export async function GET(request: Request) {
     console.log(`[AUTH_CALLBACK] Session obtained for: ${userEmail}`);
 
     // ── Exchange Supabase token for PlacementAI JWT ────────────────────────
-    // For server-side requests in Docker, replace 'localhost' with the service name 'backend'
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1').replace('localhost', 'backend');
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
     const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];
     const validatedRole = role && validRoles.includes(role) ? role : undefined;
 
@@ -62,6 +61,18 @@ export async function GET(request: Request) {
         placementToken = backendData.accessToken;
         backendRole = backendData.role ?? validatedRole ?? 'STUDENT';
         console.log(`[AUTH_CALLBACK] Backend auth OK. role=${backendRole}`);
+        
+        // Enforce strict portal-based login for social login
+        const portalRole = validatedRole ?? 'STUDENT';
+        if (backendRole && backendRole !== portalRole) {
+           console.warn(`[AUTH_CALLBACK] Portal mismatch: attempted ${portalRole} but user is ${backendRole}`);
+           let correctPortal = "/auth";
+           if (backendRole === "RECRUITER") correctPortal = "/auth/recruiter";
+           else if (backendRole === "PLACEMENT_OFFICER") correctPortal = "/auth/placement-officer";
+           else if (backendRole === "ADMIN" || backendRole === "SUPER_ADMIN") correctPortal = "/admin/login";
+           
+           return NextResponse.redirect(`${origin}/auth?error=wrong_portal&correct=${encodeURIComponent(correctPortal)}&role=${backendRole}`);
+        }
       } else {
         const errText = await backendResponse.text();
         console.error(`[AUTH_CALLBACK] Backend auth failed (${backendResponse.status}): ${errText}`);

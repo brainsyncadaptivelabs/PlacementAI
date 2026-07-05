@@ -6,6 +6,7 @@ import com.aiplacement.backend.dto.user.UserProfileDto;
 public interface ProfileService {
     void completeStudentProfile(CompleteProfileRequest request);
     void completeRecruiterProfile(CompleteProfileRequest request);
+    void completePlacementOfficerProfile(CompleteProfileRequest request);
     UserProfileDto getMyProfile();
     UserProfileDto getPublicProfileById(Long id);
     void updateProfile(CompleteProfileRequest request);

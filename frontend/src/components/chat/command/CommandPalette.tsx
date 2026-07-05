@@ -54,9 +54,9 @@ export function CommandPalette({ isOpen, onClose, onExecute }: CommandPalettePro
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-start justify-center pt-[15vh] z-[9999] select-none">
-      <div className="w-full max-w-[600px] bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[450px]">
+      <div className="w-full max-w-[600px] bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[450px]">
         {/* Search bar */}
-        <div className="flex items-center px-4 border-b border-slate-800 py-3.5 bg-slate-950/40">
+        <div className="flex items-center px-4 border-b border-border py-3.5 bg-slate-950/40">
           <Search className="w-5 h-5 text-muted-foreground mr-3 shrink-0" />
           <input
             ref={inputRef}
@@ -64,7 +64,7 @@ export function CommandPalette({ isOpen, onClose, onExecute }: CommandPalettePro
             placeholder="Type a command or search action..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setSelectedIndex(0); }}
-            className="w-full bg-transparent border-0 outline-none text-sm text-slate-100 placeholder:text-slate-500"
+            className="w-full bg-transparent border-0 outline-none text-sm text-card-foreground placeholder:text-muted-foreground"
           />
         </div>
 
@@ -80,12 +80,12 @@ export function CommandPalette({ isOpen, onClose, onExecute }: CommandPalettePro
                   key={cmd.id}
                   onClick={() => { onExecute(cmd.action); onClose(); }}
                   className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl cursor-pointer text-xs font-semibold transition-all ${
-                    isSelected ? "bg-indigo-600 text-white" : "hover:bg-slate-850 text-slate-300"
+                    isSelected ? "bg-indigo-600 text-white" : "hover:bg-secondary text-muted-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
                     <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                      isSelected ? "bg-indigo-500 text-white" : "bg-slate-850 text-muted-foreground"
+                      isSelected ? "bg-indigo-500 text-white" : "bg-secondary text-muted-foreground"
                     }`}>{cmd.category}</span>
                     <span>{cmd.name}</span>
                   </div>
@@ -101,3 +101,4 @@ export function CommandPalette({ isOpen, onClose, onExecute }: CommandPalettePro
     </div>
   );
 }
+

@@ -190,12 +190,13 @@ public class NvidiaBuildClient implements AIClient {
         NvidiaRequest request = buildRequest(systemPrompt, userPrompt, temperature, maxTokens, true, false);
 
         return webClient.post()
+                .header(org.springframework.http.HttpHeaders.ACCEPT, org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
                 .bodyValue(request)
                 .retrieve()
                 .onStatus(status -> status.is4xxClientError(), this::handle4xxError)
                 .onStatus(status -> status.is5xxServerError(), this::handle5xxError)
                 .bodyToFlux(String.class)
-                .timeout(Duration.ofMinutes(10))
+                .timeout(java.time.Duration.ofMinutes(10))
                 .retryWhen(buildRetrySpec())
                 .mapNotNull(this::parseStreamChunk)
                 .filter(chunk -> !chunk.isEmpty())

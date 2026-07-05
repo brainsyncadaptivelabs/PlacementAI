@@ -49,6 +49,12 @@ public class ProfileController {
         return ResponseEntity.ok("Recruiter profile completed successfully");
     }
 
+    @PostMapping("/placement-officer")
+    public ResponseEntity<String> completePlacementOfficerProfile(@RequestBody CompleteProfileRequest request) {
+        profileService.completePlacementOfficerProfile(request);
+        return ResponseEntity.ok("Placement Officer profile completed successfully");
+    }
+
     @GetMapping("/me")
     public ResponseEntity<UserProfileDto> getMyProfile() {
         return ResponseEntity.ok(profileService.getMyProfile());
