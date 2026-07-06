@@ -16,4 +16,5 @@ public interface AdminPortalService {
     byte[] generateReport(String type);
     Map<String, Object> updateUserPlan(Long userId, String plan);
     Map<String, Object> getCollegeAnalytics(String college, String branch);
+    void deleteUser(Long id);
 }

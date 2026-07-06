@@ -106,4 +106,10 @@ public class AdminPortalController {
     ) {
         return ResponseEntity.ok(adminPortalService.updateUserPlan(id, plan));
     }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable("id") Long id) {
+        adminPortalService.deleteUser(id);
+        return ResponseEntity.ok(Map.of("message", "User successfully deleted"));
+    }
 }

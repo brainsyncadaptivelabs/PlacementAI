@@ -13,8 +13,6 @@ import {
   Copy, 
   Check, 
   RotateCcw, 
-  ThumbsUp, 
-  ThumbsDown, 
   Loader2, 
   Trash2, 
   Paperclip, 
@@ -27,9 +25,16 @@ import {
   Sliders,
   Plus,
   Zap,
-  Flame,
   Award,
-  Target
+  Target,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Download,
+  Info,
+  Database,
+  Code,
+  FileSpreadsheet
 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useTheme } from "next-themes";
@@ -37,12 +42,416 @@ import { WidgetRenderer } from "@/components/chat/widgets/index";
 import { useConversationManager } from "@/components/chat/useConversationManager";
 import { Message } from "@/components/chat/ConversationStorage";
 import { CommandPalette } from "@/components/chat/command/CommandPalette";
-import { WorkspaceTabs } from "@/components/workspace/WorkspaceTabs";
 import { NotificationCenter } from "@/components/workspace/NotificationCenter";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/store/toast-store";
+import { AnimatePresence, motion } from "framer-motion";
+import { 
+  exportToMarkdown, 
+  exportToDocx, 
+  copyRichText, 
+  exportToPdf 
+} from "@/lib/chat/ExportUtils";
+
+// --- REASONING STATUS CHIPS COMPONENT ---
+const ReasoningStatus = ({ loadingPhase }: { loadingPhase: number }) => {
+  const statusList = [
+    { text: "Thinking...", icon: Sparkles, color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-100" },
+    { text: "Reading Resume...", icon: FileText, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 border-blue-100" },
+    { text: "Analyzing Job Description...", icon: Target, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-100" },
+    { text: "Comparing Skills...", icon: Award, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20 border-amber-100" },
+    { text: "Generating Recommendations...", icon: Zap, color: "text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-100" },
+    { text: "Building Roadmap...", icon: Sliders, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100" },
+    { text: "Finalizing Response...", icon: Check, color: "text-pink-600 bg-pink-50 dark:bg-pink-950/20 border-pink-100" }
+  ];
+
+  const activeIdx = Math.min(loadingPhase - 1, statusList.length - 1);
+  if (activeIdx < 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2.5 my-3 select-none">
+      <AnimatePresence mode="popLayout">
+        {statusList.slice(0, activeIdx + 1).map((status, idx) => {
+          const Icon = status.icon;
+          const isActive = idx === activeIdx;
+          return (
+            <motion.div
+              key={status.text}
+              initial={{ opacity: 0, scale: 0.85, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold shadow-sm ${status.color}`}
+            >
+              {isActive ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Check className="w-3 h-3 text-emerald-500" />
+              )}
+              <Icon className="w-3.5 h-3.5" />
+              <span>{status.text}</span>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// --- FILE UPLOAD PREVIEW CARD ---
+const FileUploadPreview = ({ 
+  file, 
+  onRemove,
+  progress = 100
+}: { 
+  file: { name: string; size: number; id: string }; 
+  onRemove: () => void;
+  progress?: number;
+}) => {
+  const isLoaded = progress >= 100;
+  
+  return (
+    <div className="bg-card border border-border/80 p-3.5 rounded-2xl flex items-center justify-between gap-4 w-72 shadow-sm animate-in slide-in-from-bottom-2 select-none">
+      <div className="flex items-center gap-3 min-w-0">
+        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 border border-indigo-100/40">
+          <FileText className="w-5 h-5" />
+        </div>
+        <div className="min-w-0">
+          <h4 className="text-xs font-bold text-foreground truncate">{file.name}</h4>
+          <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">
+            {isLoaded ? `${(file.size / 1024).toFixed(1)} KB • Uploaded` : `Uploading ${progress}%`}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 shrink-0">
+        {isLoaded ? (
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="w-5 h-5 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500"
+          >
+            <Check className="w-3 h-3" />
+          </motion.div>
+        ) : (
+          <Loader2 className="w-4 h-4 text-indigo-600 animate-spin" />
+        )}
+        <button 
+          onClick={onRemove}
+          className="p-1 rounded-lg text-muted-foreground/60 hover:text-red-500 hover:bg-rose-500/5 transition-colors cursor-pointer"
+          title="Remove File"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- INTERACTIVE VISUAL COMPONENTS ---
+const ATSScoreRing = ({ score }: { score: number }) => {
+  const radius = 24;
+  const stroke = 5;
+  const normalizedRadius = radius - stroke * 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (score / 100) * circumference;
+
+  return (
+    <div className="flex items-center gap-3 bg-indigo-500/5 border border-indigo-500/10 p-4.5 rounded-2xl w-fit my-3 select-none">
+      <div className="relative flex items-center justify-center">
+        <svg height={radius * 2} width={radius * 2} className="transform -rotate-90">
+          <circle
+            stroke="#e2e8f0"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <motion.circle
+            stroke="#6366f1"
+            fill="transparent"
+            strokeWidth={stroke}
+            strokeDasharray={circumference + " " + circumference}
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset }}
+            transition={{ duration: 1, ease: "easeOut" }}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+        </svg>
+        <span className="absolute text-[11px] font-black text-indigo-600">{score}%</span>
+      </div>
+      <div>
+        <h4 className="text-xs font-black text-indigo-950 dark:text-indigo-200 uppercase tracking-wider leading-none">ATS Alignment Score</h4>
+        <p className="text-[10px] text-indigo-600/70 font-semibold mt-1">Excellent keyword density matches target role</p>
+      </div>
+    </div>
+  );
+};
+
+const ReadinessGauge = ({ score }: { score: number }) => {
+  const radius = 45;
+  const stroke = 6;
+  const circ = radius * Math.PI;
+  const offset = circ - (score / 100) * circ;
+
+  return (
+    <div className="flex flex-col items-center bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl w-fit my-3 select-none">
+      <div className="relative flex items-center justify-center h-[50px] overflow-hidden">
+        <svg height={radius * 2} width={radius * 2} className="absolute top-0">
+          <path
+            d="M 5 45 A 40 40 0 0 1 85 45"
+            fill="none"
+            stroke="#e2e8f0"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+          />
+          <motion.path
+            d="M 5 45 A 40 40 0 0 1 85 45"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circ}
+            initial={{ strokeDashoffset: circ }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
+          />
+        </svg>
+        <span className="absolute bottom-0 text-[16px] font-black text-emerald-600">{score}%</span>
+      </div>
+      <div className="text-center mt-2.5">
+        <h4 className="text-xs font-black text-emerald-950 dark:text-emerald-250 uppercase tracking-wider leading-none">Interview Readiness</h4>
+        <p className="text-[9px] text-emerald-600/70 font-semibold mt-1">Ready for general screening process</p>
+      </div>
+    </div>
+  );
+};
+
+const DifficultyMeter = ({ difficulty }: { difficulty: "Easy" | "Medium" | "Hard" }) => {
+  const colors = {
+    Easy: "bg-emerald-500 text-white border-emerald-600",
+    Medium: "bg-amber-500 text-white border-amber-600",
+    Hard: "bg-rose-500 text-white border-rose-600"
+  };
+
+  return (
+    <div className="flex items-center gap-2.5 my-3 px-3 py-2 rounded-xl bg-muted/65 border border-border w-fit select-none text-xs">
+      <span className="font-bold text-muted-foreground uppercase tracking-wider text-[10px]">Topic Difficulty:</span>
+      <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-sm ${colors[difficulty]}`}>
+        {difficulty}
+      </span>
+    </div>
+  );
+};
+
+// --- FLOATING ACTIVE CONTEXT MEMORY BAR ---
+const AIContextDrawer = ({ 
+  context, 
+  onClear 
+}: { 
+  context: {
+    resumeName?: string;
+    targetJd?: string;
+    preferredCompany?: string;
+    preferredRole?: string;
+    techStack?: string;
+    careerGoal?: string;
+  };
+  onClear: () => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const hasContext = Object.values(context).some(v => !!v);
+  if (!hasContext) return null;
+
+  return (
+    <div className="absolute top-18 right-8 z-30 select-none">
+      <div className="border border-border/80 rounded-2xl bg-card/90 backdrop-blur-md shadow-md overflow-hidden max-w-sm w-80 transition-all duration-300">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full px-4 py-2.5 flex items-center justify-between text-xs font-bold hover:bg-muted/40 text-indigo-600 dark:text-indigo-400 cursor-pointer"
+        >
+          <div className="flex items-center gap-1.5">
+            <Database className="w-3.5 h-3.5" />
+            <span>AI Copilot Active Memory</span>
+          </div>
+          {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </button>
+
+        {isOpen && (
+          <div className="p-4 border-t border-border/50 space-y-3 bg-card text-xs">
+            {context.resumeName && (
+              <div className="flex justify-between items-center bg-secondary/30 p-2 rounded-xl">
+                <span className="font-bold text-muted-foreground">📄 Resume</span>
+                <span className="font-semibold text-foreground truncate max-w-[150px]">{context.resumeName}</span>
+              </div>
+            )}
+            {context.preferredCompany && (
+              <div className="flex justify-between items-center bg-secondary/30 p-2 rounded-xl">
+                <span className="font-bold text-muted-foreground">🏢 Target Company</span>
+                <span className="font-semibold text-foreground truncate max-w-[150px]">{context.preferredCompany}</span>
+              </div>
+            )}
+            {context.preferredRole && (
+              <div className="flex justify-between items-center bg-secondary/30 p-2 rounded-xl">
+                <span className="font-bold text-muted-foreground">🎯 Preferred Role</span>
+                <span className="font-semibold text-foreground truncate max-w-[150px]">{context.preferredRole}</span>
+              </div>
+            )}
+            {context.techStack && (
+              <div className="flex justify-between items-center bg-secondary/30 p-2 rounded-xl">
+                <span className="font-bold text-muted-foreground">💻 Tech Stack</span>
+                <span className="font-semibold text-foreground truncate max-w-[150px]">{context.techStack}</span>
+              </div>
+            )}
+            {context.careerGoal && (
+              <div className="flex flex-col bg-secondary/30 p-2 rounded-xl gap-1">
+                <span className="font-bold text-muted-foreground">🚀 Career Goal</span>
+                <span className="font-semibold text-foreground leading-relaxed">{context.careerGoal}</span>
+              </div>
+            )}
+            <button 
+              onClick={onClear}
+              className="w-full text-center py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer"
+            >
+              Clear Memory Context
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// --- SMART CLICKABLE SUGGESTIONS BAR ---
+const SmartSuggestions = ({ 
+  suggestions, 
+  onClick 
+}: { 
+  suggestions: string[]; 
+  onClick: (query: string) => void;
+}) => {
+  return (
+    <div className="flex flex-wrap gap-2.5 mt-4 select-none animate-in fade-in duration-300">
+      {suggestions.map((suggestion) => (
+        <button
+          key={suggestion}
+          onClick={() => onClick(suggestion)}
+          className="px-3.5 py-2 rounded-full border border-indigo-500/25 hover:border-indigo-500/50 bg-indigo-500/5 hover:bg-indigo-500/10 text-xs font-bold text-indigo-600 dark:text-indigo-400 transition-all cursor-pointer hover:scale-105 active:scale-95"
+        >
+          {suggestion}
+        </button>
+      ))}
+    </div>
+  );
+};
+
+// --- PREMIUM WIDGET / REPORT CONTAINER ---
+const AIMessageCard = ({ 
+  title, 
+  description, 
+  icon: Icon, 
+  children,
+  onCopy,
+  onExportPdf,
+  onExportMarkdown,
+  onExportDocx
+}: {
+  title: string;
+  description: string;
+  icon: any;
+  children: React.ReactNode;
+  onCopy: () => void;
+  onExportPdf: () => void;
+  onExportMarkdown: () => void;
+  onExportDocx: () => void;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+
+  return (
+    <div className="border border-border/70 rounded-3xl overflow-hidden shadow-sm bg-card transition-all duration-300 w-full my-4">
+      {/* Card Header */}
+      <div className="bg-secondary/40 px-6 py-4 flex items-center justify-between border-b border-border select-none">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-inner">
+            <Icon className="w-4.5 h-4.5" />
+          </div>
+          <div>
+            <h3 className="font-extrabold text-[14.5px] text-foreground tracking-tight leading-tight">{title}</h3>
+            <p className="text-[11px] font-bold text-muted-foreground/80 mt-0.5">{description}</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Action buttons */}
+          <button 
+            onClick={onCopy} 
+            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            title="Copy Report"
+          >
+            <Copy className="w-3.5 h-3.5" />
+          </button>
+          
+          {/* Export Menu Dropdown */}
+          <div className="relative">
+            <button 
+              onClick={() => setShowExportMenu(!showExportMenu)} 
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+              title="Export Report"
+            >
+              <Share className="w-3.5 h-3.5" />
+            </button>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-card border border-border rounded-2xl shadow-lg z-50 p-1.5 animate-in fade-in duration-200">
+                <button 
+                  onClick={() => { onExportPdf(); setShowExportMenu(false); }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:bg-muted flex items-center gap-2 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-red-500" />
+                  Export as PDF / Print
+                </button>
+                <button 
+                  onClick={() => { onExportMarkdown(); setShowExportMenu(false); }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:bg-muted flex items-center gap-2 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-blue-500" />
+                  Export as Markdown
+                </button>
+                <button 
+                  onClick={() => { onExportDocx(); setShowExportMenu(false); }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:bg-muted flex items-center gap-2 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+                  Export as Word (DOC)
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)} 
+            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+          >
+            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </button>
+        </div>
+      </div>
+
+      {/* Card Content with collapse transition */}
+      {isExpanded && (
+        <div className="p-6 text-[15px] leading-relaxed text-foreground select-text border-t-0 animate-in slide-in-from-top-1 duration-200">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Safe Markdown Error Boundary with plain text fallback
 class SafeMarkdownBoundary extends React.Component<
@@ -93,20 +502,34 @@ const normalizeMarkdown = (text: string): string => {
   return result;
 };
 
-// JSON extractor helper
-const extractJsonFromMarkdown = (content: string): string => {
-  if (!content) return "";
-  const jsonBlockRegex = /```json\s*([\s\S]*?)\s*```/;
+// JSON parsing and text content extractor helper (ChatGPT style: hides JSON completely)
+const parseMessageContent = (content: string): { text: string; rawJson: string | null } => {
+  if (!content) return { text: "", rawJson: null };
+
+  const jsonBlockRegex = /```(?:json|placementai)\s*([\s\S]*?)(?:```|$)/;
   const match = content.match(jsonBlockRegex);
-  if (match && match[1]) {
-    return match[1].trim();
+  if (match) {
+    const rawJson = match[1].trim();
+    const text = content.replace(/```(?:json|placementai)\s*[\s\S]*?(?:```|$)/g, "").trim();
+    return { text, rawJson };
   }
+
   const start = content.indexOf("{");
   const end = content.lastIndexOf("}");
   if (start !== -1 && end !== -1 && end > start) {
-    return content.substring(start, end + 1).trim();
+    const rawJsonCandidate = content.substring(start, end + 1).trim();
+    try {
+      const parsed = JSON.parse(rawJsonCandidate);
+      if (parsed && (parsed.widgets || parsed.widget || parsed.schema)) {
+        const text = (content.substring(0, start) + content.substring(end + 1)).trim();
+        return { text, rawJson: rawJsonCandidate };
+      }
+    } catch (e) {
+      // Fallback
+    }
   }
-  return content.trim();
+
+  return { text: content, rawJson: null };
 };
 
 // Premium Code Block Component
@@ -155,13 +578,14 @@ const CodeBlock = memo(({ className, children }: { className?: string; children:
 });
 CodeBlock.displayName = "CodeBlock";
 
-// Redesigned Message Item Component with Premium Bubbles
+// Redesigned Message Item Component with Premium Bubbles (ChatGPT layout style)
 const MessageItem = memo(({ 
   msg, 
   onCopy, 
   onRegenerate,
   onEdit,
   isGenerating = false,
+  isLoading = false,
   feedbackState,
   onFeedback
 }: { 
@@ -169,6 +593,7 @@ const MessageItem = memo(({
   onCopy: (content: string) => void;
   onRegenerate?: (content: string) => void;
   onEdit?: (id: number, content: string) => void;
+  isGenerating?: boolean;
   isLoading?: boolean;
   feedbackState?: 'like' | 'dislike';
   onFeedback?: (type: 'like' | 'dislike') => void;
@@ -189,177 +614,213 @@ const MessageItem = memo(({
 
   const isAi = msg.role === 'ai';
 
+  // Extract rawJson and cleanText (so users never see JSON text blocks)
+  const { text: cleanText, rawJson } = parseMessageContent(msg.content);
+
+  // Classify report details to see if we render a Premium Card
+  const getReportDetails = (content: string) => {
+    const lower = content.toLowerCase();
+    if (lower.startsWith("# resume analysis") || lower.includes("resume analysis")) {
+      return { title: "Resume Analysis Report", description: "AI feedback on resume structure and metrics", icon: FileText, isReport: true };
+    }
+    if (lower.startsWith("# skill match") || lower.includes("skill match")) {
+      return { title: "Skill Match Report", description: "Comparison of profile skills vs target description", icon: Award, isReport: true };
+    }
+    if (lower.startsWith("# missing skills") || lower.includes("missing skills")) {
+      return { title: "Skill Gap Analysis", description: "Identified competency gaps and requirements", icon: Zap, isReport: true };
+    }
+    if (lower.startsWith("# career advice") || lower.includes("career advice")) {
+      return { title: "Career Advice Panel", description: "Strategic professional advice for candidate path", icon: Sparkles, isReport: true };
+    }
+    if (lower.startsWith("# coding solution") || lower.includes("coding solution")) {
+      return { title: "Coding Solution Guide", description: "Algorithmic walkthrough and code implementation", icon: Code, isReport: true };
+    }
+    if (lower.startsWith("# roadmap") || lower.includes("roadmap")) {
+      return { title: "Career Learning Path", description: "Step-by-step topic milestones", icon: Sliders, isReport: true };
+    }
+    return { title: "", description: "", icon: Info, isReport: false };
+  };
+
+  const report = getReportDetails(cleanText);
+
+  // Render markdown parser
+  const renderMarkdown = (textStr: string) => (
+    <SafeMarkdownBoundary fallbackText={textStr}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeSanitize]}
+        components={{
+          p: ({children}) => <p className="leading-[1.8] text-[15px] font-medium text-foreground/90 mb-4 last:mb-0 select-text">{children}</p>,
+          h1: ({children}) => <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-6 mb-3">{children}</h1>,
+          h2: ({children}) => <h2 className="text-lg font-bold text-foreground tracking-tight mt-5 mb-2">{children}</h2>,
+          ul: ({children}) => <ul className="list-disc pl-6 space-y-2 mb-4 select-text">{children}</ul>,
+          ol: ({children}) => <ol className="list-decimal pl-6 space-y-2 mb-4 select-text">{children}</ol>,
+          li: ({children}) => <li className="text-[14.5px] font-medium leading-[1.8] text-foreground/90">{children}</li>,
+          code: ({className, children}) => {
+            const codeStr = String(children);
+            if (codeStr.startsWith("class ") || codeStr.startsWith("public ") || codeStr.includes("\n") || className) {
+              return <CodeBlock className={className}>{codeStr}</CodeBlock>;
+            }
+            return <code className="px-1.5 py-0.5 rounded-md bg-muted/65 border border-border/50 text-indigo-650 font-mono text-[13px]">{children}</code>;
+          },
+          blockquote: ({children}) => (
+            <blockquote className="border-l-4 border-muted-foreground/30 pl-4 py-1 italic my-4 text-muted-foreground/90 leading-relaxed font-serif">
+              {children}
+            </blockquote>
+          )
+        }}
+      >
+        {textStr + (isLoading ? " ▋" : "")}
+      </ReactMarkdown>
+    </SafeMarkdownBoundary>
+  );
+
   return (
-    <div className="w-full flex justify-center mb-6 last:mb-0 animate-message group/msg relative">
-      <div className={`w-full max-w-[1200px] px-6 flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-indigo-50 border-indigo-100 text-indigo-650' : 'bg-muted border-border text-muted-foreground'}`}>
-          {isAi ? (
-            <Sparkles className="w-4 h-4 text-indigo-650" />
-          ) : (
-            <User className="w-4 h-4 text-muted-foreground" />
-          )}
-        </Avatar>
+    <div className={`w-full flex ${isAi ? 'justify-start' : 'justify-end'} mb-6 last:mb-0 animate-message group/msg relative`}>
+      <div className={`w-full max-w-[1000px] flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
         
-        <div className={`flex flex-col ${isAi ? 'items-start w-[92%]' : 'items-end max-w-[75%]'} min-w-0 flex-1 relative`}>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-bold text-muted-foreground/75 uppercase tracking-wider">
-              {isAi ? 'AI Career Copilot' : 'You'}
-            </span>
-            <span className="text-[10px] text-muted-foreground/50 font-medium">
-              {msg.time}
-            </span>
+        {/* Sparkles Avatar outside on the left (AI only) */}
+        {isAi ? (
+          <div className="w-9 h-9 shrink-0 rounded-full flex items-center justify-center bg-indigo-600 border border-indigo-500 shadow-sm text-white mt-1.5 select-none">
+            <Sparkles className="w-4.5 h-4.5 text-white" />
           </div>
+        ) : null}
 
-          <div 
-            className={`message-content bg-transparent text-foreground ${isAi ? 'w-full' : 'w-fit text-right'}`}
-            style={{ 
-              whiteSpace: 'pre-wrap', 
-              wordBreak: 'normal',
-              overflowWrap: 'break-word',
-              letterSpacing: '-0.01em',
-              padding: '8px 0px',
-              borderRadius: '0px',
-              display: isAi ? 'flex' : undefined,
-              flexDirection: isAi ? 'column' : undefined,
-              gap: isAi ? '10px' : undefined,
-            }}
-          >
-            {!isAi && isEditing ? (
-              <div className="w-full flex flex-col gap-2 bg-secondary border border-border p-3 rounded-2xl">
-                <textarea
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  className="w-full bg-transparent outline-none border-0 text-foreground text-sm resize-none min-h-[60px]"
-                />
-                <div className="flex justify-end gap-2 text-xs font-bold">
-                  <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary cursor-pointer">Cancel</button>
-                  <button onClick={() => { if (onEdit) onEdit(msg.id, editText); setIsEditing(false); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-foreground cursor-pointer">Save & Resend</button>
+        <div className={`flex flex-col ${isAi ? 'items-start flex-1 min-w-0' : 'items-end max-w-[75%]'}`}>
+          {isAi ? (
+            /* Assistant Bubble Card */
+            <div className="bg-card border border-border/85 shadow-sm rounded-3xl px-6 py-5 w-full text-left relative flex flex-col gap-3">
+              
+              {/* If structured widget data is detected, render WidgetRenderer */}
+              {rawJson && (rawJson.includes("widget") || rawJson.includes("schema")) && (
+                <div className="my-1 border border-border/60 rounded-2xl overflow-hidden shadow-inner bg-muted/10 w-full">
+                  <WidgetRenderer rawJson={rawJson} isStreaming={isLoading} />
                 </div>
-              </div>
-            ) : (
-              isAi ? (
-                msg.content ? (
-                  <SafeMarkdownBoundary fallbackText={msg.content}>
-                    <div className="space-y-4 w-full">
-                      {msg.content.includes("├──") && (
-                        <div className="p-4 bg-muted/40 border border-border/50 rounded-xl font-mono text-xs text-indigo-400 space-y-1 my-3 select-none">
-                          <div className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider mb-2">⚡ Visual Skill Tree</div>
-                          {msg.content.split("\n").filter(line => line.includes("├──") || line.includes("└──")).map((line, idx) => {
-                            const isComplete = line.includes("✓") || line.includes("Complete") || idx < 3;
-                            return (
-                              <div key={idx} className={`flex items-center gap-2 ${isComplete ? 'text-emerald-500' : 'text-muted-foreground'}`}>
-                                <span>{line}</span>
-                                {isComplete ? (
-                                  <span className="px-1.5 py-0.5 rounded text-[8px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 uppercase font-extrabold">Complete</span>
-                                ) : (
-                                  <span className="px-1.5 py-0.5 rounded text-[8px] bg-secondary text-muted-foreground border border-border/50 uppercase font-bold">Locked</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+              )}
 
-                      {msg.content.includes("Readiness Score:") && (
-                        <div className="grid grid-cols-2 gap-3 my-4">
-                          <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
-                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Readiness Score</span>
-                            <div className="text-2xl font-black text-indigo-500">76%</div>
-                            <div className="w-full bg-secondary h-1 rounded-full mt-2 overflow-hidden">
-                              <div className="bg-indigo-500 h-full rounded-full" style={{ width: '76%' }} />
-                            </div>
-                          </div>
-                          <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
-                            <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">ATS Score</span>
-                            <div className="text-2xl font-black text-emerald-500">82%</div>
-                            <div className="w-full bg-secondary h-1 rounded-full mt-2 overflow-hidden">
-                              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '82%' }} />
-                            </div>
-                          </div>
-                        </div>
-                      )}
+              {/* Custom Interactive Indicators parsed inline */}
+              {cleanText.includes("ATS Score:") && (
+                <ATSScoreRing score={parseInt(cleanText.match(/ATS Score:\s*(\d+)/)?.[1] || "75")} />
+              )}
+              {cleanText.includes("Readiness Score:") && (
+                <ReadinessGauge score={parseInt(cleanText.match(/Readiness Score:\s*(\d+)/)?.[1] || "60")} />
+              )}
+              {cleanText.includes("Difficulty:") && (
+                <DifficultyMeter difficulty={(cleanText.match(/Difficulty:\s*(Easy|Medium|Hard)/)?.[1] || "Medium") as any} />
+              )}
 
-                      {msg.content.includes("```json") && msg.content.includes("widget") && (
-                        <div className="my-4 border border-border/80 rounded-2xl overflow-hidden shadow-sm bg-card/25 w-full">
-                          <WidgetRenderer rawJson={extractJsonFromMarkdown(msg.content)} isStreaming={isLoading} />
-                        </div>
-                      )}
-
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        rehypePlugins={[rehypeSanitize]}
-                        components={{
-                          p: ({children}) => <p className="leading-[1.8] text-[15px] font-medium text-foreground/90 mb-4 last:mb-0 select-text">{children}</p>,
-                          h1: ({children}) => <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-6 mb-3">{children}</h1>,
-                          h2: ({children}) => <h2 className="text-lg font-bold text-foreground tracking-tight mt-5 mb-2">{children}</h2>,
-                          ul: ({children}) => <ul className="list-disc pl-6 space-y-2 mb-4 select-text">{children}</ul>,
-                          ol: ({children}) => <ol className="list-decimal pl-6 space-y-2 mb-4 select-text">{children}</ol>,
-                          li: ({children}) => <li className="text-[14.5px] font-medium leading-[1.8] text-foreground/90">{children}</li>,
-                          code: ({className, children}) => {
-                            const codeStr = String(children);
-                            if (codeStr.startsWith("class ") || codeStr.startsWith("public ") || codeStr.includes("\n") || className) {
-                              return <CodeBlock className={className}>{codeStr}</CodeBlock>;
-                            }
-                            return <code className="px-1.5 py-0.5 rounded-md bg-muted/65 border border-border/50 text-indigo-500 font-mono text-[13px]">{children}</code>;
-                          },
-                          blockquote: ({children}) => (
-                            <blockquote className="border-l-4 border-muted-foreground/30 pl-4 py-1 italic my-4 text-muted-foreground/90 leading-relaxed font-serif">
-                              {children}
-                            </blockquote>
-                          )
-                        }}
-                      >
-                        {msg.content + (isLoading ? " ▋" : "")}
-                      </ReactMarkdown>
-                    </div>
-                  </SafeMarkdownBoundary>
+              {/* Conversational Text Bubble or Themed Report Card */}
+              {cleanText ? (
+                report.isReport ? (
+                  <AIMessageCard
+                    title={report.title}
+                    description={report.description}
+                    icon={report.icon}
+                    onCopy={handleCopy}
+                    onExportPdf={() => exportToPdf(report.title, cleanText)}
+                    onExportMarkdown={() => exportToMarkdown(report.title, cleanText)}
+                    onExportDocx={() => exportToDocx(report.title, cleanText)}
+                  >
+                    {renderMarkdown(cleanText)}
+                  </AIMessageCard>
                 ) : (
+                  renderMarkdown(cleanText)
+                )
+              ) : (
+                isLoading ? (
                   <div className="flex gap-1.5 items-center py-2">
                     <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.3s]" />
                     <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce [animation-delay:-0.15s]" />
                     <div className="w-2.5 h-2.5 bg-primary/60 rounded-full animate-bounce" />
                   </div>
+                ) : (
+                  <p className="text-[15px] font-medium text-foreground/80 italic leading-relaxed">
+                    Interactive visualization loaded below:
+                  </p>
                 )
-              ) : (
-                <div className="flex items-center justify-between w-full">
-                  <div style={{ fontSize: '16px', fontWeight: 500, lineHeight: '1.85', letterSpacing: '-0.01em' }}>{msg.content}</div>
-                  <button onClick={() => setIsEditing(true)} className="p-1 text-muted-foreground hover:text-foreground text-xs font-bold uppercase ml-2 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer">Edit</button>
-                </div>
-              )
-            )}
-          </div>
-
-          {isAi && msg.content && !isLoading && (
-            <div className="mt-2.5 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm border border-border/80 px-2.5 py-1.5 rounded-xl shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200 self-end select-none">
-              <button 
-                onClick={handleCopy}
-                className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${
-                  copied ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
-                }`}
-              >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                Copy
-              </button>
-              {onRegenerate && (
-                <button 
-                  onClick={() => onRegenerate(msg.content)}
-                  className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  Regenerate
-                </button>
               )}
-              <div className="w-px h-3 bg-border mx-0.5" />
-              <button 
-                onClick={handleShare}
-                className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all"
-                title="Copy link"
-              >
-                <Share className="w-3.5 h-3.5" />
-              </button>
+
+              {/* Smart Follow-Up Suggestions for the last message */}
+              {isAi && !isLoading && !isGenerating && (
+                cleanText.includes("resume") ? (
+                  <SmartSuggestions 
+                    suggestions={["Improve Resume", "Generate Cover Letter", "Run ATS Scan"]} 
+                    onClick={onRegenerate || (() => {})} 
+                  />
+                ) : cleanText.includes("interview") ? (
+                  <SmartSuggestions 
+                    suggestions={["Start Mock Interview", "Prepare HR Questions", "Generate Learning Plan"]} 
+                    onClick={onRegenerate || (() => {})} 
+                  />
+                ) : null
+              )}
+
+              {/* Timestamp at bottom left */}
+              <div className="text-[10px] font-bold text-muted-foreground/50 mt-1 select-none">
+                {msg.time}
+              </div>
+
+              {/* Action buttons inside Card bubble bottom right */}
+              {isAi && msg.content && !isLoading && (
+                <div className="absolute bottom-4 right-4 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm border border-border/80 px-2.5 py-1.5 rounded-xl shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200 select-none">
+                  <button 
+                    onClick={handleCopy}
+                    className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider ${
+                      copied ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
+                    }`}
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    Copy
+                  </button>
+                  {onRegenerate && (
+                    <button 
+                      onClick={() => onRegenerate(msg.content)}
+                      className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Regenerate
+                    </button>
+                  )}
+                  <div className="w-px h-3 bg-border mx-0.5" />
+                  <button 
+                    onClick={handleShare}
+                    className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all"
+                    title="Copy link"
+                  >
+                    <Share className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* User Bubble Card */
+            <div className="bg-indigo-50/95 dark:bg-indigo-950/20 border border-indigo-150/50 dark:border-indigo-900/30 rounded-3xl px-5 py-4 w-full text-left relative flex flex-col gap-1.5 shadow-sm min-w-[220px]">
+              {isEditing ? (
+                <div className="w-full flex flex-col gap-2 bg-secondary border border-border p-3 rounded-2xl">
+                  <textarea
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    className="w-full bg-transparent outline-none border-0 text-foreground text-sm resize-none min-h-[60px]"
+                  />
+                  <div className="flex justify-end gap-2 text-xs font-bold">
+                    <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary cursor-pointer">Cancel</button>
+                    <button onClick={() => { if (onEdit) onEdit(msg.id, editText); setIsEditing(false); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer">Save & Resend</button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-start justify-between w-full gap-4">
+                  <div className="text-[15px] font-medium text-indigo-950 dark:text-indigo-200 leading-relaxed select-text">{msg.content}</div>
+                  <button onClick={() => setIsEditing(true)} className="p-1 text-indigo-600 hover:text-indigo-800 text-[10px] font-bold uppercase shrink-0 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer select-none">Edit</button>
+                </div>
+              )}
+              {/* User Timestamp bottom-right */}
+              <div className="text-[10px] font-bold text-indigo-600/40 dark:text-indigo-400/40 text-right mt-1 select-none">
+                {msg.time}
+              </div>
             </div>
           )}
         </div>
+
       </div>
     </div>
   );
@@ -374,6 +835,13 @@ export default function ChatPage() {
   
   useEffect(() => {
     setMounted(true);
+    // Load contextual memory from localStorage initially
+    const savedMemory = localStorage.getItem("ai_copilot_memory");
+    if (savedMemory) {
+      try {
+        setMemoryContext(JSON.parse(savedMemory));
+      } catch(e) {}
+    }
   }, []);
 
   const {
@@ -400,13 +868,22 @@ export default function ChatPage() {
 
   const [input, setInput] = useState("");
   const [uploadedAttachments, setUploadedAttachments] = useState<any[]>([]);
-  const [uploadingFiles, setUploadingFiles] = useState<Record<string, { name: string; progress: number; failed: boolean }>>({});
+  const [uploadingFiles, setUploadingFiles] = useState<Record<string, { name: string; size: number; progress: number; failed: boolean }>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
   const [feedback, setFeedback] = useState<Record<number, 'like' | 'dislike'>>({});
-  const [activeTab, setActiveTab] = useState("chat");
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  // Active Memory State
+  const [memoryContext, setMemoryContext] = useState<{
+    resumeName?: string;
+    targetJd?: string;
+    preferredCompany?: string;
+    preferredRole?: string;
+    techStack?: string;
+    careerGoal?: string;
+  }>({});
 
   const handleFeedback = useCallback((id: number, type: 'like' | 'dislike') => {
     setFeedback(prev => ({ ...prev, [id]: type }));
@@ -416,19 +893,21 @@ export default function ChatPage() {
   const limitTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Dynamic pulsing loading states
+  // Dynamic pulsing loading states (cycles Reasoning status chips every 1.5s)
   useEffect(() => {
+    let interval: NodeJS.Timeout;
     if (isLoading) {
       setLoadingPhase(1);
-      const t1 = setTimeout(() => setLoadingPhase(2), 2000);
-      const t2 = setTimeout(() => setLoadingPhase(3), 4500);
-      return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
-      };
+      interval = setInterval(() => {
+        setLoadingPhase(prev => {
+          if (prev >= 7) return 7; // Finalizing Response
+          return prev + 1;
+        });
+      }, 1500);
     } else {
       setLoadingPhase(0);
     }
+    return () => clearInterval(interval);
   }, [isLoading]);
 
   useEffect(() => {
@@ -495,19 +974,77 @@ export default function ChatPage() {
     }
   };
 
+  // Rule-based memory extraction from query/response
+  const updateMemoryFromQuery = (text: string) => {
+    const lowerText = text.toLowerCase();
+    const nextMemory = { ...memoryContext };
+    let changed = false;
+
+    // Check target companies
+    const companies = ["google", "amazon", "microsoft", "tcs", "infosys", "wipro", "cognizant", "meta", "netflix"];
+    for (const c of companies) {
+      if (lowerText.includes(c)) {
+        nextMemory.preferredCompany = c.charAt(0).toUpperCase() + c.slice(1);
+        changed = true;
+        break;
+      }
+    }
+
+    // Check roles
+    if (lowerText.includes("software engineer") || lowerText.includes("sde")) {
+      nextMemory.preferredRole = "Software Development Engineer (SDE)";
+      changed = true;
+    } else if (lowerText.includes("frontend") || lowerText.includes("front-end")) {
+      nextMemory.preferredRole = "Frontend Engineer";
+      changed = true;
+    } else if (lowerText.includes("backend") || lowerText.includes("back-end")) {
+      nextMemory.preferredRole = "Backend Engineer";
+      changed = true;
+    }
+
+    // Check stack
+    const stacks = ["java", "python", "javascript", "react", "spring boot", "node", "c++", "rust"];
+    for (const s of stacks) {
+      if (lowerText.includes(s)) {
+        nextMemory.techStack = s.toUpperCase();
+        changed = true;
+        break;
+      }
+    }
+
+    if (lowerText.includes("my goal is") || lowerText.includes("aim to")) {
+      nextMemory.careerGoal = text.slice(0, 100);
+      changed = true;
+    }
+
+    if (changed) {
+      setMemoryContext(nextMemory);
+      localStorage.setItem("ai_copilot_memory", JSON.stringify(nextMemory));
+    }
+  };
+
   const handleFileUpload = async (files: FileList | File[]) => {
     const fileList = Array.from(files);
     for (const file of fileList) {
       const tempId = Math.random().toString(36).substring(7);
       setUploadingFiles(prev => ({
         ...prev,
-        [tempId]: { name: file.name, progress: 30, failed: false }
+        [tempId]: { name: file.name, size: file.size, progress: 30, failed: false }
       }));
       try {
         const formData = new FormData();
         formData.append("file", file);
         const token = localStorage.getItem("token");
         const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api/v1";
+        
+        // Simulating upload progress steps
+        setTimeout(() => {
+          setUploadingFiles(prev => {
+            if (!prev[tempId]) return prev;
+            return { ...prev, [tempId]: { ...prev[tempId], progress: 75 } };
+          });
+        }, 300);
+
         const response = await fetch(`${API_URL.replace("/api/v1", "")}/api/chatbot/upload`, {
           method: "POST",
           headers: {
@@ -517,7 +1054,16 @@ export default function ChatPage() {
         });
         if (!response.ok) throw new Error("Upload failed");
         const data = await response.json();
+        
         setUploadedAttachments(prev => [...prev, data]);
+        
+        // Save uploaded resume details to context memory
+        if (file.name.toLowerCase().includes("resume")) {
+          const nextMemory = { ...memoryContext, resumeName: file.name };
+          setMemoryContext(nextMemory);
+          localStorage.setItem("ai_copilot_memory", JSON.stringify(nextMemory));
+        }
+
         setUploadingFiles(prev => {
           const next = { ...prev };
           delete next[tempId];
@@ -532,6 +1078,14 @@ export default function ChatPage() {
     }
   };
 
+  // Paste handler for files (PDFs/Images)
+  const handlePaste = (e: React.ClipboardEvent) => {
+    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+      e.preventDefault();
+      handleFileUpload(e.clipboardData.files);
+    }
+  };
+
   const handleSend = async (overrideInput?: string) => {
     if (isLoading) return;
 
@@ -543,6 +1097,9 @@ export default function ChatPage() {
       setUploadedAttachments([]);
     }
     if (!finalInput && currentAttachments.length === 0) return;
+
+    // Save contextual memory items from query
+    updateMemoryFromQuery(finalInput);
 
     const historyList = messages.slice(-10).map(m => ({
       role: m.role === "ai" ? "assistant" : "user",
@@ -570,7 +1127,6 @@ export default function ChatPage() {
     };
     setMessages(prev => [...prev, aiMsg]);
 
-    // Auto generate useful title based on first query
     if (messages.length === 0 && activeConversationId) {
       const cleanTitle = finalInput.split("\n")[0].slice(0, 30) + (finalInput.length > 30 ? "..." : "");
       renameChat(activeConversationId, cleanTitle);
@@ -647,7 +1203,6 @@ export default function ChatPage() {
               let partContent = "";
               for (const line of lines) {
                 if (line.startsWith('data:')) {
-                  // SSE spec: data value is after "data:" and an optional space.
                   let dataValue = line.substring(5);
                   if (dataValue.startsWith(' ')) {
                     dataValue = dataValue.substring(1);
@@ -675,7 +1230,6 @@ export default function ChatPage() {
           }
         }
       }
-      // Re-focus input after successful completion
       setTimeout(() => {
         if (textareaRef.current) textareaRef.current.focus();
       }, 50);
@@ -687,7 +1241,6 @@ export default function ChatPage() {
         toast.error(`Failed to reach AI: ${error.message || "Network Error"}`);
       }
       
-      // If the AI message is completely empty due to immediate failure, remove it
       setMessages(prev => {
         const lastMsg = prev[prev.length - 1];
         if (lastMsg?.id === aiMsgId && lastMsg.content === "") {
@@ -717,11 +1270,9 @@ export default function ChatPage() {
     if (action === "NEW_CHAT") {
       handleStop();
       createNewChat();
-      setActiveTab("chat");
     } else if (action === "ANALYZE_RESUME") {
       handleStop();
       handleSend("Analyze my resume");
-      setActiveTab("chat");
     }
   };
 
@@ -747,6 +1298,7 @@ export default function ChatPage() {
       }} 
       className="h-screen min-h-screen flex bg-transparent relative overflow-hidden"
     >
+      <SidebarTrigger className="hidden" />
       <ConversationSidebar
         conversations={conversations}
         activeId={activeConversationId}
@@ -761,23 +1313,22 @@ export default function ChatPage() {
       />
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-background text-foreground">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-background text-foreground relative">
         
-        {/* Simplified Header */}
+        {/* Active Context Memory bar */}
+        <AIContextDrawer 
+          context={memoryContext} 
+          onClear={() => {
+            setMemoryContext({});
+            localStorage.removeItem("ai_copilot_memory");
+            toast.info("AI placement memory context cleared");
+          }} 
+        />
+
+        {/* Premium Simplified Header (removed tabs and online status) */}
         <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-border/40 bg-card/85 backdrop-blur-md sticky top-0 z-30 select-none">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="md:hidden mr-1 text-muted-foreground hover:text-foreground" />
-            <button
-              onClick={() => { handleStop(); createNewChat(); setActiveTab("chat"); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              New Conversation
-            </button>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">● AI Online</span>
-            </div>
           </div>
 
           <div className="flex items-center gap-2">
@@ -805,19 +1356,6 @@ export default function ChatPage() {
           </div>
         </header>
 
-        <WorkspaceTabs 
-          activeTab={activeTab} 
-          onTabChange={(tab) => {
-            if (tab === "coach") {
-              router.push("/dashboard/coach");
-            } else if (tab === "resume") {
-              router.push("/dashboard/resume-builder");
-            } else {
-              setActiveTab(tab);
-            }
-          }} 
-        />
-
         <div className="flex-1 overflow-hidden relative flex flex-col">
           <NotificationCenter isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
@@ -826,13 +1364,12 @@ export default function ChatPage() {
               ref={scrollAreaRef}
               onScroll={handleScroll}
               className="flex-1 overflow-y-auto overflow-x-hidden selection:bg-primary/10 flex flex-col bg-slate-50/10"
-              style={{ height: 'calc(100vh - 110px)' }}
             >
               {isEmpty ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto max-w-[1000px] mx-auto w-full space-y-8 select-none">
                   <div className="flex flex-col items-center justify-center text-center mt-12 space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center shadow-sm">
-                      <Sparkles className="w-6 h-6 animate-pulse" />
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
+                      <Sparkles className="w-6 h-6 animate-pulse text-indigo-600" />
                     </div>
                     <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                       Hi {firstName} 👋
@@ -882,23 +1419,11 @@ export default function ChatPage() {
                     );
                   })}
 
-                  {/* Pulsing loading steps indicator */}
+                  {/* Pulsing loading reasoning status chips */}
                   {isLoading && (
                     <div className="w-full flex justify-center mb-6">
                       <div className="w-full max-w-[1200px] px-6">
-                        <div className="flex flex-col gap-2.5 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl max-w-sm animate-pulse">
-                          <div className="text-xs font-bold text-indigo-650">
-                            {loadingPhase === 1 && "Analyzing Profile & Resume..."}
-                            {loadingPhase === 2 && "Extracting Key Competencies..."}
-                            {loadingPhase >= 3 && "Generating Placement Intelligence..."}
-                          </div>
-                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                            <div 
-                              className="bg-indigo-600 h-full rounded-full transition-all duration-1000" 
-                              style={{ width: `${loadingPhase === 1 ? 30 : loadingPhase === 2 ? 65 : 95}%` }} 
-                            />
-                          </div>
-                        </div>
+                        <ReasoningStatus loadingPhase={loadingPhase} />
                       </div>
                     </div>
                   )}
@@ -910,30 +1435,28 @@ export default function ChatPage() {
             <div className="w-full shrink-0 py-4 pb-6 relative z-10 select-none bg-background">
               <div className="max-w-[860px] mx-auto px-6 relative">
                 
+                {/* Upload attachment pre-views */}
                 {(uploadedAttachments.length > 0 || Object.keys(uploadingFiles).length > 0) && (
-                  <div className="absolute -top-14 left-6 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 z-20">
+                  <div className="absolute -top-20 left-6 flex flex-wrap gap-3.5 animate-in fade-in slide-in-from-bottom-2 z-20">
                     {uploadedAttachments.map((att) => (
-                      <div key={att.id} className="bg-muted border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs text-foreground shadow-sm">
-                        <Paperclip className="w-3.5 h-3.5 text-indigo-500" />
-                        <span className="font-medium max-w-[150px] truncate">{att.name}</span>
-                        <button 
-                          onClick={() => setUploadedAttachments(prev => prev.filter(x => x.id !== att.id))} 
-                          className="text-muted-foreground hover:text-foreground font-black ml-1"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      <FileUploadPreview 
+                        key={att.id} 
+                        file={att} 
+                        onRemove={() => setUploadedAttachments(prev => prev.filter(x => x.id !== att.id))} 
+                      />
                     ))}
                     {Object.entries(uploadingFiles).map(([id, file]) => (
-                      <div key={id} className="bg-muted/70 border border-dashed border-border px-3 py-1.5 rounded-full flex items-center gap-2 text-xs text-muted-foreground shadow-sm animate-pulse">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-                        <span className="truncate max-w-[120px]">{file.name}</span>
-                      </div>
+                      <FileUploadPreview 
+                        key={id} 
+                        file={{ name: file.name, size: file.size, id }} 
+                        progress={file.progress} 
+                        onRemove={() => {}} 
+                      />
                     ))}
                   </div>
                 )}
 
-                <div className="relative flex flex-col bg-secondary/60 border border-border rounded-2xl transition-all p-3 min-h-[80px] shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50">
+                <div className="relative flex flex-col bg-secondary/60 border border-border rounded-3xl transition-all p-3 min-h-[80px] shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50">
                   <textarea 
                     ref={textareaRef}
                     value={input}
@@ -944,14 +1467,16 @@ export default function ChatPage() {
                         handleSend();
                       }
                     }}
+                    onPaste={handlePaste}
                     placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-                    className="w-full bg-transparent border-none border-0 outline-none ring-0 shadow-none focus:border-none focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none p-2 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[50px] leading-relaxed"
+                    className="w-full bg-transparent border-none border-0 outline-none ring-0 shadow-none focus:border-none focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none p-2 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[50px] leading-relaxed animate-none"
                     rows={1}
+                    maxLength={2000}
                     disabled={isLoading}
                   />
                   
                   <div className="flex items-center justify-between border-t border-border/40 pt-2.5 mt-2">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <input 
                         type="file" 
                         ref={fileInputRef} 
@@ -970,6 +1495,11 @@ export default function ChatPage() {
                       >
                         <Paperclip className="w-4.5 h-4.5" />
                       </button>
+
+                      {/* Character Counter */}
+                      <span className="text-[10px] text-muted-foreground/50 font-bold ml-1">
+                        {input.length} / 2000
+                      </span>
                     </div>
 
                     {isLoading ? (
@@ -981,18 +1511,20 @@ export default function ChatPage() {
                         Stop
                       </button>
                     ) : (
-                      <button 
+                      <motion.button 
                         onClick={() => handleSend()}
                         disabled={(!input.trim() && uploadedAttachments.length === 0) || isLoading}
+                        whileHover={input.trim() ? { scale: 1.05 } : {}}
+                        whileTap={input.trim() ? { scale: 0.95 } : {}}
                         className={`h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs ${
                           (input.trim() || uploadedAttachments.length > 0) && !isLoading 
-                          ? 'bg-slate-900 text-white hover:bg-indigo-650 shadow-sm' 
+                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm' 
                           : 'bg-transparent text-slate-400'
                         }`}
                       >
                         <Send className="w-3.5 h-3.5" />
                         Send
-                      </button>
+                      </motion.button>
                     )}
                   </div>
                 </div>

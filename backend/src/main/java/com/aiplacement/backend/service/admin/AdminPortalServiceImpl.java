@@ -778,4 +778,13 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         return result;
     }
+
+    @Override
+    @Transactional
+    public void deleteUser(Long id) {
+        log.info("[ADMIN_PORTAL] Deleting user with ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userRepository.delete(u);
+    }
 }

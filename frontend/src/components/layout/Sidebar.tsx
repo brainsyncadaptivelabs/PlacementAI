@@ -79,13 +79,15 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
       </SidebarHeader>
       <SidebarContent className="px-3 py-4 overflow-y-auto space-y-4">
         {role === "STUDENT" && hasPlan ? (
-          studentMenuGroups.map((group) => (
-            <div key={group.title} className="space-y-1">
-              <div className="px-3 py-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
-                  {group.title}
-                </span>
-              </div>
+          studentMenuGroups.map((group, idx) => (
+            <div key={group.title || idx} className="space-y-1">
+              {group.title && (
+                <div className="px-3 py-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
+                    {group.title}
+                  </span>
+                </div>
+              )}
               <SidebarMenu>
                 {group.items.map((item) => {
                   const isRootUrl = item.url.split('/').length <= 2;

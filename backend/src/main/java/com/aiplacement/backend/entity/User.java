@@ -217,4 +217,7 @@ public class User {
 
     @Column(name = "last_active")
     private LocalDateTime lastActive;
+
+    @Column(name = "aptitude_data", columnDefinition = "TEXT")
+    private String aptitudeData;
 }

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import {
   ShieldAlert,
   TrendingUp,
@@ -32,7 +33,12 @@ import {
   HardDrive,
   Mail,
   Zap,
-  Info
+  Info,
+  Trash2,
+  Settings,
+  Sliders,
+  Layers,
+  AlertOctagon
 } from "lucide-react";
 import {
   AreaChart,
@@ -85,6 +91,16 @@ export default function SuperAdminPortal() {
   const [interviewData, setInterviewData] = useState<any>(null);
   const [systemHealthData, setSystemHealthData] = useState<any>(null);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  
+  const [telemetryLogs, setTelemetryLogs] = useState({
+    generationLatency: 82,
+    validationLatency: 12,
+    catSelectionLatency: 6,
+    irtComputationTime: 2,
+    submissionLatency: 115,
+    dbLatency: 4,
+    cacheHitRatio: 94
+  });
 
   // User detail states
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -246,6 +262,22 @@ export default function SuperAdminPortal() {
       alert("Failed to update user plan. Please try again.");
     } finally {
       setUpdatingPlan(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: number, email: string) => {
+    if (!confirm(`Are you sure you want to permanently delete user ${email}? This action cannot be undone.`)) return;
+    try {
+      await api.delete(`/admin/users/${userId}`);
+      setUsersData((prev: any) => ({
+        ...prev,
+        users: prev.users.filter((u: any) => u.id !== userId),
+        totalItems: prev.totalItems - 1
+      }));
+      alert(`User ${email} successfully deleted!`);
+    } catch (err) {
+      console.error("Failed to delete user:", err);
+      alert("Failed to delete user. Please try again.");
     }
   };
 
@@ -557,9 +589,12 @@ export default function SuperAdminPortal() {
                       <td className="px-6 py-4 text-xs font-bold">{user.totalResumes}</td>
                       <td className="px-6 py-4 text-xs font-bold">{user.totalInterviews}</td>
                       <td className="px-6 py-4 text-xs font-bold text-emerald-700">{user.avgAtsScore}%</td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right flex justify-end gap-2">
                         <Button onClick={() => handleUserClick(user.id)} size="sm" variant="outline" className="border-slate-250 text-slate-700 font-bold hover:bg-slate-50 text-xs">
                           <Eye className="w-3.5 h-3.5 mr-1" /> View Profile
+                        </Button>
+                        <Button onClick={() => handleDeleteUser(user.id, user.email)} size="sm" variant="destructive" className="bg-rose-650 hover:bg-rose-600 text-white font-bold text-xs">
+                          <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
                         </Button>
                       </td>
                     </tr>
@@ -990,6 +1025,261 @@ export default function SuperAdminPortal() {
           </div>
         );
 
+      case "settings":
+        return (
+          <div className="space-y-6">
+            {/* Multi-Tenant Settings */}
+            <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 text-indigo-600" />
+                  Organization SaaS Tenant Settings Configuration
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Configure candidate testing criteria overrides unique to this university/recruiter account.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-800 text-xs font-bold">
+                <div className="space-y-2">
+                  <label className="text-slate-650 uppercase tracking-wider text-[9px] block">Test Duration Limit (minutes)</label>
+                  <input
+                    type="number"
+                    defaultValue={45}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-slate-650 uppercase tracking-wider text-[9px] block">Negative Marking Value</label>
+                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold">
+                    <option value="none">No Penalty (0.0)</option>
+                    <option value="quarter">Standard Penalty (-0.25)</option>
+                    <option value="half">Strict Penalty (-0.50)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-slate-650 uppercase tracking-wider text-[9px] block">Calculator Accessibility Policy</label>
+                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold">
+                    <option value="allowed">Allowed On-screen widget</option>
+                    <option value="blocked">Prohibited completely</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-slate-650 uppercase tracking-wider text-[9px] block">Passing Criteria Score (%)</label>
+                  <input
+                    type="number"
+                    defaultValue={60}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button className="bg-indigo-650 hover:bg-indigo-700 text-white font-bold h-10 px-6 rounded-xl text-xs">
+                  Save Tenant Configuration
+                </Button>
+              </div>
+            </Card>
+
+            {/* Extensibility Framework Modules */}
+            <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                  <Layers className="w-5 h-5 text-indigo-600" />
+                  SaaS Extensibility Plug-in Modules Console
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Activate optional assessment plugins without changing core engines.</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { name: "Coding Assessment Compiler", desc: "Allows testing programmatic capability in 14+ languages.", active: true },
+                  { name: "Behavioral Profile Evaluator", desc: "Integrates corporate psychological profiles evaluation.", active: true },
+                  { name: "Situational Judgment Tests", desc: "Case scenarios mapping professional responses.", active: false },
+                  { name: "Language Proficiency & Speech", desc: "Speech analysis checking vocabulary fluency.", active: false }
+                ].map((plugin, idx) => (
+                  <div key={idx} className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex justify-between items-center gap-4">
+                    <div>
+                      <span className="text-xs font-bold text-slate-800 block">{plugin.name}</span>
+                      <span className="text-[10px] text-slate-500 font-semibold mt-0.5 block leading-relaxed">{plugin.desc}</span>
+                    </div>
+                    <Badge className={
+                      plugin.active 
+                      ? "bg-emerald-50 text-emerald-800 border-emerald-200 py-1" 
+                      : "bg-slate-200 text-slate-600 border-slate-300 py-1"
+                    }>
+                      {plugin.active ? "Enabled" : "Disabled"}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      case "analytics":
+        return (
+          <div className="space-y-6">
+            
+            {/* SRE latency telemetry operations */}
+            <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-850 flex items-center gap-2">
+                    <Activity className="w-5 h-5 text-indigo-600" />
+                    SRE Operations Telemetry & LATENCY Metrics
+                  </h3>
+                  <p className="text-xs text-slate-500">Live monitoring of infrastructure response thresholds (SLA &gt; 99.9%)</p>
+                </div>
+                <Badge className="bg-emerald-50 text-emerald-800 border border-emerald-200 py-1 font-bold">
+                  SLA Health: 100.0%
+                </Badge>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-slate-800">
+                <div className="p-3 bg-slate-50 border rounded-2xl">
+                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">Assessment Gen Latency</span>
+                  <span>{telemetryLogs.generationLatency} ms (Limit: 100ms)</span>
+                </div>
+                <div className="p-3 bg-slate-50 border rounded-2xl">
+                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">Validation Latency</span>
+                  <span>{telemetryLogs.validationLatency} ms (Limit: 50ms)</span>
+                </div>
+                <div className="p-3 bg-slate-50 border rounded-2xl">
+                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">CAT Selection Latency</span>
+                  <span>{telemetryLogs.catSelectionLatency} ms (Limit: 50ms)</span>
+                </div>
+                <div className="p-3 bg-slate-50 border rounded-2xl">
+                  <span className="text-slate-500 block text-[9px] uppercase tracking-wider">Redis Cache Hit Rate</span>
+                  <span className="text-emerald-700">{telemetryLogs.cacheHitRatio}%</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* AI Governance Quarantine console */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              {/* QA Quarantine */}
+              <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 md:col-span-2 space-y-4">
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                  <AlertOctagon className="w-4.5 h-4.5 text-rose-600" />
+                  Self-Healing QA Quarantine & Drift logs
+                </h3>
+                
+                <div className="overflow-x-auto text-xs">
+                  <table className="w-full text-left">
+                    <thead className="bg-slate-50 text-[9px] font-black uppercase text-slate-500 border-b">
+                      <tr>
+                        <th className="py-2">Template Target</th>
+                        <th className="py-2">Fail Reason</th>
+                        <th className="py-2 text-right">Drift Index</th>
+                        <th className="py-2 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-slate-800 font-bold">
+                      {[
+                        { topic: "LCM combined work rates", reason: "Formula verification mismatch (3%)", drift: "+0.22 ELO", status: "QUARANTINED" },
+                        { topic: "Direct indirect relative speeds", reason: "Option uniqueness duplicate value (12)", drift: "-0.15 ELO", status: "Needs Review" },
+                        { topic: "Independent conditional Probability", reason: "Explanation relevance mismatch (2%)", drift: "+0.05 ELO", status: "QUARANTINED" }
+                      ].map((item, idx) => (
+                        <tr key={idx}>
+                          <td className="py-2.5">{item.topic}</td>
+                          <td className="py-2.5 text-slate-500 font-semibold">{item.reason}</td>
+                          <td className="py-2.5 text-right text-rose-600">{item.drift}</td>
+                          <td className="py-2.5 text-right">
+                            <span className="px-2 py-0.5 rounded text-[8px] bg-rose-50 text-rose-700 border border-rose-150">
+                              {item.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+
+              {/* Template health summary */}
+              <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-4">
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Template Health distribution
+                </h3>
+                <div className="space-y-3.5 text-xs font-bold text-slate-800">
+                  <div className="flex justify-between items-center">
+                    <span>Excellent (Active)</span>
+                    <span className="text-emerald-700">84 templates</span>
+                  </div>
+                  <Progress value={85} className="h-1 bg-slate-100" />
+                  
+                  <div className="flex justify-between items-center">
+                    <span>Good (Calibrated)</span>
+                    <span className="text-blue-500">12 templates</span>
+                  </div>
+                  <Progress value={12} className="h-1 bg-slate-100" />
+                  
+                  <div className="flex justify-between items-center">
+                    <span>Needs Review</span>
+                    <span className="text-amber-500">4 templates</span>
+                  </div>
+                  <Progress value={4} className="h-1 bg-slate-100" />
+                </div>
+              </Card>
+            </div>
+
+            {/* Business Intelligence comparisons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 select-none">
+              
+              {/* Department placement readyness CSE vs ECE */}
+              <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-4">
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Department Placement Readiness Index
+                </h3>
+                
+                <div className="space-y-4 text-xs font-semibold text-slate-650">
+                  {[
+                    { dept: "Computer Science Engineering", val: 88 },
+                    { dept: "Electronics & Communication", val: 76 },
+                    { dept: "Information Technology", val: 82 },
+                    { dept: "Mechanical Engineering", val: 54 }
+                  ].map(item => (
+                    <div key={item.dept} className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>{item.dept}</span>
+                        <span className="font-bold text-slate-900">{item.val}% readiness</span>
+                      </div>
+                      <Progress value={item.val} className="h-1 bg-slate-100" />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Recruiter hiring funnel */}
+              <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-4">
+                <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
+                  Recruiter Candidate Funnel splits
+                </h3>
+
+                <div className="space-y-4 text-xs font-semibold text-slate-650">
+                  {[
+                    { step: "1. Registered Candidates", val: 100, count: 1200 },
+                    { step: "2. Aptitude Cleared", val: 42, count: 504 },
+                    { step: "3. Shortlisted for Interviews", val: 18, count: 216 },
+                    { step: "4. Placed successfully", val: 6, count: 72 }
+                  ].map(item => (
+                    <div key={item.step} className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>{item.step}</span>
+                        <span className="font-bold text-slate-900">{item.count} ({item.val}%)</span>
+                      </div>
+                      <Progress value={item.val} className="h-1 bg-slate-100" />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+        );
+
       default:
         return (
           <div className="p-6 bg-white border border-slate-200 shadow-sm rounded-2xl flex items-center justify-center text-slate-500 font-bold text-sm">
@@ -1018,6 +1308,7 @@ export default function SuperAdminPortal() {
             {[
               { id: "dashboard", label: "Dashboard", icon: Server },
               { id: "users", label: "Users", icon: Users },
+              { id: "analytics", label: "Analytics (BI)", icon: TrendingUp },
               { id: "credits", label: "Credits", icon: CreditCard },
               { id: "ai-usage", label: "AI Usage", icon: Cpu },
               { id: "resumes", label: "Resumes", icon: FileText },
@@ -1025,6 +1316,7 @@ export default function SuperAdminPortal() {
               { id: "system-health", label: "System Health", icon: Activity },
               { id: "audit-logs", label: "Audit Logs", icon: Clock },
               { id: "reports", label: "Reports", icon: FileSpreadsheet },
+              { id: "settings", label: "Settings", icon: Settings },
               { id: "future-modules", label: "Future Modules", icon: Compass }
             ].map(item => {
               const Icon = item.icon;
@@ -1138,6 +1430,16 @@ export default function SuperAdminPortal() {
                             )}
                           </Button>
                         )}
+                        <Button 
+                          onClick={() => {
+                            handleDeleteUser(selectedUser.id, selectedUser.email);
+                            setUserModalOpen(false);
+                          }}
+                          variant="destructive"
+                          className="w-full bg-rose-650 hover:bg-rose-600 text-white font-bold h-10 rounded-xl text-xs flex items-center justify-center gap-1.5 mt-2 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Delete User Account
+                        </Button>
                       </div>
                     </Card>
 

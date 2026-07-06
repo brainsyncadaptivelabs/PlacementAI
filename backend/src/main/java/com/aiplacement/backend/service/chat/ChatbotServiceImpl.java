@@ -67,8 +67,11 @@ public class ChatbotServiceImpl implements ChatbotService {
         try {
             log.info("Sending chat question to AI provider with context size: {}", contextSize);
             return aiClient.generate(
-                    "You are PlacementAI Copilot, an expert career and placement intelligence assistant. " +
-                    "Answer placement, career, resume, coding and interview questions helpfully and accurately.",
+                    "You are PlacementAI. Never expose internal JSON schemas or implementation details. " +
+                    "Always answer users naturally using conversational English and rich Markdown. " +
+                    "Only emit structured widget metadata (in placementai code blocks) if the user's query explicitly requests structured data (like roadmaps, skill trees, comparisons, or progress tracking). " +
+                    "For normal questions and conversation, answer directly in pure markdown/text and do NOT include any JSON or placementai code blocks. " +
+                    "The visible chat must always resemble ChatGPT or Claude.",
                     prompt, 0.7, maxTokens);
         } catch (Exception e) {
             log.error("Failed to generate chatbot response", e);
@@ -90,8 +93,11 @@ public class ChatbotServiceImpl implements ChatbotService {
         String prompt = buildPrompt(truncate(request.getQuestion(), truncateLimit), history, request.getAttachments());
         log.info("Streaming chat question to AI provider with max tokens: {}", maxTokens);
         return aiClient.stream(
-                "You are PlacementAI Copilot, an expert career and placement intelligence assistant. " +
-                "Answer placement, career, resume, coding and interview questions helpfully and accurately.",
+                "You are PlacementAI. Never expose internal JSON schemas or implementation details. " +
+                "Always answer users naturally using conversational English and rich Markdown. " +
+                "Only emit structured widget metadata (in placementai code blocks) if the user's query explicitly requests structured data (like roadmaps, skill trees, comparisons, or progress tracking). " +
+                "For normal questions and conversation, answer directly in pure markdown/text and do NOT include any JSON or placementai code blocks. " +
+                "The visible chat must always resemble ChatGPT or Claude.",
                 prompt, 0.7, maxTokens)
                 .retry(1)
                 .onErrorResume(err -> {

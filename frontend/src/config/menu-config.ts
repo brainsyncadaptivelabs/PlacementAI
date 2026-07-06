@@ -36,7 +36,6 @@ export const studentMenu: MenuItem[] = [
   { title: "Resume Builder", icon: FileText, url: "/dashboard/resume-builder" },
   { title: "Resume & ATS", icon: FileText, url: "/dashboard/ats" },
   { title: "Resume History", icon: History, url: "/dashboard/history" },
-  { title: "Compare Resumes", icon: Scale, url: "/dashboard/compare" },
   { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" },
   { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
   { title: "Mock Interviews", icon: Mic2, url: "/mock-interview" },
@@ -55,7 +54,7 @@ export interface MenuGroup {
 
 export const studentMenuGroups: MenuGroup[] = [
   {
-    title: "MAIN",
+    title: "",
     items: [
       { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" }
     ]
@@ -66,7 +65,6 @@ export const studentMenuGroups: MenuGroup[] = [
       { title: "Resume Builder", icon: FileText, url: "/dashboard/resume-builder" },
       { title: "Resume & ATS", icon: FileText, url: "/dashboard/ats" },
       { title: "Resume History", icon: History, url: "/dashboard/history" },
-      { title: "Compare Resumes", icon: Scale, url: "/dashboard/compare" },
       { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" }
     ]
   },
