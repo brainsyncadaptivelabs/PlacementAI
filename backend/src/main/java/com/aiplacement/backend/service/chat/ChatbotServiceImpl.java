@@ -35,6 +35,7 @@ public class ChatbotServiceImpl implements ChatbotService {
     private final AIClient aiClient;
     private final UserRepository userRepository;
     private final PlacementReadinessService placementReadinessService;
+    private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
     private final CopilotBrain copilotBrain = new CopilotBrain();
     private final MultimodalRouter multimodalRouter = new MultimodalRouter();
 
@@ -53,6 +54,10 @@ public class ChatbotServiceImpl implements ChatbotService {
     @Override
     @Transactional(readOnly = false)
     public String askQuestion(ChatRequestDto request) {
+        placementMetrics.incrementChats();
+        if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
+            placementMetrics.incrementWidgetsGenerated();
+        }
         List<ChatMessageDto> history = request.getHistory();
         if (history != null && history.size() > 10) {
             history = history.subList(history.size() - 10, history.size());
@@ -74,6 +79,10 @@ public class ChatbotServiceImpl implements ChatbotService {
     @Override
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public Flux<String> streamQuestion(ChatRequestDto request) {
+        placementMetrics.incrementChats();
+        if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
+            placementMetrics.incrementWidgetsGenerated();
+        }
         List<ChatMessageDto> history = request.getHistory();
         if (history != null && history.size() > 10) {
             history = history.subList(history.size() - 10, history.size());
@@ -83,7 +92,12 @@ public class ChatbotServiceImpl implements ChatbotService {
         return aiClient.stream(
                 "You are PlacementAI Copilot, an expert career and placement intelligence assistant. " +
                 "Answer placement, career, resume, coding and interview questions helpfully and accurately.",
-                prompt, 0.7, maxTokens);
+                prompt, 0.7, maxTokens)
+                .retry(1)
+                .onErrorResume(err -> {
+                    log.error("AI stream generation failed after retry", err);
+                    return Flux.just("\n[ERROR: Failed to connect to AI server. Please try again.]");
+                });
     }
 
     private String buildPrompt(String question, List<ChatMessageDto> history, List<ChatAttachmentDto> attachments) {

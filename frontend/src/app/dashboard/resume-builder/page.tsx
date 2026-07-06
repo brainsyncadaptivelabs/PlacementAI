@@ -85,7 +85,7 @@ export default function ResumeBuilderPortal() {
           <p className="text-muted-foreground mt-1">Create and manage high-fidelity professional resumes with AI feedback.</p>
         </div>
         <Button 
-          onClick={() => router.push("/dashboard/resume-builder/templates")} 
+          onClick={() => router.push("/dashboard/resume-builder/new")} 
           className="rounded-xl bg-slate-900 text-white hover:bg-indigo-650 py-5 text-xs font-bold"
         >
           <Plus className="w-4 h-4 mr-2" /> New Resume
@@ -101,7 +101,7 @@ export default function ResumeBuilderPortal() {
             <h3 className="text-lg font-bold text-foreground">No resumes created yet</h3>
             <p className="text-muted-foreground/70 mt-1 max-w-xs">Start building your first job-winning professional resume today.</p>
             <Button 
-              onClick={() => router.push("/dashboard/resume-builder/templates")} 
+              onClick={() => router.push("/dashboard/resume-builder/new")} 
               className="mt-6 rounded-xl bg-slate-900 text-white font-bold px-6 py-4 text-xs hover:bg-indigo-650 transition-colors"
             >
               Select a Template

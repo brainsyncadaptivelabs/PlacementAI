@@ -32,10 +32,12 @@ public class ResumeServiceImpl implements ResumeService {
     private final GeminiService geminiService;
     private final AtsAnalysisRepository atsAnalysisRepository;
     private final CloudinaryService cloudinaryService;
+    private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AtsResponseDto uploadResume(MultipartFile file) {
+        placementMetrics.incrementResumeUploads();
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file is empty.");
         }
@@ -91,6 +93,7 @@ public class ResumeServiceImpl implements ResumeService {
             log.info("Resume saved to database");
 
             log.info("Sending resume to AI provider for ATS analysis");
+            placementMetrics.incrementAtsScans();
             AtsResponseDto atsResponse = geminiService.analyzeResume(extractedText);
             atsResponse.setExtractedText(extractedText);
             log.info("ATS analysis completed successfully");

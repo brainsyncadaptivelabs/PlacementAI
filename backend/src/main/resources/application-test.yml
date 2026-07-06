@@ -1,0 +1,38 @@
+# Testing profile overrides
+spring:
+  datasource:
+    url: jdbc:h2:mem:placementai-test;MODE=MySQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+  flyway:
+    enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.aiplacement.backend: INFO
+
+ratelimit:
+  login:
+    capacity: 1000
+    duration-seconds: 1
+  signup:
+    capacity: 1000
+    duration-seconds: 1
+  chat:
+    capacity: 1000
+    duration-seconds: 1
+  resume-upload:
+    capacity: 1000
+    duration-seconds: 1
+  ats:
+    capacity: 1000
+    duration-seconds: 1
+  mock-interview:
+    capacity: 1000
+    duration-seconds: 1

@@ -60,17 +60,23 @@ public class NvidiaBuildClient implements AIClient {
     private final NvidiaAIProperties properties;
     private final ObjectMapper objectMapper;
     private final ApiUsageLogRepository apiUsageLogRepository;
+    private final com.aiplacement.backend.logging.AiLoggingService aiLoggingService;
+    private final com.aiplacement.backend.monitoring.AiMetrics aiMetrics;
 
     public NvidiaBuildClient(
             WebClient webClient,
             NvidiaAIProperties properties,
             ObjectMapper objectMapper,
-            ApiUsageLogRepository apiUsageLogRepository
+            ApiUsageLogRepository apiUsageLogRepository,
+            com.aiplacement.backend.logging.AiLoggingService aiLoggingService,
+            com.aiplacement.backend.monitoring.AiMetrics aiMetrics
     ) {
         this.webClient = webClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
         this.apiUsageLogRepository = apiUsageLogRepository;
+        this.aiLoggingService = aiLoggingService;
+        this.aiMetrics = aiMetrics;
     }
 
     // ─── AIClient contract ────────────────────────────────────────────────────
@@ -85,6 +91,7 @@ public class NvidiaBuildClient implements AIClient {
     public String generate(String systemPrompt, String userPrompt, double temperature, int maxTokens) {
         long start = System.currentTimeMillis();
         String feature = detectFeature();
+        int promptLen = (systemPrompt != null ? systemPrompt.length() : 0) + (userPrompt != null ? userPrompt.length() : 0);
 
         NvidiaRequest request = buildRequest(systemPrompt, userPrompt, temperature, maxTokens, false, false);
 
@@ -101,20 +108,21 @@ public class NvidiaBuildClient implements AIClient {
 
             String content = extractContent(response);
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, response, latency, "SUCCESS");
+            int compLen = (content != null ? content.length() : 0);
+            saveLog(feature, response, latency, "SUCCESS", promptLen, compLen);
             return content;
 
         } catch (AIAuthenticationException | AIRateLimitException e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE");
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
             throw e;
         } catch (AIException e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE");
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
             throw e;
         } catch (Exception e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE");
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
             throw new AIException("AI generation failed — provider unreachable or returned unexpected response", e);
         }
     }
@@ -136,6 +144,7 @@ public class NvidiaBuildClient implements AIClient {
     ) {
         long start = System.currentTimeMillis();
         String feature = detectFeature();
+        int promptLen = (systemPrompt != null ? systemPrompt.length() : 0) + (userPrompt != null ? userPrompt.length() : 0);
 
         // Use the AI-native system prompt for JSON mode (overrides caller's if blank)
         String effectiveSystem = (systemPrompt == null || systemPrompt.isBlank())
@@ -157,18 +166,19 @@ public class NvidiaBuildClient implements AIClient {
 
             String rawContent = extractContent(response);
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, response, latency, "SUCCESS");
+            int compLen = (rawContent != null ? rawContent.length() : 0);
+            saveLog(feature, response, latency, "SUCCESS", promptLen, compLen);
 
             String repairedJson = cleanAndRepairJson(rawContent);
             return objectMapper.readTree(repairedJson);
 
         } catch (AIAuthenticationException e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE");
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
             throw e; // Never fall back on auth errors — operator must fix key
         } catch (Exception e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE");
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
             log.warn("[AI] generateJson failed for feature={}, attempting fallback. Reason: {}",
                     feature, e.getClass().getSimpleName());
             try {
@@ -419,7 +429,7 @@ public class NvidiaBuildClient implements AIClient {
 
     // ─── Usage logging ─────────────────────────────────────────────────────────
 
-    private void saveLog(String feature, NvidiaResponse response, long latencyMs, String status) {
+    private void saveLog(String feature, NvidiaResponse response, long latencyMs, String status, int promptLength, int completionLength) {
         try {
             String userEmail = "anonymous@example.com";
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -448,11 +458,26 @@ public class NvidiaBuildClient implements AIClient {
                     .latencyMs(latencyMs)
                     .status(status)
                     .retryCount(0)
-                    .promptLength(0)   // not logged for security (Phase 8)
-                    .completionLength(0)
+                    .promptLength(promptLength)
+                    .completionLength(completionLength)
                     .build();
 
             apiUsageLogRepository.save(logEntry);
+            
+            // Map widgets based on feature type
+            String widgets = "NONE";
+            if ("RESUME_COMPARE".equals(feature)) {
+                widgets = "heatmap, radar, recommendations, checklist";
+            } else if ("ATS_ANALYSIS".equals(feature)) {
+                widgets = "insight, recommendations, expandable";
+            } else if ("ROADMAP".equals(feature)) {
+                widgets = "roadmap, timeline, checklist";
+            }
+            
+            aiLoggingService.logAiRequest(properties.getModel(), promptLength, completionLength, latencyMs, widgets, 1.0, false);
+            
+            aiMetrics.incrementAiRequests();
+            aiMetrics.recordLatency(latencyMs);
         } catch (Exception e) {
             log.debug("[AI] Failed to persist usage log: {}", e.getMessage());
         }

@@ -6,15 +6,19 @@ import com.aiplacement.backend.service.chat.ChatbotService;
 import com.aiplacement.backend.config.RateLimitConfig;
 import io.github.bucket4j.Bucket;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/api/v1/chat")
 @RequiredArgsConstructor
+@Slf4j
 public class ChatbotController {
 
     private final ChatbotService chatbotService;
@@ -35,7 +39,7 @@ public class ChatbotController {
                     .body(
                             new ChatResponseDto(
                                     "Too many requests. Please try again later."
-                            )
+                             )
                     );
         }
 
@@ -63,8 +67,18 @@ public class ChatbotController {
             return Flux.just("Too many requests. Please try again later.");
         }
 
-        return chatbotService.streamQuestion(
-                request
-        );
+        final String finalUsername = username;
+        log.info("Starting stream question connection for user: {}", finalUsername);
+
+        Flux<String> heartbeat = Flux.interval(Duration.ofSeconds(15))
+                .map(tick -> " ");
+
+        Flux<String> responseStream = chatbotService.streamQuestion(request);
+
+        return Flux.merge(responseStream, heartbeat)
+                .timeout(Duration.ofSeconds(45), Flux.just("\n[ERROR: Timeout - request took too long. Please retry.]"))
+                .doOnCancel(() -> log.info("Client cancelled/stopped chat stream for user: {}", finalUsername))
+                .doOnComplete(() -> log.info("Stream completed successfully for user: {}", finalUsername))
+                .doOnError(err -> log.error("Error occurred in stream for user: {}", finalUsername, err));
     }
 }

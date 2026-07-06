@@ -27,6 +27,8 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CsrfProtectionFilter csrfProtectionFilter;
+    private final com.aiplacement.backend.logging.RequestLoggingFilter requestLoggingFilter;
+    private final com.aiplacement.backend.ratelimit.RateLimitFilter rateLimitFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -123,10 +125,18 @@ public class SecurityConfig {
                 )
 
                 .addFilterBefore(
+                        requestLoggingFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterBefore(
 
                         jwtAuthenticationFilter,
 
                         UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterAfter(
+                        rateLimitFilter,
+                        JwtAuthenticationFilter.class
                 )
                 .addFilterAfter(
                         csrfProtectionFilter,

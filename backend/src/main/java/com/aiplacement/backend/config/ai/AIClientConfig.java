@@ -71,13 +71,17 @@ public class AIClientConfig {
     @Primary
     public AIClient aiClient(
             ObjectMapper objectMapper,
-            com.aiplacement.backend.repository.ApiUsageLogRepository apiUsageLogRepository
+            com.aiplacement.backend.repository.ApiUsageLogRepository apiUsageLogRepository,
+            com.aiplacement.backend.logging.AiLoggingService aiLoggingService,
+            com.aiplacement.backend.monitoring.AiMetrics aiMetrics
     ) {
         return new NvidiaBuildClient(
                 nvidiaWebClient(),
                 properties,
                 objectMapper,
-                apiUsageLogRepository
+                apiUsageLogRepository,
+                aiLoggingService,
+                aiMetrics
         );
     }
 }

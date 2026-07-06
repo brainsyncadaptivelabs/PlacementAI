@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Settings, LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { roleMenus } from "@/config/menu-config";
+import { roleMenus, studentMenuGroups } from "@/config/menu-config";
 
 import {
   Sidebar as ShadcnSidebar,
@@ -77,32 +77,72 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-3 py-4">
-        <SidebarMenu>
-          {menuItems.map((item) => {
-            const isRootUrl = item.url.split('/').length <= 2;
-            const isActive = isRootUrl 
-              ? pathname === item.url 
-              : (pathname === item.url || pathname.startsWith(item.url + '/'));
-            return (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  render={<Link href={item.url} />}
-                  isActive={isActive}
-                  className={role === "RECRUITER" 
-                    ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
-                    : "hover:bg-muted transition-colors py-6"}
-                  tooltip={item.title}
-                >
-                  <item.icon className={`w-5 h-5 ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary' : 'text-muted-foreground')}`} />
-                  <span className={`font-medium ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground font-semibold' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary font-semibold' : 'text-foreground')}`}>{item.title}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            );
-          })}
-        </SidebarMenu>
+      <SidebarContent className="px-3 py-4 overflow-y-auto space-y-4">
+        {role === "STUDENT" && hasPlan ? (
+          studentMenuGroups.map((group) => (
+            <div key={group.title} className="space-y-1">
+              <div className="px-3 py-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground/60">
+                  {group.title}
+                </span>
+              </div>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const isRootUrl = item.url.split('/').length <= 2;
+                  const isActive = isRootUrl 
+                    ? pathname === item.url 
+                    : (pathname === item.url || pathname.startsWith(item.url + '/'));
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        render={item.comingSoon ? <button className="cursor-not-allowed opacity-80" /> : <Link href={item.url} />}
+                        isActive={isActive}
+                        className="hover:bg-muted transition-colors py-6 flex items-center justify-between w-full"
+                        tooltip={item.title}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
+                          <span className={`font-medium ${isActive ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
+                        </div>
+                        {item.comingSoon && (
+                          <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-indigo-650 bg-indigo-50 border border-indigo-100 rounded-full shrink-0">
+                            Soon
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </div>
+          ))
+        ) : (
+          <SidebarMenu>
+            {menuItems.map((item) => {
+              const isRootUrl = item.url.split('/').length <= 2;
+              const isActive = isRootUrl 
+                ? pathname === item.url 
+                : (pathname === item.url || pathname.startsWith(item.url + '/'));
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    render={<Link href={item.url} />}
+                    isActive={isActive}
+                    className={role === "RECRUITER" 
+                      ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
+                      : "hover:bg-muted transition-colors py-6"}
+                    tooltip={item.title}
+                  >
+                    <item.icon className={`w-5 h-5 ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary' : 'text-muted-foreground')}`} />
+                    <span className={`font-medium ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground font-semibold' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary font-semibold' : 'text-foreground')}`}>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        )}
         
-        {menuItems.length > 0 && (
+        {role !== "STUDENT" && menuItems.length > 0 && (
           <>
             <div className="mt-8 mb-2 px-3">
               <span className={`text-xs font-semibold uppercase tracking-wider ${role === "RECRUITER" ? "text-white/50 dark:text-muted-foreground/70" : "text-muted-foreground/70"}`}>Account</span>

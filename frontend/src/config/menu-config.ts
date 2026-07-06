@@ -18,13 +18,17 @@ import {
   GraduationCap,
   Calendar,
   GitBranch,
-  Search
+  Search,
+  Volume2,
+  Sparkles,
+  Settings
 } from "lucide-react";
 
 export type MenuItem = {
   title: string;
   icon: any;
   url: string;
+  comingSoon?: boolean;
 };
 
 export const studentMenu: MenuItem[] = [
@@ -42,6 +46,55 @@ export const studentMenu: MenuItem[] = [
   { title: "Coding Practice", icon: Code2, url: "/dashboard/coding" },
   { title: "Aptitude", icon: Brain, url: "/dashboard/aptitude" },
   { title: "Analytics", icon: BarChart3, url: "/dashboard/analytics" }
+];
+
+export interface MenuGroup {
+  title: string;
+  items: MenuItem[];
+}
+
+export const studentMenuGroups: MenuGroup[] = [
+  {
+    title: "MAIN",
+    items: [
+      { title: "Dashboard", icon: LayoutDashboard, url: "/dashboard" }
+    ]
+  },
+  {
+    title: "RESUME",
+    items: [
+      { title: "Resume Builder", icon: FileText, url: "/dashboard/resume-builder" },
+      { title: "Resume & ATS", icon: FileText, url: "/dashboard/ats" },
+      { title: "Resume History", icon: History, url: "/dashboard/history" },
+      { title: "Compare Resumes", icon: Scale, url: "/dashboard/compare" },
+      { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" }
+    ]
+  },
+  {
+    title: "PREPARATION",
+    items: [
+      { title: "Coding Practice", icon: Code2, url: "/dashboard/coding" },
+      { title: "Aptitude", icon: Brain, url: "/dashboard/aptitude" },
+      { title: "Communication Analysis", icon: Volume2, url: "/dashboard/communication", comingSoon: true },
+      { title: "Mock Interviews", icon: Mic2, url: "/mock-interview" },
+      { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
+      { title: "Career Roadmap", icon: Map, url: "/dashboard/roadmap" },
+      { title: "Learning Hub", icon: BookOpen, url: "/dashboard/learning", comingSoon: true }
+    ]
+  },
+  {
+    title: "AI",
+    items: [
+      { title: "AI Chatbot", icon: MessageSquare, url: "/dashboard/chat" },
+      { title: "AI Coach", icon: Sparkles, url: "/dashboard/coach", comingSoon: true }
+    ]
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { title: "Settings", icon: Settings, url: "/dashboard/settings" }
+    ]
+  }
 ];
 
 export const recruiterMenu: MenuItem[] = [

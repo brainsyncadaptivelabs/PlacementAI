@@ -1,25 +1,25 @@
-# Production profile overrides
+# Development profile overrides
 logging:
   level:
-    root: WARN
-    com.aiplacement.backend: INFO
+    root: INFO
+    com.aiplacement.backend: DEBUG
 
 ratelimit:
   login:
-    capacity: 5
+    capacity: 20
     duration-seconds: 60
   signup:
-    capacity: 3
-    duration-seconds: 3600
+    capacity: 20
+    duration-seconds: 60
   chat:
-    capacity: 60
+    capacity: 200
     duration-seconds: 60
   resume-upload:
-    capacity: 10
+    capacity: 100
     duration-seconds: 3600
   ats:
-    capacity: 20
+    capacity: 100
     duration-seconds: 3600
   mock-interview:
-    capacity: 15
+    capacity: 100
     duration-seconds: 3600

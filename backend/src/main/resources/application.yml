@@ -190,3 +190,24 @@ vapid:
   private:
     key: ${VAPID_PRIVATE_KEY:dummy}
   subject: ${VAPID_SUBJECT:mailto:support@aiplacement.com}
+
+# ── Rate Limiting ─────────────────────────────────────────────
+ratelimit:
+  login:
+    capacity: ${RATE_LIMIT_LOGIN_CAPACITY:5}
+    duration-seconds: ${RATE_LIMIT_LOGIN_DURATION:60}
+  signup:
+    capacity: ${RATE_LIMIT_SIGNUP_CAPACITY:3}
+    duration-seconds: ${RATE_LIMIT_SIGNUP_DURATION:3600}
+  chat:
+    capacity: ${RATE_LIMIT_CHAT_CAPACITY:60}
+    duration-seconds: ${RATE_LIMIT_CHAT_DURATION:60}
+  resume-upload:
+    capacity: ${RATE_LIMIT_RESUME_CAPACITY:10}
+    duration-seconds: ${RATE_LIMIT_RESUME_DURATION:3600}
+  ats:
+    capacity: ${RATE_LIMIT_ATS_CAPACITY:20}
+    duration-seconds: ${RATE_LIMIT_ATS_DURATION:3600}
+  mock-interview:
+    capacity: ${RATE_LIMIT_INTERVIEW_CAPACITY:15}
+    duration-seconds: ${RATE_LIMIT_INTERVIEW_DURATION:3600}

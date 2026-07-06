@@ -7,7 +7,7 @@ interface WorkspaceTabsProps {
 }
 
 export function WorkspaceTabs({ activeTab, onTabChange }: WorkspaceTabsProps) {
-  const tabs = ["Chat", "Coach", "Recruiter", "TPO", "Roadmaps", "Resume", "Learning", "Saved", "Files"];
+  const tabs = ["Chat", "Coach", "Recruiter", "TPO", "Resume"];
   return (
     <div className="flex border-b border-border/40 bg-muted/40 px-6 py-2 select-none shrink-0 gap-1.5">
       {tabs.map((tab) => {

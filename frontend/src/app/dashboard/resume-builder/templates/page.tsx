@@ -7,9 +7,11 @@ import { ACTIVE_TEMPLATES, TEMPLATE_REGISTRY } from "@/lib/resume/templates/temp
 import { calculateTemplateATS, getATSBadge } from "@/lib/resume/ats/analyzer";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ResumePreviewModal } from "@/components/resume/ResumePreviewModal";
+import { useResumeBuilderSession } from "@/providers/ResumeBuilderSessionProvider";
 
 export default function TemplateGalleryPage() {
   const router = useRouter();
+  const { session, setSession } = useResumeBuilderSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("ATS Resume");
   const [loadingTemplate, setLoadingTemplate] = useState<string | null>(null);
@@ -63,6 +65,7 @@ export default function TemplateGalleryPage() {
 
   const handleSelectTemplate = (templateId: string) => {
     setLoadingTemplate(templateId);
+    setSession(prev => ({ ...prev, selectedTemplate: templateId }));
     localStorage.setItem("placementai_template", templateId);
     
     const reg = TEMPLATE_REGISTRY[templateId];
@@ -126,6 +129,10 @@ export default function TemplateGalleryPage() {
             const reg = TEMPLATE_REGISTRY[tpl.id];
             const Renderer = reg ? reg.renderer : null;
 
+            const isRecommended = session.blueprint?.recommendedTemplate && 
+              (tpl.name.toLowerCase().includes(session.blueprint.recommendedTemplate.toLowerCase()) || 
+               (session.blueprint.recommendedTemplate.toLowerCase().includes("ats") && tpl.name.toLowerCase().includes("educator")));
+
             return (
               <TooltipProvider key={tpl.id}>
                 <div
@@ -138,6 +145,13 @@ export default function TemplateGalleryPage() {
                     tpl.comingSoon ? "opacity-75" : ""
                   } cursor-pointer md:cursor-default`}
                 >
+                  {/* AI Recommended Badge */}
+                  {isRecommended && (
+                    <div className="absolute top-4 left-4 bg-indigo-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest z-30 shadow-md flex items-center gap-1">
+                      <span className="animate-pulse">✨</span> AI Recommended
+                    </div>
+                  )}
+
                   {/* Coming soon Overlay */}
                   {tpl.comingSoon && (
                     <div className="absolute inset-0 bg-card/90 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">

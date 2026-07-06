@@ -33,6 +33,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     private final MockInterviewRepository mockInterviewRepository;
     private final UserRepository userRepository;
     private final org.springframework.web.reactive.function.client.WebClient.Builder webClientBuilder;
+    private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${elevenlabs.api.key:dummy}")
@@ -94,6 +95,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     @Override
     public MockInterviewResponseDto generateMockInterview(MockInterviewRequestDto request) {
         log.info("Generating mock interview questions.");
+        placementMetrics.incrementMockInterviews();
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));

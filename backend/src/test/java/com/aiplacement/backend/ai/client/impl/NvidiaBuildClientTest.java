@@ -41,7 +41,7 @@ class NvidiaBuildClientTest {
         NvidiaAIProperties properties = new NvidiaAIProperties();
         properties.setApiKey("test-key");
         properties.setBaseUrl(mockServer.url("/v1/chat/completions").toString());
-        properties.setModel("meta/llama-3.1-70b-instruct");
+        properties.setModel("meta/llama-3.3-70b-instruct");
         properties.setTemperature(0.7);
         properties.setMaxTokens(1024);
         properties.setTimeoutSeconds(10);
@@ -53,8 +53,10 @@ class NvidiaBuildClientTest {
                 .build();
 
         ApiUsageLogRepository mockRepo = Mockito.mock(ApiUsageLogRepository.class);
+        com.aiplacement.backend.logging.AiLoggingService mockAiLogging = Mockito.mock(com.aiplacement.backend.logging.AiLoggingService.class);
+        com.aiplacement.backend.monitoring.AiMetrics mockAiMetrics = Mockito.mock(com.aiplacement.backend.monitoring.AiMetrics.class);
 
-        aiClient = new NvidiaBuildClient(webClient, properties, objectMapper, mockRepo);
+        aiClient = new NvidiaBuildClient(webClient, properties, objectMapper, mockRepo, mockAiLogging, mockAiMetrics);
     }
 
     @AfterEach

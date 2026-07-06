@@ -2,7 +2,11 @@ package com.aiplacement.backend.controller.resumebuilder;
 
 import com.aiplacement.backend.dto.resumebuilder.ResumeBuilderRequestDto;
 import com.aiplacement.backend.dto.resumebuilder.ResumeBuilderResponseDto;
+import com.aiplacement.backend.dto.resumebuilder.JdAnalysisRequest;
+import com.aiplacement.backend.dto.resumebuilder.JdAnalysisResponse;
 import com.aiplacement.backend.service.resumebuilder.ResumeBuilderService;
+import com.aiplacement.backend.service.resumebuilder.JdAnalysisService;
+import com.aiplacement.backend.service.resumebuilder.ResumeStrategyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +20,17 @@ import java.util.List;
 public class ResumeBuilderController {
 
     private final ResumeBuilderService resumeBuilderService;
+    private final JdAnalysisService jdAnalysisService;
+    private final ResumeStrategyService resumeStrategyService;
+
+    @PostMapping("/blueprint")
+    public ResponseEntity<JdAnalysisResponse> generateBlueprint(
+            @RequestBody JdAnalysisRequest request
+    ) {
+        JdAnalysisResponse analysis = jdAnalysisService.analyzeJobDescription(request);
+        JdAnalysisResponse strategy = resumeStrategyService.buildStrategy(analysis, request.getJobDescription());
+        return ResponseEntity.ok(strategy);
+    }
 
     @PostMapping
     public ResponseEntity<ResumeBuilderResponseDto> createResume(

@@ -16,34 +16,32 @@ import {
   ThumbsUp, 
   ThumbsDown, 
   Loader2, 
-  MoreHorizontal,
-  Trash2,
-  Paperclip,
-  Share,
-  Sun,
-  Moon,
-  Search,
-  AlertTriangle,
-  Award,
+  Trash2, 
+  Paperclip, 
+  Share, 
+  Sun, 
+  Moon, 
+  AlertTriangle, 
+  ArrowRight, 
+  Bell, 
+  Sliders,
+  Plus,
   Zap,
-  Target,
-  FileText,
   Flame,
-  ArrowRight,
-  Bell,
-  Sliders
+  Award,
+  Target
 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
 import { useTheme } from "next-themes";
-import { WidgetRenderer, MermaidDiagram } from "@/components/chat/widgets/index";
+import { WidgetRenderer } from "@/components/chat/widgets/index";
 import { useConversationManager } from "@/components/chat/useConversationManager";
 import { Message } from "@/components/chat/ConversationStorage";
 import { CommandPalette } from "@/components/chat/command/CommandPalette";
 import { WorkspaceTabs } from "@/components/workspace/WorkspaceTabs";
 import { NotificationCenter } from "@/components/workspace/NotificationCenter";
-import { SavedArtifacts } from "@/components/workspace/SavedArtifacts";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 // Safe Markdown Error Boundary with plain text fallback
 class SafeMarkdownBoundary extends React.Component<
@@ -65,9 +63,8 @@ class SafeMarkdownBoundary extends React.Component<
 
   render() {
     if (this.state.hasError) {
-      // Safe Plain Text Renderer (cleans markdown artifacts)
       const cleanText = this.props.fallbackText
-        .replace(/[#*`~_\[\]()\-]/g, "") // strip markdown tokens
+        .replace(/[#*`~_\[\]()\-]/g, "")
         .replace(/\n\s*\n/g, "\n\n");
       return (
         <div 
@@ -85,28 +82,13 @@ class SafeMarkdownBoundary extends React.Component<
 // Markdown Normalizer Helper
 const normalizeMarkdown = (text: string): string => {
   if (!text) return "";
-  
-  // CRLF -> LF
   let result = text.replace(/\r\n/g, "\n");
-  
-  // Convert escaped literal '\n' to actual line feed
   result = result.replace(/\\n/g, "\n");
-  
-  // Clean up duplicate bold asterisks (**** or more)
   result = result.replace(/\*{4,}/g, "**");
-
-  // Fix collapsed adjacent bold markers
   result = result.replace(/\*\*\*\*\*/g, "** **");
-
-  // Fix headings with no space, e.g. ##Heading to ## Heading
   result = result.replace(/^(#{1,3})([A-Za-z0-9])/gm, "$1 $2");
-
-  // Convert bullet point character "•" to standard markdown bullet "-"
   result = result.replace(/^[ \t]*•[ \t]*/gm, "- ");
-
-  // Collapse repeated blank lines (3 or more newlines to 2 newlines)
   result = result.replace(/\n{3,}/g, "\n\n");
-
   return result;
 };
 
@@ -143,39 +125,22 @@ const CodeBlock = memo(({ className, children }: { className?: string; children:
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownload = () => {
-    const blob = new Blob([children], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `code_snippet.${lang === 'code' ? 'txt' : lang}`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="relative my-4 group/code w-full border border-border/80 rounded-xl overflow-hidden shadow-sm font-mono text-[13px] leading-relaxed bg-muted text-foreground text-left">
-      {/* Code Header Bar */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-secondary border-b border-border select-none text-[10px] uppercase font-bold text-muted-foreground">
         <span>{lang}</span>
         <div className="flex items-center gap-3.5 opacity-80 group-hover/code:opacity-100 transition-opacity">
           <button onClick={() => setWordWrap(!wordWrap)} className="hover:text-foreground transition-colors cursor-pointer">
             {wordWrap ? "No Wrap" : "Wrap"}
           </button>
-          <button onClick={handleDownload} className="hover:text-foreground transition-colors cursor-pointer">
-            Download
-          </button>
           <button onClick={handleCopy} className="hover:text-foreground transition-colors cursor-pointer">
             {copied ? "Copied ✓" : "Copy"}
           </button>
         </div>
       </div>
-
-      {/* Code Body */}
       <div className={`overflow-x-auto w-full ${isLongCode && collapsed ? "max-h-60" : "max-h-none"}`} style={{ whiteSpace: wordWrap ? "pre-wrap" : "pre" }}>
         <pre className="p-4 bg-transparent m-0 overflow-visible text-foreground"><code>{children}</code></pre>
       </div>
-
       {isLongCode && (
         <button 
           onClick={() => setCollapsed(!collapsed)}
@@ -208,48 +173,35 @@ const MessageItem = memo(({
   onFeedback?: (type: 'like' | 'dislike') => void;
 }) => {
   const [copied, setCopied] = useState(false);
-  const [toastText, setToastText] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState(msg.content);
 
   const handleCopy = () => {
     onCopy(msg.content);
     setCopied(true);
-    setToastText("Copied to clipboard ✓");
     setTimeout(() => setCopied(false), 2000);
-    setTimeout(() => setToastText(null), 2000);
   };
 
   const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'PlacementAI Conversation Response',
-        text: msg.content
-      }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(msg.content);
-      setToastText("Share link copied to clipboard ✓");
-      setTimeout(() => setToastText(null), 2000);
-    }
+    navigator.clipboard.writeText(msg.content);
   };
 
   const isAi = msg.role === 'ai';
 
   return (
     <div className="w-full flex justify-center mb-6 last:mb-0 animate-message group/msg relative">
-      <div className={`w-full max-w-[1800px] px-6 flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
-        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-primary border-primary/10 text-foreground' : 'bg-muted border-border text-muted-foreground'}`}>
+      <div className={`w-full max-w-[1200px] px-6 flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
+        <Avatar className={`w-9 h-9 shrink-0 rounded-full flex items-center justify-center border ${isAi ? 'bg-indigo-50 border-indigo-100 text-indigo-650' : 'bg-muted border-border text-muted-foreground'}`}>
           {isAi ? (
-            <Sparkles className="w-4.5 h-4.5 text-foreground" />
+            <Sparkles className="w-4 h-4 text-indigo-650" />
           ) : (
-            <User className="w-4.5 h-4.5 text-muted-foreground" />
+            <User className="w-4 h-4 text-muted-foreground" />
           )}
         </Avatar>
         
-        <div className={`flex flex-col ${isAi ? 'items-start w-[92%]' : 'items-end max-w-[70%]'} min-w-0 flex-1 relative`}>
-          {/* Metadata */}
+        <div className={`flex flex-col ${isAi ? 'items-start w-[92%]' : 'items-end max-w-[75%]'} min-w-0 flex-1 relative`}>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-bold text-muted-foreground/70 uppercase tracking-wider">
+            <span className="text-[11px] font-bold text-muted-foreground/75 uppercase tracking-wider">
               {isAi ? 'AI Career Copilot' : 'You'}
             </span>
             <span className="text-[10px] text-muted-foreground/50 font-medium">
@@ -257,7 +209,6 @@ const MessageItem = memo(({
             </span>
           </div>
 
-          {/* Bubble Container */}
           <div 
             className={`message-content bg-transparent text-foreground ${isAi ? 'w-full' : 'w-fit text-right'}`}
             style={{ 
@@ -289,7 +240,6 @@ const MessageItem = memo(({
                 msg.content ? (
                   <SafeMarkdownBoundary fallbackText={msg.content}>
                     <div className="space-y-4 w-full">
-                      {/* Interactive Skill Trees & Timeline Parser */}
                       {msg.content.includes("├──") && (
                         <div className="p-4 bg-muted/40 border border-border/50 rounded-xl font-mono text-xs text-indigo-400 space-y-1 my-3 select-none">
                           <div className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider mb-2">⚡ Visual Skill Tree</div>
@@ -309,62 +259,41 @@ const MessageItem = memo(({
                         </div>
                       )}
 
-                      {/* Circular / Progress Dashboard Widgets Parser */}
                       {msg.content.includes("Readiness Score:") && (
                         <div className="grid grid-cols-2 gap-3 my-4">
                           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
                             <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Readiness Score</span>
-                            <div className="text-2xl font-black text-indigo-500">6%</div>
+                            <div className="text-2xl font-black text-indigo-500">76%</div>
                             <div className="w-full bg-secondary h-1 rounded-full mt-2 overflow-hidden">
-                              <div className="bg-indigo-500 h-full rounded-full" style={{ width: '6%' }} />
+                              <div className="bg-indigo-500 h-full rounded-full" style={{ width: '76%' }} />
                             </div>
                           </div>
                           <div className="p-4 rounded-xl bg-muted/50 border border-border flex flex-col items-center">
                             <span className="text-[9px] uppercase font-bold text-muted-foreground tracking-wider mb-1">ATS Score</span>
-                            <div className="text-2xl font-black text-emerald-500">0%</div>
+                            <div className="text-2xl font-black text-emerald-500">82%</div>
                             <div className="w-full bg-secondary h-1 rounded-full mt-2 overflow-hidden">
-                              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '0%' }} />
+                              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '82%' }} />
                             </div>
                           </div>
                         </div>
                       )}
 
-                      {/* Timeline Visual Progress Parser */}
-                      {msg.content.includes("↓") && (
-                        <div className="flex flex-col gap-2 my-4 relative pl-4 border-l-2 border-indigo-500/30">
-                          <div className="text-[10px] uppercase font-bold text-muted-foreground/60 tracking-wider mb-2">📅 Learning Timeline</div>
-                          {msg.content.split("\n").filter(line => line.includes("↓") || line.includes("→")).map((line, idx) => {
-                            const clean = line.replace(/[↓→]/g, "").trim();
-                            if (!clean) return null;
-                            return (
-                              <div key={idx} className="flex items-center gap-3 relative py-1 text-xs">
-                                <div className="absolute -left-[21px] w-2 h-2 rounded-full bg-indigo-500 border-2 border-background" />
-                                <span className="font-semibold text-foreground/90">{clean}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Standard Widget Engine Parser */}
                       {msg.content.includes("```json") && msg.content.includes("widget") && (
                         <div className="my-4 border border-border/80 rounded-2xl overflow-hidden shadow-sm bg-card/25 w-full">
                           <WidgetRenderer rawJson={extractJsonFromMarkdown(msg.content)} isStreaming={isGenerating} />
                         </div>
                       )}
 
-                      {/* Standard Markdown Body */}
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeSanitize]}
                         components={{
-                          p: ({children}) => <p className="leading-[1.8] text-[15.5px] font-medium text-foreground/90 mb-4 last:mb-0 select-text">{children}</p>,
-                          h1: ({children}) => <h1 className="text-2xl font-extrabold text-foreground tracking-tight mt-6 mb-3">{children}</h1>,
-                          h2: ({children}) => <h2 className="text-xl font-bold text-foreground tracking-tight mt-5 mb-2.5">{children}</h2>,
-                          h3: ({children}) => <h3 className="text-lg font-bold text-foreground/90 tracking-tight mt-4 mb-2">{children}</h3>,
+                          p: ({children}) => <p className="leading-[1.8] text-[15px] font-medium text-foreground/90 mb-4 last:mb-0 select-text">{children}</p>,
+                          h1: ({children}) => <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-6 mb-3">{children}</h1>,
+                          h2: ({children}) => <h2 className="text-lg font-bold text-foreground tracking-tight mt-5 mb-2">{children}</h2>,
                           ul: ({children}) => <ul className="list-disc pl-6 space-y-2 mb-4 select-text">{children}</ul>,
                           ol: ({children}) => <ol className="list-decimal pl-6 space-y-2 mb-4 select-text">{children}</ol>,
-                          li: ({children}) => <li className="text-[15px] font-medium leading-[1.8] text-foreground/90">{children}</li>,
+                          li: ({children}) => <li className="text-[14.5px] font-medium leading-[1.8] text-foreground/90">{children}</li>,
                           code: ({className, children}) => {
                             const codeStr = String(children);
                             if (codeStr.startsWith("class ") || codeStr.startsWith("public ") || codeStr.includes("\n") || className) {
@@ -372,81 +301,11 @@ const MessageItem = memo(({
                             }
                             return <code className="px-1.5 py-0.5 rounded-md bg-muted/65 border border-border/50 text-indigo-500 font-mono text-[13px]">{children}</code>;
                           },
-                          blockquote: ({children}) => {
-                            const text = String(children);
-                            if (text.includes("💡") || text.includes("info")) {
-                              const cleanChildren = React.Children.map(children, (child) => {
-                                if (typeof child === 'string') {
-                                  return child.replace(/\[\s*(💡|info)\s*\]/gi, '').trim();
-                                }
-                                return child;
-                              });
-
-                              return (
-                                <div className="flex gap-3 px-4.5 py-4 border border-indigo-500/25 bg-indigo-500/5 rounded-2xl my-5 text-[14.5px] text-slate-300 text-left">
-                                  <div className="w-5 h-5 shrink-0 flex items-center justify-center bg-indigo-500/10 text-indigo-400 rounded-lg">
-                                    <Sparkles className="w-3.5 h-3.5" />
-                                  </div>
-                                  <div>
-                                    <div className="text-foreground leading-relaxed">{cleanChildren}</div>
-                                  </div>
-                                </div>
-                              );
-                            }
-
-                            if (text.includes("⚠️") || text.includes("warning") || text.includes("error")) {
-                              const cleanChildren = React.Children.map(children, (child) => {
-                                if (typeof child === 'string') {
-                                    return child.replace(/\[\s*(⚠️|warning|error)\s*\]/gi, '').trim();
-                                }
-                                return child;
-                              });
-
-                              return (
-                                <div className="flex gap-3 px-4.5 py-4 border border-rose-500/20 bg-rose-500/5 rounded-2xl my-5 text-[14.5px] text-slate-300 text-left">
-                                  <div className="w-5 h-5 shrink-0 flex items-center justify-center bg-rose-500/10 text-rose-400 rounded-lg">
-                                    <AlertTriangle className="w-3.5 h-3.5" />
-                                  </div>
-                                  <div>
-                                    <div className="text-foreground leading-relaxed">{cleanChildren}</div>
-                                  </div>
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <blockquote className="border-l-4 border-muted-foreground/30 pl-4 py-1 italic my-4 text-muted-foreground/90 leading-relaxed font-serif">
-                                {children}
-                              </blockquote>
-                            );
-                          },
-
-                          table: ({children}) => {
-                            const handleCopyTable = (e: React.MouseEvent) => {
-                              const tableEl = e.currentTarget.parentElement?.querySelector("table");
-                              if (tableEl) {
-                                navigator.clipboard.writeText(tableEl.innerText || "");
-                              }
-                            };
-                            return (
-                              <div className="relative group/table my-5 border border-border rounded-xl shadow-sm overflow-hidden bg-card/40">
-                                <button 
-                                  onClick={handleCopyTable}
-                                  className="absolute right-2 top-2 opacity-0 group-hover/table:opacity-100 transition-opacity px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded bg-secondary text-muted-foreground hover:text-foreground border border-border z-10 cursor-pointer"
-                                >
-                                  Copy Table
-                                </button>
-                                <div className="overflow-x-auto w-full">
-                                  <table className="min-w-full divide-y divide-border/10 bg-transparent text-sm">{children}</table>
-                                </div>
-                              </div>
-                            );
-                          },
-                          thead: ({children}) => <thead className="bg-muted/80 sticky top-0">{children}</thead>,
-                          tbody: ({children}) => <tbody className="divide-y divide-border/10 bg-transparent">{children}</tbody>,
-                          tr: ({children}) => <tr className="hover:bg-muted/50 transition-colors">{children}</tr>,
-                          th: ({children}) => <th className="px-4 py-3 text-left text-xs font-bold text-muted-foreground uppercase tracking-wider">{children}</th>,
-                          td: ({children}) => <td className="px-4 py-3 text-sm font-medium">{children}</td>
+                          blockquote: ({children}) => (
+                            <blockquote className="border-l-4 border-muted-foreground/30 pl-4 py-1 italic my-4 text-muted-foreground/90 leading-relaxed font-serif">
+                              {children}
+                            </blockquote>
+                          )
                         }}
                       >
                         {msg.content + (isGenerating ? " ▋" : "")}
@@ -462,39 +321,17 @@ const MessageItem = memo(({
                 )
               ) : (
                 <div className="flex items-center justify-between w-full">
-                  <div style={{ fontSize: '18px', fontWeight: 400, lineHeight: '1.85', letterSpacing: '-0.01em' }}>{msg.content}</div>
+                  <div style={{ fontSize: '16px', fontWeight: 500, lineHeight: '1.85', letterSpacing: '-0.01em' }}>{msg.content}</div>
                   <button onClick={() => setIsEditing(true)} className="p-1 text-muted-foreground hover:text-foreground text-xs font-bold uppercase ml-2 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer">Edit</button>
                 </div>
               )
             )}
           </div>
 
-          {/* Render Attachments */}
-          {msg.attachments && msg.attachments.length > 0 && (
-            <div className={`flex flex-wrap gap-2 mt-2 w-full ${isAi ? 'justify-start' : 'justify-end'}`}>
-              {msg.attachments.map((att: any, idx: number) => (
-                <div key={idx} className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-card shadow-sm text-xs font-semibold hover:bg-muted transition-colors max-w-[240px] truncate cursor-pointer select-none">
-                  <Paperclip className="w-3.5 h-3.5 text-indigo-500" />
-                  <span className="truncate flex-1">{att.name}</span>
-                  <span className="text-[9px] text-muted-foreground uppercase font-bold shrink-0">{att.mimeType?.split("/")?.[1] || "File"}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Toast Notification */}
-          {toastText && (
-            <div className="absolute -top-10 right-2 px-3 py-1 bg-popover text-popover-foreground text-[10px] font-bold uppercase rounded-lg shadow-lg border border-border animate-in fade-in slide-in-from-bottom-1 duration-200 z-50">
-              {toastText}
-            </div>
-          )}
-
-          {/* Assistant Actions Toolbar */}
           {isAi && msg.content && !isGenerating && (
             <div className="mt-2.5 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm border border-border/80 px-2.5 py-1.5 rounded-xl shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200 self-end select-none">
               <button 
                 onClick={handleCopy}
-                title="Copy response"
                 className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider ${
                   copied ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
                 }`}
@@ -505,7 +342,6 @@ const MessageItem = memo(({
               {onRegenerate && (
                 <button 
                   onClick={() => onRegenerate(msg.content)}
-                  title="Regenerate response"
                   className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
@@ -514,28 +350,9 @@ const MessageItem = memo(({
               )}
               <div className="w-px h-3 bg-border mx-0.5" />
               <button 
-                onClick={() => onFeedback?.('like')}
-                className={`p-1.5 rounded-lg transition-all ${
-                  feedbackState === 'like' ? 'text-emerald-500 bg-emerald-500/10' : 'text-muted-foreground/70 hover:text-emerald-500 hover:bg-muted'
-                }`} 
-                title="Like response"
-              >
-                <ThumbsUp className="w-3.5 h-3.5" />
-              </button>
-              <button 
-                onClick={() => onFeedback?.('dislike')}
-                className={`p-1.5 rounded-lg transition-all ${
-                  feedbackState === 'dislike' ? 'text-rose-500 bg-rose-500/10' : 'text-muted-foreground/70 hover:text-rose-500 hover:bg-muted'
-                }`} 
-                title="Dislike response"
-              >
-                <ThumbsDown className="w-3.5 h-3.5" />
-              </button>
-              <div className="w-px h-3 bg-border mx-0.5" />
-              <button 
                 onClick={handleShare}
                 className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all"
-                title="Share response"
+                title="Copy link"
               >
                 <Share className="w-3.5 h-3.5" />
               </button>
@@ -570,7 +387,8 @@ export default function ChatPage() {
     toggleArchive,
     renameChat,
     duplicateChat,
-    updateMessages
+    updateMessages,
+    renameChatAsync
   } = useConversationManager();
 
   const messages = activeConversation?.messages || [];
@@ -585,6 +403,7 @@ export default function ChatPage() {
   const [uploadedAttachments, setUploadedAttachments] = useState<any[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, { name: string; progress: number; failed: boolean }>>({});
   const [isTyping, setIsTyping] = useState(false);
+  const [loadingPhase, setLoadingPhase] = useState(0);
   const [generationState, setGenerationState] = useState<"IDLE" | "GENERATING" | "COMPLETE" | "STOPPED">("IDLE");
   const [feedback, setFeedback] = useState<Record<number, 'like' | 'dislike'>>({});
   const [activeTab, setActiveTab] = useState("chat");
@@ -598,33 +417,20 @@ export default function ChatPage() {
   const stuckTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load chat feedback on mount
+  // Dynamic pulsing loading states
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedFeedback = localStorage.getItem("placementai_chat_feedback");
-      if (storedFeedback) {
-        try {
-          setFeedback(JSON.parse(storedFeedback));
-        } catch (e) {
-          console.error("Failed to parse stored feedback", e);
-        }
-      }
+    if (isTyping) {
+      setLoadingPhase(1);
+      const t1 = setTimeout(() => setLoadingPhase(2), 2000);
+      const t2 = setTimeout(() => setLoadingPhase(3), 4500);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    } else {
+      setLoadingPhase(0);
     }
-  }, []);
-
-  // Save feedback when feedback changes
-  const handleFeedback = (msgId: number, type: 'like' | 'dislike') => {
-    setFeedback(prev => {
-      const updated = { ...prev };
-      if (updated[msgId] === type) {
-        delete updated[msgId];
-      } else {
-        updated[msgId] = type;
-      }
-      localStorage.setItem("placementai_chat_feedback", JSON.stringify(updated));
-      return updated;
-    });
-  };
+  }, [isTyping]);
 
   useEffect(() => {
     return () => {
@@ -742,10 +548,10 @@ export default function ChatPage() {
   };
 
   const handleSend = async (retryCount = 0, overrideInput?: string, forceMsgs?: Message[]) => {
-    let finalInput = (overrideInput || input).trim();
+    let finalInput = (overrideInput !== undefined ? overrideInput : input).trim();
     const currentAttachments = [...uploadedAttachments];
 
-    if (currentAttachments.length > 0 && !overrideInput) {
+    if (currentAttachments.length > 0 && overrideInput === undefined) {
       finalInput = `[Attached files: ${currentAttachments.map(a => a.name).join(", ")}]\n\n${finalInput}`.trim();
       setUploadedAttachments([]);
     }
@@ -785,28 +591,14 @@ export default function ChatPage() {
       setMessages(prev => [...prev, aiMsg]);
     }
 
-    let fullContent = retryCount > 0 ? currentMessages.find(m => m.id === aiMsgId)?.content || "" : "";
-
-    // Dynamic prompt-specific timeouts (allowing ample time for local models to generate large responses)
-    const promptLower = finalInput.toLowerCase();
-    let timeLimit = 30000; // default 30s
-    if (
-      finalInput.length < 15 || 
-      promptLower === "hi" || 
-      promptLower === "hello" || 
-      promptLower === "ok" || 
-      promptLower.split(/\s+/).length < 4
-    ) {
-      timeLimit = 15000; // short prompt: 15s
-    } else if (
-      promptLower.includes("resume") || 
-      promptLower.includes("roadmap") || 
-      promptLower.includes("interview") || 
-      promptLower.includes("analysis") || 
-      finalInput.length > 100
-    ) {
-      timeLimit = 180000; // long/complex prompts: 180s (3 mins)
+    // Auto generate useful title based on first query
+    if (currentMessages.length === 0 && activeConversationId) {
+      const cleanTitle = finalInput.split("\n")[0].slice(0, 30) + (finalInput.length > 30 ? "..." : "");
+      renameChat(activeConversationId, cleanTitle);
     }
+
+    let fullContent = "";
+    let timeLimit = 40000;
 
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -818,20 +610,8 @@ export default function ChatPage() {
       clearTimeout(limitTimerRef.current);
     }
     limitTimerRef.current = setTimeout(() => {
-      console.warn("Time limit exceeded, aborting fetch stream.");
+      console.warn("Time limit exceeded, aborting stream.");
       controller.abort();
-      if (stuckTimerRef.current) {
-        clearTimeout(stuckTimerRef.current);
-        stuckTimerRef.current = null;
-      }
-      setMessages(prev => prev.map(m => {
-        if (m.id === aiMsgId) {
-          return { ...m, content: normalizeMarkdown(m.content) };
-        }
-        return m;
-      }));
-      setGenerationState("COMPLETE");
-      setTimeout(() => setGenerationState("IDLE"), 100);
     }, timeLimit);
 
     try {
@@ -861,31 +641,12 @@ export default function ChatPage() {
         setIsTyping(false);
         let streamBuffer = "";
 
-        const resetStuckTimer = () => {
-          if (stuckTimerRef.current) clearTimeout(stuckTimerRef.current);
-          stuckTimerRef.current = setTimeout(() => {
-            console.warn("Stuck loading (6s without chunk), aborting stream.");
-            controller.abort();
-            setGenerationState("COMPLETE");
-            setTimeout(() => setGenerationState("IDLE"), 100);
-          }, 6000);
-        };
-
-        resetStuckTimer();
-        
         while (true) {
           const { done, value } = await reader.read();
-          if (stuckTimerRef.current) {
-            clearTimeout(stuckTimerRef.current);
-            stuckTimerRef.current = null;
-          }
-          
           if (value) {
-            resetStuckTimer();
             const rawChunk = decoder.decode(value, { stream: true });
             streamBuffer += rawChunk;
 
-            // Split buffer strictly by event boundary (\n\n) per SSE spec
             const parts = streamBuffer.split(/\n\s*\n/);
             streamBuffer = parts.pop() || "";
             
@@ -904,13 +665,13 @@ export default function ChatPage() {
                   }
                 }
               }
-              if (dataFound) {
-                contentUpdated = true;
-              }
+              if (dataFound) contentUpdated = true;
             }
 
             if (contentUpdated) {
-              fullContent += currentAssembled;
+              // Strip empty pulse values flushed by SSE heartbeats
+              const cleaned = currentAssembled.replace(/\s+/g, "").trim() === "" ? "" : currentAssembled;
+              fullContent += cleaned;
               setMessages(prev => prev.map(m => 
                 m.id === aiMsgId ? { ...m, content: fullContent } : m
               ));
@@ -918,33 +679,6 @@ export default function ChatPage() {
           }
 
           if (done) {
-            if (stuckTimerRef.current) {
-              clearTimeout(stuckTimerRef.current);
-              stuckTimerRef.current = null;
-            }
-            streamBuffer += decoder.decode();
-
-            if (streamBuffer) {
-              const lines = streamBuffer.split(/\r?\n/);
-              const dataLines: string[] = [];
-              for (const line of lines) {
-                if (line.startsWith(':')) continue;
-                if (line.startsWith('data:')) {
-                  dataLines.push(line.slice(5));
-                }
-              }
-              if (dataLines.length > 0) {
-                fullContent += dataLines.join('\n');
-              }
-            }
-
-            const finalNormalized = normalizeMarkdown(fullContent);
-            console.debug("[SSE Stream Complete] Final Normalized:", finalNormalized);
-
-            setMessages(prev => prev.map(m => 
-              m.id === aiMsgId ? { ...m, content: finalNormalized } : m
-            ));
-
             setGenerationState("COMPLETE");
             setTimeout(() => setGenerationState("IDLE"), 100);
             scrollToBottom(true, true);
@@ -958,26 +692,32 @@ export default function ChatPage() {
         return;
       }
       console.error("Chat error:", error);
-      if (retryCount < 1 && fullContent === "") {
-        setTimeout(() => handleSend(retryCount + 1, finalInput), 500);
+
+      // Auto-retry once
+      if (retryCount < 1) {
+        console.log("Execution error, triggering auto-retry...");
+        setTimeout(() => handleSend(retryCount + 1, finalInput, currentMessages), 1000);
       } else {
-        const finalNormalized = normalizeMarkdown(fullContent || "An error occurred while generating the response. Please try again.");
+        // Render explicit error boundaries card
+        setIsTyping(false);
         setGenerationState("COMPLETE");
         setTimeout(() => setGenerationState("IDLE"), 100);
-        setMessages(prev => prev.map(m => 
-          m.id === aiMsgId ? { ...m, content: finalNormalized } : m
-        ));
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== aiMsgId);
+          const errorMsg: Message = {
+            id: aiMsgId,
+            role: "error",
+            content: finalInput,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          return [...filtered, errorMsg];
+        });
       }
     } finally {
       if (limitTimerRef.current) {
         clearTimeout(limitTimerRef.current);
         limitTimerRef.current = null;
       }
-      if (stuckTimerRef.current) {
-        clearTimeout(stuckTimerRef.current);
-        stuckTimerRef.current = null;
-      }
-      setIsTyping(false);
     }
   };
 
@@ -995,42 +735,8 @@ export default function ChatPage() {
     } else if (action === "ANALYZE_RESUME") {
       handleSend(0, "Analyze my resume");
       setActiveTab("chat");
-    } else if (action === "MOCK_INTERVIEW") {
-      handleSend(0, "Start a mock interview");
-      setActiveTab("chat");
-    } else if (action === "JAVA_ROADMAP") {
-      handleSend(0, "Generate a Java roadmap");
-      setActiveTab("chat");
-    } else if (action === "DSA_PRACTICE") {
-      handleSend(0, "Give me a DSA practice problem");
-      setActiveTab("chat");
-    } else if (action === "ATS_ANALYSIS") {
-      handleSend(0, "Run an ATS keyword scan on my profile");
-      setActiveTab("chat");
-    } else if (action === "COMPANY_PREP") {
-      handleSend(0, "Help me prepare for TCS backend questions");
-      setActiveTab("chat");
-    } else if (action === "UPLOAD_RESUME" || action === "UPLOAD_PDF") {
-      fileInputRef.current?.click();
-    } else if (action === "OPEN_MISSIONS") {
-      setActiveTab("chat");
-    } else if (action === "OPEN_DASHBOARD") {
-      setActiveTab("chat");
     }
   };
-
-  // Keyboard Shortcuts Hook integration
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+Shift+P
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "p") {
-        e.preventDefault();
-        setCommandPaletteOpen(prev => !prev);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
 
   if (userLoading) {
     return (
@@ -1041,6 +747,7 @@ export default function ChatPage() {
   }
 
   const isEmpty = messages.length === 0;
+  const firstName = user?.name ? user.name.split(" ")[0] : "Candidate";
 
   return (
     <div 
@@ -1053,7 +760,6 @@ export default function ChatPage() {
       }} 
       className="h-screen min-h-screen flex bg-transparent relative overflow-hidden"
     >
-      {/* Premium Sidebar */}
       <ConversationSidebar
         conversations={conversations}
         activeId={activeConversationId}
@@ -1070,52 +776,44 @@ export default function ChatPage() {
       {/* Main Container */}
       <div className="flex-1 flex flex-col h-screen overflow-hidden bg-background text-foreground">
         
-        {/* Sticky Header (64px) */}
+        {/* Simplified Header */}
         <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-border/40 bg-card/85 backdrop-blur-md sticky top-0 z-30 select-none">
           <div className="flex items-center gap-3">
             <SidebarTrigger className="md:hidden mr-1 text-muted-foreground hover:text-foreground" />
-            <h1 className="text-[16px] font-bold text-foreground tracking-tight">{activeConversation?.title || "Career Assistant"}</h1>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+            <button
+              onClick={() => { createNewChat(); setActiveTab("chat"); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              New Conversation
+            </button>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">AI Online</span>
+              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">● AI Online</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {!generationComplete && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary/10 rounded-full border border-primary/20 transition-all">
-                 <Loader2 className="w-3 h-3 text-primary animate-spin" />
-                 <span className="text-[9px] font-bold text-primary uppercase tracking-widest">Thinking</span>
-              </div>
-            )}
-            <button
-              onClick={() => setCommandPaletteOpen(true)}
-              className="px-3 py-1.5 bg-secondary/50 border border-border/60 hover:bg-secondary text-xs font-semibold rounded-xl flex items-center gap-1 cursor-pointer"
-            >
-              <Sliders className="w-4 h-4 text-indigo-400" />
-              <span>Palette</span>
-            </button>
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setNotificationsOpen(prev => !prev)}
               className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-400 hover:bg-secondary transition-colors relative cursor-pointer"
             >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500" />
+              <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
             </button>
             <button 
               onClick={handleClearChat}
+              className="p-2 rounded-xl text-muted-foreground hover:text-red-500 hover:bg-secondary transition-colors"
               title="Delete Active Chat"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/80 text-muted-foreground hover:text-red-500 hover:bg-secondary transition-all text-xs font-semibold cursor-pointer"
             >
               <Trash2 className="w-4 h-4" />
-              <span>Delete Chat</span>
             </button>
             <button 
               onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
               title="Toggle Theme"
             >
-              {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
+              {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />) : <Moon className="w-4 h-4" />}
             </button>
           </div>
         </header>
@@ -1125,133 +823,92 @@ export default function ChatPage() {
           onTabChange={(tab) => {
             if (tab === "coach") {
               router.push("/dashboard/coach");
+            } else if (tab === "resume") {
+              router.push("/dashboard/resume-builder");
             } else {
               setActiveTab(tab);
             }
           }} 
         />
 
-        {/* Content dispatcher */}
         <div className="flex-1 overflow-hidden relative flex flex-col">
-          {/* Notification Center overlay */}
           <NotificationCenter isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
 
-          {activeTab === "saved" ? (
-            <SavedArtifacts />
-          ) : activeTab === "roadmaps" ? (
-            <div className="flex-1 p-8 text-left space-y-4">
-              <h2 className="text-xl font-bold">Interactive Roadmaps</h2>
-              <p className="text-sm text-muted-foreground">Select or build a custom developer interview preparation roadmap.</p>
-              <button onClick={() => { handleExecuteCommand("JAVA_ROADMAP"); }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-foreground rounded-xl text-xs font-bold mt-2 cursor-pointer">Generate Java Roadmap</button>
-            </div>
-          ) : activeTab === "resume" ? (
-            <div className="flex-1 p-8 text-left space-y-4">
-              <h2 className="text-xl font-bold">Resume Operations</h2>
-              <p className="text-sm text-muted-foreground">Tailor your resume against company profiles and track ATS scores.</p>
-              <button onClick={() => { handleExecuteCommand("ANALYZE_RESUME"); }} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-foreground rounded-xl text-xs font-bold mt-2 cursor-pointer">Run Resume Analysis</button>
-            </div>
-          ) : (
-            // Default CHAT tab view
-            <React.Fragment>
-              <main 
-                ref={scrollAreaRef}
-                onScroll={handleScroll}
-                className="flex-1 overflow-y-auto overflow-x-hidden selection:bg-primary/10 flex flex-col"
-                style={{ height: 'calc(100vh - 110px)' }}
-              >
-                {isEmpty ? (
-                  <div className="flex-1 flex flex-col p-8 overflow-y-auto max-w-[1200px] mx-auto w-full space-y-8 select-none">
-                    <div className="flex flex-col items-center justify-center text-center mt-6">
-                      <div className="w-16 h-16 rounded-[24px] bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-5 shadow-lg">
-                        <Sparkles className="w-8 h-8 animate-pulse" />
-                      </div>
-                      <h2 className="text-3xl font-extrabold text-foreground tracking-tight mb-1.5">Welcome to PlacementAI Workspace</h2>
-                      <p className="text-sm text-muted-foreground font-medium">Your premium career readiness operations panel. Select a helper below to start.</p>
+          <React.Fragment>
+            <main 
+              ref={scrollAreaRef}
+              onScroll={handleScroll}
+              className="flex-1 overflow-y-auto overflow-x-hidden selection:bg-primary/10 flex flex-col bg-slate-50/10"
+              style={{ height: 'calc(100vh - 110px)' }}
+            >
+              {isEmpty ? (
+                <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto max-w-[1000px] mx-auto w-full space-y-8 select-none">
+                  <div className="flex flex-col items-center justify-center text-center mt-12 space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 text-indigo-650 flex items-center justify-center shadow-sm">
+                      <Sparkles className="w-6 h-6 animate-pulse" />
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Readiness Score</span>
-                          <Target className="w-4 h-4 text-indigo-400" />
-                        </div>
-                        <div className="text-3xl font-black text-indigo-400">78%</div>
-                        <div className="w-full bg-secondary h-1.5 rounded-full mt-2 overflow-hidden">
-                          <div className="bg-indigo-400 h-full rounded-full" style={{ width: '78%' }} />
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Daily Mission</span>
-                          <Award className="w-4 h-4 text-emerald-400" />
-                        </div>
-                        <div className="text-xs font-semibold text-foreground">Refactor Projects in STAR structure</div>
-                        <div className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mt-1">+100 XP Goal</div>
-                      </div>
-
-                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Current Streak</span>
-                          <Flame className="w-4 h-4 text-amber-500" />
-                        </div>
-                        <div className="text-3xl font-black text-amber-500">4 Days</div>
-                        <div className="text-[9px] text-muted-foreground font-medium mt-1">Keep it up! Streak breaks in 13h</div>
-                      </div>
-
-                      <div className="p-4 bg-secondary/60 border border-border/80 rounded-2xl flex flex-col justify-between">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total XP</span>
-                          <Zap className="w-4 h-4 text-indigo-500" />
-                        </div>
-                        <div className="text-3xl font-black text-foreground">450 <span className="text-xs text-muted-foreground">XP</span></div>
-                        <div className="text-[9px] text-muted-foreground font-medium mt-1">Level 4 Candidate</div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 mt-4">
-                      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80">Suggested Next Action</h3>
-                      <button 
-                        onClick={() => handleSend(0, "Prepare me for TCS Backend Developer interview questions")}
-                        className="flex items-center justify-between w-full p-4 bg-secondary/40 hover:bg-secondary/80 border border-border/80 rounded-2xl transition-all text-left cursor-pointer group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
-                            <FileText className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <div className="text-sm font-bold text-foreground group-hover:text-indigo-400 transition-colors">Prepare for TCS Backend Developer interview</div>
-                            <div className="text-[11px] text-muted-foreground mt-0.5">Estimated time: 10 mins • Proactive recommendation based on profile</div>
-                          </div>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-indigo-400 group-hover:translate-x-1 transition-all" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground/80">Quick Actions</h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                         {[
-                           { title: "Build my Resume", desc: "Tailor profile & experience" },
-                           { title: "Improve ATS Score", desc: "Optimize metrics & phrasing" },
-                           { title: "Generate Java Roadmap", desc: "Full path for interviews" },
-                           { title: "Mock HR Interview", desc: "Practice behavior questions" }
-                         ].map((item) => (
-                           <button 
-                             key={item.title}
-                             onClick={() => handleSend(0, item.title)}
-                             className="flex flex-col text-left p-4 rounded-xl border border-border/80 bg-card hover:bg-secondary/60 hover:border-indigo-500/40 transition-all shadow-sm group cursor-pointer"
-                           >
-                              <span className="text-xs font-bold text-foreground group-hover:text-indigo-400 transition-colors">{item.title}</span>
-                              <span className="text-[10px] text-muted-foreground/85 mt-1 line-clamp-1">{item.desc}</span>
-                           </button>
-                         ))}
-                      </div>
-                    </div>
+                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                      Hi {firstName} 👋
+                    </h2>
+                    <p className="text-base font-bold text-slate-700">
+                      What would you like help with today?
+                    </p>
                   </div>
-                ) : (
-                  <div className="flex-1 px-4 py-6 w-full max-w-[1800px] mx-auto text-left">
-                    {messages.map((msg, index) => (
+
+                  <div className="flex flex-wrap items-center justify-center gap-2.5 max-w-xl">
+                    {[
+                      { label: "📄 Optimize My Resume", query: "Optimize my resume for general software engineer roles" },
+                      { label: "⚡ Run ATS Scan", query: "Run an ATS keyword scan on my profile" },
+                      { label: "🎙 Start Mock Interview", query: "Start a mock interview session" },
+                      { label: "💻 Practice DSA Problems", query: "Give me a DSA practice problem" },
+                      { label: "🏢 Prep for Companies", query: "Help me prepare for TCS backend questions" }
+                    ].map((item) => (
+                      <button
+                        key={item.label}
+                        onClick={() => handleSend(0, item.query)}
+                        className="px-4 py-2.5 rounded-full border border-border/80 bg-card hover:bg-indigo-50/50 hover:border-indigo-505/40 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-sm hover:scale-102"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 px-4 py-6 w-full max-w-[1200px] mx-auto text-left">
+                  {messages.map((msg, index) => {
+                    if (msg.role === 'error') {
+                      return (
+                        <div key={msg.id} className="w-full flex justify-center mb-6">
+                          <div className="w-full max-w-[1200px] px-6">
+                            <div className="p-5 border border-rose-200 bg-rose-50/50 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                              <div className="flex gap-3 items-center">
+                                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+                                <div>
+                                  <h4 className="text-sm font-bold text-rose-800">Couldn't reach the AI.</h4>
+                                  <p className="text-xs text-rose-600/80 mt-0.5 font-medium">Please check your network or try again.</p>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Button 
+                                  onClick={() => handleSend(0, msg.content)}
+                                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold px-4 py-2"
+                                >
+                                  Retry
+                                </Button>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => navigator.clipboard.writeText(msg.content)}
+                                  className="border-rose-200 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-bold px-4 py-2"
+                                >
+                                  Copy Prompt
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return (
                       <MessageItem 
                         key={msg.id} 
                         msg={msg} 
@@ -1267,112 +924,134 @@ export default function ChatPage() {
                           }
                         } : undefined}
                       />
+                    );
+                  })}
+
+                  {/* Pulsing loading steps indicator */}
+                  {isTyping && (
+                    <div className="w-full flex justify-center mb-6">
+                      <div className="w-full max-w-[1200px] px-6">
+                        <div className="flex flex-col gap-2.5 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl max-w-sm animate-pulse">
+                          <div className="text-xs font-bold text-indigo-650">
+                            {loadingPhase === 1 && "Analyzing Profile & Resume..."}
+                            {loadingPhase === 2 && "Extracting Key Competencies..."}
+                            {loadingPhase >= 3 && "Generating Placement Intelligence..."}
+                          </div>
+                          <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div 
+                              className="bg-indigo-600 h-full rounded-full transition-all duration-1000" 
+                              style={{ width: `${loadingPhase === 1 ? 30 : loadingPhase === 2 ? 65 : 95}%` }} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </main>
+
+            {/* ChatGPT-Style Centered Input Area */}
+            <div className="w-full shrink-0 py-4 pb-6 relative z-10 select-none bg-background">
+              <div className="max-w-[860px] mx-auto px-6 relative">
+                
+                {(uploadedAttachments.length > 0 || Object.keys(uploadingFiles).length > 0) && (
+                  <div className="absolute -top-14 left-6 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 z-20">
+                    {uploadedAttachments.map((att) => (
+                      <div key={att.id} className="bg-muted border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs text-foreground shadow-sm">
+                        <Paperclip className="w-3.5 h-3.5 text-indigo-500" />
+                        <span className="font-medium max-w-[150px] truncate">{att.name}</span>
+                        <button 
+                          onClick={() => setUploadedAttachments(prev => prev.filter(x => x.id !== att.id))} 
+                          className="text-muted-foreground hover:text-foreground font-black ml-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    {Object.entries(uploadingFiles).map(([id, file]) => (
+                      <div key={id} className="bg-muted/70 border border-dashed border-border px-3 py-1.5 rounded-full flex items-center gap-2 text-xs text-muted-foreground shadow-sm animate-pulse">
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+                        <span className="truncate max-w-[120px]">{file.name}</span>
+                      </div>
                     ))}
                   </div>
                 )}
-              </main>
 
-              {/* Sticky Bottom Input Area */}
-              <div className="w-full shrink-0 py-4 pb-6 relative z-10 select-none">
-                <div className="max-w-[820px] mx-auto px-6 relative">
+                <div className="relative flex flex-col bg-secondary/60 border border-border rounded-2xl transition-all p-3 min-h-[80px] shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50">
+                  <textarea 
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend();
+                      }
+                    }}
+                    placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
+                    className="w-full bg-transparent border-none border-0 outline-none ring-0 shadow-none focus:border-none focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none p-2 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[50px] leading-relaxed"
+                    rows={1}
+                    disabled={!generationComplete}
+                  />
                   
-                  {/* Uploading & Uploaded Files Previews */}
-                  {(uploadedAttachments.length > 0 || Object.keys(uploadingFiles).length > 0) && (
-                    <div className="absolute -top-14 left-6 flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 z-20 select-none">
-                      {uploadedAttachments.map((att) => (
-                        <div key={att.id} className="bg-muted border border-border px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs text-foreground shadow-sm">
-                          <Paperclip className="w-3.5 h-3.5 text-indigo-500" />
-                          <span className="font-medium max-w-[150px] truncate">{att.name}</span>
-                          <button 
-                            onClick={() => setUploadedAttachments(prev => prev.filter(x => x.id !== att.id))} 
-                            className="text-muted-foreground hover:text-foreground font-black cursor-pointer ml-1"
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
-                      {Object.entries(uploadingFiles).map(([id, file]) => (
-                        <div key={id} className="bg-muted/70 border border-dashed border-border px-3 py-1.5 rounded-full flex items-center gap-2 text-xs text-muted-foreground shadow-sm animate-pulse">
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-                          <span className="truncate max-w-[120px]">{file.name}</span>
-                        </div>
-                      ))}
+                  <div className="flex items-center justify-between border-t border-border/40 pt-2.5 mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        className="hidden" 
+                        multiple
+                        onChange={(e) => {
+                          if (e.target.files) {
+                            handleFileUpload(e.target.files);
+                          }
+                        }} 
+                      />
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-650 hover:bg-indigo-50 transition-all shrink-0 cursor-pointer"
+                        title="Attach files"
+                      >
+                        <Paperclip className="w-4.5 h-4.5" />
+                      </button>
                     </div>
-                  )}
 
-                  <div className="relative flex items-center bg-secondary border border-border rounded-full transition-all py-1 pl-4 pr-2 min-h-[56px]">
-                    {/* Attach button */}
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      multiple
-                      onChange={(e) => {
-                        if (e.target.files) {
-                          handleFileUpload(e.target.files);
-                        }
-                      }} 
-                    />
-                    <button 
-                      onClick={() => fileInputRef.current?.click()}
-                      className="p-2 rounded-full text-muted-foreground/70 hover:text-muted-foreground hover:bg-muted transition-colors shrink-0 cursor-pointer"
-                    >
-                      <Paperclip className="w-5 h-5" />
-                    </button>
-                    
-                    {/* Textarea */}
-                    <textarea 
-                      ref={textareaRef}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          handleSend();
-                        }
-                      }}
-                      placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-                      className="flex-1 !bg-transparent !border-none !border-0 !outline-none !ring-0 !shadow-none focus:!border-none focus:!border-0 focus:!outline-none focus:!ring-0 focus:!shadow-none py-4 px-3 text-[16px] text-foreground placeholder:text-slate-500 resize-none min-h-[56px] leading-relaxed align-bottom"
-                      rows={1}
-                      disabled={!generationComplete}
-                    />
-                    
-                    {/* Send / Stop button */}
                     {generationState === "GENERATING" ? (
                       <button 
                         onClick={handleStop}
-                        className="w-9 h-9 rounded-full flex items-center justify-center bg-red-500 hover:bg-red-600 text-foreground shadow-sm shrink-0 transition-all cursor-pointer"
-                        title="Stop generating"
+                        className="h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-sm shrink-0 transition-all cursor-pointer font-bold text-xs"
                       >
-                        <div className="w-3.5 h-3.5 bg-card rounded-xs" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Stop
                       </button>
                     ) : (
                       <button 
                         onClick={() => handleSend()}
                         disabled={(!input.trim() && uploadedAttachments.length === 0) || !generationComplete}
-                        className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                        className={`h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs ${
                           (input.trim() || uploadedAttachments.length > 0) && generationComplete 
-                          ? 'bg-slate-100 text-slate-900 hover:bg-slate-200 shadow-sm' 
-                          : 'bg-transparent text-slate-500'
+                          ? 'bg-slate-900 text-white hover:bg-indigo-650 shadow-sm' 
+                          : 'bg-transparent text-slate-400'
                         }`}
                       >
-                        <Send className="w-4 h-4" />
+                        <Send className="w-3.5 h-3.5" />
+                        Send
                       </button>
                     )}
                   </div>
-                  
-                  <div className="text-[11px] text-muted-foreground/60 text-center mt-3">
-                    PlacementAI can make mistakes. Consider checking important information.
-                  </div>
+                </div>
+                
+                <div className="text-[10px] text-muted-foreground/60 text-center mt-2.5">
+                  PlacementAI can make mistakes. Consider checking important information.
                 </div>
               </div>
-            </React.Fragment>
-          )}
+            </div>
+          </React.Fragment>
         </div>
 
       </div>
 
-      {/* Global Command Palette */}
       <CommandPalette
         isOpen={commandPaletteOpen}
         onClose={() => setCommandPaletteOpen(false)}
@@ -1381,4 +1060,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
