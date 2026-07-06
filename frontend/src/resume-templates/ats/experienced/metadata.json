@@ -1,0 +1,59 @@
+{
+  "id": "experienced-ats",
+  "name": "Experienced ATS",
+  "category": "ATS Resume Templates",
+  "subCategory": "Experienced",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills",
+    "certifications"
+  ],
+  "tags": [
+    "Senior Full-Stack Developer",
+    "Tech Lead",
+    "Software Architect",
+    "Engineering Manager",
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Meta",
+    "Netflix"
+  ],
+  "bestFor": [
+    "Senior Developers",
+    "Tech Leads",
+    "Product Companies"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 98,
+  "aiScore": 98,
+  "recommendedRoles": [
+    "Senior Full-Stack Developer",
+    "Tech Lead",
+    "Software Architect",
+    "Engineering Manager"
+  ],
+  "recommendedCompanies": [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Meta",
+    "Netflix"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": true,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": true,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": true
+  }
+}

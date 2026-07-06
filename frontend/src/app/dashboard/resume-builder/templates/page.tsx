@@ -56,11 +56,15 @@ export default function TemplateGalleryPage() {
   const categories = ["ATS Resume", "Company Based"];
 
   const filteredTemplates = ACTIVE_TEMPLATES.filter((tpl) => {
-    const matchesSearch = tpl.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          tpl.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.toLowerCase();
+    const matchesName = tpl.name.toLowerCase().includes(query);
+    const matchesCategory = tpl.category.toLowerCase().includes(query);
+    const matchesTags = tpl.tags?.some(tag => tag.toLowerCase().includes(query)) ?? false;
+    const matchesRoles = tpl.recommendedRoles?.some(role => role.toLowerCase().includes(query)) ?? false;
+    const matchesSearch = matchesName || matchesCategory || matchesTags || matchesRoles;
     
-    const targetCategory = selectedCategory === "ATS Resume" ? "ATS Friendly" : selectedCategory;
-    return matchesSearch && tpl.category.toLowerCase() === targetCategory.toLowerCase();
+    const targetCategory = selectedCategory === "ATS Resume" ? "ATS" : "COMPANY";
+    return matchesSearch && tpl.category.toUpperCase() === targetCategory;
   });
 
   const handleSelectTemplate = (templateId: string) => {
@@ -123,130 +127,139 @@ export default function TemplateGalleryPage() {
         </div>
 
         {/* Grid of Templates - Optimized 3 per row grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start justify-items-center w-full">
-          {filteredTemplates.map((tpl) => {
-            const isSelected = loadingTemplate === tpl.id;
-            const reg = TEMPLATE_REGISTRY[tpl.id];
-            const Renderer = reg ? reg.renderer : null;
+        {filteredTemplates.length === 0 ? (
+          <div className="col-span-full py-16 text-center bg-card border border-border/60 rounded-3xl p-8 space-y-4 max-w-lg mx-auto shadow-sm">
+            <h3 className="text-xl font-bold text-foreground">No Templates Found</h3>
+            <p className="text-sm text-muted-foreground">
+              We couldn't load any templates matching this category. Please check your registry configuration or try switching filters.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-start justify-items-center w-full">
+            {filteredTemplates.map((tpl) => {
+              const isSelected = loadingTemplate === tpl.id;
+              const reg = TEMPLATE_REGISTRY[tpl.id];
+              const Renderer = reg ? reg.renderer : null;
 
-            const isRecommended = session.blueprint?.recommendedTemplate && 
-              (tpl.name.toLowerCase().includes(session.blueprint.recommendedTemplate.toLowerCase()) || 
-               (session.blueprint.recommendedTemplate.toLowerCase().includes("ats") && tpl.name.toLowerCase().includes("educator")));
+              const isRecommended = session.blueprint?.recommendedTemplate && 
+                (tpl.name.toLowerCase().includes(session.blueprint.recommendedTemplate.toLowerCase()) || 
+                 (session.blueprint.recommendedTemplate.toLowerCase().includes("ats") && tpl.name.toLowerCase().includes("educator")));
 
-            return (
-              <TooltipProvider key={tpl.id}>
-                <div
-                  onClick={() => {
-                    if (!tpl.comingSoon && window.innerWidth < 768) {
-                      handleSelectTemplate(tpl.id);
-                    }
-                  }}
-                  className={`group flex flex-col bg-card w-[300px] h-[460px] rounded-[24px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] relative border border-border/50 ${
-                    tpl.comingSoon ? "opacity-75" : ""
-                  } cursor-pointer md:cursor-default`}
-                >
-                  {/* AI Recommended Badge */}
-                  {isRecommended && (
-                    <div className="absolute top-4 left-4 bg-indigo-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest z-30 shadow-md flex items-center gap-1">
-                      <span className="animate-pulse">✨</span> AI Recommended
-                    </div>
-                  )}
-
-                  {/* Coming soon Overlay */}
-                  {tpl.comingSoon && (
-                    <div className="absolute inset-0 bg-card/90 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
-                      <div className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-xl mb-3">
-                        Coming Soon
-                      </div>
-                      <p className="text-xs font-bold text-muted-foreground">New Design</p>
-                    </div>
-                  )}
-
-                  {/* Template Preview Block - Dominant Preview (340px) */}
-                  <div className="h-[340px] w-full bg-[#f8fafc] rounded-t-[24px] flex justify-center items-start overflow-hidden relative group/preview shrink-0">
-                    {previewUrls[tpl.id] && !failedPreviews[tpl.id] ? (
-                      <img 
-                        src={previewUrls[tpl.id]} 
-                        alt={`${tpl.name} Preview`} 
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <div 
-                        className="shrink-0 transition-transform duration-700 md:group-hover/preview:scale-105 pointer-events-none"
-                        style={{
-                          width: "950px",
-                          height: "1120px",
-                          transform: "scale(0.31)",
-                          transformOrigin: "top center",
-                          position: "absolute",
-                          top: 16,
-                          left: "50%",
-                          marginLeft: "-475px"
-                        }}
-                      >
-                        {Renderer ? (
-                          <Renderer data={reg.initialState} previewMode={false} />
-                        ) : (
-                          <div className="w-[950px] h-[1120px] bg-muted flex items-center justify-center text-muted-foreground/70 text-xs font-black">
-                            RENDERING...
-                          </div>
-                        )}
+              return (
+                <TooltipProvider key={tpl.id}>
+                  <div
+                    onClick={() => {
+                      if (!tpl.comingSoon && window.innerWidth < 768) {
+                        handleSelectTemplate(tpl.id);
+                      }
+                    }}
+                    className={`group flex flex-col bg-card w-[300px] h-[460px] rounded-[24px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_20px_50px_rgba(0,0,0,0.12)] relative border border-border/50 ${
+                      tpl.comingSoon ? "opacity-75" : ""
+                    } cursor-pointer md:cursor-default`}
+                  >
+                    {/* AI Recommended Badge */}
+                    {isRecommended && (
+                      <div className="absolute top-4 left-4 bg-indigo-600 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest z-30 shadow-md flex items-center gap-1">
+                        <span className="animate-pulse">✨</span> AI Recommended
                       </div>
                     )}
-                    
-                    {/* Hover Overlay Buttons - Adobe Style */}
-                    {!tpl.comingSoon && (
-                      <div className="absolute inset-0 bg-slate-950/0 md:group-hover/preview:bg-slate-950/20 transition-all duration-300 hidden md:flex flex-col items-center justify-center gap-3 opacity-0 md:group-hover/preview:opacity-100 z-20">
-                        <Button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setPreviewTemplateId(tpl.id);
-                          }}
-                          className="w-[160px] h-12 bg-transparent text-white font-bold rounded-full border-2 border-white hover:bg-card hover:text-slate-950 transition-all text-sm shadow-xl"
-                        >
-                          Preview
-                        </Button>
-                        <Button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSelectTemplate(tpl.id);
-                          }}
-                          className="w-[160px] h-12 bg-indigo-600 text-white font-bold rounded-full hover:bg-indigo-700 transition-all text-sm border-none shadow-lg shadow-indigo-500/20"
-                        >
-                          Use
-                        </Button>
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Template Info - Condensed Footer */}
-                  <div className="flex-1 flex flex-col justify-between p-4 pb-5 pt-3 bg-card">
-                    <div className="space-y-1">
-                      <h3 className="text-[20px] font-[600] text-slate-950 leading-[1.1] whitespace-nowrap overflow-hidden text-ellipsis">
-                        {tpl.name}
-                      </h3>
-                      <p className="text-[14px] text-muted-foreground/70 font-normal leading-none">
-                        by PlacementAI
-                      </p>
-                    </div>
-                    
-                    {(() => {
-                      const analysis = calculateTemplateATS(tpl.id);
-                      const parserBadge = getATSBadge(analysis.parserScore);
-                      return (
-                        <div className="flex items-center justify-between border-t border-border pt-2.5 mt-2">
-                          <div className={`px-2.5 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest ${parserBadge.color}`}>
-                            {parserBadge.label} Parser
-                          </div>
+                    {/* Coming soon Overlay */}
+                    {tpl.comingSoon && (
+                      <div className="absolute inset-0 bg-card/90 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center p-6 text-center">
+                        <div className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-xl mb-3">
+                          Coming Soon
                         </div>
-                      );
-                    })()}
+                        <p className="text-xs font-bold text-muted-foreground">New Design</p>
+                      </div>
+                    )}
+
+                    {/* Template Preview Block - Dominant Preview (340px) */}
+                    <div className="h-[340px] w-full bg-[#f8fafc] rounded-t-[24px] flex justify-center items-start overflow-hidden relative group/preview shrink-0">
+                      {previewUrls[tpl.id] && !failedPreviews[tpl.id] ? (
+                        <img 
+                          src={previewUrls[tpl.id]} 
+                          alt={`${tpl.name} Preview`} 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <div 
+                          className="shrink-0 transition-transform duration-700 md:group-hover/preview:scale-105 pointer-events-none"
+                          style={{
+                            width: "950px",
+                            height: "1120px",
+                            transform: "scale(0.31)",
+                            transformOrigin: "top center",
+                            position: "absolute",
+                            top: 16,
+                            left: "50%",
+                            marginLeft: "-475px"
+                          }}
+                        >
+                          {Renderer ? (
+                            <Renderer data={reg.initialState} previewMode={false} />
+                          ) : (
+                            <div className="w-[950px] h-[1120px] bg-muted flex items-center justify-center text-muted-foreground/70 text-xs font-black">
+                              RENDERING...
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Hover Overlay Buttons - Adobe Style */}
+                      {!tpl.comingSoon && (
+                        <div className="absolute inset-0 bg-slate-950/0 md:group-hover/preview:bg-slate-950/20 transition-all duration-300 hidden md:flex flex-col items-center justify-center gap-3 opacity-0 md:group-hover/preview:opacity-100 z-20">
+                          <Button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewTemplateId(tpl.id);
+                            }}
+                            className="w-[160px] h-12 bg-transparent text-white font-bold rounded-full border-2 border-white hover:bg-card hover:text-slate-950 transition-all text-sm shadow-xl"
+                          >
+                            Preview
+                          </Button>
+                          <Button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSelectTemplate(tpl.id);
+                            }}
+                            className="w-[160px] h-12 bg-indigo-600 text-white font-bold rounded-full hover:bg-indigo-700 transition-all text-sm border-none shadow-lg shadow-indigo-500/20"
+                          >
+                            Use
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Template Info - Condensed Footer */}
+                    <div className="flex-1 flex flex-col justify-between p-4 pb-5 pt-3 bg-card">
+                      <div className="space-y-1">
+                        <h3 className="text-[20px] font-[600] text-slate-950 leading-[1.1] whitespace-nowrap overflow-hidden text-ellipsis">
+                          {tpl.name}
+                        </h3>
+                        <p className="text-[14px] text-muted-foreground/70 font-normal leading-none">
+                          by PlacementAI
+                        </p>
+                      </div>
+                      
+                      {(() => {
+                        const analysis = calculateTemplateATS(tpl.id);
+                        const parserBadge = getATSBadge(analysis.parserScore);
+                        return (
+                          <div className="flex items-center justify-between border-t border-border pt-2.5 mt-2">
+                            <div className={`px-2.5 py-1 rounded-full text-white text-[10px] font-bold uppercase tracking-widest ${parserBadge.color}`}>
+                              {parserBadge.label} Parser
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </div>
-                </div>
-              </TooltipProvider>
-            );
-          })}
-        </div>
+                </TooltipProvider>
+              );
+            })}
+          </div>
+        )}
 
         {/* Quick Preview Modal - Dedicated Component */}
         <ResumePreviewModal 

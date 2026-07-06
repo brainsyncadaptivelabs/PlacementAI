@@ -1,11 +1,7 @@
 import React from "react";
-import EducatorRenderer from "./placementai-educator/renderer";
-import EducatorPreview from "./placementai-educator/preview";
-import { initialEducatorState, ResumeState } from "./placementai-educator/schema";
-
-import CorporateRenderer from "./placementai-corporate/renderer";
-import CorporatePreview from "./placementai-corporate/preview";
-import { initialCorporateState } from "./placementai-corporate/schema";
+import { ACTIVE_TEMPLATES as NEW_ACTIVE_TEMPLATES, TEMPLATE_REGISTRY as NEW_TEMPLATE_REGISTRY } from "../../../resume-engine/TemplateRegistry";
+import { ResumeState, initialEducatorState } from "./legacy/placementai-educator/schema";
+import EducatorPreview from "./legacy/placementai-educator/preview";
 
 export interface TemplateMetadata {
   id: string;
@@ -14,41 +10,19 @@ export interface TemplateMetadata {
   atsScore?: number;
   editable: boolean;
   comingSoon?: boolean;
+  tags?: string[];
+  recommendedRoles?: string[];
 }
 
-export const ACTIVE_TEMPLATES: TemplateMetadata[] = [
-  {
-    id: "placementai-educator",
-    name: "Professional Resume",
-    category: "ATS Friendly",
-    atsScore: 95,
-    editable: true
-  },
-  {
-    id: "placementai-corporate",
-    name: "Two Column Resume",
-    category: "Company Based",
-    atsScore: 88,
-    editable: true
-  },
-  { id: "01_internship_focused", name: "Internship Focused", category: "ATS Friendly", atsScore: 92, editable: true },
-  { id: "02_advanced_java_swe", name: "Advanced Java SWE", category: "ATS Friendly", atsScore: 94, editable: true },
-  { id: "03_deedy_resume", name: "Deedy Resume", category: "ATS Friendly", atsScore: 89, editable: true },
-  { id: "04_developer_template_a", name: "Developer Template A", category: "ATS Friendly", atsScore: 91, editable: true },
-  { id: "05_developer_template_b", name: "Developer Template B", category: "ATS Friendly", atsScore: 90, editable: true },
-  { id: "06_software_architect", name: "Software Architect", category: "ATS Friendly", atsScore: 96, editable: true },
-  { id: "07_sourabh_bajaj", name: "Sourabh Bajaj", category: "ATS Friendly", atsScore: 93, editable: true },
-  { id: "08_fullstack_template", name: "Fullstack Template", category: "ATS Friendly", atsScore: 95, editable: true },
-  { id: "09_harvard_resume", name: "Harvard Resume", category: "ATS Friendly", atsScore: 98, editable: true },
-  { id: "10_faangpath_resume", name: "FAANGPath Resume", category: "ATS Friendly", atsScore: 97, editable: true },
-  { id: "11_modern_developer", name: "Modern Developer", category: "ATS Friendly", atsScore: 91, editable: true },
-  { id: "12_eurocv", name: "EuroCV", category: "ATS Friendly", atsScore: 85, editable: true },
-  { id: "13_jake_ryan", name: "Jake Ryan", category: "ATS Friendly", atsScore: 96, editable: true },
-  { id: "14_sourabh_bajaj_alt", name: "Sourabh Bajaj Alt", category: "ATS Friendly", atsScore: 92, editable: true },
-  { id: "15_moderncv_style", name: "ModernCV Style", category: "ATS Friendly", atsScore: 88, editable: true },
-  { id: "16_awesome_cv", name: "Awesome CV", category: "ATS Friendly", atsScore: 94, editable: true },
-  { id: "17_deedy_onepage", name: "Deedy Onepage", category: "ATS Friendly", atsScore: 90, editable: true }
-];
+export const ACTIVE_TEMPLATES: TemplateMetadata[] = NEW_ACTIVE_TEMPLATES.map(tpl => ({
+  id: tpl.id,
+  name: tpl.name,
+  category: tpl.category,
+  atsScore: tpl.atsScore,
+  editable: true,
+  tags: tpl.recommendedRoles.concat(tpl.recommendedCompanies),
+  recommendedRoles: tpl.recommendedRoles
+}));
 
 const genericRawTex = `\\documentclass[11pt]{article}
 \\usepackage[margin=0.75in]{geometry}
@@ -87,230 +61,58 @@ const genericRawTex = `\\documentclass[11pt]{article}
 
 \\end{document}`;
 
+// Helper to get rotated name for each template ID
+function getRotatedName(templateId: string): string {
+  switch (templateId) {
+    case "professional-ats": return "Abhinav";
+    case "classic-ats": return "Bharath";
+    case "experienced-ats": return "Likith";
+    case "accenture-style": return "Sree Alekhya";
+    case "tcs-style": return "Abhinav";
+    case "cognizant-style": return "Bharath";
+    case "faang-style": return "Likith";
+    default: return "Sree Alekhya";
+  }
+}
+
 export const TEMPLATE_REGISTRY: Record<string, {
-  renderer: React.ComponentType<{ data: ResumeState; previewMode?: boolean; highlightSection?: string }>;
-  preview: React.ComponentType;
-  initialState: ResumeState;
+  renderer: React.ComponentType<any>;
+  preview: React.ComponentType<any>;
+  initialState: any;
   rawTex: string;
-}> = {
-  "placementai-educator": {
-    renderer: EducatorRenderer,
+}> = NEW_ACTIVE_TEMPLATES.reduce((acc, tpl) => {
+  const candidateName = getRotatedName(tpl.id);
+  const customizedInitialState = {
+    ...initialEducatorState,
+    personalInfo: {
+      ...initialEducatorState.personalInfo,
+      name: candidateName
+    }
+  };
+
+  acc[tpl.id] = {
+    renderer: (props: any) => {
+      const adaptedProps = {
+        resume: props.data,
+        previewMode: props.previewMode ?? false,
+        theme: tpl.theme,
+        layout: tpl.layout,
+        highlightSection: props.highlightSection,
+        mode: props.previewMode ? "PREVIEW" : "EDITOR"
+      };
+      const Renderer = tpl.component || NEW_TEMPLATE_REGISTRY[tpl.id].component;
+      return React.createElement(Renderer as any, adaptedProps);
+    },
     preview: EducatorPreview,
-    initialState: initialEducatorState,
-    rawTex: `\\documentclass[10pt,letterpaper]{article}
-\\usepackage[utf8]{inputenc}
-\\usepackage[empty]{fullpage}
-\\usepackage{titlesec}
-\\usepackage{marvosym}
-\\usepackage[usenames,dvipsnames]{color}
-\\usepackage{verbatim}
-\\usepackage{enumitem}
-\\usepackage[hidelinks]{hyperref}
-\\usepackage{fancyhdr}
-\\usepackage[english]{babel}
-\\usepackage{tabularx}
-\\usepackage{helvet}
-\\usepackage{multicol}
-\\renewcommand{\\familydefault}{\\sfdefault}
+    initialState: customizedInitialState,
+    rawTex: genericRawTex
+  };
+  return acc;
+}, {} as any);
 
-\\pagestyle{fancy}
-\\fancyhf{} 
-\\fancyfoot{}
-\\renewcommand{\\headrulewidth}{0pt}
-\\renewcommand{\\footrulewidth}{0pt}
-
-\\addtolength{\\oddsidemargin}{-0.5in}
-\\addtolength{\\evensidemargin}{-0.5in}
-\\addtolength{\\textwidth}{1.0in}
-\\addtolength{\\topmargin}{-.5in}
-\\addtolength{\\textheight}{1.0in}
-
-\\urlstyle{same}
-\\raggedbottom
-\\raggedright
-
-\\titleformat{\\section}{
-  \\vspace{-4pt}\\scshape\\raggedright\\large\\bfseries\\color{blue}
-}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
-
-\\newcommand{\\resumeItem}[1]{
-  \\item\\small{
-    {#1 \\vspace{-2pt}}
-  }
-}
-
-\\newcommand{\\resumeSubheading}[4]{
-  \\vspace{-1pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & #2 \\\\
-      \\textit{\\small#3} & \\textit{\\small #4} \\\\
-    \\end{tabular*}\\vspace{-7pt}
-}
-
-\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
-\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
-
-\\begin{document}
-
-\\begin{center}
-    {\\Huge \\bfseries {{name}}} \\\\ \\vspace{4pt}
-    \\small {{email}} $|$ {{phone}} $|$ \\href{https://{{linkedin}}}{LinkedIn}
-\\end{center}
-
-\\vspace{10pt}
-
-\\begin{multicols}{2}
-[
-\\section{Professional Statement}
-\\small{ {{summary}} }
-]
-
-\\section{Experience}
-\\resumeSubHeadingListStart
-  {{experience}}
-\\resumeSubHeadingListEnd
-
-\\section{Education}
-\\resumeSubHeadingListStart
-  {{education}}
-\\resumeSubHeadingListEnd
-
-\\columnbreak
-
-\\section{Contact \\& Social}
-\\small{
-\\textbf{Email:} {{email}} \\\\
-\\textbf{Phone:} {{phone}} \\\\
-\\textbf{LinkedIn:} {{linkedin}} \\\\
-\\textbf{GitHub:} {{github}}
-}
-
-\\section{Expertise}
-\\begin{itemize}[leftmargin=0.15in, label={$\\bullet$}]
-    {{skills}}
-\\end{itemize}
-
-\\section{Certifications}
-\\begin{itemize}[leftmargin=0.15in, label={$\\bullet$}]
-    {{certifications}}
-\\end{itemize}
-
-\\end{multicols}
-
-\\end{document}`
-  },
-  "placementai-corporate": {
-    renderer: CorporateRenderer,
-    preview: CorporatePreview,
-    initialState: initialCorporateState,
-    rawTex: `\\documentclass[11pt,letterpaper]{article}
-\\usepackage[utf8]{inputenc}
-\\usepackage[empty]{fullpage}
-\\usepackage{titlesec}
-\\usepackage{marvosym}
-\\usepackage[usenames,dvipsnames]{color}
-\\usepackage{verbatim}
-\\usepackage{enumitem}
-\\usepackage[hidelinks]{hyperref}
-\\usepackage{fancyhdr}
-\\usepackage[english]{babel}
-\\usepackage{tabularx}
-\\usepackage{charter}
-
-\\pagestyle{fancy}
-\\fancyhf{} 
-\\fancyfoot{}
-\\renewcommand{\\headrulewidth}{0pt}
-\\renewcommand{\\footrulewidth}{0pt}
-
-\\addtolength{\\oddsidemargin}{-0.5in}
-\\addtolength{\\evensidemargin}{-0.5in}
-\\addtolength{\\textwidth}{1.0in}
-\\addtolength{\\topmargin}{-.5in}
-\\addtolength{\\textheight}{1.0in}
-
-\\urlstyle{same}
-\\raggedbottom
-\\raggedright
-
-\\titleformat{\\section}{
-  \\vspace{-4pt}\\scshape\\raggedright\\large\\bfseries
-}{}{0em}{}[\\color{black}\\titrule \\vspace{-5pt}]
-
-\\newcommand{\\resumeItem}[1]{
-  \\item\\small{
-    {#1 \\vspace{-2pt}}
-  }
-}
-
-\\newcommand{\\resumeSubheading}[4]{
-  \\vspace{-1pt}\\item
-    \\begin{tabular*}{0.97\\textwidth}[t]{l@{\\extracolsep{\\fill}}r}
-      \\textbf{#1} & #2 \\\\
-      \\textit{\\small#3} & \\textit{\\small #4} \\\\
-    \\end{tabular*}\\vspace{-7pt}
-}
-
-\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
-\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
-\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
-\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
-
-\\begin{document}
-
-\\begin{tabularx}{\\textwidth}{L R}
-  \\textbf{\\Huge {{name}}} & {{email}} \\\\
-  Executive Professional & {{phone}} \\\\
-  & {{linkedin}}
-\\end{tabularx}
-
-\\vspace{20pt}
-
-\\section{Executive Summary}
-\\small{ {{summary}} }
-
-\\section{Core Competencies}
-\\begin{itemize}[leftmargin=0.15in, label={$\\bullet$}]
-    \\item {{skills}}
-\\end{itemize}
-
-\\section{Professional Experience}
-\\resumeSubHeadingListStart
-  {{experience}}
-\\resumeSubHeadingListEnd
-
-\\section{Academic Background}
-\\resumeSubHeadingListStart
-  {{education}}
-\\resumeSubHeadingListEnd
-
-\\section{Certifications}
-\\begin{itemize}[leftmargin=0.15in, label={$\\bullet$}]
-    {{certifications}}
-\\end{itemize}
-
-\\end{document}`
-  },
-  "01_internship_focused": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "02_advanced_java_swe": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "03_deedy_resume": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "04_developer_template_a": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "05_developer_template_b": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "06_software_architect": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "07_sourabh_bajaj": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "08_fullstack_template": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "09_harvard_resume": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "10_faangpath_resume": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "11_modern_developer": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "12_eurocv": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "13_jake_ryan": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "14_sourabh_bajaj_alt": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "15_moderncv_style": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "16_awesome_cv": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex },
-  "17_deedy_onepage": { renderer: EducatorRenderer, preview: EducatorPreview, initialState: initialEducatorState, rawTex: genericRawTex }
-};
+// Fallback registry keys for backward compatibility
+TEMPLATE_REGISTRY["placementai-educator"] = TEMPLATE_REGISTRY["professional-ats"];
+TEMPLATE_REGISTRY["placementai-corporate"] = TEMPLATE_REGISTRY["accenture-style"];
 
 export function escapeLatex(text: string): string {
   if (!text) return "";

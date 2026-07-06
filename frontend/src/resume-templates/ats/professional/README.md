@@ -1,0 +1,1 @@
+Standard professional resume template. Single column, classic styling.

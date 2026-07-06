@@ -1,0 +1,57 @@
+{
+  "id": "classic-ats",
+  "name": "Classic ATS",
+  "category": "ATS Resume Templates",
+  "subCategory": "Classic",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "experience",
+    "projects",
+    "education",
+    "certifications"
+  ],
+  "tags": [
+    "Software Engineer",
+    "Assistant System Engineer",
+    "TCS Ninja",
+    "Web Developer Intern",
+    "TCS",
+    "Wipro",
+    "Infosys",
+    "Cognizant"
+  ],
+  "bestFor": [
+    "Freshers",
+    "Campus Placements",
+    "Classic layouts"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 95,
+  "aiScore": 95,
+  "recommendedRoles": [
+    "Software Engineer",
+    "Assistant System Engineer",
+    "TCS Ninja",
+    "Web Developer Intern"
+  ],
+  "recommendedCompanies": [
+    "TCS",
+    "Wipro",
+    "Infosys",
+    "Cognizant"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

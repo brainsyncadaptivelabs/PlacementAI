@@ -1,0 +1,37 @@
+[
+  {
+    "id": "professional-ats",
+    "category": "ATS Resume Templates",
+    "path": "ats/professional"
+  },
+  {
+    "id": "classic-ats",
+    "category": "ATS Resume Templates",
+    "path": "ats/classic"
+  },
+  {
+    "id": "experienced-ats",
+    "category": "ATS Resume Templates",
+    "path": "ats/experienced"
+  },
+  {
+    "id": "accenture-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/accenture"
+  },
+  {
+    "id": "tcs-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/tcs"
+  },
+  {
+    "id": "cognizant-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/cognizant"
+  },
+  {
+    "id": "faang-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/faang"
+  }
+]

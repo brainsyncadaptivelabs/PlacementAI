@@ -1,0 +1,8 @@
+{
+  "maxProjects": 4,
+  "maxSkills": 25,
+  "maxExperience": 5,
+  "allowIcons": true,
+  "allowPhoto": false,
+  "columns": 1
+}

@@ -1,0 +1,54 @@
+{
+  "id": "cognizant-style",
+  "name": "Cognizant Style",
+  "category": "Company Based Resume Templates",
+  "subCategory": "Professional",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "experience",
+    "projects",
+    "skills",
+    "education",
+    "certifications"
+  ],
+  "tags": [
+    "Junior Software Engineer",
+    "Java Full Stack Developer",
+    "Frontend Developer",
+    "Cognizant",
+    "HCL",
+    "Tech Mahindra",
+    "DXC Technology"
+  ],
+  "bestFor": [
+    "Software Engineers",
+    "Service Companies",
+    "Fullstack Developer profiles"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 96,
+  "aiScore": 97,
+  "recommendedRoles": [
+    "Junior Software Engineer",
+    "Java Full Stack Developer",
+    "Frontend Developer"
+  ],
+  "recommendedCompanies": [
+    "Cognizant",
+    "HCL",
+    "Tech Mahindra",
+    "DXC Technology"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

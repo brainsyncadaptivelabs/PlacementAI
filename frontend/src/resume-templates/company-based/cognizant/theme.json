@@ -1,0 +1,18 @@
+{
+  "fonts": {
+    "body": "Outfit, sans-serif",
+    "heading": "Outfit, sans-serif"
+  },
+  "colors": {
+    "primary": "#111827",
+    "secondary": "#374151",
+    "text": "#1f2937",
+    "background": "#ffffff"
+  },
+  "spacing": {
+    "paddingX": "1.5in",
+    "paddingY": "1.5in",
+    "gapSections": "1.3in"
+  },
+  "margins": "0.75in"
+}

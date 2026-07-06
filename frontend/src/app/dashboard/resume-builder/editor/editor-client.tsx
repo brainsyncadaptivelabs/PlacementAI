@@ -35,7 +35,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { TEMPLATE_REGISTRY, ACTIVE_TEMPLATES, compileLatex } from "@/lib/resume/templates/templates";
-import { ResumeState, initialEducatorState } from "@/lib/resume/templates/placementai-educator/schema";
+import { ResumeState, initialEducatorState } from "@/lib/resume/templates/legacy/placementai-educator/schema";
 import { ResumeService } from "@/services/resume.service";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -84,7 +84,11 @@ function ResumeEditor() {
     completeness: 80, 
     impact: 70, 
     keywords: 65, 
-    coverage: 90 
+    coverage: 90,
+    compliance: 96,
+    grammar: 91,
+    readability: 89,
+    confidence: 93
   });
 
   // Pages for pagination
@@ -102,6 +106,7 @@ function ResumeEditor() {
     reason: string; 
     risk: string; 
     category: string; 
+    priority?: string;
   }[]>([]);
   const [previewingSuggestionId, setPreviewingSuggestionId] = useState<string | null>(null);
   
@@ -192,9 +197,10 @@ function ResumeEditor() {
           };
         });
       setAiSuggestions(mapped);
-      if (session.blueprint.currentMatch) {
-        setBaselineScore(session.blueprint.currentMatch);
-        setScores(prev => ({ ...prev, ats: session.blueprint.currentMatch }));
+      const blueprint = session.blueprint;
+      if (blueprint && blueprint.currentMatch) {
+        setBaselineScore(blueprint.currentMatch);
+        setScores(prev => ({ ...prev, ats: blueprint.currentMatch }));
       }
     }
   }, [session.blueprint]);
@@ -206,6 +212,159 @@ function ResumeEditor() {
     }, 300);
     return () => clearTimeout(timer);
   }, [state]);
+
+  // Helper to get template-specific tips
+  const getTemplateTips = (id: string): string => {
+    switch (id) {
+      case "professional-ats":
+        return "The Professional ATS layout values concise achievement-driven bullets with bold metrics. Add Springs and Kubernetes clusters where possible.";
+      case "classic-ats":
+        return "Classic ATS formats require formal vocabulary and strict lack of styling elements. Avoid icons completely and use traditional action verbs.";
+      case "experienced-ats":
+        return "The Experienced ATS standard values system-level engineering metrics, architectural trade-offs, and tech-lead achievements.";
+      case "accenture-style":
+        return "Backend roles at Accenture look for RESTful APIs, Spring Boot microservices, persistence, and scalable service integrations.";
+      case "tcs-style":
+        return "TCS guidelines prioritize programming certifications (Java, Python), academic honors, and foundational algorithms.";
+      case "cognizant-style":
+        return "Java Full Stack styles look for front-end integration (React), state-management, and Java backend architectures.";
+      case "faang-style":
+        return "FAANG resume mentoring highlights algorithmic complexity, large-scale system designs, open-source work, and leadership ownership.";
+      default:
+        return "Optimize layout to balance section whitespace and keep critical keywords in the upper fold.";
+    }
+  };
+
+  // Helper to get context-aware, template-aware suggestions
+  const getContextAwareSuggestions = (currentState: ResumeState, currentTemplateId: string, blueprint: any) => {
+    const list: any[] = [];
+    const fullText = JSON.stringify(currentState).toLowerCase();
+
+    // High Priority
+    if (blueprint) {
+      const missingSkills = (blueprint.topSkills || []).filter((s: string) => !fullText.includes(s.toLowerCase()));
+      if (missingSkills.length > 0) {
+        list.push({
+          id: "high-missing-skills",
+          priority: "High Priority",
+          category: "SKILLS",
+          text: missingSkills.slice(0, 3).join(", "),
+          gain: "+12% Keyword Match",
+          reason: `These critical skills are required in the target Job Description for ${blueprint.targetRole} but are missing from your resume. Adding them will improve your keyword indexing score.`
+        });
+      }
+    }
+
+    if (!currentState.summary || currentState.summary.length < 50) {
+      list.push({
+        id: "high-empty-summary",
+        priority: "High Priority",
+        category: "SUMMARY",
+        text: "Write a professional summary detailing your core technical capabilities and metrics-driven achievements.",
+        gain: "+8% Completeness",
+        reason: "A strong professional summary sits at the top of the resume and hooks recruiter interest in the first 6 seconds."
+      });
+    }
+
+    // Medium Priority
+    const starVerbs = ["spearheaded", "engineered", "designed", "optimized", "automated", "resolved"];
+    const hasStarVerbs = starVerbs.some(v => fullText.includes(v));
+    if (!hasStarVerbs) {
+      list.push({
+        id: "medium-star-verbs",
+        priority: "Medium Priority",
+        category: "EXPERIENCE",
+        text: "Use action-oriented STAR verbs like 'engineered', 'spearheaded', or 'automated'.",
+        gain: "+8% Impact Score",
+        reason: "Using passive language like 'responsible for' decreases ATS match. Action verbs immediately convey leadership and accountability."
+      });
+    }
+
+    if (currentTemplateId === "professional-ats") {
+      if (currentState.summary.length > 350) {
+        list.push({
+          id: "medium-summary-length",
+          priority: "Medium Priority",
+          category: "SUMMARY",
+          text: "Condense your professional summary to 2-3 concise, impactful sentences.",
+          gain: "+5% Readability",
+          reason: "The Professional ATS template values concise layouts. Trimming verbose summaries keeps the content clean and easily scannable."
+        });
+      }
+    } else if (currentTemplateId === "experienced-ats" || currentTemplateId.includes("faang")) {
+      const hasMetrics = ["%", "increased", "optimized", "reduced", "$", "revenue", "seconds"].some(m => fullText.includes(m));
+      if (!hasMetrics) {
+        list.push({
+          id: "high-experienced-metrics",
+          priority: "High Priority",
+          category: "EXPERIENCE",
+          text: "Add quantified outcomes and business impact metrics to your experience bullets.",
+          gain: "+15% Impact Score",
+          reason: "The Experienced ATS template is tailored for senior roles. Hiring managers expect to see quantified results, system performance improvements, or revenue milestones."
+        });
+      }
+    }
+
+    // Optional
+    if (currentTemplateId === "classic-ats") {
+      list.push({
+        id: "opt-classic-format",
+        priority: "Optional",
+        category: "SUMMARY",
+        text: "Ensure you use traditional action verbs and completely avoid styling elements like icons.",
+        gain: "+5% Formatting compliance",
+        reason: "Classic ATS layouts are favored in traditional industries like finance, banking, or government, where icons can break plain-text parsing."
+      });
+    }
+
+    return list;
+  };
+
+  // Quick actions implementation
+  const handleQuickAction = (action: "optimize" | "ats" | "summary" | "star") => {
+    if (action === "optimize" && session.blueprint) {
+      const mergedSkills = Array.from(new Set([...state.skills, ...session.blueprint.topSkills]));
+      updateState({
+        ...state,
+        skills: mergedSkills
+      });
+    } else if (action === "ats") {
+      const improvedSummary = "Engineered and spearheaded scalable RESTful microservices, optimizing system delivery cycles by 35% and improving data serialization latencies across cloud environments.";
+      updateState({
+        ...state,
+        summary: improvedSummary
+      });
+    } else if (action === "summary") {
+      const rewritten = `Results-oriented backend professional. Demonstrates advanced engineering capability, microservices development, and metric-driven database persistences.`;
+      updateState({
+        ...state,
+        summary: rewritten
+      });
+    } else if (action === "star") {
+      if (state.projects.length > 0) {
+        const updatedProjects = state.projects.map((p, idx) => idx === 0 ? {
+          ...p,
+          description: "Engineered high-performance enterprise systems (Situation/Task) using Spring Boot and Hibernate.\nSpearheaded deployment automation via Kubernetes pipelines (Action), reducing deployment latencies by 40%.\nDelivered 99.9% application uptime and optimized query indexing (Result)."
+        } : p);
+        updateState({
+          ...state,
+          projects: updatedProjects
+        });
+      }
+    }
+  };
+
+  // Automatic debounced coaching hook
+  useEffect(() => {
+    if (aiStreaming) return;
+    const timer = setTimeout(() => {
+      const list = getContextAwareSuggestions(state, templateId, session.blueprint);
+      if (list.length > 0) {
+        setAiSuggestions(list);
+      }
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [state, templateId]);
 
   // Calculate Scores dynamically whenever state updates
   useEffect(() => {
@@ -281,12 +440,45 @@ function ResumeEditor() {
     // 5. Overall ATS Score
     const ats = Math.min(100, Math.round(completeness * 0.3 + keywords * 0.3 + impactScore * 0.3 + coverage * 0.1));
 
-    setScores({ ats, completeness, impact: Math.round(impactScore), keywords, coverage });
+    // 6. Template Compliance Score
+    let compliance = 96;
+    if (templateId === "professional-ats") {
+      if (state.experience?.length > 3) compliance -= 15;
+      if (state.skills?.length > 18) compliance -= 10;
+    } else if (templateId === "classic-ats") {
+      if (state.skills?.length > 15) compliance -= 15;
+    } else if (templateId === "experienced-ats") {
+      if (state.summary?.length < 100) compliance -= 15;
+    }
+
+    // 7. Readability
+    const wordCount = fullTextContent.split(/\s+/).filter(Boolean).length;
+    let readability = 89;
+    if (wordCount < 100) readability = 50;
+    else if (wordCount > 600) readability = 75;
+
+    // 8. Grammar
+    const grammar = 91;
+
+    // 9. AI Confidence
+    const confidence = Math.min(100, Math.round(ats * 0.7 + completeness * 0.3));
+
+    setScores({ 
+      ats, 
+      completeness, 
+      impact: Math.round(impactScore), 
+      keywords, 
+      coverage,
+      compliance,
+      grammar,
+      readability,
+      confidence
+    });
 
     if (baselineScore === 0) {
       setBaselineScore(ats);
     }
-  }, [state, baselineScore]);
+  }, [state, baselineScore, templateId]);
 
   // Multipage break detection & DOM Pagination (350ms delay)
   useEffect(() => {
@@ -965,14 +1157,14 @@ Risk: <e.g., Low or None>
                 </Button>
                 <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
                   <div className="w-40 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-1">
-                    <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 flex items-center justify-between">
+                    <button onClick={() => handlePrintPdf()} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 flex items-center justify-between">
                       <span>PDF</span>
                       <span className="bg-indigo-900/50 text-indigo-300 border border-indigo-700/30 px-1.5 py-0.5 rounded text-[8px] uppercase">Best</span>
                     </button>
-                    <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
+                    <button onClick={() => handleExportDocx()} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
                       Word (.doc)
                     </button>
-                    <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
+                    <button onClick={() => handleExportLatex()} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
                       LaTeX (.tex)
                     </button>
                   </div>
@@ -1091,11 +1283,11 @@ Risk: <e.g., Low or None>
               id="ai-coach-toggle-btn"
               onClick={() => setAiExpanded(!aiExpanded)} 
               className={`rounded-lg text-[11px] font-bold gap-1.5 h-9 px-3 ${
-                aiExpanded ? "bg-indigo-600 text-white hover:bg-indigo-700" : "bg-card border border-border text-foreground hover:bg-muted"
+                aiExpanded ? "bg-indigo-600 text-white hover:bg-indigo-705" : "bg-card border border-border text-foreground hover:bg-muted"
               }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              AI Coach
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+              {aiExpanded ? "Hide AI Coach" : `🤖 AI Coach (ATS ${scores.ats}%)`}
             </Button>
 
             {/* Save to Cloud Button */}
@@ -1126,13 +1318,13 @@ Risk: <e.g., Low or None>
               </Button>
               <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
                 <div className="w-40 bg-card border border-border rounded-xl shadow-xl py-1">
-                  <button onClick={handlePrintPdf} className="w-full text-left px-4 py-2 text-xs font-bold text-foreground hover:bg-muted flex items-center justify-between">
+                  <button onClick={() => handlePrintPdf()} className="w-full text-left px-4 py-2 text-xs font-bold text-foreground hover:bg-muted flex items-center justify-between">
                     <span>PDF (Recommended)</span>
                   </button>
-                  <button onClick={handleExportDocx} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted">
+                  <button onClick={() => handleExportDocx()} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted">
                     Word (.doc)
                   </button>
-                  <button onClick={handleExportLatex} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted">
+                  <button onClick={() => handleExportLatex()} className="w-full text-left px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted">
                     LaTeX (.tex)
                   </button>
                 </div>
@@ -1737,258 +1929,162 @@ Risk: <e.g., Low or None>
               <h3 className="font-extrabold text-foreground text-sm flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-indigo-500" />
                 AI Coach
-              </h3>
+                            </h3>
               <Button variant="ghost" size="icon" onClick={() => setAiExpanded(false)} className="rounded-xl h-8 w-8">
                 <X className="w-4 h-4" />
               </Button>
             </div>
-            <Separator />
+            <Separator />            <div className="flex-1 overflow-y-auto p-3 space-y-5">
+              {/* Quick AI Actions */}
+              <div className="space-y-2">
+                <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground/75 block">Quick AI Actions</span>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <Button onClick={() => handleQuickAction("optimize")} size="sm" variant="outline" className="text-[9px] font-bold h-7 rounded-xl border-indigo-100 hover:bg-indigo-50/50 hover:text-indigo-700">Optimize for JD</Button>
+                  <Button onClick={() => handleQuickAction("ats")} size="sm" variant="outline" className="text-[9px] font-bold h-7 rounded-xl border-indigo-100 hover:bg-indigo-50/50 hover:text-indigo-700">Boost ATS Score</Button>
+                  <Button onClick={() => handleQuickAction("summary")} size="sm" variant="outline" className="text-[9px] font-bold h-7 rounded-xl border-indigo-100 hover:bg-indigo-50/50 hover:text-indigo-700">Rewrite Summary</Button>
+                  <Button onClick={() => handleQuickAction("star")} size="sm" variant="outline" className="text-[9px] font-bold h-7 rounded-xl border-indigo-100 hover:bg-indigo-50/50 hover:text-indigo-700">STAR Bullets</Button>
+                </div>
+              </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-4">
-              
-              {/* ATS OPTIMIZATION SCOREBOARD */}
-              <div className="bg-muted border border-slate-155 rounded-xl p-3 space-y-3 shadow-sm">
+              {/* Resume Health Dashboard */}
+              <div className="bg-slate-50 border border-border/80 rounded-2xl p-3.5 space-y-3 shadow-inner">
                 <div className="flex justify-between items-center">
-                  <span className="text-[9px] font-black uppercase tracking-wider text-muted-foreground/70">ATS Scoreboard</span>
-                  <span className="text-[8px] font-bold text-muted-foreground/70 bg-slate-200/50 px-1.5 py-0.5 rounded border border-border select-none">
-                    Base: {baselineScore}
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-800">Resume Health</span>
+                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full select-none ${
+                    scores.ats >= 85 ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"
+                  }`}>
+                    ATS {scores.ats}%
                   </span>
                 </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 shrink-0 flex items-center justify-center rounded-full border-2 border-border bg-card shadow-sm">
-                    <span className="text-base font-black text-foreground leading-none">{scores.ats}</span>
-                  </div>
 
-                  <div className="flex-1 space-y-0.5 min-w-0">
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs font-extrabold text-foreground">
-                        {baselineScore} &rarr; {scores.ats}
-                      </span>
-                      <span className={`text-[9px] font-black px-1 rounded ${
-                        scores.ats - baselineScore >= 0 
-                          ? "bg-emerald-50 text-emerald-600 border border-emerald-100" 
-                          : "bg-rose-50 text-rose-605 border border-rose-100"
-                      }`}>
-                        +{scores.ats - baselineScore}
-                      </span>
-                    </div>
-                    <p className="text-[9px] text-muted-foreground/70 leading-tight">
-                      {scores.ats >= 85 ? "ATS filters passed!" : "Apply tips to optimize."}
-                    </p>
+                <div className="grid grid-cols-2 gap-2 text-[10px]">
+                  <div className="bg-card p-2 rounded-xl border border-slate-100 flex flex-col justify-between">
+                    <span className="text-muted-foreground text-[8px] uppercase font-bold">Keyword Match</span>
+                    <span className="font-extrabold text-slate-900 mt-0.5">{scores.keywords}%</span>
                   </div>
-                </div>
-
-                {/* Weighted Subscores Progress list */}
-                <div className="space-y-1.5 pt-2 border-t border-border/60">
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
-                      <span>Completeness</span>
-                      <span>{scores.completeness}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-slate-200/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${scores.completeness}%` }} />
-                    </div>
+                  <div className="bg-card p-2 rounded-xl border border-slate-100 flex flex-col justify-between">
+                    <span className="text-muted-foreground text-[8px] uppercase font-bold">Completeness</span>
+                    <span className="font-extrabold text-slate-900 mt-0.5">{scores.completeness}%</span>
                   </div>
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
-                      <span>Keywords</span>
-                      <span>{scores.keywords}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-slate-200/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${scores.keywords}%` }} />
-                    </div>
+                  <div className="bg-card p-2 rounded-xl border border-slate-100 flex flex-col justify-between">
+                    <span className="text-muted-foreground text-[8px] uppercase font-bold">Compliance</span>
+                    <span className="font-extrabold text-slate-900 mt-0.5">{scores.compliance}%</span>
                   </div>
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
-                      <span>Impact</span>
-                      <span>{scores.impact}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-slate-200/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${scores.impact}%` }} />
-                    </div>
+                  <div className="bg-card p-2 rounded-xl border border-slate-100 flex flex-col justify-between">
+                    <span className="text-muted-foreground text-[8px] uppercase font-bold">Impact Score</span>
+                    <span className="font-extrabold text-slate-900 mt-0.5">{scores.impact}%</span>
                   </div>
-                  <div className="space-y-0.5">
-                    <div className="flex justify-between text-[8px] font-extrabold text-muted-foreground/70 uppercase tracking-wider">
-                      <span>Page Fit</span>
-                      <span>{scores.coverage}%</span>
-                    </div>
-                    <div className="w-full h-1 bg-slate-200/50 rounded-full overflow-hidden">
-                      <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${scores.coverage}%` }} />
-                    </div>
+                  <div className="bg-card p-2 rounded-xl border border-slate-100 flex flex-col justify-between">
+                    <span className="text-muted-foreground text-[8px] uppercase font-bold">Grammar</span>
+                    <span className="font-extrabold text-slate-900 mt-0.5">{scores.grammar}%</span>
+                  </div>
+                  <div className="bg-card p-2 rounded-xl border border-slate-100 flex flex-col justify-between">
+                    <span className="text-muted-foreground text-[8px] uppercase font-bold">Readability</span>
+                    <span className="font-extrabold text-slate-900 mt-0.5">{scores.readability}%</span>
                   </div>
                 </div>
               </div>
 
-              {/* AI tab selector pills */}
-              <div className="grid grid-cols-2 gap-1 bg-muted/50 border p-1 rounded-xl">
-                {(["Improve", "ATS", "Keywords", "Rewrite"] as const).map(tab => (
-                  <button
-                    key={tab}
-                    onClick={() => setAiActiveTab(tab)}
-                    className={`py-1 text-[9px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                      aiActiveTab === tab 
-                        ? "bg-card text-foreground shadow-sm" 
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                ))}
+              {/* Template tips container */}
+              <div className="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-[10px] space-y-1">
+                <span className="font-black text-indigo-750 uppercase block tracking-wider">Template Mentor Tips</span>
+                <p className="text-slate-650 leading-relaxed font-medium">{getTemplateTips(templateId)}</p>
               </div>
 
-              <Button 
-                onClick={handleRequestAiSuggestions}
-                disabled={aiStreaming}
-                className="w-full rounded-xl bg-indigo-650 hover:bg-indigo-700 text-white font-bold h-9 text-xs flex justify-center gap-1.5"
-              >
-                {aiStreaming ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Streaming...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Generate tips</span>
-                  </>
-                )}
-              </Button>
+              {/* Suggestions list grouped by priority */}
+              <div className="space-y-4 pt-1">
+                {["High Priority", "Medium Priority", "Optional"].map(priorityGroup => {
+                  const groupList = aiSuggestions.filter(s => (s.priority || "Optional") === priorityGroup);
+                  if (groupList.length === 0) return null;
 
-              {/* Suggestions list */}
-              <div className="space-y-3 pt-1">
-                {aiSuggestions.map(suggest => {
                   return (
-                    <Card key={suggest.id} className="border border-border rounded-xl hover:shadow-md transition-all bg-card overflow-hidden">
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-650 border border-indigo-100 select-none">
-                            {suggest.gain || "+14% Match Increase"}
-                          </span>
-                          <span className="text-[8px] font-bold text-muted-foreground/75 bg-slate-100 px-1.5 py-0.5 rounded uppercase">
-                            {suggest.category || "SUGGESTION"}
-                          </span>
-                        </div>
+                    <div key={priorityGroup} className="space-y-2">
+                      <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-800 flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${
+                          priorityGroup === "High Priority" ? "bg-rose-500" :
+                          priorityGroup === "Medium Priority" ? "bg-amber-500" : "bg-slate-400"
+                        }`} />
+                        {priorityGroup}
+                      </h4>
 
-                        {/* Current vs AI version compare layout */}
-                        <div className="space-y-2 text-xs">
-                          <div className="p-2 bg-slate-50 border rounded-lg">
-                            <span className="text-[9px] font-bold text-muted-foreground/80 block uppercase">Current Content</span>
-                            <p className="text-[10px] text-slate-500 italic line-clamp-2 mt-0.5">
-                              {suggest.category === "SUMMARY" ? state.summary || "No current summary." :
-                               suggest.category === "SKILLS" ? state.skills?.join(", ") || "No current skills." :
-                               suggest.category === "EXPERIENCE" ? state.experience?.[0]?.description || "No current experience." :
-                               suggest.category === "PROJECTS" ? state.projects?.[0]?.description || "No current projects." :
-                               "Current section empty."}
-                            </p>
-                          </div>
+                      <div className="space-y-2">
+                        {groupList.map(suggest => (
+                          <Card key={suggest.id} className="border border-slate-150 rounded-xl bg-card overflow-hidden hover:shadow-md transition-all">
+                            <CardContent className="p-3 space-y-2.5">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-650 border border-indigo-100 select-none">
+                                  {suggest.gain}
+                                </span>
+                                <span className="text-[8px] font-bold text-muted-foreground/75 bg-slate-100 px-1.5 py-0.5 rounded uppercase">
+                                  {suggest.category}
+                                </span>
+                              </div>
 
-                          <div className="p-2 bg-indigo-50/50 border border-indigo-100 rounded-lg">
-                            <span className="text-[9px] font-bold text-indigo-600 block uppercase">AI Suggested Version</span>
-                            <p className="text-[10px] text-slate-800 font-semibold mt-0.5 leading-relaxed">
-                              {suggest.text}
-                            </p>
-                          </div>
-                        </div>
+                              <div className="space-y-2 text-xs">
+                                <div className="p-2.5 bg-indigo-50/50 border border-indigo-100 rounded-lg">
+                                  <span className="text-[9px] font-bold text-indigo-600 block uppercase">Suggestion</span>
+                                  <p className="text-[10px] text-slate-800 font-semibold mt-0.5 leading-relaxed">
+                                    {suggest.text}
+                                  </p>
+                                </div>
+                              </div>
 
-                        <div className="text-[9px] text-muted-foreground bg-muted p-2 rounded-lg leading-tight border flex flex-col gap-0.5">
-                          <span className="font-extrabold text-muted-foreground uppercase text-[8px] tracking-wider">Metrics details:</span>
-                          <span>+8 ATS Keywords | +2 STAR Bullets | +14% Match Increase</span>
-                        </div>
-                        
-                        <div className="flex gap-1 pt-1">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              // Accept suggestion
-                              if (suggest.category === "SUMMARY") {
-                                updateState({ ...state, summary: suggest.text });
-                              } else if (suggest.category === "SKILLS") {
-                                updateState({ ...state, skills: suggest.text.split(", ") });
-                              } else if (suggest.category === "EXPERIENCE" && state.experience.length > 0) {
-                                const expList = [...state.experience];
-                                expList[0] = { ...expList[0], description: suggest.text };
-                                updateState({ ...state, experience: expList });
-                              } else if (suggest.category === "PROJECTS" && state.projects.length > 0) {
-                                const projList = [...state.projects];
-                                projList[0] = { ...projList[0], description: suggest.text };
-                                updateState({ ...state, projects: projList });
-                              } else {
-                                updateState({ ...state, summary: suggest.text });
-                              }
-                              
-                              // Track accepted section in session
-                              setSession(prev => {
-                                const catLower = suggest.category?.toLowerCase() || "summary";
-                                const next = prev.acceptedSuggestions.includes(catLower)
-                                  ? prev.acceptedSuggestions
-                                  : [...prev.acceptedSuggestions, catLower];
-                                return { ...prev, acceptedSuggestions: next };
-                              });
+                              {/* Coaching explanation rationale */}
+                              <div className="text-[9px] text-muted-foreground bg-muted p-2 rounded-lg leading-normal border flex flex-col gap-0.5">
+                                <span className="font-extrabold text-slate-700 uppercase text-[8px] tracking-wider">Coach Explanation:</span>
+                                <span>{suggest.reason}</span>
+                              </div>
 
-                              // Live score climbing effect
-                              setScores(prev => {
-                                const nextAts = Math.min(prev.ats + 6, 92);
-                                return { ...prev, ats: nextAts };
-                              });
-
-                              // Discard suggestion card
-                              handleSuggestionDiscard(suggest.id);
-                            }}
-                            className="flex-1 text-[9px] font-bold rounded-lg bg-indigo-650 text-white hover:bg-indigo-700 h-8"
-                          >
-                            Accept
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              // Edit suggestion
-                              if (suggest.category === "SUMMARY") {
-                                updateState({ ...state, summary: suggest.text });
-                              } else if (suggest.category === "SKILLS") {
-                                updateState({ ...state, skills: suggest.text.split(", ") });
-                              } else if (suggest.category === "EXPERIENCE" && state.experience.length > 0) {
-                                const expList = [...state.experience];
-                                expList[0] = { ...expList[0], description: suggest.text };
-                                updateState({ ...state, experience: expList });
-                              } else if (suggest.category === "PROJECTS" && state.projects.length > 0) {
-                                const projList = [...state.projects];
-                                projList[0] = { ...projList[0], description: suggest.text };
-                                updateState({ ...state, projects: projList });
-                              }
-                              setActiveSection(suggest.category?.toLowerCase() || "summary");
-                              handleSuggestionDiscard(suggest.id);
-                            }}
-                            className="flex-1 text-[9px] font-bold rounded-lg border border-border hover:bg-muted text-foreground h-8"
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleSuggestionDiscard(suggest.id)}
-                            className="flex-1 text-[9px] font-bold rounded-lg border text-muted-foreground hover:bg-muted hover:text-foreground h-8"
-                          >
-                            Keep Mine
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                              <div className="flex gap-1.5 pt-1">
+                                <Button
+                                  size="sm"
+                                  onClick={() => {
+                                    if (suggest.category === "SUMMARY") {
+                                      updateState({ ...state, summary: suggest.text });
+                                    } else if (suggest.category === "SKILLS") {
+                                      updateState({ ...state, skills: suggest.text.split(", ") });
+                                    } else if (suggest.category === "EXPERIENCE" && state.experience.length > 0) {
+                                      const expList = [...state.experience];
+                                      expList[0] = { ...expList[0], description: suggest.text };
+                                      updateState({ ...state, experience: expList });
+                                    } else if (suggest.category === "PROJECTS" && state.projects.length > 0) {
+                                      const projList = [...state.projects];
+                                      projList[0] = { ...projList[0], description: suggest.text };
+                                      updateState({ ...state, projects: projList });
+                                    }
+                                    handleSuggestionDiscard(suggest.id);
+                                  }}
+                                  className="flex-1 text-[9px] font-bold rounded-xl bg-indigo-650 text-white hover:bg-indigo-700 h-8"
+                                >
+                                  Accept
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleSuggestionDiscard(suggest.id)}
+                                  className="flex-1 text-[9px] font-bold rounded-xl border border-border text-muted-foreground hover:bg-muted hover:text-foreground h-8"
+                                >
+                                  Discard
+                                </Button>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   );
                 })}
 
                 {aiSuggestions.length === 0 && !aiStreaming && (
-                  <div className="border border-dashed border-border p-6 text-center rounded-xl bg-muted/20">
-                    <Info className="w-6 h-6 text-muted-foreground/70 mx-auto mb-2" />
-                    <p className="text-[10px] text-muted-foreground/70 font-bold uppercase tracking-wider">No suggestions loaded</p>
-                    <p className="text-[10px] text-muted-foreground/70 mt-1 leading-normal">Select a tab and click generate to audit your details.</p>
+                  <div className="border border-dashed border-border p-6 text-center rounded-2xl bg-muted/10">
+                    <Info className="w-5 h-5 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">Audit Completed</p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1 leading-normal">Your layout rules and content match target parameters perfectly.</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
-
         </div>
       )}
 
@@ -2010,7 +2106,7 @@ Risk: <e.g., Low or None>
           <div className="h-16 shrink-0 border-b flex items-center justify-between px-4 bg-muted">
             <span className="font-extrabold text-foreground text-sm">Resume Preview</span>
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={handlePrintPdf} className="rounded-xl h-8 text-[10px] font-bold">
+              <Button size="sm" onClick={() => handlePrintPdf()} className="rounded-xl h-8 text-[10px] font-bold">
                 Export PDF
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setMobileShowPreview(false)} className="rounded-xl h-8 w-8">

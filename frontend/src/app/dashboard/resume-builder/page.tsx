@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Loader2, Plus, Edit2, Trash2, FileText, CheckCircle2 } from "lucide-react";
 import { ACTIVE_TEMPLATES, TEMPLATE_REGISTRY } from "@/lib/resume/templates/templates";
-import { ResumeState } from "@/lib/resume/templates/placementai-educator/schema";
+import { ResumeState } from "@/lib/resume/templates/legacy/placementai-educator/schema";
 import { ResumeService } from "@/services/resume.service";
 import { useAuth } from "@/hooks/use-auth";
 

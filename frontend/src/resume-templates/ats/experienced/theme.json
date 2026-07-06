@@ -1,0 +1,18 @@
+{
+  "fonts": {
+    "body": "Inter, sans-serif",
+    "heading": "Inter, sans-serif"
+  },
+  "colors": {
+    "primary": "#090d16",
+    "secondary": "#1e293b",
+    "text": "#0f172a",
+    "background": "#ffffff"
+  },
+  "spacing": {
+    "paddingX": "1.5in",
+    "paddingY": "1.5in",
+    "gapSections": "1.6rem"
+  },
+  "margins": "0.75in"
+}

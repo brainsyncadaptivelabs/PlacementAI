@@ -1,0 +1,1 @@
+Premium FAANG targeted resume template. Highly optimized for product organizations.
