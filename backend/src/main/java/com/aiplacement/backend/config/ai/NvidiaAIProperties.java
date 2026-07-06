@@ -33,7 +33,7 @@ public class NvidiaAIProperties {
     private String baseUrl = "https://integrate.api.nvidia.com/v1/chat/completions";
 
     /** Model identifier (e.g. {@code meta/llama-3.1-70b-instruct}). */
-    private String model = "meta/llama-3.3-70b-instruct";
+    private String model = "meta/llama-3.1-70b-instruct";
 
     /** Default sampling temperature used when callers do not override. */
     private double temperature = 0.2;

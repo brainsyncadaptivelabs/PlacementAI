@@ -41,7 +41,7 @@ class NvidiaBuildClientTest {
         NvidiaAIProperties properties = new NvidiaAIProperties();
         properties.setApiKey("test-key");
         properties.setBaseUrl(mockServer.url("/v1/chat/completions").toString());
-        properties.setModel("meta/llama-3.3-70b-instruct");
+        properties.setModel("meta/llama-3.1-70b-instruct");
         properties.setTemperature(0.7);
         properties.setMaxTokens(1024);
         properties.setTimeoutSeconds(10);
