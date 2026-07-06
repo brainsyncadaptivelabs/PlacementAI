@@ -42,6 +42,7 @@ import { NotificationCenter } from "@/components/workspace/NotificationCenter";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/store/toast-store";
 
 // Safe Markdown Error Boundary with plain text fallback
 class SafeMarkdownBoundary extends React.Component<
@@ -168,7 +169,7 @@ const MessageItem = memo(({
   onCopy: (content: string) => void;
   onRegenerate?: (content: string) => void;
   onEdit?: (id: number, content: string) => void;
-  isGenerating?: boolean;
+  isLoading?: boolean;
   feedbackState?: 'like' | 'dislike';
   onFeedback?: (type: 'like' | 'dislike') => void;
 }) => {
@@ -280,7 +281,7 @@ const MessageItem = memo(({
 
                       {msg.content.includes("```json") && msg.content.includes("widget") && (
                         <div className="my-4 border border-border/80 rounded-2xl overflow-hidden shadow-sm bg-card/25 w-full">
-                          <WidgetRenderer rawJson={extractJsonFromMarkdown(msg.content)} isStreaming={isGenerating} />
+                          <WidgetRenderer rawJson={extractJsonFromMarkdown(msg.content)} isStreaming={isLoading} />
                         </div>
                       )}
 
@@ -308,7 +309,7 @@ const MessageItem = memo(({
                           )
                         }}
                       >
-                        {msg.content + (isGenerating ? " ▋" : "")}
+                        {msg.content + (isLoading ? " ▋" : "")}
                       </ReactMarkdown>
                     </div>
                   </SafeMarkdownBoundary>
@@ -328,7 +329,7 @@ const MessageItem = memo(({
             )}
           </div>
 
-          {isAi && msg.content && !isGenerating && (
+          {isAi && msg.content && !isLoading && (
             <div className="mt-2.5 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm border border-border/80 px-2.5 py-1.5 rounded-xl shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200 self-end select-none">
               <button 
                 onClick={handleCopy}
@@ -387,39 +388,37 @@ export default function ChatPage() {
     toggleArchive,
     renameChat,
     duplicateChat,
-    updateMessages,
-    renameChatAsync
+    updateMessages
   } = useConversationManager();
 
   const messages = activeConversation?.messages || [];
   const setMessages = (setter: Message[] | ((prev: Message[]) => Message[])) => {
     if (activeConversationId) {
-      const nextMsgs = typeof setter === "function" ? setter(messages) : setter;
-      updateMessages(activeConversationId, nextMsgs);
+      updateMessages(activeConversationId, setter);
     }
   };
 
   const [input, setInput] = useState("");
   const [uploadedAttachments, setUploadedAttachments] = useState<any[]>([]);
   const [uploadingFiles, setUploadingFiles] = useState<Record<string, { name: string; progress: number; failed: boolean }>>({});
-  const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [loadingPhase, setLoadingPhase] = useState(0);
-  const [generationState, setGenerationState] = useState<"IDLE" | "GENERATING" | "COMPLETE" | "STOPPED">("IDLE");
   const [feedback, setFeedback] = useState<Record<number, 'like' | 'dislike'>>({});
   const [activeTab, setActiveTab] = useState("chat");
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const generationComplete = generationState !== "GENERATING";
+  const handleFeedback = useCallback((id: number, type: 'like' | 'dislike') => {
+    setFeedback(prev => ({ ...prev, [id]: type }));
+  }, []);
   
   const abortControllerRef = useRef<AbortController | null>(null);
   const limitTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const stuckTimerRef = useRef<NodeJS.Timeout | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Dynamic pulsing loading states
   useEffect(() => {
-    if (isTyping) {
+    if (isLoading) {
       setLoadingPhase(1);
       const t1 = setTimeout(() => setLoadingPhase(2), 2000);
       const t2 = setTimeout(() => setLoadingPhase(3), 4500);
@@ -430,33 +429,19 @@ export default function ChatPage() {
     } else {
       setLoadingPhase(0);
     }
-  }, [isTyping]);
+  }, [isLoading]);
 
   useEffect(() => {
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      abortControllerRef.current?.abort();
       if (limitTimerRef.current) clearTimeout(limitTimerRef.current);
-      if (stuckTimerRef.current) clearTimeout(stuckTimerRef.current);
     };
   }, []);
 
   const handleStop = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    if (limitTimerRef.current) {
-      clearTimeout(limitTimerRef.current);
-      limitTimerRef.current = null;
-    }
-    if (stuckTimerRef.current) {
-      clearTimeout(stuckTimerRef.current);
-      stuckTimerRef.current = null;
-    }
-    setGenerationState("STOPPED");
-    setIsTyping(false);
-    setTimeout(() => setGenerationState("IDLE"), 100);
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
   };
   
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -484,12 +469,12 @@ export default function ChatPage() {
   };
 
   useEffect(() => {
-    if (generationState === "GENERATING") {
+    if (isLoading) {
       scrollToBottom(false, false);
-    } else if (generationState === "COMPLETE") {
+    } else {
       scrollToBottom(true, true);
     }
-  }, [messages, isTyping, generationState, scrollToBottom]);
+  }, [messages, isLoading, scrollToBottom]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -547,7 +532,9 @@ export default function ChatPage() {
     }
   };
 
-  const handleSend = async (retryCount = 0, overrideInput?: string, forceMsgs?: Message[]) => {
+  const handleSend = async (overrideInput?: string) => {
+    if (isLoading) return;
+
     let finalInput = (overrideInput !== undefined ? overrideInput : input).trim();
     const currentAttachments = [...uploadedAttachments];
 
@@ -555,64 +542,52 @@ export default function ChatPage() {
       finalInput = `[Attached files: ${currentAttachments.map(a => a.name).join(", ")}]\n\n${finalInput}`.trim();
       setUploadedAttachments([]);
     }
-    if (!finalInput && currentAttachments.length === 0 && retryCount === 0) return;
-    if (generationState === "GENERATING" && retryCount === 0) return;
+    if (!finalInput && currentAttachments.length === 0) return;
 
-    const currentMessages = forceMsgs || messages;
-    const historyList = currentMessages.slice(-10).map(m => ({
+    const historyList = messages.slice(-10).map(m => ({
       role: m.role === "ai" ? "assistant" : "user",
       content: m.content
     }));
 
-    if (retryCount === 0) {
-      const userMsg: Message = {
-        id: Date.now(),
-        role: "user",
-        content: finalInput,
-        attachments: currentAttachments,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages([...currentMessages, userMsg]);
-      setInput("");
-      setGenerationState("GENERATING");
-      isAutoScrollEnabled.current = true;
-    }
+    const userMsg: Message = {
+      id: Date.now(),
+      role: "user",
+      content: finalInput,
+      attachments: currentAttachments,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages([...messages, userMsg]);
+    setInput("");
+    setIsLoading(true);
+    isAutoScrollEnabled.current = true;
 
-    setIsTyping(true);
-    const aiMsgId = retryCount === 0 ? Date.now() + 1 : currentMessages[currentMessages.length - 1].id;
-    
-    if (retryCount === 0) {
-      const aiMsg: Message = {
-        id: aiMsgId,
-        role: "ai",
-        content: "",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setMessages(prev => [...prev, aiMsg]);
-    }
+    const aiMsgId = Date.now() + 1;
+    const aiMsg: Message = {
+      id: aiMsgId,
+      role: "ai",
+      content: "",
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+    setMessages(prev => [...prev, aiMsg]);
 
     // Auto generate useful title based on first query
-    if (currentMessages.length === 0 && activeConversationId) {
+    if (messages.length === 0 && activeConversationId) {
       const cleanTitle = finalInput.split("\n")[0].slice(0, 30) + (finalInput.length > 30 ? "..." : "");
       renameChat(activeConversationId, cleanTitle);
     }
 
     let fullContent = "";
-    let timeLimit = 40000;
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+    abortControllerRef.current?.abort();
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
-    if (limitTimerRef.current) {
-      clearTimeout(limitTimerRef.current);
-    }
+    if (limitTimerRef.current) clearTimeout(limitTimerRef.current);
     limitTimerRef.current = setTimeout(() => {
       console.warn("Time limit exceeded, aborting stream.");
       controller.abort();
-    }, timeLimit);
+      toast.error("Request timed out after 60 seconds");
+    }, 60000);
 
     try {
       const token = localStorage.getItem("token");
@@ -632,17 +607,30 @@ export default function ChatPage() {
         signal: controller.signal
       });
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(response.status === 500 ? "Server Error (500)" : response.status === 404 ? "Not Found (404)" : response.status === 401 ? "Unauthorized (401)" : `HTTP Error: ${response.status}`);
+      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder("utf-8");
       
       if (reader) {
-        setIsTyping(false);
         let streamBuffer = "";
 
         while (true) {
           const { done, value } = await reader.read();
+          
+          if (limitTimerRef.current) clearTimeout(limitTimerRef.current);
+          limitTimerRef.current = setTimeout(() => {
+            console.warn("Time limit exceeded during stream, aborting.");
+            controller.abort();
+            toast.error("Stream timed out after 60 seconds");
+          }, 60000);
+
+          if (done) {
+            break;
+          }
+
           if (value) {
             const rawChunk = decoder.decode(value, { stream: true });
             streamBuffer += rawChunk;
@@ -656,64 +644,60 @@ export default function ChatPage() {
               if (!part.trim()) continue;
               const lines = part.split(/\r?\n/);
               let dataFound = false;
+              let partContent = "";
               for (const line of lines) {
                 if (line.startsWith('data:')) {
-                  const dataValue = line.slice(5).trim();
-                  if (dataValue) {
-                    currentAssembled += dataValue;
-                    dataFound = true;
+                  // SSE spec: data value is after "data:" and an optional space.
+                  let dataValue = line.substring(5);
+                  if (dataValue.startsWith(' ')) {
+                    dataValue = dataValue.substring(1);
                   }
+                  
+                  if (dataFound) {
+                      partContent += "\n";
+                  }
+                  partContent += dataValue;
+                  dataFound = true;
                 }
               }
-              if (dataFound) contentUpdated = true;
+              if (dataFound) {
+                 currentAssembled += partContent;
+                 contentUpdated = true;
+              }
             }
 
             if (contentUpdated) {
-              // Strip empty pulse values flushed by SSE heartbeats
-              const cleaned = currentAssembled.replace(/\s+/g, "").trim() === "" ? "" : currentAssembled;
-              fullContent += cleaned;
+              fullContent += currentAssembled;
               setMessages(prev => prev.map(m => 
                 m.id === aiMsgId ? { ...m, content: fullContent } : m
               ));
             }
           }
-
-          if (done) {
-            setGenerationState("COMPLETE");
-            setTimeout(() => setGenerationState("IDLE"), 100);
-            scrollToBottom(true, true);
-            break;
-          }
         }
       }
+      // Re-focus input after successful completion
+      setTimeout(() => {
+        if (textareaRef.current) textareaRef.current.focus();
+      }, 50);
     } catch (error: any) {
       if (error.name === 'AbortError') {
-        console.log("Fetch aborted.");
-        return;
-      }
-      console.error("Chat error:", error);
-
-      // Auto-retry once
-      if (retryCount < 1) {
-        console.log("Execution error, triggering auto-retry...");
-        setTimeout(() => handleSend(retryCount + 1, finalInput, currentMessages), 1000);
+        console.log("Fetch aborted by user or timeout.");
       } else {
-        // Render explicit error boundaries card
-        setIsTyping(false);
-        setGenerationState("COMPLETE");
-        setTimeout(() => setGenerationState("IDLE"), 100);
-        setMessages(prev => {
-          const filtered = prev.filter(m => m.id !== aiMsgId);
-          const errorMsg: Message = {
-            id: aiMsgId,
-            role: "error",
-            content: finalInput,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          };
-          return [...filtered, errorMsg];
-        });
+        console.error("Chat error:", error);
+        toast.error(`Failed to reach AI: ${error.message || "Network Error"}`);
       }
+      
+      // If the AI message is completely empty due to immediate failure, remove it
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg?.id === aiMsgId && lastMsg.content === "") {
+          return prev.filter(m => m.id !== aiMsgId);
+        }
+        return prev;
+      });
     } finally {
+      setIsLoading(false);
+      abortControllerRef.current = null;
       if (limitTimerRef.current) {
         clearTimeout(limitTimerRef.current);
         limitTimerRef.current = null;
@@ -725,15 +709,18 @@ export default function ChatPage() {
     const index = messages.findIndex(m => m.id === id);
     if (index === -1) return;
     const truncated = messages.slice(0, index);
-    handleSend(0, newContent, truncated);
+    setMessages(truncated);
+    setTimeout(() => handleSend(newContent), 50);
   };
 
   const handleExecuteCommand = (action: string) => {
     if (action === "NEW_CHAT") {
+      handleStop();
       createNewChat();
       setActiveTab("chat");
     } else if (action === "ANALYZE_RESUME") {
-      handleSend(0, "Analyze my resume");
+      handleStop();
+      handleSend("Analyze my resume");
       setActiveTab("chat");
     }
   };
@@ -747,7 +734,7 @@ export default function ChatPage() {
   }
 
   const isEmpty = messages.length === 0;
-  const firstName = user?.name ? user.name.split(" ")[0] : "Candidate";
+  const firstName = user?.fullName ? user.fullName.split(" ")[0] : "Candidate";
 
   return (
     <div 
@@ -764,7 +751,7 @@ export default function ChatPage() {
         conversations={conversations}
         activeId={activeConversationId}
         onSelect={setActiveConversationId}
-        onCreate={() => createNewChat()}
+        onCreate={() => { handleStop(); createNewChat(); }}
         onDelete={deleteChat}
         onTogglePin={togglePin}
         onToggleStar={toggleStar}
@@ -781,8 +768,8 @@ export default function ChatPage() {
           <div className="flex items-center gap-3">
             <SidebarTrigger className="md:hidden mr-1 text-muted-foreground hover:text-foreground" />
             <button
-              onClick={() => { createNewChat(); setActiveTab("chat"); }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all"
+              onClick={() => { handleStop(); createNewChat(); setActiveTab("chat"); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition-all"
             >
               <Plus className="w-3.5 h-3.5" />
               New Conversation
@@ -844,13 +831,13 @@ export default function ChatPage() {
               {isEmpty ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto max-w-[1000px] mx-auto w-full space-y-8 select-none">
                   <div className="flex flex-col items-center justify-center text-center mt-12 space-y-4">
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 text-indigo-650 flex items-center justify-center shadow-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-650 dark:text-indigo-400 flex items-center justify-center shadow-sm">
                       <Sparkles className="w-6 h-6 animate-pulse" />
                     </div>
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
                       Hi {firstName} 👋
                     </h2>
-                    <p className="text-base font-bold text-slate-700">
+                    <p className="text-base font-bold text-slate-700 dark:text-slate-300">
                       What would you like help with today?
                     </p>
                   </div>
@@ -859,14 +846,14 @@ export default function ChatPage() {
                     {[
                       { label: "📄 Optimize My Resume", query: "Optimize my resume for general software engineer roles" },
                       { label: "⚡ Run ATS Scan", query: "Run an ATS keyword scan on my profile" },
-                      { label: "🎙 Start Mock Interview", query: "Start a mock interview session" },
+                      { label: "🎯 Start Mock Interview", query: "Start a mock interview session" },
                       { label: "💻 Practice DSA Problems", query: "Give me a DSA practice problem" },
                       { label: "🏢 Prep for Companies", query: "Help me prepare for TCS backend questions" }
                     ].map((item) => (
                       <button
                         key={item.label}
-                        onClick={() => handleSend(0, item.query)}
-                        className="px-4 py-2.5 rounded-full border border-border/80 bg-card hover:bg-indigo-50/50 hover:border-indigo-505/40 text-xs font-bold text-slate-800 transition-all cursor-pointer shadow-sm hover:scale-102"
+                        onClick={() => handleSend(item.query)}
+                        className="px-4 py-2.5 rounded-full border border-border/80 bg-card hover:bg-indigo-50/50 dark:hover:bg-indigo-500/10 hover:border-indigo-500/40 dark:hover:border-indigo-500/40 text-xs font-bold text-slate-800 dark:text-slate-200 transition-all cursor-pointer shadow-sm hover:scale-105"
                       >
                         {item.label}
                       </button>
@@ -876,43 +863,11 @@ export default function ChatPage() {
               ) : (
                 <div className="flex-1 px-4 py-6 w-full max-w-[1200px] mx-auto text-left">
                   {messages.map((msg, index) => {
-                    if (msg.role === 'error') {
-                      return (
-                        <div key={msg.id} className="w-full flex justify-center mb-6">
-                          <div className="w-full max-w-[1200px] px-6">
-                            <div className="p-5 border border-rose-200 bg-rose-50/50 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                              <div className="flex gap-3 items-center">
-                                <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
-                                <div>
-                                  <h4 className="text-sm font-bold text-rose-800">Couldn't reach the AI.</h4>
-                                  <p className="text-xs text-rose-600/80 mt-0.5 font-medium">Please check your network or try again.</p>
-                                </div>
-                              </div>
-                              <div className="flex gap-2">
-                                <Button 
-                                  onClick={() => handleSend(0, msg.content)}
-                                  className="bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold px-4 py-2"
-                                >
-                                  Retry
-                                </Button>
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => navigator.clipboard.writeText(msg.content)}
-                                  className="border-rose-200 text-rose-700 hover:bg-rose-100 rounded-xl text-xs font-bold px-4 py-2"
-                                >
-                                  Copy Prompt
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
                     return (
                       <MessageItem 
                         key={msg.id} 
                         msg={msg} 
-                        isGenerating={msg.role === 'ai' && index === messages.length - 1 && generationState === "GENERATING"}
+                        isLoading={msg.role === 'ai' && index === messages.length - 1 && isLoading}
                         onCopy={handleCopy} 
                         feedbackState={feedback[msg.id]}
                         onFeedback={(type) => handleFeedback(msg.id, type)}
@@ -920,7 +875,7 @@ export default function ChatPage() {
                         onRegenerate={msg.role === 'ai' && index === messages.length - 1 ? () => {
                           const lastUserMsg = messages[index-1];
                           if (lastUserMsg) {
-                            handleSend(0, lastUserMsg.content);
+                            handleSend(lastUserMsg.content);
                           }
                         } : undefined}
                       />
@@ -928,7 +883,7 @@ export default function ChatPage() {
                   })}
 
                   {/* Pulsing loading steps indicator */}
-                  {isTyping && (
+                  {isLoading && (
                     <div className="w-full flex justify-center mb-6">
                       <div className="w-full max-w-[1200px] px-6">
                         <div className="flex flex-col gap-2.5 p-4 bg-indigo-50/50 border border-indigo-100 rounded-2xl max-w-sm animate-pulse">
@@ -992,7 +947,7 @@ export default function ChatPage() {
                     placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
                     className="w-full bg-transparent border-none border-0 outline-none ring-0 shadow-none focus:border-none focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none p-2 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[50px] leading-relaxed"
                     rows={1}
-                    disabled={!generationComplete}
+                    disabled={isLoading}
                   />
                   
                   <div className="flex items-center justify-between border-t border-border/40 pt-2.5 mt-2">
@@ -1017,7 +972,7 @@ export default function ChatPage() {
                       </button>
                     </div>
 
-                    {generationState === "GENERATING" ? (
+                    {isLoading ? (
                       <button 
                         onClick={handleStop}
                         className="h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-sm shrink-0 transition-all cursor-pointer font-bold text-xs"
@@ -1028,9 +983,9 @@ export default function ChatPage() {
                     ) : (
                       <button 
                         onClick={() => handleSend()}
-                        disabled={(!input.trim() && uploadedAttachments.length === 0) || !generationComplete}
+                        disabled={(!input.trim() && uploadedAttachments.length === 0) || isLoading}
                         className={`h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs ${
-                          (input.trim() || uploadedAttachments.length > 0) && generationComplete 
+                          (input.trim() || uploadedAttachments.length > 0) && !isLoading 
                           ? 'bg-slate-900 text-white hover:bg-indigo-650 shadow-sm' 
                           : 'bg-transparent text-slate-400'
                         }`}

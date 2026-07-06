@@ -81,13 +81,17 @@ export function useConversationManager() {
     }
   }, [conversations]);
 
-  const updateMessages = useCallback((id: string, messages: Message[]) => {
-    const updated = ConversationStorage.updateConversation(id, {
-      messages,
-      lastMessageAt: Date.now(),
-      updatedAt: Date.now()
+  const updateMessages = useCallback((id: string, updater: Message[] | ((prev: Message[]) => Message[])) => {
+    setConversations(prevConvs => {
+      const target = prevConvs.find(c => c.id === id);
+      if (!target) return prevConvs;
+      const nextMsgs = typeof updater === "function" ? updater(target.messages) : updater;
+      return ConversationStorage.updateConversation(id, {
+        messages: nextMsgs,
+        lastMessageAt: Date.now(),
+        updatedAt: Date.now()
+      });
     });
-    setConversations(updated);
   }, []);
 
   // Keyboard Shortcuts Hook integration

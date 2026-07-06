@@ -36,7 +36,7 @@ export default function SkillGapPage() {
       setResult(response.data);
     } catch (err) {
       console.error("Skill analysis error:", err);
-      setError("Failed to analyze skills. Please check if Ollama is running.");
+      setError("Failed to analyze skills. Please try again.");
     } finally {
       setLoading(false);
     }

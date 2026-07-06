@@ -32,7 +32,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
-        String method = request.getMethod();
+
 
         // 1. Determine rate limit configuration for the endpoint
         RateLimitProperties.LimitConfig limitConfig = null;

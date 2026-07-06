@@ -4,8 +4,8 @@ import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.resumebuilder.JdAnalysisRequest;
 import com.aiplacement.backend.dto.resumebuilder.JdAnalysisResponse;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ import java.util.List;
 public class JdAnalysisServiceImpl implements JdAnalysisService {
 
     private final AIClient aiClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     @Override
     public JdAnalysisResponse analyzeJobDescription(JdAnalysisRequest request) {

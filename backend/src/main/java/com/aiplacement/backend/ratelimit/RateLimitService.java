@@ -2,7 +2,6 @@ package com.aiplacement.backend.ratelimit;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -17,15 +16,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitService {
 
     private final StringRedisTemplate redisTemplate;
-    private final RateLimitProperties properties;
     private final Map<String, Bucket> inMemoryBuckets = new ConcurrentHashMap<>();
 
     public RateLimitService(
-            @Autowired(required = false) StringRedisTemplate redisTemplate,
-            RateLimitProperties properties
+            @Autowired(required = false) StringRedisTemplate redisTemplate
     ) {
         this.redisTemplate = redisTemplate;
-        this.properties = properties;
     }
 
     public boolean isAllowed(String key, String type, RateLimitProperties.LimitConfig limit) {
@@ -51,8 +47,10 @@ public class RateLimitService {
     }
 
     private Bucket createNewBucket(RateLimitProperties.LimitConfig limit) {
-        Refill refill = Refill.intervally(limit.getCapacity(), Duration.ofSeconds(limit.getDurationSeconds()));
-        Bandwidth limitBandwidth = Bandwidth.classic(limit.getCapacity(), refill);
+        Bandwidth limitBandwidth = Bandwidth.builder()
+                .capacity(limit.getCapacity())
+                .refillIntervally(limit.getCapacity(), Duration.ofSeconds(limit.getDurationSeconds()))
+                .build();
         return Bucket.builder()
                 .addLimit(limitBandwidth)
                 .build();

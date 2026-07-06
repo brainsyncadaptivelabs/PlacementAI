@@ -1,6 +1,6 @@
 export type Message = {
   id: number;
-  role: "user" | "ai";
+  role: "user" | "ai" | "error";
   content: string;
   time: string;
   attachments?: any[];

@@ -47,7 +47,7 @@ export default function RoadmapPage() {
       localStorage.setItem("user_roadmap", JSON.stringify(response.data));
     } catch (err) {
       console.error("Failed to fetch roadmap", err);
-      setError("Failed to generate roadmap. Please ensure Ollama is running.");
+      setError("Failed to generate roadmap. Please try again.");
     } finally {
       setLoading(false);
     }

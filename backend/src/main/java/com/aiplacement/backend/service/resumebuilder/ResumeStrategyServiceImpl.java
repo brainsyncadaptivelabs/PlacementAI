@@ -10,8 +10,8 @@ import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.ResumeRepository;
 import com.aiplacement.backend.service.jd.JdMatchService;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class ResumeStrategyServiceImpl implements ResumeStrategyService {
     private final UserRepository userRepository;
     private final JdMatchService jdMatchService;
     private final AIClient aiClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
 
     private User getAuthenticatedUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();

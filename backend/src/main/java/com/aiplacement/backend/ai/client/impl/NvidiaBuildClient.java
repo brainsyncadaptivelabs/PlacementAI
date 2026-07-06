@@ -95,6 +95,8 @@ public class NvidiaBuildClient implements AIClient {
 
         NvidiaRequest request = buildRequest(systemPrompt, userPrompt, temperature, maxTokens, false, false);
 
+        log.info("Received request");
+        log.info("Calling NVIDIA");
         try {
             NvidiaResponse response = webClient.post()
                     .bodyValue(request)
@@ -107,9 +109,11 @@ public class NvidiaBuildClient implements AIClient {
                     .block();
 
             String content = extractContent(response);
+            log.info("NVIDIA responded");
             long latency = System.currentTimeMillis() - start;
             int compLen = (content != null ? content.length() : 0);
             saveLog(feature, response, latency, "SUCCESS", promptLen, compLen);
+            log.info("Returning response");
             return content;
 
         } catch (AIAuthenticationException | AIRateLimitException e) {
@@ -124,6 +128,8 @@ public class NvidiaBuildClient implements AIClient {
             long latency = System.currentTimeMillis() - start;
             saveLog(feature, null, latency, "FAILURE", promptLen, 0);
             throw new AIException("AI generation failed — provider unreachable or returned unexpected response", e);
+        } finally {
+            log.debug("Request cycle completed for generate()");
         }
     }
 
@@ -153,6 +159,8 @@ public class NvidiaBuildClient implements AIClient {
 
         NvidiaRequest request = buildRequest(effectiveSystem, userPrompt, temperature, maxTokens, false, true);
 
+        log.info("Received request");
+        log.info("Calling NVIDIA");
         try {
             NvidiaResponse response = webClient.post()
                     .bodyValue(request)
@@ -165,11 +173,13 @@ public class NvidiaBuildClient implements AIClient {
                     .block();
 
             String rawContent = extractContent(response);
+            log.info("NVIDIA responded");
             long latency = System.currentTimeMillis() - start;
             int compLen = (rawContent != null ? rawContent.length() : 0);
             saveLog(feature, response, latency, "SUCCESS", promptLen, compLen);
 
             String repairedJson = cleanAndRepairJson(rawContent);
+            log.info("Returning response");
             return objectMapper.readTree(repairedJson);
 
         } catch (AIAuthenticationException e) {
@@ -186,6 +196,8 @@ public class NvidiaBuildClient implements AIClient {
             } catch (Exception fallbackEx) {
                 throw new AIException("AI JSON generation failed and fallback also failed", fallbackEx);
             }
+        } finally {
+            log.debug("Request cycle completed for generateJson()");
         }
     }
 
@@ -199,22 +211,34 @@ public class NvidiaBuildClient implements AIClient {
     public Flux<String> stream(String systemPrompt, String userPrompt, double temperature, int maxTokens) {
         NvidiaRequest request = buildRequest(systemPrompt, userPrompt, temperature, maxTokens, true, false);
 
-        return webClient.post()
-                .header(org.springframework.http.HttpHeaders.ACCEPT, org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(status -> status.is4xxClientError(), this::handle4xxError)
-                .onStatus(status -> status.is5xxServerError(), this::handle5xxError)
-                .bodyToFlux(String.class)
-                .timeout(java.time.Duration.ofMinutes(10))
-                .retryWhen(buildRetrySpec())
-                .mapNotNull(this::parseStreamChunk)
-                .filter(chunk -> !chunk.isEmpty())
-                .doOnComplete(() -> log.debug("[AI] Streaming completed for feature={}", detectFeature()))
-                .onErrorResume(e -> {
-                    log.error("[AI] Stream failed: {}", e.getClass().getSimpleName());
-                    return Flux.just("\n\n[Stream interrupted. Please try again.]");
-                });
+        log.info("Received request");
+        log.info("Calling NVIDIA");
+        try {
+            return webClient.post()
+                    .header(org.springframework.http.HttpHeaders.ACCEPT, org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(status -> status.is4xxClientError(), this::handle4xxError)
+                    .onStatus(status -> status.is5xxServerError(), this::handle5xxError)
+                    .bodyToFlux(String.class)
+                    .timeout(java.time.Duration.ofSeconds(properties.getTimeoutSeconds()))
+                    .retryWhen(buildRetrySpec())
+                    .mapNotNull(this::parseStreamChunk)
+                    .filter(chunk -> !chunk.isEmpty())
+                    .doFirst(() -> log.info("NVIDIA responded"))
+                    .doOnComplete(() -> {
+                        log.info("Returning response");
+                        log.debug("[AI] Streaming completed for feature={}", detectFeature());
+                    })
+                    .onErrorResume(e -> {
+                        log.error("[AI] Stream failed: {}", e.getClass().getSimpleName());
+                        return Flux.error(new AIException("AI Stream failed", e));
+                    });
+        } catch (Exception e) {
+            throw new AIException("AI Stream initialization failed", e);
+        } finally {
+            log.debug("Request cycle completed for stream() initialization");
+        }
     }
 
     /**

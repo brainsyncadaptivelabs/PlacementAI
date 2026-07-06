@@ -70,15 +70,19 @@ public class ChatbotController {
         final String finalUsername = username;
         log.info("Starting stream question connection for user: {}", finalUsername);
 
-        Flux<String> heartbeat = Flux.interval(Duration.ofSeconds(15))
-                .map(tick -> " ");
+        Flux<String> responseStream = chatbotService.streamQuestion(request).publish().refCount(2);
 
-        Flux<String> responseStream = chatbotService.streamQuestion(request);
+        Flux<String> heartbeat = Flux.interval(Duration.ofSeconds(15))
+                .map(tick -> " ")
+                .takeUntilOther(responseStream.ignoreElements());
 
         return Flux.merge(responseStream, heartbeat)
-                .timeout(Duration.ofSeconds(45), Flux.just("\n[ERROR: Timeout - request took too long. Please retry.]"))
+                .timeout(Duration.ofSeconds(60))
                 .doOnCancel(() -> log.info("Client cancelled/stopped chat stream for user: {}", finalUsername))
                 .doOnComplete(() -> log.info("Stream completed successfully for user: {}", finalUsername))
-                .doOnError(err -> log.error("Error occurred in stream for user: {}", finalUsername, err));
+                .onErrorResume(err -> {
+                    log.error("Error occurred in stream for user: {}", finalUsername, err);
+                    return Flux.error(new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "AI Stream failed"));
+                });
     }
 }
