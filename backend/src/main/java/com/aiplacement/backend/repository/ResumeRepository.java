@@ -10,4 +10,5 @@ public interface ResumeRepository
         extends JpaRepository<Resume, Long> {
     Long countByUser(User user);
     Optional<Resume> findFirstByUserOrderByCreatedAtDesc(User user);
+    java.util.List<Resume> findByUserOrderByCreatedAtDesc(User user);
 }

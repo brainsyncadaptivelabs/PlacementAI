@@ -64,4 +64,16 @@ public class ResumeController {
     public ResponseEntity<String> getLatestResumeText() {
         return ResponseEntity.ok(resumeService.getLatestResumeText());
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<java.util.List<com.aiplacement.backend.dto.ResumeDto>> getAllResumes() {
+        log.info("Request to fetch all resumes for authenticated user");
+        return ResponseEntity.ok(resumeService.getAllResumes());
+    }
+
+    @GetMapping("/{id}/analysis")
+    public ResponseEntity<AtsResponseDto> getResumeAnalysis(@PathVariable Long id) {
+        log.info("Request to fetch resume analysis for resume ID: {}", id);
+        return ResponseEntity.ok(resumeService.getResumeAnalysis(id));
+    }
 }

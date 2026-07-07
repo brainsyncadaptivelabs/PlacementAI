@@ -77,14 +77,18 @@ public class QuestionGenerationEngineImpl implements QuestionGenerationEngine {
                 if (response.has("activeInterviewer")) {
                     state.setCurrentAgentName(response.get("activeInterviewer").asText());
                 }
-                return response.get("nextQuestion").asText();
+                String qText = response.get("nextQuestion").asText();
+                String cleanQ = qText.replaceAll("^\\[.*?\\]\\s*", "")
+                                     .replaceAll("^(Interviewer|AI Interviewer|Assistant):\\s*", "")
+                                     .trim();
+                return cleanQ;
             }
         } catch (Exception e) {
             log.error("Failed to generate question dynamically, using fallback logic.", e);
         }
 
         // Return a generic fallback matching the current state
-        return "[Technical Interviewer] Could you describe your technical experience in relation to " + state.getFsmState() + "?";
+        return "Could you describe your technical experience in relation to " + state.getFsmState() + "?";
     }
 
     private String truncate(String text, int limit) {

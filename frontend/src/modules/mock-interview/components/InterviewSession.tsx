@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Mic, MicOff, PhoneOff, Play, Pause, ChevronLeft, ChevronRight, PlayCircle, Loader2 } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Play, Pause, ChevronLeft, ChevronRight, PlayCircle, Loader2, Cpu, FileText, Award, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { interviewService } from "../services/interviewService";
 import { MockInterview, InterviewQuestion } from "../types/interview.types";
@@ -126,6 +126,24 @@ export const InterviewSession = ({
   const [isExecuting, setIsExecuting] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
 
+  // Voice VAD and Barge-In States & Refs
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const activeAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const [vadState, setVadState] = useState<"INACTIVE" | "AI_SPEAKING" | "LISTENING" | "SPEAKING" | "PROCESSING" | "INTERRUPTED">("INACTIVE");
+  const [micVolume, setMicVolume] = useState<number>(0);
+
+  const questionFinishedTimeRef = useRef<number>(0);
+  const userStartedSpeakingTimeRef = useRef<number>(0);
+  const userStoppedSpeakingTimeRef = useRef<number>(0);
+  const lastSpeechTimeRef = useRef<number>(0);
+  const isSpeechActiveRef = useRef<boolean>(false);
+  const isProcessingRef = useRef<boolean>(false);
+
   const isCodingRound = interviewData.interviewType === "DSA Coding" || 
                         interviewData.interviewType === "Technical Coding" ||
                         (interviewData.role && interviewData.role.toLowerCase().indexOf("coding") !== -1) ||
@@ -171,8 +189,440 @@ export const InterviewSession = ({
           console.error(e);
         }
       }
+      // Release voice resources
+      if (activeAudioRef.current) {
+        activeAudioRef.current.pause();
+        activeAudioRef.current = null;
+      }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      if (micStreamRef.current) {
+        micStreamRef.current.getTracks().forEach(track => track.stop());
+        micStreamRef.current = null;
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close().catch(e => console.error(e));
+        audioContextRef.current = null;
+      }
     };
   }, []);
+
+  const releaseMicResources = () => {
+    if (activeAudioRef.current) {
+      activeAudioRef.current.pause();
+      activeAudioRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    if (micStreamRef.current) {
+      micStreamRef.current.getTracks().forEach(track => track.stop());
+      micStreamRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(e => console.error(e));
+      audioContextRef.current = null;
+    }
+    analyserRef.current = null;
+    setVadState("INACTIVE");
+    isSpeechActiveRef.current = false;
+    isProcessingRef.current = false;
+  };
+
+  const playAudioBlob = (blob: Blob): Promise<void> => {
+    console.log(`[TRACE] [PLAYBACK] playAudioBlob initiated. Blob size: ${blob.size} bytes, MimeType: ${blob.type}`);
+    return new Promise((resolve) => {
+      if (activeAudioRef.current) {
+        console.log("[TRACE] [PLAYBACK] Active audio detected. Pausing current track.");
+        activeAudioRef.current.pause();
+        activeAudioRef.current = null;
+      }
+
+      // Self-healing fallback: If blob is empty or dummy WAV (<= 128 bytes)
+      if (blob.size <= 128) {
+        console.warn("[TRACE] [PLAYBACK] Audio blob is dummy/invalid (size <= 128 bytes). Falling back to local browser SpeechSynthesis.");
+        if (typeof window !== "undefined" && window.speechSynthesis) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(lastMessage);
+          
+          utterance.onend = () => {
+            console.log("[TRACE] [PLAYBACK] Local SpeechSynthesis playback ended. Transitioning to LISTENING state.");
+            questionFinishedTimeRef.current = Date.now();
+            setVadState("LISTENING");
+            isSpeechActiveRef.current = false;
+            resolve();
+          };
+
+          utterance.onerror = (err) => {
+            console.error("[TRACE] [PLAYBACK] Local SpeechSynthesis encountered error:", err);
+            questionFinishedTimeRef.current = Date.now();
+            setVadState("LISTENING");
+            isSpeechActiveRef.current = false;
+            resolve();
+          };
+
+          setVadState("AI_SPEAKING");
+          window.speechSynthesis.speak(utterance);
+        } else {
+          console.warn("[TRACE] [PLAYBACK] Browser does not support SpeechSynthesis. Resolving immediately.");
+          questionFinishedTimeRef.current = Date.now();
+          setVadState("LISTENING");
+          isSpeechActiveRef.current = false;
+          resolve();
+        }
+        return;
+      }
+
+      console.log("[TRACE] [PLAYBACK] Playback started via HTML5 Audio element...");
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      activeAudioRef.current = audio;
+      setVadState("AI_SPEAKING");
+
+      audio.onended = () => {
+        console.log("[TRACE] [PLAYBACK] Audio playback ended naturally. Transitioning to LISTENING state.");
+        activeAudioRef.current = null;
+        questionFinishedTimeRef.current = Date.now();
+        setVadState("LISTENING");
+        isSpeechActiveRef.current = false;
+        resolve();
+      };
+
+      audio.onerror = () => {
+        console.error("[TRACE] [PLAYBACK] HTML5 Audio playback error encountered. Error details:", audio.error);
+        activeAudioRef.current = null;
+        questionFinishedTimeRef.current = Date.now();
+        setVadState("LISTENING");
+        isSpeechActiveRef.current = false;
+        resolve();
+      };
+
+      audio.play().catch((e) => {
+        console.error("[TRACE] [PLAYBACK] HTML5 Audio play command failed. Error details:", e);
+        activeAudioRef.current = null;
+        questionFinishedTimeRef.current = Date.now();
+        setVadState("LISTENING");
+        isSpeechActiveRef.current = false;
+        resolve();
+      });
+    });
+  };
+
+  const playBase64Audio = (base64: string): Promise<void> => {
+    const binary = atob(base64);
+    const array = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      array[i] = binary.charCodeAt(i);
+    }
+    const blob = new Blob([array], { type: 'audio/wav' });
+    return playAudioBlob(blob);
+  };
+
+  const startVolumeAnalysis = (stream: MediaStream) => {
+    try {
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+      
+      const audioCtx = new AudioContextClass();
+      const source = audioCtx.createMediaStreamSource(stream);
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+
+      audioContextRef.current = audioCtx;
+      analyserRef.current = analyser;
+
+      const bufferLength = analyser.fftSize;
+      const dataArray = new Float32Array(bufferLength);
+
+      const checkVolume = () => {
+        if (!analyserRef.current) return;
+        analyserRef.current.getFloatTimeDomainData(dataArray);
+
+        let sumSquares = 0.0;
+        for (let i = 0; i < bufferLength; i++) {
+          sumSquares += dataArray[i] * dataArray[i];
+        }
+        const rms = Math.sqrt(sumSquares / bufferLength);
+        setMicVolume(rms);
+        requestAnimationFrame(checkVolume);
+      };
+
+      requestAnimationFrame(checkVolume);
+    } catch (e) {
+      console.error("[VAD] Failed to start volume analysis:", e);
+    }
+  };
+
+  const startVADVoiceSession = async () => {
+    console.log("[TRACE] [VAD_START] startVADVoiceSession initiated");
+    setIsFallbackMode(true);
+    setCallStatus(CallStatus.ACTIVE);
+    setCurrentQuestionIndex(0);
+    setTypedAnswer("");
+    setVadState("AI_SPEAKING");
+    isProcessingRef.current = false;
+    isSpeechActiveRef.current = false;
+
+    try {
+      console.log("[TRACE] [VAD_START] Requesting mic permission...");
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStreamRef.current = stream;
+      console.log("[TRACE] [VAD_START] Mic permission granted, initializing volume analysis...");
+      startVolumeAnalysis(stream);
+
+      if (interviewData.questions.length > 0) {
+        const firstQuestion = interviewData.questions[0];
+        console.log("[TRACE] [VAD_START] First question text retrieved:", firstQuestion);
+        const firstMsg: SavedMessage = { role: "assistant", content: firstQuestion };
+        setMessages([firstMsg]);
+        setLastMessage(firstQuestion);
+
+        console.log("[TRACE] [VAD_START] Requesting TTS synthesis for first question...");
+        const firstQBlob = await interviewService.synthesizeNvidiaTts(firstQuestion);
+        console.log(`[TRACE] [VAD_START] Received synthesized response of size: ${firstQBlob.size} bytes`);
+        await playAudioBlob(firstQBlob);
+      } else {
+        console.warn("[TRACE] [VAD_START] No questions found in interviewData!");
+      }
+    } catch (err) {
+      console.error("[TRACE] [VAD_START] Failed to start VAD voice session. Error details:", err);
+      startLocalFallback();
+    }
+  };
+
+  const startVoiceRecording = (isInterruption: boolean) => {
+    if (!micStreamRef.current) return;
+
+    userStartedSpeakingTimeRef.current = Date.now();
+    audioChunksRef.current = [];
+
+    let options = {};
+    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+      options = { mimeType: 'audio/webm;codecs=opus' };
+    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+      options = { mimeType: 'audio/webm' };
+    } else if (MediaRecorder.isTypeSupported('audio/ogg')) {
+      options = { mimeType: 'audio/ogg' };
+    } else if (MediaRecorder.isTypeSupported('audio/wav')) {
+      options = { mimeType: 'audio/wav' };
+    }
+
+    try {
+      const recorder = new MediaRecorder(micStreamRef.current, options);
+      recorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          audioChunksRef.current.push(e.data);
+        }
+      };
+      recorder.start(100);
+      mediaRecorderRef.current = recorder;
+      console.log(`[VAD] Started recording. IsInterruption: ${isInterruption}`);
+    } catch (e) {
+      console.error("[VAD] Failed to start MediaRecorder:", e);
+    }
+  };
+
+  const stopVoiceRecordingAndProcess = () => {
+    if (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") return;
+
+    isProcessingRef.current = true;
+    const isInterruption = (vadState === "INTERRUPTED");
+    setVadState("PROCESSING");
+
+    mediaRecorderRef.current.onstop = async () => {
+      const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+      const stoppedTime = Date.now();
+      userStoppedSpeakingTimeRef.current = stoppedTime;
+
+      const totalTurnDuration = stoppedTime - questionFinishedTimeRef.current;
+      const thinkingTime = userStartedSpeakingTimeRef.current - questionFinishedTimeRef.current;
+
+      try {
+        if (isInterruption) {
+          console.log("[VAD] Uploading interruption audio...");
+          const res = await interviewService.bargeIn(
+            interviewData.adaptiveInterviewId!,
+            audioBlob,
+            true
+          );
+          
+          isProcessingRef.current = false;
+          
+          if (res.interrupted) {
+            console.log("[VAD] Interruption accepted. Action:", res.action);
+            
+            const userMsg: SavedMessage = { role: "user", content: `[Interruption] ${res.transcription}` };
+            const aiMsg: SavedMessage = { role: "assistant", content: res.responseText };
+            setMessages((prev) => [...prev, userMsg, aiMsg]);
+            setLastMessage(res.responseText);
+
+            if (res.action === "ADVANCE") {
+              const nextIndex = currentQuestionIndex + 1;
+              setCurrentQuestionIndex(nextIndex);
+              
+              useInterviewStore.getState().setInterviewData({
+                ...interviewData,
+                questions: [...interviewData.questions, res.responseText]
+              });
+            }
+
+            if (res.audioBase64) {
+              await playBase64Audio(res.audioBase64);
+            } else {
+              const ttsBlob = await interviewService.synthesizeNvidiaTts(res.responseText);
+              await playAudioBlob(ttsBlob);
+            }
+          } else {
+            console.log("[VAD] Interruption ignored (deemed noise). Resuming...");
+            setVadState("LISTENING");
+            isSpeechActiveRef.current = false;
+          }
+        } else {
+          console.log("[VAD] Uploading final answer audio...");
+          const nextQuestionBlob = await interviewService.transcribeVoiceTurn(
+            interviewData.adaptiveInterviewId!,
+            audioBlob,
+            Math.max(0, thinkingTime),
+            Math.max(0, totalTurnDuration)
+          );
+
+          isProcessingRef.current = false;
+
+          const updatedInterview = await interviewService.getById(interviewData.adaptiveInterviewId!);
+          const interviewQuestions = updatedInterview.questions || [];
+          const nextQText = interviewQuestions[interviewQuestions.length - 1]?.questionText || 
+                            "Thank you. The interview is complete. We are compiling your performance report now.";
+
+          const userMsg: SavedMessage = { role: "user", content: interviewQuestions[interviewQuestions.length - 2]?.answerText || "Answer submitted." };
+          const aiMsg: SavedMessage = { role: "assistant", content: nextQText };
+          setMessages((prev) => [...prev, userMsg, aiMsg]);
+          setLastMessage(nextQText);
+
+          if (updatedInterview.status === "COMPLETED") {
+            setCallStatus(CallStatus.FINISHED);
+            await playAudioBlob(nextQuestionBlob);
+          } else {
+            const nextIndex = currentQuestionIndex + 1;
+            setCurrentQuestionIndex(nextIndex);
+
+            useInterviewStore.getState().setInterviewData({
+              ...interviewData,
+              questions: interviewQuestions.map(q => q.questionText)
+            });
+
+            await playAudioBlob(nextQuestionBlob);
+          }
+        }
+      } catch (err) {
+        console.error("[VAD] Error processing turn:", err);
+        isProcessingRef.current = false;
+        setVadState("LISTENING");
+        isSpeechActiveRef.current = false;
+      }
+    };
+
+    try {
+      mediaRecorderRef.current.stop();
+    } catch (e) {
+      console.error("[VAD] Error stopping MediaRecorder:", e);
+      isProcessingRef.current = false;
+      setVadState("LISTENING");
+      isSpeechActiveRef.current = false;
+    }
+  };
+
+  // VAD Volume monitoring loop
+  useEffect(() => {
+    if (callStatus !== CallStatus.ACTIVE || !analyserRef.current) return;
+
+    const interval = setInterval(() => {
+      if (!analyserRef.current || isProcessingRef.current) return;
+
+      const bufferLength = analyserRef.current.fftSize;
+      const dataArray = new Float32Array(bufferLength);
+      analyserRef.current.getFloatTimeDomainData(dataArray);
+
+      let sumSquares = 0.0;
+      for (let i = 0; i < bufferLength; i++) {
+        sumSquares += dataArray[i] * dataArray[i];
+      }
+      const rms = Math.sqrt(sumSquares / bufferLength);
+
+      const now = Date.now();
+      const VAD_THRESHOLD = 0.015;
+      const SILENCE_THRESHOLD = 2000;
+
+      if (rms > VAD_THRESHOLD) {
+        lastSpeechTimeRef.current = now;
+
+        if (!isSpeechActiveRef.current) {
+          isSpeechActiveRef.current = true;
+
+          if (vadState === "AI_SPEAKING") {
+            setVadState("INTERRUPTED");
+            if (activeAudioRef.current) {
+              activeAudioRef.current.pause();
+              activeAudioRef.current = null;
+              console.log("[VAD] AI TTS playback stopped due to user interruption");
+            }
+            startVoiceRecording(true);
+          } else if (vadState === "LISTENING") {
+            setVadState("SPEAKING");
+            startVoiceRecording(false);
+          }
+        }
+      } else {
+        if (isSpeechActiveRef.current) {
+          const silenceDuration = now - lastSpeechTimeRef.current;
+          if (silenceDuration >= SILENCE_THRESHOLD) {
+            isSpeechActiveRef.current = false;
+            console.log("[VAD] Silence threshold reached. Finalizing recording...");
+            stopVoiceRecordingAndProcess();
+          }
+        }
+      }
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [callStatus, vadState]);
+
+  const renderVoiceVisualizer = () => {
+    const barCount = 7;
+    return (
+      <div className="flex items-center justify-center gap-1.5 h-16 my-4">
+        {Array.from({ length: barCount }).map((_, i) => {
+          const factor = Math.sin((i / (barCount - 1)) * Math.PI);
+          const height = vadState === "SPEAKING" 
+            ? Math.max(8, Math.min(64, micVolume * 250 * factor)) 
+            : 8;
+          const animateClass = vadState === "AI_SPEAKING" ? "animate-pulse" : "";
+          return (
+            <div
+              key={i}
+              className={cn(
+                "w-1.5 rounded-full transition-all duration-75 bg-primary",
+                animateClass
+              )}
+              style={{ 
+                height: `${height}px`,
+                backgroundColor: vadState === "SPEAKING" ? "#10b981" : (vadState === "AI_SPEAKING" ? "#5271ff" : "#475569")
+              }}
+            />
+          );
+        })}
+      </div>
+    );
+  };
 
   const speakLocal = (text: string) => {
     if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -441,6 +891,12 @@ export const InterviewSession = ({
       questions,
     };
 
+    if (interviewData.isAdaptive && interviewData.adaptiveInterviewId) {
+      console.log(`[TRACE] [FEEDBACK] Redirecting to adaptive mock interview result page: /mock-interview/result/${interviewData.adaptiveInterviewId}`);
+      router.push(`/mock-interview/result/${interviewData.adaptiveInterviewId}`);
+      return;
+    }
+
     try {
       const savedResult = await interviewService.saveResults(result);
       if (savedResult.id) {
@@ -484,8 +940,8 @@ export const InterviewSession = ({
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
       if (interviewData.isAdaptive) {
-        console.log("Adaptive Mode active. Bypassing ElevenLabs autonomous agent to use managed Local Fallback.");
-        startLocalFallback();
+        console.log("Adaptive Mode active. Bypassing ElevenLabs autonomous agent to use managed VAD Voice Session.");
+        startVADVoiceSession();
         return;
       }
 
@@ -528,29 +984,64 @@ export const InterviewSession = ({
   };
 
   const handleDisconnect = async () => {
-    if (isFallbackMode) {
-      if (isRecording) stopLocalRecording();
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-      }
-      setCallStatus(CallStatus.FINISHED);
-    } else {
-      await endSession();
-      setCallStatus(CallStatus.FINISHED);
+    console.log("[TRACE] [DISCONNECT] handleDisconnect initiated. Releasing local and server resources.");
+    releaseMicResources();
+    if (typeof window !== "undefined" && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
     }
+    
+    if (interviewData.isAdaptive && interviewData.adaptiveInterviewId) {
+      try {
+        console.log(`[TRACE] [DISCONNECT] Calling early termination endpoint for adaptive interview id: ${interviewData.adaptiveInterviewId}`);
+        await interviewService.cancelAdaptiveInterview(interviewData.adaptiveInterviewId);
+      } catch (e) {
+        console.error("[TRACE] [DISCONNECT] Failed to notify early termination to server:", e);
+      }
+    }
+    
+    setCallStatus(CallStatus.FINISHED);
   };
 
   return (
-    <div className={cn("grid gap-6 max-w-7xl mx-auto p-4 items-start", isCodingRound ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1")}>
+    <div className={cn(
+      "grid gap-6 max-w-7xl mx-auto p-4 items-start grid-cols-1",
+      isCodingRound ? "lg:grid-cols-12" : "lg:grid-cols-3"
+    )}>
       
       {/* LEFT COLUMN: INTERVIEW PANEL */}
-      <div className="space-y-6">
+      <div className={cn("space-y-6", isCodingRound ? "lg:col-span-6" : "lg:col-span-2")}>
+        
+        {/* Section Progress & Tracker Bar */}
+        {callStatus === CallStatus.ACTIVE && (
+          <div className="bg-slate-900/60 p-4 rounded-xl border border-white/5 space-y-2">
+            <div className="flex justify-between text-xs font-bold">
+              <span className="text-white flex items-center gap-1.5">
+                <Cpu className="w-4 h-4 text-primary animate-pulse" /> 
+                Active Competency: <span className="text-primary font-black uppercase tracking-wider">{
+                  interviewData.questions.length === 1 ? "INTRODUCTION" :
+                  interviewData.questions.length === 2 ? "RESUME DEEP-DIVE" :
+                  interviewData.questions.length === 3 ? "TECHNICAL DEPTH" :
+                  interviewData.questions.length === 4 ? "SYSTEM DESIGN / CODE DESIGN" :
+                  "BEHAVIORAL STAR"
+                }</span>
+              </span>
+              <span className="text-muted-foreground font-semibold">Question {interviewData.questions.length} of 5</span>
+            </div>
+            <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-500 rounded-full" 
+                style={{ width: `${Math.min((interviewData.questions.length / 5) * 100, 100)}%` }} 
+              />
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")}>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard")} className="text-xs hover:text-white border border-white/5 bg-slate-900/50">
               <ChevronLeft className="w-4 h-4 mr-1" /> Back
             </Button>
-            <Badge variant="outline" className="border-primary/30 text-primary">
+            <Badge variant="outline" className="border-primary/35 bg-primary/5 text-primary text-xs font-bold">
               {interviewData.difficulty || "Medium"} Difficulty
             </Badge>
           </div>
@@ -560,8 +1051,9 @@ export const InterviewSession = ({
               size="sm" 
               onClick={() => setIsTimerPaused(!isTimerPaused)}
               disabled={callStatus !== CallStatus.ACTIVE}
+              className="text-xs border-white/5 bg-slate-900/50 text-white"
             >
-              {isTimerPaused ? <Play className="w-4 h-4 mr-1" /> : <Pause className="w-4 h-4 mr-1" />}
+              {isTimerPaused ? <Play className="w-3.5 h-3.5 mr-1" /> : <Pause className="w-3.5 h-3.5 mr-1" />}
               {isTimerPaused ? "Resume" : "Pause"}
             </Button>
             <Badge className="bg-primary/10 text-primary hover:bg-primary/10 font-bold px-3 py-1 text-sm border-none">
@@ -575,13 +1067,13 @@ export const InterviewSession = ({
           <div className="card-interviewer-premium">
             <div className="avatar-premium">
               <span className="text-5xl">🤖</span>
-              {(isSpeaking || (isFallbackMode && callStatus === CallStatus.ACTIVE && !isRecording)) && (
+              {(isSpeaking || (isFallbackMode && callStatus === CallStatus.ACTIVE && vadState === "AI_SPEAKING")) && (
                 <span className="animate-speak-premium" />
               )}
             </div>
             <h3 className="text-center text-white mt-5 font-bold text-lg">AI Interviewer</h3>
             <Badge className="mt-1 text-[9px] bg-primary/20 text-primary border-none font-bold">
-              {isFallbackMode ? "LOCAL FALLBACK MODE" : callStatus}
+              {isFallbackMode ? `VOICE MODE: ${vadState}` : callStatus}
             </Badge>
           </div>
 
@@ -601,49 +1093,53 @@ export const InterviewSession = ({
         {lastMessage && (
           <div className="transcript-border-premium">
             <div className="transcript-premium">
-              <p className="animate-fadeIn">{lastMessage}</p>
+              <p className="animate-fadeIn font-bold text-white text-xs">{lastMessage}</p>
             </div>
           </div>
         )}
 
-        {/* Answer Composition (Local Fallback panel) */}
+        {/* Answer Composition (VAD Voice visualizer) */}
         {isFallbackMode && callStatus === CallStatus.ACTIVE && (
-          <Card className="border border-primary/20 bg-card p-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-muted-foreground uppercase">Response Entry</span>
-                {isRecording && (
-                  <span className="text-red-500 text-[10px] font-black uppercase animate-pulse flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Speak Now...
-                  </span>
-                )}
+          <Card className="border border-primary/20 bg-slate-900/60 backdrop-blur p-6 rounded-2xl shadow-xl">
+            <div className="space-y-6 text-center">
+              <div className="flex justify-between items-center border-b border-white/5 pb-3">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+                  Voice Interview Engine
+                </span>
+                <Badge className={cn(
+                  "text-[9px] font-black border-none py-0.5 px-2 uppercase",
+                  vadState === "SPEAKING" && "bg-emerald-500/20 text-emerald-400",
+                  vadState === "AI_SPEAKING" && "bg-primary/20 text-primary-foreground",
+                  vadState === "LISTENING" && "bg-slate-800 text-slate-400",
+                  vadState === "PROCESSING" && "bg-amber-500/20 text-amber-400 animate-pulse",
+                  vadState === "INTERRUPTED" && "bg-red-500/20 text-red-400"
+                )}>
+                  {vadState}
+                </Badge>
               </div>
-              <textarea
-                className="w-full min-h-[120px] p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground text-sm resize-none"
-                placeholder="Type your response here or click 'Start Voice Mic' to dictate..."
-                value={typedAnswer}
-                onChange={(e) => setTypedAnswer(e.target.value)}
-              />
-              <div className="flex gap-2 justify-between">
-                <Button
-                  size="sm"
-                  variant={isRecording ? "destructive" : "outline"}
-                  onClick={isRecording ? stopLocalRecording : startLocalRecording}
-                >
-                  {isRecording ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}
-                  {isRecording ? "Stop Voice" : "Start Voice Mic"}
+
+              <div className="py-4">
+                {renderVoiceVisualizer()}
+                <p className="text-sm font-semibold text-white mt-4 transition-all">
+                  {vadState === "AI_SPEAKING" && "🤖 AI Interviewer is speaking..."}
+                  {vadState === "LISTENING" && "🎙️ Listening... Speak when you are ready"}
+                  {vadState === "SPEAKING" && "🔊 Speech detected... Recording answer"}
+                  {vadState === "PROCESSING" && "⏳ Thinking... Analyzing speech & updating state"}
+                  {vadState === "INTERRUPTED" && "⚡ Interruption detected..."}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Microphone is active. Speak hands-free. No manual submit required.
+                </p>
+              </div>
+
+              {/* Fallback button to manual skip or disconnect if needed */}
+              <div className="flex gap-2 justify-center border-t border-white/5 pt-4">
+                <Button size="sm" variant="ghost" className="text-xs hover:text-white" onClick={handleSkip}>
+                  Skip Question
                 </Button>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="ghost" onClick={handleSkip}>
-                    Skip
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handlePrev} disabled={currentQuestionIndex === 0}>
-                    Previous
-                  </Button>
-                  <Button size="sm" onClick={handleNext}>
-                    {interviewData.isAdaptive ? "Next Question" : (currentQuestionIndex < interviewData.questions.length - 1 ? "Next Question" : "Submit Interview")}
-                  </Button>
-                </div>
+                <Button size="sm" variant="destructive" className="text-xs" onClick={handleDisconnect}>
+                  End Interview
+                </Button>
               </div>
             </div>
           </Card>
@@ -682,7 +1178,7 @@ export const InterviewSession = ({
 
       {/* RIGHT COLUMN: CODING PLAYGROUND CARD (Rendered for coding rounds) */}
       {isCodingRound && (
-        <Card className="border border-border flex flex-col min-h-[500px]">
+        <Card className="lg:col-span-6 border border-border flex flex-col min-h-[500px]">
           <CardHeader className="py-3 px-4 border-b border-border bg-slate-900 text-white flex flex-row items-center justify-between rounded-t-lg">
             <div className="flex items-center gap-2">
               <Badge className="bg-primary/20 text-primary border-none">Coding Task Editor</Badge>
@@ -723,6 +1219,77 @@ export const InterviewSession = ({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* RIGHT COLUMN: RESUME SIDEBAR & PROGRESS STEPS (Rendered when no coding round is active) */}
+      {!isCodingRound && (
+        <div className="lg:col-span-1 space-y-6 sticky top-4">
+          
+          {/* Resume Context Card */}
+          <Card className="border border-white/5 bg-slate-900/40 backdrop-blur p-4 rounded-xl shadow-lg space-y-3">
+            <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-primary" /> Practice Resume Context
+            </h4>
+            <div className="space-y-2.5 text-xs border-t border-white/5 pt-3">
+              <div>
+                <span className="text-[10px] font-black text-muted-foreground uppercase block">Target Role Fit</span>
+                <span className="text-white font-bold">{interviewData.role || "Software Engineer"}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-muted-foreground uppercase block">Focus Areas / Tech Stack</span>
+                <span className="text-white font-bold">{interviewData.topic || "All Technical Domains"}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-black text-muted-foreground uppercase block">Experience Level</span>
+                <span className="text-white font-bold">{interviewData.experienceLevel || "Mid Level"}</span>
+              </div>
+              {interviewData.company && (
+                <div>
+                  <span className="text-[10px] font-black text-muted-foreground uppercase block">Target Company Style</span>
+                  <span className="text-white font-bold">{interviewData.company}</span>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Stepper Milestones Card */}
+          <Card className="border border-white/5 bg-slate-900/40 backdrop-blur p-4 rounded-xl shadow-lg space-y-3">
+            <h4 className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-primary" /> Interview Milestones
+            </h4>
+            <div className="space-y-3 border-t border-white/5 pt-3">
+              {[
+                { num: 1, title: "Introduction & Greet", desc: "Icebreaker & background verification", activeAt: 1 },
+                { num: 2, title: "Resume Deep-Dive", desc: "Tailored review of projects & claims", activeAt: 2 },
+                { num: 3, title: "Technical Verification", desc: "Core concepts & languages", activeAt: 3 },
+                { num: 4, title: "Architecture & Scalability", desc: "System Design and performance", activeAt: 4 },
+                { num: 5, title: "STAR Behavioral Scenario", desc: "Conflict, resolution & leadership", activeAt: 5 }
+              ].map((milestone) => {
+                const isCompleted = interviewData.questions.length > milestone.activeAt;
+                const isActive = interviewData.questions.length === milestone.activeAt;
+                return (
+                  <div key={milestone.num} className="flex gap-2.5 items-start">
+                    <div className={cn(
+                      "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5",
+                      isCompleted && "bg-emerald-500 text-white",
+                      isActive && "bg-primary text-white animate-pulse",
+                      !isCompleted && !isActive && "bg-slate-800 text-slate-500"
+                    )}>
+                      {isCompleted ? <Check className="w-3 h-3" /> : milestone.num}
+                    </div>
+                    <div className="truncate">
+                      <p className={cn("text-xs font-bold truncate", isActive ? "text-white" : "text-muted-foreground")}>
+                        {milestone.title}
+                      </p>
+                      <p className="text-[9px] text-slate-500 truncate">{milestone.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+
+        </div>
       )}
 
     </div>

@@ -152,14 +152,16 @@ public class VoiceInterviewController {
             @RequestParam(value = "speed", defaultValue = "1.0") double speed) {
         try {
             String text = payload.getOrDefault("text", "Welcome to PlacementAI. This is a voice test.");
+            log.info("[TRACE] [TTS] Incoming synthesis request for text: '{}', voice: '{}', speed: {}", text, voice, speed);
             byte[] speechBytes = voiceSessionService.processTextOutput(text, voice, speed);
 
+            log.info("[TRACE] [TTS] Synthesis success, returning {} bytes", speechBytes != null ? speechBytes.length : 0);
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.valueOf("audio/wav"));
-            headers.setContentLength(speechBytes.length);
+            headers.setContentLength(speechBytes != null ? speechBytes.length : 0);
             return ResponseEntity.ok().headers(headers).body(speechBytes);
         } catch (Exception e) {
-            log.error("[VOICE] [INFRA_TTS] Text synthesis failed: {}", e.getMessage());
+            log.error("[TRACE] [TTS] Text synthesis failed: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }

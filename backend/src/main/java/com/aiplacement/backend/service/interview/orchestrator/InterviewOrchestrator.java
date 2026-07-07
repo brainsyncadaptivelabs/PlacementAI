@@ -8,4 +8,5 @@ import com.aiplacement.backend.dto.interview.MockInterviewRequestDto;
 public interface InterviewOrchestrator {
     AdaptiveStartResponseDto startAdaptiveInterview(MockInterviewRequestDto request);
     AdaptiveAnswerResponseDto processAdaptiveAnswer(AdaptiveAnswerRequestDto request);
+    void terminateAdaptiveInterview(Long interviewId);
 }

@@ -9,6 +9,7 @@ export interface MockInterview {
   questions?: InterviewQuestion[];
   feedback?: InterviewFeedback;
   createdAt?: string;
+  status?: string;
 }
 
 export interface InterviewQuestion {

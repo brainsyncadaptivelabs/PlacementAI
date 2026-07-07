@@ -64,6 +64,10 @@ const api = {
       throw err;
     }
     if (!response.ok) await handleResponseError(response, url);
+    if (config?.responseType === "blob") {
+      const blob = await response.blob();
+      return { data: blob };
+    }
     const resText = await response.text();
     let resData;
     try {
@@ -96,6 +100,10 @@ const api = {
       throw err;
     }
     if (!response.ok) await handleResponseError(response, url);
+    if (config?.responseType === "blob") {
+      const blob = await response.blob();
+      return { data: blob };
+    }
     // Only parse json if there's content
     const resText = await response.text();
     let resData;

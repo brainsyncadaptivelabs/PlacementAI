@@ -20,7 +20,9 @@ public class NvidiaTextToSpeechProvider implements TextToSpeechProvider {
 
     @Override
     public byte[] synthesize(String text, String voice, double speed) {
-        log.info("[NVIDIA_TTS] Sending synthesis request for text length: {}", text != null ? text.length() : 0);
+        log.info("[TRACE] [NVIDIA_TTS] Sending synthesis request for text length: {}. Voice: {}, Speed: {}", 
+                text != null ? text.length() : 0, voice, speed);
+        log.info("[TRACE] [NVIDIA_TTS] Input text details: '{}'", text);
 
         try {
             HttpHeaders headers = new HttpHeaders();
@@ -36,18 +38,20 @@ public class NvidiaTextToSpeechProvider implements TextToSpeechProvider {
 
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             String url = config.getBaseUrl() + "/audio/speech";
+            log.info("[TRACE] [NVIDIA_TTS] Calling NVIDIA endpoint: {}, Model: {}", url, config.getTtsModel());
 
             ResponseEntity<byte[]> response = restTemplate.postForEntity(url, requestEntity, byte[].class);
 
             if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                log.info("[NVIDIA_TTS] Synthesized successfully, output size: {} bytes", response.getBody().length);
+                log.info("[TRACE] [NVIDIA_TTS] Synthesized successfully, output size: {} bytes", response.getBody().length);
                 return response.getBody();
             } else {
                 throw new RuntimeException("NVIDIA TTS returned status: " + response.getStatusCode());
             }
 
         } catch (Exception e) {
-            log.error("[NVIDIA_TTS] Synthesis request failed: {}. Falling back to mock audio stream.", e.getMessage());
+            log.error("[TRACE] [NVIDIA_TTS] Synthesis request failed with error: {}. Stack trace follows:", e.getMessage(), e);
+            log.warn("[TRACE] [NVIDIA_TTS] Falling back to mock audio stream (128 bytes dummy WAV header)");
             // Safe mock audio WAV file header fallback
             byte[] mockWav = new byte[128];
             mockWav[0] = 'R'; mockWav[1] = 'I'; mockWav[2] = 'F'; mockWav[3] = 'F';

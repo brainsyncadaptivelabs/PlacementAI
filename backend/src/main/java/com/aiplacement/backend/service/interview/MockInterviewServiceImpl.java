@@ -206,6 +206,12 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
     @Override
     @Transactional
+    public void terminateAdaptiveInterview(Long id) {
+        interviewOrchestrator.terminateAdaptiveInterview(id);
+    }
+
+    @Override
+    @Transactional
     public MockInterviewDto saveInterviewResults(MockInterviewDto interviewDto) {
         log.info("Saving mock interview session results. ID: {}", interviewDto.getId());
         String email = SecurityContextHolder.getContext().getAuthentication().getName();

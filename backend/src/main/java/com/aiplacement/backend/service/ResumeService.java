@@ -7,4 +7,6 @@ public interface ResumeService {
 
     AtsResponseDto uploadResume(MultipartFile file);
     String getLatestResumeText();
-    }
+    java.util.List<com.aiplacement.backend.dto.ResumeDto> getAllResumes();
+    AtsResponseDto getResumeAnalysis(Long resumeId);
+}

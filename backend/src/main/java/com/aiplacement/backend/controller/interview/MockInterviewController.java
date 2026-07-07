@@ -39,6 +39,12 @@ public class MockInterviewController {
         return mockInterviewService.processAdaptiveAnswer(request);
     }
 
+    @PostMapping("/adaptive/cancel/{id}")
+    public void cancelAdaptiveInterview(@PathVariable Long id) {
+        log.info("Early termination requested for adaptive interview id: {}", id);
+        mockInterviewService.terminateAdaptiveInterview(id);
+    }
+
     @PostMapping("/tts")
     public org.springframework.http.ResponseEntity<byte[]> generateTts(
             @RequestBody java.util.Map<String, String> request

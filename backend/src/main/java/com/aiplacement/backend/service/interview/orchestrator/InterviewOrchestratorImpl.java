@@ -514,4 +514,53 @@ public class InterviewOrchestratorImpl implements InterviewOrchestrator {
         if (node == null || !node.has(field)) return fallback;
         return node.get(field).asText(fallback);
     }
+
+    @Override
+    @Transactional
+    public void terminateAdaptiveInterview(Long interviewId) {
+        log.info("[MOCK_INTERVIEW] [ORCHESTRATOR] Processing early termination / disconnect request for interview ID: {}", interviewId);
+        MockInterview interview = mockInterviewRepository.findById(interviewId)
+                .orElseThrow(() -> new RuntimeException("Interview session not found"));
+
+        if (interview.getStatus() == InterviewStatus.COMPLETED) {
+            log.info("[MOCK_INTERVIEW] [ORCHESTRATOR] Interview ID: {} is already completed. Skipping redundancy.", interviewId);
+            return;
+        }
+
+        AdaptiveState state = null;
+        if (interview.getCurrentStateJson() != null && !interview.getCurrentStateJson().isEmpty()) {
+            try {
+                state = objectMapper.readValue(interview.getCurrentStateJson(), AdaptiveState.class);
+            } catch (Exception e) {
+                log.error("[MOCK_INTERVIEW] [ORCHESTRATOR] Failed to parse adaptive state in early termination", e);
+            }
+        }
+
+        if (state == null) {
+            log.warn("[MOCK_INTERVIEW] [ORCHESTRATOR] AdaptiveState missing. Using basic state initialization.");
+            state = AdaptiveState.builder()
+                    .role(interview.getRole())
+                    .experienceLevel(interview.getExperienceLevel())
+                    .company(interview.getCompany() != null ? interview.getCompany() : "General Tech Company")
+                    .fsmState(InterviewState.COMPLETED)
+                    .build();
+        }
+
+        log.info("[MOCK_INTERVIEW] [STATE_TRANSITION] Early disconnect FSM Transition: {} -> REPORT_GENERATION", state.getFsmState());
+        state.setFsmState(InterviewState.REPORT_GENERATION);
+        interview.setStatus(InterviewStatus.COMPLETED);
+        interview.setCompletedAt(LocalDateTime.now());
+        
+        interviewPersistenceService.saveInterviewState(interview, state);
+        try {
+            log.info("[MOCK_INTERVIEW] [ORCHESTRATOR] Compiling early performance report feedback for partial interview ID: {}", interviewId);
+            interviewReportService.compileAndSaveReport(interview, state);
+        } catch (Exception e) {
+            log.error("[MOCK_INTERVIEW] [ORCHESTRATOR] Early feedback generation failed (non-fatal): {}", e.getMessage());
+        }
+
+        log.info("[MOCK_INTERVIEW] [STATE_TRANSITION] Transitioning FSM: REPORT_GENERATION -> COMPLETED (Early Disconnect)");
+        state.setFsmState(InterviewState.COMPLETED);
+        interviewPersistenceService.saveInterviewState(interview, state);
+    }
 }

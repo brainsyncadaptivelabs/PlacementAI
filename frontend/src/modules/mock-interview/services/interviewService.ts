@@ -60,5 +60,75 @@ export const interviewService = {
   getAnalytics: async (): Promise<any> => {
     const response = await api.get('/interview/analytics');
     return response.data;
+  },
+
+  transcribeVoiceTurn: async (
+    interviewId: number,
+    audioBlob: Blob,
+    thinkingTimeMs: number,
+    totalDurationMs: number
+  ): Promise<Blob> => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'recording.wav');
+    
+    const response = await api.post(
+      `/voice/transcribe/${interviewId}?thinkingTimeMs=${thinkingTimeMs}&totalDurationMs=${totalDurationMs}`,
+      formData,
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  cancelAdaptiveInterview: async (interviewId: number): Promise<void> => {
+    await api.post(`/interview/adaptive/cancel/${interviewId}`);
+  },
+
+  bargeIn: async (
+    interviewId: number,
+    audioBlob: Blob,
+    aiSpeaking: boolean
+  ): Promise<{
+    interrupted: boolean;
+    transcription: string;
+    classification: string;
+    responseText: string;
+    action: string;
+    audioBase64?: string;
+  }> => {
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'interruption.wav');
+    
+    const response = await api.post(
+      `/voice/barge-in/${interviewId}?aiSpeaking=${aiSpeaking}`,
+      formData
+    );
+    return response.data;
+  },
+
+  getAllResumes: async (): Promise<any[]> => {
+    const response = await api.get('/resume/all');
+    return response.data;
+  },
+
+  getResumeAnalysis: async (resumeId: number): Promise<any> => {
+    const response = await api.get(`/resume/${resumeId}/analysis`);
+    return response.data;
+  },
+
+  matchJobDescription: async (resumeText: string, jobDescription: string): Promise<any> => {
+    const response = await api.post('/jd/match', {
+      resumeText,
+      jobDescription
+    });
+    return response.data;
+  },
+
+  synthesizeNvidiaTts: async (text: string): Promise<Blob> => {
+    const response = await api.post(
+      '/voice/tts',
+      { text },
+      { responseType: 'blob' }
+    );
+    return response.data;
   }
 };

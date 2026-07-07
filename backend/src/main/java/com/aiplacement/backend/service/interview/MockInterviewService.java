@@ -13,6 +13,7 @@ public interface MockInterviewService {
     List<MockInterviewDto> getInterviewHistory();
     MockInterviewDto getInterviewById(Long id);
     void deleteInterview(Long id);
+    void terminateAdaptiveInterview(Long id);
     java.util.Map<String, Object> getInterviewAnalytics();
     byte[] generateSpeech(String text);
 }
