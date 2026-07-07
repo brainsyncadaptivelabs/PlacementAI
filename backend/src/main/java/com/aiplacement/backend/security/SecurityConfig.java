@@ -61,7 +61,11 @@ public class SecurityConfig {
                                 
                                 "/actuator/**",
 
-                                "/api/v1/profile/public/**"
+                                "/api/v1/profile/public/**",
+
+                                "/api/v1/voice/**",
+
+                                "/voice-test.html"
 
                         ).permitAll()
 

@@ -15,4 +15,6 @@ public class AdaptiveAnswerRequestDto {
     private String code;
     private String language;
     private String terminalOutput;
+    private Double thinkingTimeSeconds;
+    private Double timeTakenSeconds;
 }

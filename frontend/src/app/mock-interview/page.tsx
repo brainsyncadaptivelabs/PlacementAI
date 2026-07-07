@@ -33,14 +33,17 @@ export default function MockInterviewLandingPage() {
         experienceLevel: level,
         company: moduleName, // maps to interview type/module
         topic: focusAreas.join(", "),
+        interviewType: "Technical",
       };
-      const response = await interviewService.generateInterview(request);
+      const response = await interviewService.startAdaptiveInterview(request);
       setInterviewData({
-        role: response.role,
+        role: moduleName,
         experienceLevel: level,
-        questions: response.questions,
+        questions: [response.firstQuestion],
         company: moduleName,
         topic: focusAreas.join(", "),
+        isAdaptive: true,
+        adaptiveInterviewId: response.interviewId,
       });
       router.push("/mock-interview/session");
     } catch (error) {
@@ -59,14 +62,17 @@ export default function MockInterviewLandingPage() {
         experienceLevel: level,
         company: type, // maps to interview type
         topic: focusAreas.join(", "),
+        interviewType: "Technical",
       };
-      const response = await interviewService.generateInterview(request);
+      const response = await interviewService.startAdaptiveInterview(request);
       setInterviewData({
-        role: response.role,
+        role: `${companyName} Engineer`,
         experienceLevel: level,
-        questions: response.questions,
+        questions: [response.firstQuestion],
         company: type,
         topic: focusAreas.join(", "),
+        isAdaptive: true,
+        adaptiveInterviewId: response.interviewId,
       });
       router.push("/mock-interview/session");
     } catch (error) {

@@ -16,15 +16,3 @@ public class CodeExecutionResponse {
     private ExecutionResult compile;
 }
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-class ExecutionResult {
-    private String stdout;
-    private String stderr;
-    private String output;
-    private Integer code;
-    private String signal;
-    private String message;
-}

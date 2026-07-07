@@ -104,6 +104,21 @@ export const InterviewSession = ({
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+  // Latency & Metrics Tracking States
+  const [questionShownTime, setQuestionShownTime] = useState<number>(Date.now());
+  const [firstKeypressTime, setFirstKeypressTime] = useState<number | null>(null);
+
+  useEffect(() => {
+    setQuestionShownTime(Date.now());
+    setFirstKeypressTime(null);
+  }, [currentQuestionIndex]);
+
+  useEffect(() => {
+    if (typedAnswer.trim().length > 0 && !firstKeypressTime) {
+      setFirstKeypressTime(Date.now());
+    }
+  }, [typedAnswer, firstKeypressTime]);
+
   // Code Playground States
   const [activeLang, setActiveLang] = useState<string>("javascript");
   const [code, setCode] = useState(`// Write your code solution here\n\nfunction solution() {\n  console.log("Hello placement environment!");\n}\nsolution();`);
@@ -203,6 +218,9 @@ export const InterviewSession = ({
   };
 
   const startLocalRecording = () => {
+    if (!firstKeypressTime) {
+      setFirstKeypressTime(Date.now());
+    }
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Web Speech API is not supported in this browser. Please type your answer.");
@@ -271,6 +289,10 @@ export const InterviewSession = ({
       [currentQuestionIndex]: typedAnswer.trim()
     }));
 
+    const now = Date.now();
+    const totalTime = (now - questionShownTime) / 1000;
+    const thinkTime = firstKeypressTime ? (firstKeypressTime - questionShownTime) / 1000 : totalTime;
+
     if (interviewData.isAdaptive && interviewData.adaptiveInterviewId) {
       try {
         const response = await interviewService.answerAdaptiveInterview(
@@ -278,7 +300,9 @@ export const InterviewSession = ({
           typedAnswer.trim(),
           isCodingRound ? code : undefined,
           isCodingRound ? activeLang : undefined,
-          isCodingRound ? terminalOutput : undefined
+          isCodingRound ? terminalOutput : undefined,
+          thinkTime,
+          totalTime
         );
         if (response.isFinished) {
           setCallStatus(CallStatus.FINISHED);
@@ -617,7 +641,7 @@ export const InterviewSession = ({
                     Previous
                   </Button>
                   <Button size="sm" onClick={handleNext}>
-                    {currentQuestionIndex < interviewData.questions.length - 1 ? "Next Question" : "Submit Interview"}
+                    {interviewData.isAdaptive ? "Next Question" : (currentQuestionIndex < interviewData.questions.length - 1 ? "Next Question" : "Submit Interview")}
                   </Button>
                 </div>
               </div>

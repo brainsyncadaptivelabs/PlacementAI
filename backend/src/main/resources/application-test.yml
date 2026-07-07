@@ -36,3 +36,17 @@ ratelimit:
   mock-interview:
     capacity: 1000
     duration-seconds: 1
+
+nvidia:
+  api:
+    key: "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"
+  stt:
+    api:
+      key: "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"
+    model: "nvidia/parakeet-tdt-0.6b-v2"
+  tts:
+    api:
+      key: "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"
+    model: "nvidia/magpie-tts-multilingual"
+  base:
+    url: "https://integrate.api.nvidia.com/v1"

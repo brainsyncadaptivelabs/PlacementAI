@@ -108,6 +108,18 @@ logging:
 # Obtain your API key from: https://build.nvidia.com
 # ============================================================
 nvidia:
+  api:
+    key: ${NVIDIA_API_KEY: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}
+  stt:
+    api:
+      key: ${NVIDIA_STT_API_KEY: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}
+    model: ${PARAKEET_MODEL:nvidia/parakeet-tdt-0.6b-v2}
+  tts:
+    api:
+      key: ${NVIDIA_TTS_API_KEY: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}
+    model: ${MAGPIE_MODEL:nvidia/magpie-tts-multilingual}
+  base:
+    url: ${NVIDIA_BASE_URL:https://integrate.api.nvidia.com/v1}
   ai:
     # API key — override with NVIDIA_API_KEY env var in production
     api-key: ${NVIDIA_API_KEY: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}

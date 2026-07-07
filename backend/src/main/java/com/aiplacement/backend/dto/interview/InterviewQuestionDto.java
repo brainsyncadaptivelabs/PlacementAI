@@ -14,4 +14,7 @@ public class InterviewQuestionDto {
     private String language;
     private String compilerOutput;
     private String aiFeedback;
+    private Double thinkingTimeSeconds;
+    private Double timeTakenSeconds;
+    private String emotionAnalysisJson;
 }

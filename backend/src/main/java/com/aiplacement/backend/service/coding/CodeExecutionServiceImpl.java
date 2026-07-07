@@ -2,49 +2,40 @@ package com.aiplacement.backend.service.coding;
 
 import com.aiplacement.backend.dto.coding.CodeExecutionRequest;
 import com.aiplacement.backend.dto.coding.CodeExecutionResponse;
+import com.aiplacement.backend.service.coding.strategy.ExecutionStrategy;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
 
+/**
+ * Provider-agnostic code execution service.
+ * Routes to the appropriate ExecutionStrategy (Piston for general languages, H2 for SQL).
+ * Replaces direct Piston API calls with strategy dispatch — fully backward compatible.
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CodeExecutionServiceImpl implements CodeExecutionService {
 
-    @Value("${piston.api.url}")
-    private String pistonApiUrl;
-
-    private final WebClient.Builder webClientBuilder;
-
-    private static final Set<String> SUPPORTED_LANGUAGES = Set.of("java", "python", "cpp", "c", "javascript");
+    private final List<ExecutionStrategy> strategies;
 
     @Override
     public CodeExecutionResponse executeCode(CodeExecutionRequest request) {
-        if (!SUPPORTED_LANGUAGES.contains(request.getLanguage().toLowerCase())) {
-            throw new IllegalArgumentException("Unsupported language: " + request.getLanguage());
+        if (request.getLanguage() == null || request.getLanguage().isBlank()) {
+            throw new IllegalArgumentException("Language must be specified");
         }
 
-        Map<String, Object> pistonRequest = new HashMap<>();
-        pistonRequest.put("language", request.getLanguage());
-        pistonRequest.put("version", request.getVersion());
-        pistonRequest.put("files", request.getFiles());
-        pistonRequest.put("stdin", request.getStdin());
-        pistonRequest.put("run_timeout", 5000); // 5 seconds
-        pistonRequest.put("compile_timeout", 10000); // 10 seconds
-        pistonRequest.put("run_memory_limit", 256 * 1024 * 1024); // 256 MB
+        String lang = request.getLanguage().toLowerCase();
+        ExecutionStrategy strategy = strategies.stream()
+                .filter(s -> s.supports(lang))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Unsupported language: " + request.getLanguage() +
+                        ". Supported: python, java, javascript, typescript, cpp, c, go, rust, kotlin, sql"));
 
-        return webClientBuilder.build()
-                .post()
-                .uri(pistonApiUrl + "/execute")
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(pistonRequest)
-                .retrieve()
-                .bodyToMono(CodeExecutionResponse.class)
-                .block();
+        log.info("[CODING] [EXECUTION] Routing language '{}' to strategy: {}", lang, strategy.getClass().getSimpleName());
+        return strategy.execute(request);
     }
 }

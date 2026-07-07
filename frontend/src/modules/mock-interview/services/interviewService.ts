@@ -17,14 +17,18 @@ export const interviewService = {
     answer: string,
     code?: string,
     language?: string,
-    terminalOutput?: string
+    terminalOutput?: string,
+    thinkingTimeSeconds?: number,
+    timeTakenSeconds?: number
   ): Promise<{ isFinished: boolean, nextQuestion: string | null }> => {
     const response = await api.post('/interview/adaptive/answer', {
       interviewId,
       answer,
       code,
       language,
-      terminalOutput
+      terminalOutput,
+      thinkingTimeSeconds,
+      timeTakenSeconds
     });
     return response.data;
   },

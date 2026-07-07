@@ -34,6 +34,13 @@ public class InterviewQuestion {
     @Column(columnDefinition = "TEXT")
     private String aiFeedback;
 
+    private Double thinkingTimeSeconds;
+
+    private Double timeTakenSeconds;
+
+    @Column(columnDefinition = "TEXT")
+    private String emotionAnalysisJson;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mock_interview_id", nullable = false)
     private MockInterview mockInterview;

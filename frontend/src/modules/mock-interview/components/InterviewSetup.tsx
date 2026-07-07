@@ -51,20 +51,22 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
         topic: focusAreas || undefined,
         conversationalStyle
       };
-      const response = await interviewService.generateInterview(request);
+      const response = await interviewService.startAdaptiveInterview(request);
       onGenerated({
-        role: response.role,
+        role,
         experienceLevel,
-        questions: response.questions,
         company,
         difficulty,
         interviewType,
         topic: focusAreas,
+        questions: [response.firstQuestion],
+        isAdaptive: true,
+        adaptiveInterviewId: response.interviewId,
         conversationalStyle
       });
     } catch (error) {
-      console.error("Failed to generate interview:", error);
-      alert("Failed to generate interview questions. Please try again.");
+      console.error("Failed to start adaptive interview:", error);
+      alert("Failed to start adaptive interview. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -222,55 +224,19 @@ export const InterviewSetup = ({ onGenerated }: InterviewSetupProps) => {
           />
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col gap-3">
-        <Button className="w-full font-bold" onClick={handleGenerate} disabled={!role || loading}>
+      <CardFooter>
+        <Button className="w-full font-bold bg-primary hover:bg-primary/95 text-white" onClick={handleGenerate} disabled={!role || loading}>
           {loading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating Dynamic Questions...
+              Starting Adaptive AI Interview...
             </>
           ) : (
             <>
               <Sparkles className="mr-2 h-4 w-4" />
-              Generate Standard Interview (5 Questions)
+              Start Adaptive AI Interview
             </>
           )}
-        </Button>
-        <Button 
-          variant="outline" 
-          className="w-full font-bold border-primary text-primary hover:bg-primary/10" 
-          onClick={async () => {
-            if (!role) return;
-            setLoading(true);
-            try {
-              const request = {
-                role, experienceLevel, company: company || undefined, difficulty, interviewType,
-                jobDescription: jobDescription || undefined, resumeText: resumeText || undefined, topic: focusAreas || undefined,
-                conversationalStyle
-              };
-              const response = await interviewService.startAdaptiveInterview(request);
-              onGenerated({
-                role, experienceLevel, company, difficulty, interviewType, topic: focusAreas,
-                questions: [response.firstQuestion], // Seed with first question
-                isAdaptive: true,
-                adaptiveInterviewId: response.interviewId,
-                conversationalStyle
-              });
-            } catch (error) {
-              console.error(error);
-              alert("Failed to start adaptive interview.");
-            } finally {
-              setLoading(false);
-            }
-          }}
-          disabled={!role || loading}
-        >
-          {loading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Sparkles className="mr-2 h-4 w-4" />
-          )}
-          Start Adaptive AI Interview (Dynamic)
         </Button>
       </CardFooter>
     </Card>

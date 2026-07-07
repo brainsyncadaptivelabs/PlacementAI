@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlacementAI Voice Infrastructure Console</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0d0f14;
+            --card-bg: rgba(22, 28, 45, 0.4);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #5271ff;
+            --primary-glow: rgba(82, 113, 255, 0.35);
+            --accent: #00f2fe;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(82, 113, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(0, 242, 254, 0.05) 0px, transparent 50%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1.5rem;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff 30%, var(--text-muted) 70%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .badge-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 0.4rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .badge.active::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .badge.inactive::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--error);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--error);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 1.75rem;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .card.full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .card.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        .card:hover {
+            border-color: rgba(82, 113, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(82, 113, 255, 0.15);
+        }
+
+        .card-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .card-title span {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        textarea, select, input {
+            background: rgba(13, 15, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-color);
+            padding: 0.75rem 1rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+            width: 100%;
+        }
+
+        textarea:focus, select:focus, input:focus {
+            border-color: var(--primary);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, #3a4cf0 100%);
+            border: none;
+            border-radius: 12px;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 14px var(--primary-glow);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--primary-glow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, var(--error) 0%, #c21a1a 100%);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+        }
+
+        .btn-record.recording {
+            animation: pulse 1.5s infinite;
+        }
+
+        .btn-barge {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .output-box {
+            background: rgba(13, 15, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+            min-height: 100px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            position: relative;
+        }
+
+        .output-box.empty {
+            color: var(--text-muted);
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .latency-indicator {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.75rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .audio-wrapper {
+            margin-top: 0.5rem;
+            width: 100%;
+        }
+
+        audio {
+            width: 100%;
+            border-radius: 12px;
+            background: rgba(13, 15, 20, 0.8);
+        }
+
+        .latency-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            padding-top: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        .latency-stats span strong {
+            color: var(--text-color);
+        }
+
+        /* Barge-In elements styling */
+        .status-tracker {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: rgba(13, 15, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .status-dot {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .status-dot::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            display: inline-block;
+        }
+
+        .status-dot.listening::before {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+            animation: pulse-accent 1.5s infinite;
+        }
+
+        .status-dot.speaking::before {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .status-dot.interrupted::before {
+            background: var(--error);
+            box-shadow: 0 0 8px var(--error);
+        }
+
+        @keyframes pulse-accent {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.75rem;
+            background: rgba(13, 15, 20, 0.8);
+        }
+
+        .log-entry {
+            font-size: 0.85rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 3px solid var(--primary);
+        }
+
+        .log-entry.clarification { border-left-color: var(--accent); }
+        .log-entry.control { border-left-color: var(--warning); }
+        .log-entry.off-topic { border-left-color: var(--error); }
+        .log-entry.answer { border-left-color: var(--success); }
+
+        .log-time {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Voice Infrastructure Developer Console</h1>
+            <p>NVIDIA Build Integration Playground — Speech-to-Text & Text-to-Speech NIMs</p>
+            <div class="badge-bar">
+                <div id="health-badge" class="badge inactive">NVIDIA Connection: Offline</div>
+                <div class="badge active">Model: parakeet-tdt-0.6b-v2</div>
+                <div class="badge active">Model: magpie-tts-multilingual</div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- Speech to Text Card -->
+            <div class="card">
+                <div class="card-title">
+                    Speech-to-Text
+                    <span>Automatic Speech Recognition</span>
+                </div>
+                
+                <div class="form-group" style="align-items: center; justify-content: center; min-height: 100px;">
+                    <button id="record-btn" class="btn btn-record" style="border-radius: 50%; width: 75px; height: 75px; font-size: 1.4rem; padding: 0;">
+                        🎙️
+                    </button>
+                    <p id="record-status" style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted);">Click to start recording</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Transcription Output</label>
+                    <div id="stt-output" class="output-box empty">
+                        No audio transcribed yet...
+                        <div class="latency-indicator" id="stt-latency">Latency: --</div>
+                    </div>
+                </div>
+
+                <div class="latency-stats">
+                    <span>Timestamps: <strong id="stt-ts-count">0</strong></span>
+                    <span>Confidence: <strong id="stt-conf">--</strong></span>
+                </div>
+            </div>
+
+            <!-- Text to Speech Card -->
+            <div class="card">
+                <div class="card-title">
+                    Text-to-Speech
+                    <span>Speech Synthesis Engine</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="tts-input">Enter Text</label>
+                    <textarea id="tts-input" rows="3" placeholder="Enter text for the AI to speak..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="voice-select">Voice Type</label>
+                    <select id="voice-select">
+                        <option value="English-US-Male-1">English-US-Male-1 (Deep)</option>
+                        <option value="English-US-Female-1">English-US-Female-1 (Clear)</option>
+                        <option value="Hindi-Female-1">Hindi-Female-1 (Regional)</option>
+                    </select>
+                </div>
+
+                <button id="tts-btn" class="btn">
+                    🔊 Synthesize speech
+                </button>
+
+                <div class="audio-wrapper">
+                    <audio id="tts-audio" controls></audio>
+                </div>
+
+                <div class="latency-stats">
+                    <span>Synthesized: <strong id="tts-size">0 bytes</strong></span>
+                    <span>Latency: <strong id="tts-latency-val">--</strong></span>
+                </div>
+            </div>
+
+            <!-- Barge-In Handler simulator (FULL WIDTH) -->
+            <div class="card full-width">
+                <div class="card-title">
+                    Live Barge-In & Interruption Simulator
+                    <span>Continuous Listening Simulator</span>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-row">
+                        <div style="flex: 1;">
+                            <label for="barge-interview-id">Mock Interview ID</label>
+                            <input type="number" id="barge-interview-id" value="1" placeholder="Enter mock interview ID">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; justify-content: center; padding-top: 1.25rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                                <input type="checkbox" id="ai-speaking-toggle" style="width: auto;">
+                                Simulating AI Speaking Status
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-tracker">
+                    <div id="session-status" class="status-dot">State: Offline</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);" id="current-question-tracker">
+                        Active Question: --
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <button id="barge-record-btn" class="btn btn-barge" style="padding: 1.2rem;">
+                            🎙️ Record Interruption
+                        </button>
+                        <p id="barge-status" style="font-size: 0.8rem; color: var(--text-muted); text-align: center; margin-top: 0.25rem;">Click to interrupt AI</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Redirection / Interruption Logs</label>
+                        <div id="interruption-logs" class="log-list">
+                            <div style="color: var(--text-muted); font-style: italic; text-align: center; font-size: 0.85rem; margin-top: 2rem;">No interruptions logged yet</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Interruption Response Outcome</label>
+                    <div id="barge-output" class="output-box empty" style="min-height: 80px;">
+                        Waiting for interruption trigger...
+                    </div>
+                </div>
+
+                <div class="audio-wrapper" id="barge-audio-player-wrapper" style="display: none;">
+                    <label>Synthesized Redirection Speech</label>
+                    <audio id="barge-audio" controls></audio>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        let bargeRecorder;
+        let bargeChunks = [];
+        let isBargeRecording = false;
+
+        // Health Check Init
+        async function checkHealth() {
+            try {
+                const res = await fetch('/api/v1/voice/health');
+                const data = await res.json();
+                const badge = document.getElementById('health-badge');
+                if (data.status === 'UP') {
+                    badge.className = 'badge active';
+                    badge.innerText = 'NVIDIA Connection: Online';
+                } else {
+                    badge.className = 'badge inactive';
+                    badge.innerText = 'NVIDIA Connection: Configure Keys';
+                }
+            } catch (e) {
+                console.warn("Health check failed", e);
+            }
+        }
+        checkHealth();
+
+        // General Recording logic
+        const recordBtn = document.getElementById('record-btn');
+        const recordStatus = document.getElementById('record-status');
+        const sttOutput = document.getElementById('stt-output');
+
+        recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                audioChunks = [];
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        uploadAudio(audioBlob);
+                    };
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.classList.add('recording');
+                    recordBtn.innerText = '⏹️';
+                    recordStatus.innerText = 'Recording microphone... Click again to stop';
+                } catch (e) {
+                    alert('Microphone access denied or unsupported: ' + e.message);
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.innerText = '🎙️';
+                recordStatus.innerText = 'Uploading to NVIDIA for transcription...';
+            }
+        });
+
+        async function uploadAudio(blob) {
+            const formData = new FormData();
+            formData.append('audio', blob, 'recording.wav');
+
+            const start = Date.now();
+            try {
+                const response = await fetch('/api/v1/voice/stt', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                const latency = Date.now() - start;
+
+                sttOutput.className = 'output-box';
+                sttOutput.innerHTML = data.transcript || "Speech recognized: no words found.";
+                document.getElementById('stt-latency').innerText = `Latency: ${latency}ms`;
+                document.getElementById('stt-ts-count').innerText = data.timestamps ? data.timestamps.length : 0;
+                document.getElementById('stt-conf').innerText = data.confidence ? Math.round(data.confidence * 100) + '%' : '100%';
+                recordStatus.innerText = 'Click to record again';
+            } catch (e) {
+                sttOutput.className = 'output-box';
+                sttOutput.innerText = 'Error transcribing: ' + e.message;
+                recordStatus.innerText = 'Transcription failed';
+            }
+        }
+
+        // TTS Synthesis logic
+        const ttsBtn = document.getElementById('tts-btn');
+        const ttsInput = document.getElementById('tts-input');
+        const voiceSelect = document.getElementById('voice-select');
+        const ttsAudio = document.getElementById('tts-audio');
+
+        ttsBtn.addEventListener('click', async () => {
+            const text = ttsInput.value.trim() || "Welcome to PlacementAI. This is a voice test of the NVIDIA Magpie synthesis model.";
+            ttsBtn.disabled = true;
+            ttsBtn.innerText = 'Synthesizing...';
+
+            const start = Date.now();
+            try {
+                const response = await fetch(`/api/v1/voice/tts?voice=${voiceSelect.value}&speed=1.0`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+
+                if (!response.ok) throw new Error('API failed');
+
+                const blob = await response.blob();
+                const latency = Date.now() - start;
+
+                const url = URL.createObjectURL(blob);
+                ttsAudio.src = url;
+                ttsAudio.play();
+
+                document.getElementById('tts-size').innerText = `${blob.size} bytes`;
+                document.getElementById('tts-latency-val').innerText = `${latency}ms`;
+            } catch (e) {
+                alert('TTS synthesis failed: ' + e.message);
+            } finally {
+                ttsBtn.disabled = false;
+                ttsBtn.innerText = '🔊 Synthesize speech';
+            }
+        });
+
+        // Barge-In Simulator logic
+        const bargeRecordBtn = document.getElementById('barge-record-btn');
+        const bargeStatus = document.getElementById('barge-status');
+        const sessionStatus = document.getElementById('session-status');
+        const bargeOutput = document.getElementById('barge-output');
+        const aiSpeakingToggle = document.getElementById('ai-speaking-toggle');
+        const bargeInterviewIdInput = document.getElementById('barge-interview-id');
+
+        aiSpeakingToggle.addEventListener('change', () => {
+            if (aiSpeakingToggle.checked) {
+                sessionStatus.className = 'status-dot speaking';
+                sessionStatus.innerText = 'State: AI Speaking';
+            } else {
+                sessionStatus.className = 'status-dot listening';
+                sessionStatus.innerText = 'State: Listening';
+            }
+        });
+
+        bargeRecordBtn.addEventListener('click', async () => {
+            if (!isBargeRecording) {
+                bargeChunks = [];
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    bargeRecorder = new MediaRecorder(stream);
+                    bargeRecorder.ondataavailable = event => {
+                        bargeChunks.push(event.data);
+                    };
+                    bargeRecorder.onstop = async () => {
+                        const audioBlob = new Blob(bargeChunks, { type: 'audio/wav' });
+                        uploadInterruption(audioBlob);
+                    };
+                    bargeRecorder.start();
+                    isBargeRecording = true;
+                    bargeRecordBtn.classList.add('recording');
+                    bargeRecordBtn.innerText = '⏹️ Stop & Process Interruption';
+                    bargeStatus.innerText = 'Candidate speaking... stop to trigger barge-in classification';
+                    sessionStatus.className = 'status-dot interrupted';
+                    sessionStatus.innerText = 'State: Candidate Speaking';
+                } catch (e) {
+                    alert('Mic error: ' + e.message);
+                }
+            } else {
+                bargeRecorder.stop();
+                isBargeRecording = false;
+                bargeRecordBtn.classList.remove('recording');
+                bargeRecordBtn.innerText = '🎙️ Record Interruption';
+                bargeStatus.innerText = 'Processing intent routing...';
+                sessionStatus.className = 'status-dot';
+                sessionStatus.innerText = 'State: Processing';
+            }
+        });
+
+        async function uploadInterruption(blob) {
+            const id = bargeInterviewIdInput.value || 1;
+            const speaking = aiSpeakingToggle.checked;
+            const formData = new FormData();
+            formData.append('audio', blob, 'interruption.wav');
+
+            try {
+                const response = await fetch(`/api/v1/voice/barge-in/${id}?aiSpeaking=${speaking}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                bargeOutput.className = 'output-box';
+                bargeOutput.innerHTML = `<strong>Candidate Transcript:</strong> "${data.transcription}"<br>
+<strong>Intent Class:</strong> <span style="color: var(--accent);">${data.classification}</span><br>
+<strong>Orchestrator Decision:</strong> ${data.action}<br>
+<strong>AI Response text:</strong> "${data.responseText}"`;
+
+                // Playback synthesized audio from base64 if present
+                if (data.audioBase64) {
+                    const binary = atob(data.audioBase64);
+                    const array = new Uint8Array(binary.length);
+                    for (let i = 0; i < binary.length; i++) {
+                        array[i] = binary.charCodeAt(i);
+                    }
+                    const responseBlob = new Blob([array], { type: 'audio/wav' });
+                    const audioUrl = URL.createObjectURL(responseBlob);
+                    const player = document.getElementById('barge-audio');
+                    player.src = audioUrl;
+                    document.getElementById('barge-audio-player-wrapper').style.display = 'block';
+                    player.play();
+                }
+
+                // Update session state tracker
+                aiSpeakingToggle.checked = true;
+                sessionStatus.className = 'status-dot speaking';
+                sessionStatus.innerText = 'State: AI Speaking';
+
+                // Refresh log list
+                fetchLogs(id);
+
+            } catch (e) {
+                bargeOutput.className = 'output-box';
+                bargeOutput.innerText = 'Barge-in processing failed: ' + e.message;
+            }
+        }
+
+        async function fetchLogs(id) {
+            try {
+                const response = await fetch(`/api/v1/voice/interruptions/${id}`);
+                const logs = await response.json();
+                const container = document.getElementById('interruption-logs');
+                if (logs.length === 0) {
+                    container.innerHTML = '<div style="color: var(--text-muted); font-style: italic; text-align: center; font-size: 0.85rem; margin-top: 2rem;">No interruptions logged yet</div>';
+                    return;
+                }
+                container.innerHTML = logs.map(l => `
+                    <div class="log-entry ${l.classification.toLowerCase().replace('_', '-')}">
+                        <div class="log-time">${new Date(l.timestamp).toLocaleTimeString()}</div>
+                        <strong>Int:</strong> "${l.transcription}"<br>
+                        <strong>AI:</strong> "${l.aiResponseText}" [${l.actionTaken}]
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.warn("Log fetch failed", e);
+            }
+        }
+    </script>
+</body>
+</html>

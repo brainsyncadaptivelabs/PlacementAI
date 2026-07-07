@@ -36,4 +36,17 @@ public class PlacementIntelligenceDto {
     private String improvementPlan;
     private String hiringRecommendation;
     private String aiSummary; // Recruiter Summary
+    
+    private List<SoftCompetencyDto> softCompetencyDetails;
+
+    @Data
+    @Builder
+    public static class SoftCompetencyDto {
+        private String name;
+        private Double score;
+        private Double confidence;
+        private String reasoning;
+        private String evidence;
+        private String improvementSuggestion;
+    }
 }

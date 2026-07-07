@@ -17,4 +17,5 @@ public class MockInterviewDto {
     private String transcript;
     private List<InterviewQuestionDto> questions;
     private InterviewFeedbackDto feedback;
+    private CandidateMemorySummaryDto memorySummary;
 }
