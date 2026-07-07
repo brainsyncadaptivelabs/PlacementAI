@@ -4,9 +4,7 @@ import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.shared.PlacementIntelligenceDto;
 import com.aiplacement.backend.entity.*;
 import com.aiplacement.backend.entity.interview.*;
-import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.evaluation.*;
-import com.aiplacement.backend.repository.interview.*;
 import com.aiplacement.backend.service.interview.memory.CandidateKnowledgeGraphService;
 import com.aiplacement.backend.service.shared.PlacementReadinessService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

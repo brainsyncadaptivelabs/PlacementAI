@@ -28,7 +28,7 @@ class SystemDesignPhase6Test {
     @Test
     void scenarioGeneration_fallback_buildsCorrectly() {
         SystemDesignScenarioGeneratorEngineImpl generator = new SystemDesignScenarioGeneratorEngineImpl(
-                null, scenarioRepository, mockInterviewRepository, interviewQuestionRepository);
+                null, scenarioRepository, interviewQuestionRepository);
 
         when(scenarioRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 

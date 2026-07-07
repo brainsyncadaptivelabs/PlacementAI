@@ -29,7 +29,6 @@ public class BargeInOrchestrationServiceImpl implements BargeInOrchestrationServ
 
     private final MockInterviewRepository mockInterviewRepository;
     private final InterviewInterruptionLogRepository interruptionLogRepository;
-    private final InterviewQuestionRepository interviewQuestionRepository;
 
 
 
@@ -196,7 +195,7 @@ public class BargeInOrchestrationServiceImpl implements BargeInOrchestrationServ
         try {
             JsonNode res = aiClient.generateJson(
                     "You are a helpful technical interviewer. Respond with a direct answer in JSON format.",
-                    "{\"response\": \"<your response>\"}", 0.4, 512, e -> null);
+                    prompt, 0.4, 512, e -> null);
             if (res != null && res.has("response")) {
                 return res.path("response").asText();
             }

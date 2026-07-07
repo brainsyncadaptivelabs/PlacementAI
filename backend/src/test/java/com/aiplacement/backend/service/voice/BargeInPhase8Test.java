@@ -39,7 +39,7 @@ class BargeInPhase8Test {
         // Arrange
         BargeInOrchestrationServiceImpl service = new BargeInOrchestrationServiceImpl(
                 voiceSessionService, aiClient, interviewOrchestrator,
-                mockInterviewRepository, interruptionLogRepository, interviewQuestionRepository
+                mockInterviewRepository, interruptionLogRepository
         );
 
         when(voiceSessionService.processAudioInput(any(), any(), any())).thenReturn(
@@ -62,7 +62,7 @@ class BargeInPhase8Test {
         // Arrange
         BargeInOrchestrationServiceImpl service = new BargeInOrchestrationServiceImpl(
                 voiceSessionService, aiClient, interviewOrchestrator,
-                mockInterviewRepository, interruptionLogRepository, interviewQuestionRepository
+                mockInterviewRepository, interruptionLogRepository
         );
 
         when(voiceSessionService.processAudioInput(any(), any(), any())).thenReturn(
@@ -103,7 +103,7 @@ class BargeInPhase8Test {
         // Arrange
         BargeInOrchestrationServiceImpl service = new BargeInOrchestrationServiceImpl(
                 voiceSessionService, aiClient, interviewOrchestrator,
-                mockInterviewRepository, interruptionLogRepository, interviewQuestionRepository
+                mockInterviewRepository, interruptionLogRepository
         );
 
         when(voiceSessionService.processAudioInput(any(), any(), any())).thenReturn(

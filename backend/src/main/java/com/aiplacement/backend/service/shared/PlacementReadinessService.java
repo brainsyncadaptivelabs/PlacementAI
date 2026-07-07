@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,9 +93,9 @@ public class PlacementReadinessService {
                 if (defaultCompetencies.contains(sc.getCompetency())) continue;
 
                 String comp = sc.getCompetency();
-                String ev = evidences.stream().filter(e -> comp.equalsIgnoreCase(e.getCompetency())).map(InterviewEvidence::getEvidenceText).findFirst().orElse("N/A");
-                String re = reasonings.stream().filter(r -> comp.equalsIgnoreCase(r.getCompetency())).map(InterviewReasoning::getReasoningText).findFirst().orElse("N/A");
-                String im = improvements.stream().filter(i -> comp.equalsIgnoreCase(i.getImprovementArea())).map(InterviewImprovement::getSuggestion).findFirst().orElse("N/A");
+                String ev = evidences.stream().filter(e -> comp.equalsIgnoreCase(e.getCompetency())).map(e -> e.getEvidenceText()).findFirst().orElse("N/A");
+                String re = reasonings.stream().filter(r -> comp.equalsIgnoreCase(r.getCompetency())).map(r -> r.getReasoningText()).findFirst().orElse("N/A");
+                String im = improvements.stream().filter(i -> comp.equalsIgnoreCase(i.getImprovementArea())).map(i -> i.getSuggestion()).findFirst().orElse("N/A");
 
                 softCompDtos.add(PlacementIntelligenceDto.SoftCompetencyDto.builder()
                         .name(comp)

@@ -5,7 +5,6 @@ import com.aiplacement.backend.entity.interview.InterviewQuestion;
 
 import com.aiplacement.backend.entity.interview.SystemDesignScenario;
 import com.aiplacement.backend.repository.interview.InterviewQuestionRepository;
-import com.aiplacement.backend.repository.interview.MockInterviewRepository;
 import com.aiplacement.backend.repository.interview.SystemDesignScenarioRepository;
 import com.aiplacement.backend.service.interview.orchestrator.AdaptiveState;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -21,7 +20,6 @@ public class SystemDesignScenarioGeneratorEngineImpl implements SystemDesignScen
 
     private final AIClient aiClient;
     private final SystemDesignScenarioRepository scenarioRepository;
-    private final MockInterviewRepository mockInterviewRepository;
     private final InterviewQuestionRepository interviewQuestionRepository;
 
     @Override
