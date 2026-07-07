@@ -1,8 +1,5 @@
-This template prioritizes:
-- Microservices architectures and Java/Spring ecosystem keywords.
-- Deep project descriptions emphasizing REST APIs and security.
-- Standard single-column backend structure.
-
-Avoid:
-- Multi-column layouts.
-- Custom graphs/visual elements.
+This template is tailored for Accenture hiring:
+- Emphasize collaborative teamwork, active communication, and technical delivery.
+- Highlight project experience with Agile methodologies and Scrum frameworks.
+- Prioritize cloud services (AWS, Azure) and modern full-stack development.
+- Include structured formatting that is clean, professional, and ATS-friendly.

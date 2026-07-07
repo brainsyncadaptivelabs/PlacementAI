@@ -1,8 +1,8 @@
 {
   "id": "faang-style",
-  "name": "FAANG Style",
+  "name": "FAANG",
   "category": "Company Based Resume Templates",
-  "subCategory": "Executive",
+  "subCategory": "FAANG",
   "version": "1.0.0",
   "supportedSections": [
     "personalInfo",
@@ -22,12 +22,17 @@
     "Amazon",
     "Microsoft",
     "Meta",
-    "Netflix"
+    "Netflix",
+    "Product Company",
+    "System Design",
+    "DSA",
+    "Backend Engineering",
+    "Metrics Driven"
   ],
   "bestFor": [
-    "Senior Developers",
-    "Tech Leads",
-    "Product Companies"
+    "FAANG applications",
+    "Tier 1 product engineering roles",
+    "Highly metrics and impact driven resumes"
   ],
   "layout": "Single Column",
   "atsFriendly": true,

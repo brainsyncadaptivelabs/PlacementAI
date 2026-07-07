@@ -67,6 +67,8 @@ function getRotatedName(templateId: string): string {
     case "professional-ats": return "Abhinav";
     case "classic-ats": return "Bharath";
     case "experienced-ats": return "Likith";
+    case "modern": return "Abhinav";
+    case "ats": return "Bharath";
     case "accenture-style": return "Sree Alekhya";
     case "tcs-style": return "Abhinav";
     case "cognizant-style": return "Bharath";

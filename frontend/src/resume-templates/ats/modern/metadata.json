@@ -1,0 +1,53 @@
+{
+  "id": "modern",
+  "name": "Modern",
+  "category": "ATS Resume Templates",
+  "subCategory": "Modern",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "experience",
+    "projects",
+    "education",
+    "certifications"
+  ],
+  "tags": [
+    "Software Engineer",
+    "Modern Layout",
+    "Professional",
+    "Google",
+    "Meta",
+    "Accenture"
+  ],
+  "bestFor": [
+    "All Job Seekers",
+    "Creative and Tech Roles",
+    "Modern ATS standard"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 96,
+  "aiScore": 96,
+  "recommendedRoles": [
+    "Software Engineer",
+    "Product Manager",
+    "Designer"
+  ],
+  "recommendedCompanies": [
+    "Google",
+    "Meta",
+    "Accenture"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": true,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

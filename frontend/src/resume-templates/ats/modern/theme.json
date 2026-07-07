@@ -1,7 +1,7 @@
 {
   "fonts": {
-    "body": "Roboto, sans-serif",
-    "heading": "Roboto, sans-serif"
+    "body": "Inter, sans-serif",
+    "heading": "Inter, sans-serif"
   },
   "colors": {
     "primary": "#0f172a",
@@ -12,7 +12,7 @@
   "spacing": {
     "paddingX": "1.5in",
     "paddingY": "1.5in",
-    "gapSections": "1.5rem"
+    "gapSections": "1.3rem"
   },
   "margins": "0.75in"
 }

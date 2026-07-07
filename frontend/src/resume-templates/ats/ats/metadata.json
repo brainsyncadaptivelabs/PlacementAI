@@ -1,8 +1,8 @@
 {
-  "id": "tcs-style",
-  "name": "TCS",
-  "category": "Company Based Resume Templates",
-  "subCategory": "TCS",
+  "id": "ats",
+  "name": "ATS",
+  "category": "ATS Resume Templates",
+  "subCategory": "ATS",
   "version": "1.0.0",
   "supportedSections": [
     "personalInfo",
@@ -15,37 +15,29 @@
   ],
   "tags": [
     "Software Engineer",
-    "Assistant System Engineer",
-    "TCS Ninja",
-    "Web Developer Intern",
+    "ATS Layout",
+    "Professional",
     "TCS",
-    "Wipro",
-    "Infosys",
-    "Cognizant",
-    "Java",
-    "OOP",
-    "DBMS",
-    "Spring Boot"
+    "Accenture",
+    "Cognizant"
   ],
   "bestFor": [
-    "TCS Ninja/Digital applications",
-    "Entry-level services roles",
-    "OOP and Java focused graduates"
+    "All Job Seekers",
+    "Standard ATS target",
+    "High score ATS standard"
   ],
   "layout": "Single Column",
   "atsFriendly": true,
-  "atsScore": 95,
-  "aiScore": 95,
+  "atsScore": 98,
+  "aiScore": 98,
   "recommendedRoles": [
     "Software Engineer",
-    "Assistant System Engineer",
-    "TCS Ninja",
-    "Web Developer Intern"
+    "Quality Assurance",
+    "System Engineer"
   ],
   "recommendedCompanies": [
     "TCS",
-    "Wipro",
-    "Infosys",
+    "Accenture",
     "Cognizant"
   ],
   "supports": {
@@ -53,7 +45,6 @@
     "icons": false,
     "multiColumn": false,
     "ratingBars": false,
-    "blackWhiteOnly": true,
     "timeline": false,
     "qrCode": false,
     "references": true,

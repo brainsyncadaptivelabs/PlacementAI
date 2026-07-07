@@ -1,1 +1,1 @@
-Cognizant targeted Junior Software Engineer template. Professional styling, clean margins.
+Cognizant focused experienced template. Enterprise Java and Angular focus.

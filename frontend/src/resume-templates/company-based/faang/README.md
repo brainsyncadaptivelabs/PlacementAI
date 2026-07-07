@@ -1,1 +1,1 @@
-Premium FAANG targeted resume template. Highly optimized for product organizations.
+FAANG focused premium engineering template. Scaling and metrics focus.

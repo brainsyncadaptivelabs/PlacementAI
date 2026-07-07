@@ -1,14 +1,15 @@
 {
   "id": "cognizant-style",
-  "name": "Cognizant Style",
+  "name": "Cognizant",
   "category": "Company Based Resume Templates",
-  "subCategory": "Professional",
+  "subCategory": "Cognizant",
   "version": "1.0.0",
   "supportedSections": [
     "personalInfo",
+    "summary",
+    "skills",
     "experience",
     "projects",
-    "skills",
     "education",
     "certifications"
   ],
@@ -19,17 +20,22 @@
     "Cognizant",
     "HCL",
     "Tech Mahindra",
-    "DXC Technology"
+    "DXC Technology",
+    "Enterprise Java",
+    "Spring Boot",
+    "Angular",
+    "Microservices",
+    "REST APIs"
   ],
   "bestFor": [
-    "Software Engineers",
-    "Service Companies",
-    "Fullstack Developer profiles"
+    "Cognizant recruiting standards",
+    "Experienced Developer applications",
+    "Enterprise Java full stack roles"
   ],
   "layout": "Single Column",
   "atsFriendly": true,
   "atsScore": 96,
-  "aiScore": 97,
+  "aiScore": 96,
   "recommendedRoles": [
     "Junior Software Engineer",
     "Java Full Stack Developer",

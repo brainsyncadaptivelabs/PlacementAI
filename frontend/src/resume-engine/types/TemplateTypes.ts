@@ -21,7 +21,12 @@ export enum TemplateSubCategory {
   BACKEND = "Backend",
   FRONTEND = "Frontend",
   AI = "AI & ML",
-  CLOUD = "Cloud"
+  CLOUD = "Cloud",
+  ATS = "ATS",
+  ACCENTURE = "Accenture",
+  TCS = "TCS",
+  COGNIZANT = "Cognizant",
+  FAANG = "FAANG"
 }
 
 export enum TemplateMode {

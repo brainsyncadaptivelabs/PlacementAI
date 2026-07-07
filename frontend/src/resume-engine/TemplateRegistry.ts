@@ -168,10 +168,120 @@ export const ACTIVE_TEMPLATES: ResumeTemplate[] = [
     }
   },
   {
+    id: "modern",
+    name: "Modern",
+    category: TemplateCategory.ATS,
+    subCategory: TemplateSubCategory.MODERN,
+    preview: "/resume-templates/ats/modern/preview.png",
+    originalPdf: "Modern.pdf",
+    atsFriendly: true,
+    atsScore: 96,
+    complexity: "Medium",
+    recommendedRoles: ["Software Engineer", "Product Manager", "Designer"],
+    recommendedCompanies: ["Google", "Meta", "Accenture"],
+    theme: {
+      fonts: {
+        body: "Inter, sans-serif",
+        heading: "Inter, sans-serif"
+      },
+      colors: {
+        primary: "#0f172a",
+        secondary: "#334155",
+        text: "#1e293b",
+        background: "#ffffff"
+      },
+      spacing: {
+        paddingX: "1.5in",
+        paddingY: "1.5in",
+        gapSections: "1.3rem"
+      },
+      margins: "0.75in"
+    },
+    layout: {
+      columns: 1,
+      headerHeight: 100,
+      sidebarWidth: 0,
+      sectionOrder: ["personalInfo", "summary", "skills", "experience", "projects", "education", "certifications"]
+    },
+    rules: {
+      maxProjects: 3,
+      maxSkills: 16,
+      maxExperience: 2,
+      allowIcons: false,
+      allowPhoto: false,
+      columns: 1
+    },
+    capabilities: {
+      photo: false,
+      icons: true,
+      multiColumn: false,
+      ratingBars: false,
+      timeline: false,
+      qrCode: false,
+      references: true,
+      coverLetter: false
+    }
+  },
+  {
+    id: "ats",
+    name: "ATS",
+    category: TemplateCategory.ATS,
+    subCategory: TemplateSubCategory.ATS,
+    preview: "/resume-templates/ats/ats/preview.png",
+    originalPdf: "ATS.pdf",
+    atsFriendly: true,
+    atsScore: 98,
+    complexity: "Low",
+    recommendedRoles: ["Software Engineer", "Quality Assurance", "System Engineer"],
+    recommendedCompanies: ["TCS", "Accenture", "Cognizant"],
+    theme: {
+      fonts: {
+        body: "Inter, sans-serif",
+        heading: "Inter, sans-serif"
+      },
+      colors: {
+        primary: "#111827",
+        secondary: "#4b5563",
+        text: "#1f2937",
+        background: "#ffffff"
+      },
+      spacing: {
+        paddingX: "1.5in",
+        paddingY: "1.5in",
+        gapSections: "1.2rem"
+      },
+      margins: "0.75in"
+    },
+    layout: {
+      columns: 1,
+      headerHeight: 100,
+      sidebarWidth: 0,
+      sectionOrder: ["personalInfo", "summary", "skills", "experience", "projects", "education", "certifications"]
+    },
+    rules: {
+      maxProjects: 3,
+      maxSkills: 16,
+      maxExperience: 2,
+      allowIcons: false,
+      allowPhoto: false,
+      columns: 1
+    },
+    capabilities: {
+      photo: false,
+      icons: false,
+      multiColumn: false,
+      ratingBars: false,
+      timeline: false,
+      qrCode: false,
+      references: true,
+      coverLetter: false
+    }
+  },
+  {
     id: "accenture-style",
-    name: "Backend",
+    name: "Accenture",
     category: TemplateCategory.COMPANY,
-    subCategory: TemplateSubCategory.BACKEND,
+    subCategory: TemplateSubCategory.ACCENTURE,
     preview: "/resume-templates/company-based/accenture/preview.png",
     originalPdf: "Accenture.pdf",
     atsFriendly: true,
@@ -224,9 +334,9 @@ export const ACTIVE_TEMPLATES: ResumeTemplate[] = [
   },
   {
     id: "tcs-style",
-    name: "Startup",
+    name: "TCS",
     category: TemplateCategory.COMPANY,
-    subCategory: TemplateSubCategory.FRESHER,
+    subCategory: TemplateSubCategory.TCS,
     preview: "/resume-templates/company-based/tcs/preview.png",
     originalPdf: "TCS.pdf",
     atsFriendly: true,
@@ -279,9 +389,9 @@ export const ACTIVE_TEMPLATES: ResumeTemplate[] = [
   },
   {
     id: "cognizant-style",
-    name: "Java Full Stack",
+    name: "Cognizant",
     category: TemplateCategory.COMPANY,
-    subCategory: TemplateSubCategory.PROFESSIONAL,
+    subCategory: TemplateSubCategory.COGNIZANT,
     preview: "/resume-templates/company-based/cognizant/preview.png",
     originalPdf: "Cognizant.pdf",
     atsFriendly: true,
@@ -334,9 +444,9 @@ export const ACTIVE_TEMPLATES: ResumeTemplate[] = [
   },
   {
     id: "faang-style",
-    name: "Software Engineer",
+    name: "FAANG",
     category: TemplateCategory.COMPANY,
-    subCategory: TemplateSubCategory.EXECUTIVE,
+    subCategory: TemplateSubCategory.FAANG,
     preview: "/resume-templates/company-based/faang/preview.png",
     originalPdf: "FAANG.pdf",
     atsFriendly: true,

@@ -1,1 +1,1 @@
-Java and Microservices backend-focused template. Optimal keyword density for enterprise frameworks.
+Accenture focused fresher template. Teamwork and Agile focus.

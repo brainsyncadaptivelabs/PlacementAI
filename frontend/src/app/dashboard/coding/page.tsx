@@ -201,171 +201,205 @@ export default function CodingPracticePage() {
   };
 
   return (
-    <div className="w-full h-[calc(100vh-4rem)] flex flex-col bg-background border-t border-border">
-      <div className="flex items-center justify-between gap-4 px-6 py-3 border-b border-border bg-card">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
-            <Code2 className="w-5 h-5 text-primary" /> Interactive Coding
-          </h1>
-        </div>
-      </div>
-
-      <div className="bg-background flex flex-1 min-h-0">
-        {/* 1. Language Sidebar */}
-        <div className="w-16 bg-card border-r border-border/60 flex flex-col items-center py-6 gap-4 shrink-0">
-          {languages.map((lang) => {
-            const isActive = activeLang === lang.id;
-            return (
-              <button
-                key={lang.id}
-                onClick={() => {
-                  setActiveLang(lang.id);
-                  setCode(languageSnippets[lang.id].code);
-                  setTerminalOutput([]);
-                  if (isExecuting) stopExecution();
-                }}
-                disabled={isExecuting}
-                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
-                  isActive 
-                    ? "bg-accent border border-border scale-105 shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(255,255,255,0.05)] ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                    : "opacity-60 dark:opacity-50 hover:opacity-100 hover:scale-102"
-                }`}
-                title={lang.name}
-              >
-                {lang.logo}
-              </button>
-            );
-          })}
+    <div className="w-full h-[calc(100vh-4rem)] p-4 md:p-6 bg-slate-50 dark:bg-slate-950 flex flex-col">
+      <div className="flex-grow flex flex-col rounded-2xl border border-border bg-card shadow-2xl overflow-hidden min-h-0">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between gap-4 px-6 py-3.5 border-b border-border bg-card/60 shrink-0">
+          <div className="flex items-center gap-4">
+            <h1 className="text-base font-bold font-heading text-foreground flex items-center gap-2.5">
+              <Code2 className="w-5 h-5 text-primary" /> Interactive Coding
+            </h1>
+          </div>
         </div>
 
-        {/* 2. Main Workspace */}
-        <div className="flex-1 flex flex-col min-w-0">
-          
-          {/* 2a. Top Header Bar */}
-          <div className="h-14 bg-card border-b border-border/60 flex items-center justify-between px-4 shrink-0">
-            <div className="flex items-center gap-2 h-full">
-              {/* Active Tab */}
-              <div className="h-full border-r border-border/60 px-4 flex items-center bg-background text-foreground border-t-2 border-t-primary text-sm font-semibold">
-                {languageSnippets[activeLang].filename}
-              </div>
-            </div>
-            
-            {/* Editor Controls */}
-            <div className="flex items-center gap-3">
-              {isExecuting ? (
-                <Button 
-                  onClick={stopExecution} 
-                  variant="destructive" 
-                  size="sm" 
-                  className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md px-4 py-1.5"
+        <div className="flex flex-1 min-h-0">
+          {/* 1. Language Sidebar */}
+          <div className="w-16 bg-card/30 border-r border-border flex flex-col items-center py-6 gap-4 shrink-0">
+            {languages.map((lang) => {
+              const isActive = activeLang === lang.id;
+              return (
+                <button
+                  key={lang.id}
+                  onClick={() => {
+                    setActiveLang(lang.id);
+                    setCode(languageSnippets[lang.id].code);
+                    setTerminalOutput([]);
+                    if (isExecuting) stopExecution();
+                  }}
+                  disabled={isExecuting}
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                    isActive 
+                      ? "bg-accent border border-border scale-105 shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(255,255,255,0.05)] ring-2 ring-primary ring-offset-2 ring-offset-background" 
+                      : "opacity-60 dark:opacity-50 hover:opacity-100 hover:scale-102"
+                  }`}
+                  title={lang.name}
                 >
-                  <Square className="w-4 h-4 mr-1.5 fill-current" /> Stop
-                </Button>
-              ) : (
-                <Button 
-                  onClick={executeCode} 
-                  size="sm" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md px-5 py-1.5"
-                >
-                  <Play className="w-4 h-4 mr-1.5 fill-current" /> Run
-                </Button>
-              )}
-            </div>
+                  {lang.logo}
+                </button>
+              );
+            })}
           </div>
 
-          {/* 2b. Split Pane Content */}
-          <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0 bg-background">
+          {/* 2. Main Workspace */}
+          <div className="flex-1 flex flex-col min-w-0 bg-background">
             
-            {/* Column 1: Editor */}
-            <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col h-full min-h-0">
-              <div className="h-full w-full relative bg-background">
-                <textarea
-                  ref={textareaRefCallback}
-                  value={code}
-                  onChange={(e) => {
-                    setCode(e.target.value);
-                  }}
-                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm leading-6 resize-none text-foreground bg-transparent"
-                  spellCheck={false}
-                  disabled={isExecuting}
-                  placeholder="// Write your code here..."
-                />
+            {/* 2a. Top Header Bar (Tabs & Controls) */}
+            <div className="h-11 bg-card/30 border-b border-border flex items-center justify-between px-4 shrink-0">
+              <div className="flex items-center gap-2 h-full">
+                {/* Active Tab */}
+                <div className="h-full border-r border-border px-4 flex items-center bg-background text-foreground border-t-2 border-t-primary text-xs font-semibold select-none">
+                  {languageSnippets[activeLang].filename}
+                </div>
               </div>
-            </ResizablePanel>
-
-            <ResizableHandle withHandle className="bg-border w-1.5 hover:bg-primary/50 transition-colors" />
-
-            {/* Column 2: Terminal/Output */}
-            <ResizablePanel defaultSize={40} minSize={20} className="flex flex-col bg-muted/30 min-h-0">
               
-              {/* Terminal Header */}
-              <div className="h-10 bg-muted/60 border-b border-border/50 flex items-center justify-between px-4 shrink-0">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Output</span>
-                <div className="flex items-center gap-3">
-                  {isExecuting && (
-                    <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold animate-pulse">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> RUNNING
-                    </span>
-                  )}
-                  <Button
-                    onClick={() => setTerminalOutput([])}
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5 h-7"
+              {/* Editor Controls */}
+              <div className="flex items-center gap-3">
+                {isExecuting ? (
+                  <Button 
+                    onClick={stopExecution} 
+                    variant="destructive" 
+                    size="sm" 
+                    className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md px-3.5 h-7 text-xs"
                   >
-                    Clear
+                    <Square className="w-3.5 h-3.5 mr-1.5 fill-current" /> Stop
                   </Button>
-                </div>
-              </div>
-
-              {/* Terminal Content */}
-              <div 
-                className="flex-1 p-4 overflow-y-auto font-mono text-sm flex flex-col cursor-text bg-muted/10"
-                onClick={() => {
-                  if (isExecuting) {
-                    inputRef.current?.focus();
-                  }
-                }}
-              >
-                <div className="flex-1">
-                  {terminalOutput.length === 0 && !isExecuting && (
-                    <div className="text-muted-foreground/60 h-full flex items-center justify-center italic text-xs">
-                      Run your code to interact with the terminal.
-                    </div>
-                  )}
-                  {terminalOutput.map((line, i) => (
-                    <span key={i} className={
-                      line.type === 'err' ? 'text-red-500 dark:text-red-400' :
-                      line.type === 'in' ? 'text-emerald-600 dark:text-emerald-400' :
-                      line.type === 'sys' ? 'text-muted-foreground italic' :
-                      'text-foreground'
-                    } style={{ whiteSpace: 'pre-wrap' }}>
-                      {line.text}
-                    </span>
-                  ))}
-                  <div ref={terminalEndRef} />
-                </div>
-                {isExecuting && (
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-emerald-400 font-bold">{">"}</span>
-                    <Input 
-                      ref={inputRef}
-                      value={inputVal}
-                      onChange={(e) => setInputVal(e.target.value)}
-                      onKeyDown={handleTerminalInput}
-                      className="flex-1 h-8 bg-transparent border-none text-emerald-400 focus-visible:ring-0 p-0 rounded-none shadow-none font-mono text-sm caret-emerald-400"
-                      placeholder="Type input and press Enter..."
-                      autoFocus
-                    />
-                  </div>
+                ) : (
+                  <Button 
+                    onClick={executeCode} 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md px-4 h-7 text-xs"
+                  >
+                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> Run
+                  </Button>
                 )}
               </div>
+            </div>
 
-            </ResizablePanel>
+            {/* 2b. Split Pane Content */}
+            <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0 bg-background">
+              
+              {/* Column 1: Editor */}
+              <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col h-full min-h-0">
+                <div className="h-full w-full relative bg-background">
+                  <textarea
+                    ref={textareaRefCallback}
+                    value={code}
+                    onChange={(e) => {
+                      setCode(e.target.value);
+                    }}
+                    className="absolute inset-0 w-full h-full p-4 font-mono text-sm leading-6 resize-none text-foreground bg-transparent focus:outline-none"
+                    spellCheck={false}
+                    disabled={isExecuting}
+                    placeholder="// Write your code here..."
+                  />
+                </div>
+              </ResizablePanel>
 
-          </ResizablePanelGroup>
+              <ResizableHandle withHandle className="bg-border w-1 hover:bg-primary/50 transition-colors" />
 
+              {/* Column 2: Terminal/Output */}
+              <ResizablePanel defaultSize={40} minSize={20} className="flex flex-col bg-muted/5 min-h-0 border-l border-border">
+                
+                {/* Terminal Header */}
+                <div className="h-9 bg-muted/20 border-b border-border/55 flex items-center justify-between px-4 shrink-0">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Output</span>
+                  <div className="flex items-center gap-3">
+                    {isExecuting && (
+                      <span className="flex items-center gap-1.5 text-emerald-400 text-[10px] font-bold animate-pulse">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> RUNNING
+                      </span>
+                    )}
+                    <Button
+                      onClick={() => setTerminalOutput([])}
+                      variant="ghost"
+                      size="sm"
+                      className="text-[10px] text-muted-foreground hover:text-foreground px-2 py-0 h-6"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Terminal Content */}
+                <div 
+                  className="flex-1 p-4 overflow-y-auto font-mono text-sm flex flex-col cursor-text bg-muted/5"
+                  onClick={() => {
+                    if (isExecuting) {
+                      inputRef.current?.focus();
+                    }
+                  }}
+                >
+                  <div className="flex-1">
+                    {terminalOutput.length === 0 && !isExecuting && (
+                      <div className="text-muted-foreground/40 h-full flex items-center justify-center italic text-xs select-none">
+                        Run your code to interact with the terminal.
+                      </div>
+                    )}
+                    {terminalOutput.map((line, i) => (
+                      <span key={i} className={
+                        line.type === 'err' ? 'text-red-500 dark:text-red-400' :
+                        line.type === 'in' ? 'text-emerald-600 dark:text-emerald-400' :
+                        line.type === 'sys' ? 'text-muted-foreground italic' :
+                        'text-foreground'
+                      } style={{ whiteSpace: 'pre-wrap' }}>
+                        {line.text}
+                      </span>
+                    ))}
+                    <div ref={terminalEndRef} />
+                  </div>
+                  {isExecuting && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <span className="text-emerald-400 font-bold">{">"}</span>
+                      <Input 
+                        ref={inputRef}
+                        value={inputVal}
+                        onChange={(e) => setInputVal(e.target.value)}
+                        onKeyDown={handleTerminalInput}
+                        className="flex-1 h-7 bg-transparent border-none text-emerald-400 focus-visible:ring-0 p-0 rounded-none shadow-none font-mono text-sm caret-emerald-400"
+                        placeholder="Type input and press Enter..."
+                        autoFocus
+                      />
+                    </div>
+                  )}
+                </div>
+
+              </ResizablePanel>
+
+            </ResizablePanelGroup>
+
+          </div>
         </div>
+
+        {/* Status Bar */}
+        <div className="h-8 bg-muted/40 border-t border-border flex items-center justify-between px-4 text-[11px] text-muted-foreground shrink-0 select-none">
+          <div className="flex items-center gap-4">
+            {isExecuting ? (
+              <span className="flex items-center gap-1.5 text-emerald-500 font-semibold">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                Running Execution Environment...
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-400"></span>
+                Ready
+              </span>
+            )}
+            <span className="text-border/80">|</span>
+            <span>Execution Engine: Piston v2.0.0</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="uppercase">{languages.find(l => l.id === activeLang)?.name || activeLang}</span>
+            <span className="text-border/80">|</span>
+            <span>Tab Size: 2</span>
+            <span className="text-border/80">|</span>
+            <span>UTF-8</span>
+          </div>
+        </div>
+
       </div>
     </div>
   );

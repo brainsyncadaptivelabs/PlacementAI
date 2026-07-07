@@ -4,15 +4,15 @@
     "heading": "Inter, sans-serif"
   },
   "colors": {
-    "primary": "#090d16",
-    "secondary": "#1e293b",
-    "text": "#0f172a",
+    "primary": "#111827",
+    "secondary": "#4b5563",
+    "text": "#1f2937",
     "background": "#ffffff"
   },
   "spacing": {
     "paddingX": "1.5in",
     "paddingY": "1.5in",
-    "gapSections": "1.6rem"
+    "gapSections": "1.2rem"
   },
   "margins": "0.75in"
 }

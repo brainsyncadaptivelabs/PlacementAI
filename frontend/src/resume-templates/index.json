@@ -15,6 +15,16 @@
     "path": "ats/experienced"
   },
   {
+    "id": "modern",
+    "category": "ATS Resume Templates",
+    "path": "ats/modern"
+  },
+  {
+    "id": "ats",
+    "category": "ATS Resume Templates",
+    "path": "ats/ats"
+  },
+  {
     "id": "accenture-style",
     "category": "Company Based Resume Templates",
     "path": "company-based/accenture"

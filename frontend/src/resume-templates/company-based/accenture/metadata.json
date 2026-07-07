@@ -1,15 +1,15 @@
 {
   "id": "accenture-style",
-  "name": "Accenture Style",
+  "name": "Accenture",
   "category": "Company Based Resume Templates",
-  "subCategory": "Backend",
+  "subCategory": "Accenture",
   "version": "1.0.0",
   "supportedSections": [
     "personalInfo",
     "summary",
     "skills",
-    "projects",
     "experience",
+    "projects",
     "education",
     "certifications"
   ],
@@ -21,17 +21,21 @@
     "Accenture",
     "Capgemini",
     "LTI Mindtree",
-    "TCS"
+    "TCS",
+    "Agile",
+    "Teamwork",
+    "Cloud",
+    "Communication"
   ],
   "bestFor": [
-    "Experienced Developers",
-    "Java Backend roles",
-    "Spring Boot ecosystem"
+    "Accenture hiring standards",
+    "Service industry roles",
+    "Agile and cloud focused engineers"
   ],
   "layout": "Single Column",
   "atsFriendly": true,
   "atsScore": 95,
-  "aiScore": 96,
+  "aiScore": 95,
   "recommendedRoles": [
     "Full Stack Java Developer",
     "Backend Developer",

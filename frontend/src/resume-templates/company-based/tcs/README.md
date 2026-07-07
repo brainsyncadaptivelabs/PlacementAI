@@ -1,1 +1,1 @@
-TCS Assistant System Engineer targeted template. Single column, classic styling.
+TCS focused entry-level services template. Java and OOP focus.
