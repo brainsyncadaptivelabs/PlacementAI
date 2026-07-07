@@ -61,6 +61,9 @@ services:
     container_name: placement-piston
     restart: always
     privileged: true
+    environment:
+      - PISTON_RUN_TIMEOUT=60000
+      - PISTON_COMPILE_TIMEOUT=60000
     ports:
       - "2000:2000"
     volumes:

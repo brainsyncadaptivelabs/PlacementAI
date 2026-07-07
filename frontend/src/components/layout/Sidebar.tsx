@@ -107,7 +107,7 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
                           <span className={`font-medium ${isActive ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
                         </div>
                         {item.comingSoon && (
-                          <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-indigo-650 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 rounded-full shrink-0">
+                          <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-indigo-600 dark:text-gray-400 bg-indigo-50 dark:bg-gray-800/50 border border-indigo-100 dark:border-gray-700 rounded-full shrink-0">
                             Soon
                           </span>
                         )}

@@ -33,6 +33,7 @@
     "react-dom": "19.2.4",
     "react-is": "^19.0.0",
     "react-markdown": "^10.1.0",
+    "react-resizable-panels": "^4.12.1",
     "recharts": "^3.8.1",
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.1",

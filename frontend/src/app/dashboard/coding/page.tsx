@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Code2, Play, Terminal, Square } from "lucide-react";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 
 const languageSnippets: Record<string, { language: string, filename: string, code: string }> = {
   javascript: {
@@ -44,32 +45,32 @@ const PythonLogo = () => (
 const CLogo = () => (
   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="11" fill="#00599C" />
-    <path d="M16 8.5C15 7.5 13.5 7 12 7c-2.8 0-5 2.2-5 5s2.2 5 5 5c1.5 0 3-.5 4-1.5" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
+    <path d="M16 8.5C15 7.5 13.5 7 12 7c-2.8 0-5 2.2-5 5s2.2 5 5 5c1.5 0 3-.5 4-1.5" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
   </svg>
 );
 
 const CppLogo = () => (
   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="11" fill="#004482" />
-    <path d="M12 9C11.3 8.1 10.2 7.6 9 7.6c-2.4 0-4.4 2-4.4 4.4s2 4.4 4.4 4.4c1.2 0 2.3-.5 3-1.4" stroke="#FFFFFF" strokeWidth="2.2" strokeLinecap="round" />
-    <path d="M13.5 12h2.5M14.7 10.8v2.4" stroke="#659AD2" strokeWidth="1.6" strokeLinecap="round" />
-    <path d="M17.5 12h2.5M18.7 10.8v2.4" stroke="#659AD2" strokeWidth="1.6" strokeLinecap="round" />
+    <path d="M12 9C11.3 8.1 10.2 7.6 9 7.6c-2.4 0-4.4 2-4.4 4.4s2 4.4 4.4 4.4c1.2 0 2.3-.5 3-1.4" stroke="#FFFFFF" strokeWidth="2.8" strokeLinecap="round" />
+    <path d="M13.5 12h2.5M14.7 10.8v2.4" stroke="#659AD2" strokeWidth="2.2" strokeLinecap="round" />
+    <path d="M17.5 12h2.5M18.7 10.8v2.4" stroke="#659AD2" strokeWidth="2.2" strokeLinecap="round" />
   </svg>
 );
 
 const JavaLogo = () => (
   <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M6 11c0-1.8 1.8-2.5 4.5-2.5s4.5.7 4.5 2.5v3.5c0 2.5-1.8 4-4.5 4s-4.5-1.5-4.5-4V11z" fill="#5382A1" opacity="0.8"/>
-    <path d="M15 11.5c1.2 0 2 .8 2 2s-.8 2-2 2" stroke="#5382A1" strokeWidth="1.8" strokeLinecap="round"/>
-    <path d="M8 5.5c.3-.8.7-.8 1 0s.7.8 1 0M10.5 5.5c.3-.8.7-.8 1 0s.7.8 1 0" stroke="#E76F00" strokeWidth="1.2" strokeLinecap="round"/>
-    <path d="M4.5 18.5c2.5 1.2 8.5 1.2 11 0" stroke="#E76F00" strokeWidth="1.8" strokeLinecap="round"/>
+    <path d="M6 11c0-1.8 1.8-2.5 4.5-2.5s4.5.7 4.5 2.5v3.5c0 2.5-1.8 4-4.5 4s-4.5-1.5-4.5-4V11z" fill="#5382A1" />
+    <path d="M15 11.5c1.2 0 2 .8 2 2s-.8 2-2 2" stroke="#5382A1" strokeWidth="2.5" strokeLinecap="round"/>
+    <path d="M8 5.5c.3-.8.7-.8 1 0s.7.8 1 0M10.5 5.5c.3-.8.7-.8 1 0s.7.8 1 0" stroke="#E76F00" strokeWidth="2" strokeLinecap="round"/>
+    <path d="M4.5 18.5c2.5 1.2 8.5 1.2 11 0" stroke="#E76F00" strokeWidth="2.5" strokeLinecap="round"/>
   </svg>
 );
 
 const JSLogo = () => (
   <svg className="w-6 h-6 rounded-md" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect width="24" height="24" fill="#F7DF1E" />
-    <text x="21" y="20" fill="black" fontSize="11" fontWeight="black" fontFamily="system-ui, sans-serif" textAnchor="end">JS</text>
+    <rect width="24" height="24" rx="4" fill="#F7DF1E" />
+    <text x="21" y="20" fill="black" fontSize="12" fontWeight="900" fontFamily="system-ui, sans-serif" textAnchor="end">JS</text>
   </svg>
 );
 
@@ -107,7 +108,6 @@ export default function CodingPracticePage() {
       node.style.setProperty('outline', 'none', 'important');
       node.style.setProperty('height', '100%', 'important');
       node.style.setProperty('width', '100%', 'important');
-      node.style.setProperty('color', '#F8FAFC', 'important');
       (textareaRef as any).current = node;
     }
   };
@@ -149,6 +149,7 @@ export default function CodingPracticePage() {
         type: "init",
         language: currentConfig.language,
         version: "*",
+        run_timeout: 60000,
         files: [{ name: currentConfig.filename, content: code }]
       }));
     };
@@ -158,9 +159,15 @@ export default function CodingPracticePage() {
       if (msg.type === "data") {
         setTerminalOutput(prev => [...prev, { text: msg.data, type: msg.stream === "stderr" ? "err" : "out" }]);
       } else if (msg.type === "exit") {
-        setIsExecuting(false);
-        setTerminalOutput(prev => [...prev, { text: `\n[Process exited with code ${msg.code ?? msg.signal}]`, type: "sys" }]);
-        ws.close();
+        if (msg.stage === "compile" && msg.code !== 0) {
+          setIsExecuting(false);
+          setTerminalOutput(prev => [...prev, { text: `\n[Compilation failed with code ${msg.code ?? msg.signal}]`, type: "sys" }]);
+          ws.close();
+        } else if (msg.stage === "run" || !msg.stage) {
+          setIsExecuting(false);
+          setTerminalOutput(prev => [...prev, { text: `\n[Process exited with code ${msg.code ?? msg.signal}]`, type: "sys" }]);
+          ws.close();
+        }
       } else if (msg.type === "error") {
         setIsExecuting(false);
         setTerminalOutput(prev => [...prev, { text: `\n[Error: ${msg.message}]`, type: "err" }]);
@@ -180,6 +187,8 @@ export default function CodingPracticePage() {
 
   const handleTerminalInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && wsRef.current && isExecuting) {
+      if (wsRef.current.readyState !== WebSocket.OPEN) return;
+      
       const val = inputVal + '\n';
       wsRef.current.send(JSON.stringify({
         type: "data",
@@ -192,19 +201,18 @@ export default function CodingPracticePage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold font-heading text-foreground flex items-center gap-2">
-            <Code2 className="w-6 h-6 text-primary" /> Interactive Coding
+    <div className="w-full h-[calc(100vh-4rem)] flex flex-col bg-background border-t border-border">
+      <div className="flex items-center justify-between gap-4 px-6 py-3 border-b border-border bg-card">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
+            <Code2 className="w-5 h-5 text-primary" /> Interactive Coding
           </h1>
-          <p className="text-muted-foreground">Write code and interact with it in real-time.</p>
         </div>
       </div>
 
-      <div className="border border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-2xl flex h-[600px]">
+      <div className="bg-background flex flex-1 min-h-0">
         {/* 1. Language Sidebar */}
-        <div className="w-16 bg-slate-950 border-r border-slate-800/80 flex flex-col items-center py-6 gap-4 shrink-0">
+        <div className="w-16 bg-card border-r border-border/60 flex flex-col items-center py-6 gap-4 shrink-0">
           {languages.map((lang) => {
             const isActive = activeLang === lang.id;
             return (
@@ -219,8 +227,8 @@ export default function CodingPracticePage() {
                 disabled={isExecuting}
                 className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                   isActive 
-                    ? "bg-slate-800 border border-slate-700 scale-105 shadow-[0_0_15px_rgba(255,255,255,0.05)] ring-2 ring-primary ring-offset-2 ring-offset-slate-950" 
-                    : "opacity-40 hover:opacity-100 hover:scale-102"
+                    ? "bg-accent border border-border scale-105 shadow-[0_0_15px_rgba(0,0,0,0.05)] dark:shadow-[0_0_15px_rgba(255,255,255,0.05)] ring-2 ring-primary ring-offset-2 ring-offset-background" 
+                    : "opacity-60 dark:opacity-50 hover:opacity-100 hover:scale-102"
                 }`}
                 title={lang.name}
               >
@@ -234,10 +242,10 @@ export default function CodingPracticePage() {
         <div className="flex-1 flex flex-col min-w-0">
           
           {/* 2a. Top Header Bar */}
-          <div className="h-14 bg-slate-950 border-b border-slate-800/80 flex items-center justify-between px-4 shrink-0">
+          <div className="h-14 bg-card border-b border-border/60 flex items-center justify-between px-4 shrink-0">
             <div className="flex items-center gap-2 h-full">
               {/* Active Tab */}
-              <div className="h-full border-r border-slate-800/80 px-4 flex items-center bg-slate-900 text-slate-200 border-t-2 border-t-primary text-sm font-semibold">
+              <div className="h-full border-r border-border/60 px-4 flex items-center bg-background text-foreground border-t-2 border-t-primary text-sm font-semibold">
                 {languageSnippets[activeLang].filename}
               </div>
             </div>
@@ -266,31 +274,33 @@ export default function CodingPracticePage() {
           </div>
 
           {/* 2b. Split Pane Content */}
-          <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 min-h-0 bg-slate-900">
+          <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0 bg-background">
             
             {/* Column 1: Editor */}
-            <div className="flex flex-col border-r border-slate-800/60 h-full min-h-0">
-              <div className="h-full w-full relative bg-slate-900">
+            <ResizablePanel defaultSize={60} minSize={30} className="flex flex-col h-full min-h-0">
+              <div className="h-full w-full relative bg-background">
                 <textarea
                   ref={textareaRefCallback}
                   value={code}
                   onChange={(e) => {
                     setCode(e.target.value);
                   }}
-                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm leading-6 resize-none text-slate-100"
+                  className="absolute inset-0 w-full h-full p-4 font-mono text-sm leading-6 resize-none text-foreground bg-transparent"
                   spellCheck={false}
                   disabled={isExecuting}
                   placeholder="// Write your code here..."
                 />
               </div>
-            </div>
+            </ResizablePanel>
+
+            <ResizableHandle withHandle className="bg-border w-1.5 hover:bg-primary/50 transition-colors" />
 
             {/* Column 2: Terminal/Output */}
-            <div className="flex flex-col bg-slate-950/40 min-h-0">
+            <ResizablePanel defaultSize={40} minSize={20} className="flex flex-col bg-muted/30 min-h-0">
               
               {/* Terminal Header */}
-              <div className="h-10 bg-slate-950/60 border-b border-slate-800/50 flex items-center justify-between px-4 shrink-0">
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Output</span>
+              <div className="h-10 bg-muted/60 border-b border-border/50 flex items-center justify-between px-4 shrink-0">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Output</span>
                 <div className="flex items-center gap-3">
                   {isExecuting && (
                     <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold animate-pulse">
@@ -301,7 +311,7 @@ export default function CodingPracticePage() {
                     onClick={() => setTerminalOutput([])}
                     variant="ghost"
                     size="sm"
-                    className="text-xs text-slate-400 hover:text-white px-2 py-0.5 h-7"
+                    className="text-xs text-muted-foreground hover:text-foreground px-2 py-0.5 h-7"
                   >
                     Clear
                   </Button>
@@ -310,7 +320,7 @@ export default function CodingPracticePage() {
 
               {/* Terminal Content */}
               <div 
-                className="flex-1 p-4 overflow-y-auto font-mono text-sm flex flex-col cursor-text bg-slate-950/20"
+                className="flex-1 p-4 overflow-y-auto font-mono text-sm flex flex-col cursor-text bg-muted/10"
                 onClick={() => {
                   if (isExecuting) {
                     inputRef.current?.focus();
@@ -319,16 +329,16 @@ export default function CodingPracticePage() {
               >
                 <div className="flex-1">
                   {terminalOutput.length === 0 && !isExecuting && (
-                    <div className="text-slate-500/60 h-full flex items-center justify-center italic text-xs">
+                    <div className="text-muted-foreground/60 h-full flex items-center justify-center italic text-xs">
                       Run your code to interact with the terminal.
                     </div>
                   )}
                   {terminalOutput.map((line, i) => (
                     <span key={i} className={
-                      line.type === 'err' ? 'text-red-400' :
-                      line.type === 'in' ? 'text-emerald-400' :
-                      line.type === 'sys' ? 'text-slate-500 italic' :
-                      'text-slate-300'
+                      line.type === 'err' ? 'text-red-500 dark:text-red-400' :
+                      line.type === 'in' ? 'text-emerald-600 dark:text-emerald-400' :
+                      line.type === 'sys' ? 'text-muted-foreground italic' :
+                      'text-foreground'
                     } style={{ whiteSpace: 'pre-wrap' }}>
                       {line.text}
                     </span>
@@ -351,9 +361,9 @@ export default function CodingPracticePage() {
                 )}
               </div>
 
-            </div>
+            </ResizablePanel>
 
-          </div>
+          </ResizablePanelGroup>
 
         </div>
       </div>

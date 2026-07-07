@@ -861,7 +861,7 @@ export default function AptitudePage() {
             <Brain className="w-5.5 h-5.5" />
           </div>
           <div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Aptitude Arena</h1>
+            <h1 className="text-xl font-black tracking-tight text-foreground dark:text-white">Aptitude Arena</h1>
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">PlacementAI Psychometric Testing Harness</p>
           </div>
         </div>
@@ -908,21 +908,21 @@ export default function AptitudePage() {
           >
             
             {/* Header info */}
-            <CardHeader className="bg-slate-50 border-b border-border/40 px-6 py-4.5 flex flex-row items-center justify-between select-none">
+            <CardHeader className="bg-muted/50 border-b border-border/40 px-6 py-4.5 flex flex-row items-center justify-between select-none">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <span className="text-[9px] font-black text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100 uppercase tracking-widest">
+                  <span className="text-[9px] font-black text-indigo-650 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-widest">
                     {quizQuestions[currentQuestionIdx].category}
                   </span>
-                  <CardTitle className="text-sm font-bold text-slate-800 mt-1">
+                  <CardTitle className="text-sm font-bold text-foreground mt-1">
                     Topic: {quizQuestions[currentQuestionIdx].topic}
                   </CardTitle>
                 </div>
               </div>
 
               {/* Timing Clock */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-mono text-sm font-bold text-slate-700 shadow-inner">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border bg-background font-mono text-sm font-bold text-foreground shadow-inner">
                 <Clock className="w-4 h-4 text-amber-500 animate-pulse" />
                 <span>
                   {Math.floor(quizTimeRemaining / 60)}:
@@ -935,15 +935,15 @@ export default function AptitudePage() {
               
               {/* Question Index Progress */}
               <div className="space-y-1.5 select-none">
-                <div className="flex justify-between text-[10px] font-bold text-slate-500">
+                <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
                   <span>Question {currentQuestionIdx + 1} of {quizQuestions.length}</span>
                   <span>{Math.round(((currentQuestionIdx + 1) / quizQuestions.length) * 100)}% Complete</span>
                 </div>
-                <Progress value={((currentQuestionIdx + 1) / quizQuestions.length) * 100} className="h-1 bg-slate-100" />
+                <Progress value={((currentQuestionIdx + 1) / quizQuestions.length) * 100} className="h-1 bg-muted" />
               </div>
 
               {/* Question Text */}
-              <div className="p-6 bg-slate-50 rounded-2xl border border-slate-200/80 text-[15px] font-bold text-slate-900 leading-relaxed whitespace-pre-line select-text">
+              <div className="p-6 bg-muted/50 rounded-2xl border border-border/80 text-[15px] font-bold text-foreground leading-relaxed whitespace-pre-line select-text">
                 {quizQuestions[currentQuestionIdx].text}
               </div>
 
@@ -960,14 +960,14 @@ export default function AptitudePage() {
                       onClick={() => handleSelectOption(qId, opt)}
                       className={`flex items-center gap-3.5 p-4 rounded-2xl border text-left text-xs font-bold tracking-tight transition-all cursor-pointer hover:scale-101 ${
                         isSelected 
-                        ? "bg-indigo-55 border-indigo-500 text-indigo-950 shadow-sm shadow-indigo-500/5" 
-                        : "bg-card border-border hover:bg-slate-50 text-slate-700"
+                        ? "bg-indigo-55 border-indigo-500 text-foreground shadow-sm shadow-indigo-500/5" 
+                        : "bg-card border-border hover:bg-muted/50 text-foreground"
                       }`}
                     >
                       <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold border shrink-0 ${
                         isSelected 
                         ? "bg-indigo-650 border-indigo-650 text-white" 
-                        : "bg-muted border-border text-slate-500"
+                        : "bg-muted border-border text-muted-foreground"
                       }`}>
                         {label}
                       </div>
@@ -979,12 +979,12 @@ export default function AptitudePage() {
             </CardContent>
 
             {/* Footer controls */}
-            <CardFooter className="bg-slate-50 border-t border-border/40 px-8 py-4.5 flex justify-between select-none">
+            <CardFooter className="bg-muted/50 border-t border-border/40 px-8 py-4.5 flex justify-between select-none">
               <Button
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
                 variant="outline"
-                className="border-slate-250 hover:bg-slate-150 h-9 font-bold text-xs cursor-pointer text-slate-700 rounded-xl"
+                className="border-border hover:bg-secondary h-9 font-bold text-xs cursor-pointer text-foreground rounded-xl"
               >
                 Back
               </Button>
@@ -1016,7 +1016,7 @@ export default function AptitudePage() {
           
           {/* Anti-cheating security status header banner */}
           {activeQuizAttempt.cheatingFlags && activeQuizAttempt.cheatingFlags.length > 0 && (
-            <Card className="border border-rose-200 bg-rose-50/50 p-4 rounded-2xl flex items-center gap-3 text-xs text-rose-800 font-bold select-none">
+            <Card className="border border-rose-500/20 bg-rose-500/100/10 p-4 rounded-2xl flex items-center gap-3 text-xs text-rose-800 dark:text-rose-200 font-bold select-none">
               <AlertOctagon className="w-5 h-5 text-rose-600" />
               <div>
                 <span>Security Integrity Warnings: {activeQuizAttempt.cheatingFlags.join(", ")}</span>
@@ -1026,9 +1026,9 @@ export default function AptitudePage() {
           )}
 
           {/* AI Coach strategy panel */}
-          <Card className="border border-indigo-150 rounded-3xl p-6 bg-gradient-to-br from-indigo-50/50 via-card to-card shadow-sm space-y-4 select-text">
+          <Card className="border border-indigo-500/20 rounded-3xl p-6 bg-gradient-to-br from-indigo-500/10 via-card to-card shadow-sm space-y-4 select-text">
             <div className="flex justify-between items-center select-none">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-2">
                 <Sparkles className="w-5.5 h-5.5 text-indigo-600 animate-pulse" />
                 AI Prep Strategy Report
               </h3>
@@ -1036,7 +1036,7 @@ export default function AptitudePage() {
                 <Button
                   onClick={handleExportCsvData}
                   variant="outline"
-                  className="h-8 border-indigo-200 text-indigo-700 text-[10px] font-black rounded-lg gap-1.5 flex items-center cursor-pointer"
+                  className="h-8 border-indigo-200 text-indigo-700 dark:text-indigo-300 text-[10px] font-black rounded-lg gap-1.5 flex items-center cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Export CSV</span>
@@ -1044,7 +1044,7 @@ export default function AptitudePage() {
                 <Button
                   onClick={handleExportExcelData}
                   variant="outline"
-                  className="h-8 border-indigo-200 text-indigo-700 text-[10px] font-black rounded-lg gap-1.5 flex items-center cursor-pointer"
+                  className="h-8 border-indigo-200 text-indigo-700 dark:text-indigo-300 text-[10px] font-black rounded-lg gap-1.5 flex items-center cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Export Excel</span>
@@ -1052,7 +1052,7 @@ export default function AptitudePage() {
                 <Button
                   onClick={handleExportPDF}
                   variant="outline"
-                  className="h-8 border-indigo-200 text-indigo-700 text-[10px] font-black rounded-lg gap-1.5 flex items-center cursor-pointer"
+                  className="h-8 border-indigo-200 text-indigo-700 dark:text-indigo-300 text-[10px] font-black rounded-lg gap-1.5 flex items-center cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Export PDF</span>
@@ -1061,27 +1061,27 @@ export default function AptitudePage() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 select-none">
-              <div className="p-4 bg-indigo-50/20 border border-indigo-100 rounded-2xl text-xs space-y-1">
-                <span className="font-bold text-slate-500 block uppercase tracking-wider text-[9px]">Weakest Subject</span>
+              <div className="p-4 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
+                <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px]">Weakest Subject</span>
                 <span className="font-black text-rose-600 text-sm">
                   {activeQuizAttempt.weakTopics[0] || "None identified"}
                 </span>
               </div>
-              <div className="p-4 bg-indigo-50/20 border border-indigo-100 rounded-2xl text-xs space-y-1">
-                <span className="font-bold text-slate-500 block uppercase tracking-wider text-[9px]">Solve Velocity</span>
-                <span className="font-black text-indigo-900 text-sm">
+              <div className="p-4 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
+                <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px]">Solve Velocity</span>
+                <span className="font-black text-indigo-900 dark:text-indigo-100 text-sm">
                   {Math.round(activeQuizAttempt.timeTaken / (activeQuizAttempt.totalQuestions || 1))}s / question
                 </span>
               </div>
-              <div className="p-4 bg-indigo-50/20 border border-indigo-100 rounded-2xl text-xs space-y-1">
-                <span className="font-bold text-slate-500 block uppercase tracking-wider text-[9px]">Study Load Recommendation</span>
-                <span className="font-black text-emerald-700 text-sm">
+              <div className="p-4 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
+                <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px]">Study Load Recommendation</span>
+                <span className="font-black text-emerald-700 dark:text-emerald-300 text-sm">
                   {studyPlan.weeklyHours} hrs practice next week
                 </span>
               </div>
             </div>
 
-            <p className="text-xs text-slate-650 leading-relaxed font-semibold">
+            <p className="text-xs text-muted-foreground leading-relaxed font-semibold">
               Based on your results, prioritize LCM methods in <strong>{activeQuizAttempt.weakTopics[0] || "your studies"}</strong>. 
               We have scheduled incorrect answers into your Spaced Repetition Review Hub to check retention in 24 hours.
             </p>
@@ -1090,9 +1090,9 @@ export default function AptitudePage() {
           <Card className="border border-border shadow-xl rounded-3xl overflow-hidden bg-card">
             
             {/* Header splash */}
-            <CardHeader className="bg-slate-50 border-b border-border/60 p-6 flex flex-row items-center justify-between select-none">
+            <CardHeader className="bg-muted/50 border-b border-border/60 p-6 flex flex-row items-center justify-between select-none">
               <div>
-                <CardTitle className="text-xl font-extrabold text-slate-800">Mock Exam Results</CardTitle>
+                <CardTitle className="text-xl font-extrabold text-foreground">Mock Exam Results</CardTitle>
                 <CardDescription>Comprehensive report analysis of completed testing session</CardDescription>
               </div>
               <Button
@@ -1101,7 +1101,7 @@ export default function AptitudePage() {
                   setActiveTab("dashboard");
                 }}
                 variant="outline"
-                className="border-slate-250 hover:bg-slate-150 text-xs font-bold h-9 rounded-xl text-slate-700"
+                className="border-border hover:bg-secondary text-xs font-bold h-9 rounded-xl text-foreground"
               >
                 Go to Dashboard
               </Button>
@@ -1111,27 +1111,27 @@ export default function AptitudePage() {
               
               {/* Metric widgets */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 select-none">
-                <div className="bg-slate-50 border border-slate-200/80 p-4.5 rounded-2xl text-center space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Total Score</span>
-                  <span className="text-3xl font-black text-slate-900">{activeQuizAttempt.score}%</span>
+                <div className="bg-muted/50 border border-border/80 p-4.5 rounded-2xl text-center space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Total Score</span>
+                  <span className="text-3xl font-black text-foreground">{activeQuizAttempt.score}%</span>
                 </div>
-                <div className="bg-slate-50 border border-slate-200/80 p-4.5 rounded-2xl text-center space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Accuracy</span>
-                  <span className="text-3xl font-black text-slate-900">{activeQuizAttempt.accuracy}%</span>
+                <div className="bg-muted/50 border border-border/80 p-4.5 rounded-2xl text-center space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Accuracy</span>
+                  <span className="text-3xl font-black text-foreground">{activeQuizAttempt.accuracy}%</span>
                 </div>
-                <div className="bg-slate-50 border border-slate-200/80 p-4.5 rounded-2xl text-center space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Duration</span>
-                  <span className="text-3xl font-black text-slate-900">{activeQuizAttempt.timeTaken}s</span>
+                <div className="bg-muted/50 border border-border/80 p-4.5 rounded-2xl text-center space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Duration</span>
+                  <span className="text-3xl font-black text-foreground">{activeQuizAttempt.timeTaken}s</span>
                 </div>
-                <div className="bg-slate-50 border border-slate-200/80 p-4.5 rounded-2xl text-center space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Percentile</span>
-                  <span className="text-3xl font-black text-slate-900">{activeQuizAttempt.percentile}th</span>
+                <div className="bg-muted/50 border border-border/80 p-4.5 rounded-2xl text-center space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Percentile</span>
+                  <span className="text-3xl font-black text-foreground">{activeQuizAttempt.percentile}th</span>
                 </div>
               </div>
 
               {/* Explanations List */}
               <div className="space-y-6">
-                <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-1.5 select-none">
+                <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5 select-none">
                   <CheckCircle2 className="w-4 h-4 text-indigo-650" />
                   Solutions & Concept Walkthroughs
                 </h3>
@@ -1149,19 +1149,19 @@ export default function AptitudePage() {
                     }
 
                     return (
-                      <div key={q.id} className="border border-slate-150 rounded-2xl p-5 space-y-3.5 bg-card">
+                      <div key={q.id} className="border border-border/50 rounded-2xl p-5 space-y-3.5 bg-card">
                         <div className="flex justify-between items-start">
-                          <span className="text-sm font-extrabold text-slate-800 leading-relaxed whitespace-pre-line select-text">
+                          <span className="text-sm font-extrabold text-foreground leading-relaxed whitespace-pre-line select-text">
                             Q{idx + 1}. {q.text}
                           </span>
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold select-none ${
-                              isCorrect ? "bg-emerald-100 text-emerald-800" : "bg-rose-100 text-rose-800"
+                              isCorrect ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200" : "bg-rose-500/15 text-rose-800 dark:text-rose-200"
                             }`}>
                               {isCorrect ? "Correct" : "Incorrect"}
                             </span>
                             {!isCorrect && (
-                              <Badge variant="outline" className="text-[9px] border-amber-300 bg-amber-50 text-amber-700 py-0.5 px-2 font-black uppercase">
+                              <Badge variant="outline" className="text-[9px] border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 py-0.5 px-2 font-black uppercase">
                                 {classification}
                               </Badge>
                             )}
@@ -1171,36 +1171,36 @@ export default function AptitudePage() {
                         <div className="grid grid-cols-2 gap-4 text-xs select-none">
                           <div>
                             <span className="text-muted-foreground block font-bold">Your Response:</span>
-                            <span className={`font-semibold ${isCorrect ? "text-emerald-700" : "text-rose-600"}`}>
+                            <span className={`font-semibold ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-600"}`}>
                               {chosen || "Skipped"}
                             </span>
                           </div>
                           <div>
                             <span className="text-muted-foreground block font-bold">Correct Solution:</span>
-                            <span className="font-semibold text-emerald-700">
+                            <span className="font-semibold text-emerald-700 dark:text-emerald-300">
                               {q.answer}
                             </span>
                           </div>
                         </div>
 
                         {/* Detailed explanation collapse */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2 select-text">
-                          <span className="font-bold text-slate-700 block uppercase tracking-wider text-[9px] select-none">Method Explanation:</span>
-                          <p className="text-slate-650 leading-relaxed font-medium">{q.explanation}</p>
+                        <div className="bg-muted/50 p-4 rounded-xl border border-border text-xs space-y-2 select-text">
+                          <span className="font-bold text-foreground block uppercase tracking-wider text-[9px] select-none">Method Explanation:</span>
+                          <p className="text-muted-foreground leading-relaxed font-medium">{q.explanation}</p>
                           
                           {q.formula && (
-                            <div className="pt-1.5 border-t border-slate-200/60 mt-1.5">
-                              <span className="font-bold text-indigo-700 select-none">Formula:</span> <code className="bg-indigo-50/50 px-1.5 py-0.5 rounded border text-indigo-900 font-mono">{q.formula}</code>
+                            <div className="pt-1.5 border-t border-border/60 mt-1.5">
+                              <span className="font-bold text-indigo-700 dark:text-indigo-300 select-none">Formula:</span> <code className="bg-indigo-500/100/10 px-1.5 py-0.5 rounded border text-indigo-900 dark:text-indigo-100 font-mono">{q.formula}</code>
                             </div>
                           )}
                           {q.shortcut && (
-                            <div className="pt-1.5 border-t border-slate-200/60">
-                              <span className="font-bold text-emerald-700 select-none">Shortcut:</span> <span className="text-slate-600 font-medium">{q.shortcut}</span>
+                            <div className="pt-1.5 border-t border-border/60">
+                              <span className="font-bold text-emerald-700 dark:text-emerald-300 select-none">Shortcut:</span> <span className="text-muted-foreground font-medium">{q.shortcut}</span>
                             </div>
                           )}
                           {q.commonMistake && (
-                            <div className="pt-1.5 border-t border-slate-200/60">
-                              <span className="font-bold text-amber-700 select-none">Common Mistake:</span> <span className="text-slate-600 font-medium">{q.commonMistake}</span>
+                            <div className="pt-1.5 border-t border-border/60">
+                              <span className="font-bold text-amber-700 dark:text-amber-300 select-none">Common Mistake:</span> <span className="text-muted-foreground font-medium">{q.commonMistake}</span>
                             </div>
                           )}
                         </div>
@@ -1222,16 +1222,16 @@ export default function AptitudePage() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* Gamification Profile Header */}
-            <Card className="border border-border p-6 rounded-3xl bg-gradient-to-br from-indigo-50/40 via-card to-card shadow-sm flex flex-row items-center justify-between gap-6 select-none">
+            <Card className="border border-border p-6 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-card to-card shadow-sm flex flex-row items-center justify-between gap-6 select-none">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-sm font-black text-lg">
                   Lvl {gamification.level}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-slate-800">Aptitude Warrior</h3>
+                  <h3 className="text-sm font-black text-foreground">Aptitude Warrior</h3>
                   <div className="flex items-center gap-2 w-48">
-                    <Progress value={gamification.xp % 100} className="h-2 bg-slate-200" />
-                    <span className="text-[10px] font-bold text-slate-500">{gamification.xp % 100}/100 XP</span>
+                    <Progress value={gamification.xp % 100} className="h-2 bg-secondary" />
+                    <span className="text-[10px] font-bold text-muted-foreground">{gamification.xp % 100}/100 XP</span>
                   </div>
                 </div>
               </div>
@@ -1240,7 +1240,7 @@ export default function AptitudePage() {
                 <div className="flex items-center gap-1.5">
                   <Flame className="w-5 h-5 text-orange-500 fill-orange-500" />
                   <div>
-                    <span className="text-lg font-black text-slate-900">{gamification.streak} Days</span>
+                    <span className="text-lg font-black text-foreground">{gamification.streak} Days</span>
                     <span className="text-[9px] text-muted-foreground block font-bold uppercase tracking-wider">Practice Streak</span>
                   </div>
                 </div>
@@ -1248,7 +1248,7 @@ export default function AptitudePage() {
                 {/* Badge list */}
                 <div className="flex gap-1.5">
                   {gamification.badges.map(b => (
-                    <Badge key={b} className="bg-amber-500/10 text-amber-600 border border-amber-500/25 text-[9px] font-black uppercase py-0.5 px-2 rounded-full">
+                    <Badge key={b} className="bg-amber-500/100/10 text-amber-600 border border-amber-500/25 text-[9px] font-black uppercase py-0.5 px-2 rounded-full">
                       {b}
                     </Badge>
                   ))}
@@ -1262,12 +1262,12 @@ export default function AptitudePage() {
               {/* Overall Score */}
               <Card className="border border-border p-6 rounded-3xl flex flex-col justify-between space-y-4 shadow-sm bg-card">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Overall Aptitude</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Overall Aptitude</span>
                   <BarChart3 className="w-4 h-4 text-indigo-500" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-4xl font-black text-slate-900">{analytics.overallScore}%</span>
-                  <Progress value={analytics.overallScore} className="h-2 bg-slate-100" />
+                  <span className="text-4xl font-black text-foreground">{analytics.overallScore}%</span>
+                  <Progress value={analytics.overallScore} className="h-2 bg-muted" />
                 </div>
                 <p className="text-[10px] text-muted-foreground font-semibold leading-relaxed">
                   Weighted benchmark rank compared to recent candidate cohorts.
@@ -1277,12 +1277,12 @@ export default function AptitudePage() {
               {/* Average Accuracy */}
               <Card className="border border-border p-6 rounded-3xl flex flex-col justify-between space-y-4 shadow-sm bg-card">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Average Accuracy</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Average Accuracy</span>
                   <TrendingUp className="w-4 h-4 text-emerald-500" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-4xl font-black text-slate-900">{analytics.avgAccuracy}%</span>
-                  <Progress value={analytics.avgAccuracy} className="h-2 bg-slate-100" />
+                  <span className="text-4xl font-black text-foreground">{analytics.avgAccuracy}%</span>
+                  <Progress value={analytics.avgAccuracy} className="h-2 bg-muted" />
                 </div>
                 <p className="text-[10px] text-muted-foreground font-semibold leading-relaxed">
                   Precision value based on calculated answer inputs.
@@ -1292,11 +1292,11 @@ export default function AptitudePage() {
               {/* Avg speed per question */}
               <Card className="border border-border p-6 rounded-3xl flex flex-col justify-between space-y-4 shadow-sm bg-card">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Speed Metric</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Speed Metric</span>
                   <Clock className="w-4 h-4 text-amber-500" />
                 </div>
                 <div className="space-y-1">
-                  <span className="text-4xl font-black text-slate-900">
+                  <span className="text-4xl font-black text-foreground">
                     {attempts.length > 0 ? `${analytics.avgTimePerQuestion}s` : "0s"}
                   </span>
                   <span className="text-[10px] font-extrabold text-muted-foreground uppercase block">Avg per question</span>
@@ -1309,7 +1309,7 @@ export default function AptitudePage() {
 
             {/* Score trend graph card */}
             <Card className="border border-border rounded-3xl p-6 space-y-4 shadow-sm bg-card">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-1.5 select-none">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5 select-none">
                 <Activity className="w-4 h-4 text-indigo-500" />
                 Progress Graph (Last 10 attempts)
               </h3>
@@ -1318,32 +1318,32 @@ export default function AptitudePage() {
 
             {/* ELO ratings section & Heatmap Grid */}
             <Card className="border border-border rounded-3xl p-6 space-y-4 shadow-sm bg-card">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-1.5 select-none">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5 select-none">
                 <Award className="w-4.5 h-4.5 text-indigo-650" />
                 Topic Mastery Heatmap (ELOs)
               </h3>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {Object.entries(eloRatings).slice(0, 12).map(([topic, rating]) => {
-                  let badgeColor = "bg-rose-50 text-rose-700 border-rose-150";
+                  let badgeColor = "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20";
                   let tierName = "Bronze";
                   
                   if (rating > 1350) {
-                    badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                    badgeColor = "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-500/20";
                     tierName = "Platinum";
                   } else if (rating > 1250) {
-                    badgeColor = "bg-indigo-50 text-indigo-700 border-indigo-150";
+                    badgeColor = "bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border-indigo-500/20";
                     tierName = "Gold";
                   } else if (rating > 1150) {
-                    badgeColor = "bg-blue-50 text-blue-700 border-blue-150";
+                    badgeColor = "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20";
                     tierName = "Silver";
                   }
                   
                   return (
                     <div key={topic} className="p-3.5 bg-secondary/30 border border-border/50 rounded-2xl flex flex-col justify-between items-center text-center gap-2 hover:shadow-inner transition-all duration-300">
-                      <span className="text-[10px] font-bold text-slate-650 truncate w-full">{topic}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground truncate w-full">{topic}</span>
                       <div>
-                        <span className="text-base font-black text-slate-900 block leading-tight">{rating}</span>
+                        <span className="text-base font-black text-foreground block leading-tight">{rating}</span>
                         <span className={`text-[8px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border mt-1.5 block ${badgeColor}`}>
                           {tierName}
                         </span>
@@ -1356,7 +1356,7 @@ export default function AptitudePage() {
 
             {/* Advanced Skill Radar (Lightweight SVG) */}
             <Card className="border border-border rounded-3xl p-6 space-y-4 shadow-sm bg-card select-none">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground">
                 Cognitive Aptitude Radar
               </h3>
               <div className="flex justify-center py-4">
@@ -1386,7 +1386,7 @@ export default function AptitudePage() {
             
             {/* Predicted placement readiness */}
             <Card className="border border-border rounded-3xl p-5 space-y-4 shadow-sm bg-card select-none">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5">
                 <Compass className="w-4 h-4 text-emerald-600" />
                 Placement Readiness Index
               </h3>
@@ -1405,7 +1405,7 @@ export default function AptitudePage() {
                       <span>{comp.name}</span>
                       <span>{comp.val}%</span>
                     </div>
-                    <Progress value={comp.val} className="h-1 bg-slate-100" />
+                    <Progress value={comp.val} className="h-1 bg-muted" />
                   </div>
                 ))}
               </div>
@@ -1413,12 +1413,12 @@ export default function AptitudePage() {
 
             {/* AI Coach Weekly Study Plan Card */}
             <Card className="border border-border rounded-3xl p-5 space-y-4 shadow-sm bg-gradient-to-br from-indigo-50/20 via-card to-card">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-1.5 select-none">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5 select-none">
                 <Calendar className="w-4.5 h-4.5 text-indigo-650" />
                 Weekly Study Goals
               </h3>
               
-              <div className="text-xs space-y-3 font-semibold text-slate-650 select-text">
+              <div className="text-xs space-y-3 font-semibold text-muted-foreground select-text">
                 <div className="flex justify-between border-b pb-2">
                   <span>Study Allocation:</span>
                   <span className="text-indigo-650">{studyPlan.weeklyHours} hours</span>
@@ -1435,16 +1435,16 @@ export default function AptitudePage() {
             </Card>
 
             <Card className="border border-border rounded-3xl p-5 space-y-4 shadow-sm bg-gradient-to-br from-indigo-50/20 via-card to-card">
-              <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800 flex items-center gap-1.5 select-none">
+              <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5 select-none">
                 <Sparkles className="w-4 h-4 text-indigo-650 animate-pulse" />
                 AI Mentor Strategy
               </h3>
 
               <div className="space-y-3 select-text">
                 {recommendations.map((rec, idx) => (
-                  <div key={idx} className="p-3.5 bg-indigo-50/50 border border-indigo-100 rounded-2xl text-xs space-y-1">
-                    <span className="font-bold text-indigo-900 block">{rec.title}</span>
-                    <p className="text-slate-650 leading-normal font-semibold">{rec.desc}</p>
+                  <div key={idx} className="p-3.5 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
+                    <span className="font-bold text-indigo-900 dark:text-indigo-100 block">{rec.title}</span>
+                    <p className="text-muted-foreground leading-normal font-semibold">{rec.desc}</p>
                   </div>
                 ))}
               </div>
@@ -1474,9 +1474,9 @@ export default function AptitudePage() {
       {!isQuizActive && !showQuizResultsSummary && activeTab === "practice" && (
         <div className="space-y-6 animate-in fade-in duration-300 select-none">
           <Card className="border border-border shadow-xl rounded-3xl overflow-hidden bg-card">
-            <CardHeader className="bg-slate-50 border-b border-border/60 p-6 flex flex-row justify-between items-center">
+            <CardHeader className="bg-muted/50 border-b border-border/60 p-6 flex flex-row justify-between items-center">
               <div>
-                <CardTitle className="text-xl font-extrabold text-slate-800">Setup Assessment Blueprint</CardTitle>
+                <CardTitle className="text-xl font-extrabold text-foreground">Setup Assessment Blueprint</CardTitle>
                 <CardDescription>Procure a custom generated mock assessment matching test parameters</CardDescription>
               </div>
               <Button
@@ -1490,7 +1490,7 @@ export default function AptitudePage() {
               
               {/* Assessment Modes Grid */}
               <div className="space-y-3">
-                <label className="text-xs font-black text-slate-800 uppercase tracking-wider">Assessment Mode</label>
+                <label className="text-xs font-black text-foreground uppercase tracking-wider">Assessment Mode</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {ASSESSMENT_MODES.map(mode => {
                     const Icon = mode.icon;
@@ -1501,12 +1501,12 @@ export default function AptitudePage() {
                         onClick={() => setSelectedMode(mode.id)}
                         className={`p-4 rounded-2xl border text-left flex gap-3 cursor-pointer transition-all ${
                           isSel 
-                          ? "bg-indigo-55 border-indigo-650 text-indigo-950 shadow-sm" 
-                          : "bg-card border-border hover:bg-slate-50 text-slate-700"
+                          ? "bg-indigo-55 border-indigo-650 text-foreground shadow-sm" 
+                          : "bg-card border-border hover:bg-muted/50 text-foreground"
                         }`}
                       >
                         <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                          isSel ? "bg-indigo-650 text-white" : "bg-muted text-slate-500"
+                          isSel ? "bg-indigo-650 text-white" : "bg-muted text-muted-foreground"
                         }`}>
                           <Icon className="w-4.5 h-4.5" />
                         </div>
@@ -1524,11 +1524,11 @@ export default function AptitudePage() {
                 
                 {/* Company Select */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-800 uppercase tracking-wider">Company Target Pattern</label>
+                  <label className="text-xs font-black text-foreground uppercase tracking-wider">Company Target Pattern</label>
                   <select 
                     value={selectedCompany}
                     onChange={(e) => setSelectedCompany(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-600"
+                    className="w-full bg-muted/50 border border-border rounded-2xl p-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-600"
                   >
                     {COMPANIES.map(c => (
                       <option key={c} value={c}>{c}</option>
@@ -1538,14 +1538,14 @@ export default function AptitudePage() {
 
                 {/* Category Selection */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-800 uppercase tracking-wider">Category Focus</label>
+                  <label className="text-xs font-black text-foreground uppercase tracking-wider">Category Focus</label>
                   <select 
                     value={selectedCategory}
                     onChange={(e) => {
                       setSelectedCategory(e.target.value);
                       setSelectedTopic("any"); 
                     }}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-650"
+                    className="w-full bg-muted/50 border border-border rounded-2xl p-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650"
                   >
                     <option value="any">All Sections (Mixed)</option>
                     {CATEGORIES.map(c => (
@@ -1556,11 +1556,11 @@ export default function AptitudePage() {
 
                 {/* Topic Selection */}
                 <div className="space-y-2">
-                  <label className="text-xs font-black text-slate-800 uppercase tracking-wider">Topic Focus</label>
+                  <label className="text-xs font-black text-foreground uppercase tracking-wider">Topic Focus</label>
                   <select 
                     value={selectedTopic}
                     onChange={(e) => setSelectedTopic(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-650"
+                    className="w-full bg-muted/50 border border-border rounded-2xl p-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650"
                   >
                     <option value="any">All Topics (Mixed)</option>
                     {selectedCategory !== "any" && CATEGORIES.find(c => c.name === selectedCategory)?.topics.map(t => (
@@ -1572,7 +1572,7 @@ export default function AptitudePage() {
 
               {/* Question Count Select */}
               <div className="space-y-3.5">
-                <label className="text-xs font-black text-slate-800 uppercase tracking-wider">Question Limits</label>
+                <label className="text-xs font-black text-foreground uppercase tracking-wider">Question Limits</label>
                 <div className="flex gap-3">
                   {[5, 10, 15, 20].map(count => (
                     <button
@@ -1581,7 +1581,7 @@ export default function AptitudePage() {
                       className={`px-6 py-2.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                         questionCount === count
                         ? "bg-indigo-600 border-indigo-600 text-white shadow-sm shadow-indigo-500/10"
-                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                        : "bg-muted/50 border-border text-foreground hover:bg-muted"
                       }`}
                     >
                       {count} Questions
@@ -1591,7 +1591,7 @@ export default function AptitudePage() {
               </div>
             </CardContent>
 
-            <CardFooter className="bg-slate-50 border-t border-border/60 p-6 flex justify-end">
+            <CardFooter className="bg-muted/50 border-t border-border/60 p-6 flex justify-end">
               <Button
                 onClick={handleStartQuiz}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 px-8 rounded-xl text-xs flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-500/10"
@@ -1609,7 +1609,7 @@ export default function AptitudePage() {
         <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
           <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm select-none">
             <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-1.5">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-1.5">
                 <Compass className="w-5 h-5 text-indigo-650" />
                 Adaptive Learning Path Roadmap
               </CardTitle>
@@ -1621,18 +1621,18 @@ export default function AptitudePage() {
                   Complete a mock test to build a custom adaptive learning plan.
                 </div>
               ) : (
-                <div className="relative border-l-2 border-indigo-100 ml-4 space-y-8">
+                <div className="relative border-l-2 border-indigo-500/20 ml-4 space-y-8">
                   {roadmap.weeks.map(week => (
                     <div key={week.weekNum} className="relative pl-8">
                       <div className="absolute -left-3 top-0.5 w-6.5 h-6.5 rounded-full bg-indigo-600 border border-white flex items-center justify-center text-white text-[10px] font-black">
                         W{week.weekNum}
                       </div>
                       <div className="space-y-2">
-                        <h4 className="text-sm font-black text-slate-800">Week {week.weekNum} Preparation Focus</h4>
+                        <h4 className="text-sm font-black text-foreground">Week {week.weekNum} Preparation Focus</h4>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           {week.topics.map(t => (
                             <div key={t} className="p-4 bg-secondary/35 border border-border/60 rounded-2xl flex flex-col justify-between items-start gap-2">
-                              <span className="text-xs font-bold text-slate-700">{t}</span>
+                              <span className="text-xs font-bold text-foreground">{t}</span>
                               <span className="text-[10px] font-bold text-indigo-600">ELO Rating: {eloRatings[t] || 1200}</span>
                             </div>
                           ))}
@@ -1652,7 +1652,7 @@ export default function AptitudePage() {
         <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
           <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm">
             <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-1.5 select-none">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-1.5 select-none">
                 <Compass className="w-5 h-5 text-indigo-600" />
                 Placement Readiness Dashboard
               </CardTitle>
@@ -1668,13 +1668,13 @@ export default function AptitudePage() {
                   { name: "Deloitte (Aptitude & Case)", val: readiness.deloitte, hours: 6 },
                   { name: "EY (Logical Reasoning)", val: readiness.ey, hours: 5 }
                 ].map(comp => (
-                  <div key={comp.name} className="p-4 bg-slate-50 border border-slate-150 rounded-2xl space-y-3">
+                  <div key={comp.name} className="p-4 bg-muted/50 border border-border/50 rounded-2xl space-y-3">
                     <div className="flex justify-between items-center text-xs font-bold">
-                      <span className="text-slate-800">{comp.name}</span>
+                      <span className="text-foreground">{comp.name}</span>
                       <span className="text-indigo-650">{comp.val}% Readiness</span>
                     </div>
-                    <Progress value={comp.val} className="h-2 bg-slate-200" />
-                    <div className="flex justify-between text-[10px] text-slate-500 font-semibold uppercase">
+                    <Progress value={comp.val} className="h-2 bg-secondary" />
+                    <div className="flex justify-between text-[10px] text-muted-foreground font-semibold uppercase">
                       <span>Suggested Study Plan: {comp.hours} hours practice</span>
                       <span>ELO Target: 1300+</span>
                     </div>
@@ -1691,7 +1691,7 @@ export default function AptitudePage() {
         <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
           <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm select-none">
             <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-1.5">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-1.5">
                 <BookMarked className="w-5 h-5 text-indigo-650" />
                 Spaced Repetition Review Hub
               </CardTitle>
@@ -1709,8 +1709,8 @@ export default function AptitudePage() {
                     return (
                       <div key={idx} className="p-4 bg-secondary/30 border border-border/50 rounded-2xl flex justify-between items-center gap-6">
                         <div className="space-y-1">
-                          <span className="text-xs font-bold text-slate-800 truncate block max-w-lg">{item.question.text}</span>
-                          <div className="flex gap-3 text-[10px] text-slate-500 font-bold">
+                          <span className="text-xs font-bold text-foreground truncate block max-w-lg">{item.question.text}</span>
+                          <div className="flex gap-3 text-[10px] text-muted-foreground font-bold">
                             <span>Topic: {item.question.topic}</span>
                             <span>•</span>
                             <span>Difficulty: {item.question.difficulty}</span>
@@ -1721,11 +1721,11 @@ export default function AptitudePage() {
 
                         <div className="flex items-center gap-4 shrink-0">
                           {isDue ? (
-                            <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                               Ready for Review
                             </Badge>
                           ) : (
-                            <Badge className="bg-slate-50 text-slate-500 border border-slate-200">
+                            <Badge className="bg-muted/50 text-muted-foreground border border-border">
                               Scheduled review
                             </Badge>
                           )}
@@ -1753,14 +1753,14 @@ export default function AptitudePage() {
       {!isQuizActive && !showQuizResultsSummary && activeTab === "history" && (
         <div className="space-y-6 animate-in fade-in duration-300 select-none">
           <Card className="border border-border shadow-sm rounded-3xl overflow-hidden bg-card">
-            <CardHeader className="bg-slate-50 border-b border-border/60 p-6 flex flex-row justify-between items-center">
+            <CardHeader className="bg-muted/50 border-b border-border/60 p-6 flex flex-row justify-between items-center">
               <div>
-                <CardTitle className="text-lg font-bold text-slate-800">Practice History Log</CardTitle>
+                <CardTitle className="text-lg font-bold text-foreground">Practice History Log</CardTitle>
                 <CardDescription>Archive logs of previously completed mock assessment trials</CardDescription>
               </div>
               <Button
                 onClick={handleExportCsvData}
-                className="h-8 border-slate-250 text-xs font-bold rounded-lg flex items-center gap-1.5 cursor-pointer text-slate-700"
+                className="h-8 border-border text-xs font-bold rounded-lg flex items-center gap-1.5 cursor-pointer text-foreground"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export History (CSV)</span>
@@ -1773,8 +1773,8 @@ export default function AptitudePage() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs font-medium text-slate-700 divide-y divide-slate-100">
-                    <thead className="bg-slate-50/50 uppercase tracking-widest text-[9px] font-black text-slate-500 border-b border-border/40">
+                  <table className="w-full text-left text-xs font-medium text-foreground divide-y divide-slate-100">
+                    <thead className="bg-muted/50/50 uppercase tracking-widest text-[9px] font-black text-muted-foreground border-b border-border/40">
                       <tr>
                         <th className="px-6 py-4">Date</th>
                         <th className="px-6 py-4">Test Profile</th>
@@ -1784,15 +1784,15 @@ export default function AptitudePage() {
                         <th className="px-6 py-4">Solved Time</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 font-bold text-slate-800">
+                    <tbody className="divide-y divide-slate-100 font-bold text-foreground">
                       {attempts.map(a => (
-                        <tr key={a.id} className="hover:bg-slate-50/30">
+                        <tr key={a.id} className="hover:bg-muted/50/30">
                           <td className="px-6 py-4">{a.date}</td>
                           <td className="px-6 py-4">{a.testName}</td>
                           <td className="px-6 py-4">{a.companyPattern}</td>
-                          <td className="px-6 py-4 text-indigo-700">{a.score}%</td>
-                          <td className="px-6 py-4 text-emerald-700">{a.accuracy}%</td>
-                          <td className="px-6 py-4 text-slate-500">{a.timeTaken}s</td>
+                          <td className="px-6 py-4 text-indigo-700 dark:text-indigo-300">{a.score}%</td>
+                          <td className="px-6 py-4 text-emerald-700 dark:text-emerald-300">{a.accuracy}%</td>
+                          <td className="px-6 py-4 text-muted-foreground">{a.timeTaken}s</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1809,7 +1809,7 @@ export default function AptitudePage() {
         <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300 select-none">
           <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm">
             <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-slate-800 flex items-center gap-2">
+              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
                 <Settings className="w-5 h-5 text-indigo-650" />
                 Assessment Engine Content Diagnostics
               </CardTitle>
@@ -1819,51 +1819,51 @@ export default function AptitudePage() {
               
               {/* Telemetry logs (SRE benchmarks) */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Activity className="w-4 h-4 text-indigo-650" />
                   SRE Latency Metrics Benchmarks (SLA &gt; 99.9%)
                 </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-slate-800">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-foreground">
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Gen Latency</span>
+                    <span className="text-muted-foreground block text-[9px]">Gen Latency</span>
                     <span>{telemetryLogs.generationLatency} ms</span>
                   </div>
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Validation Latency</span>
+                    <span className="text-muted-foreground block text-[9px]">Validation Latency</span>
                     <span>{telemetryLogs.validationLatency} ms</span>
                   </div>
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">CAT Computation</span>
+                    <span className="text-muted-foreground block text-[9px]">CAT Computation</span>
                     <span>{telemetryLogs.catSelectionLatency} ms</span>
                   </div>
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Cache Hit Ratio</span>
-                    <span className="text-emerald-700">{telemetryLogs.cacheHitRatio}%</span>
+                    <span className="text-muted-foreground block text-[9px]">Cache Hit Ratio</span>
+                    <span className="text-emerald-700 dark:text-emerald-300">{telemetryLogs.cacheHitRatio}%</span>
                   </div>
                 </div>
               </div>
 
               {/* Fairness & Bias Auditing */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <Layers className="w-4 h-4 text-emerald-600" />
                   Psychometric Fairness & Demographic Auditing
                 </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-slate-800">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-foreground">
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Topic Balance Ratio</span>
+                    <span className="text-muted-foreground block text-[9px]">Topic Balance Ratio</span>
                     <span>{fairnessMetrics.topicBalanceRatio}%</span>
                   </div>
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Demographic Parity</span>
+                    <span className="text-muted-foreground block text-[9px]">Demographic Parity</span>
                     <span>{fairnessMetrics.demographicParity}%</span>
                   </div>
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Psychometric Stability</span>
+                    <span className="text-muted-foreground block text-[9px]">Psychometric Stability</span>
                     <span>{fairnessMetrics.psychometricStability}%</span>
                   </div>
                   <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-slate-500 block text-[9px]">Difficulty Variance</span>
+                    <span className="text-muted-foreground block text-[9px]">Difficulty Variance</span>
                     <span>Minimal (&lt; 1.2%)</span>
                   </div>
                 </div>
@@ -1871,25 +1871,25 @@ export default function AptitudePage() {
 
               {/* Internal metrics */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-slate-50 border p-4.5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Procedural Validity</span>
-                  <span className="text-2xl font-black text-indigo-950">99.4% Pass</span>
+                <div className="bg-muted/50 border p-4.5 rounded-2xl space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Procedural Validity</span>
+                  <span className="text-2xl font-black text-foreground">99.4% Pass</span>
                 </div>
-                <div className="bg-slate-50 border p-4.5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Failed Generations Cache</span>
+                <div className="bg-muted/50 border p-4.5 rounded-2xl space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Failed Generations Cache</span>
                   <span className="text-2xl font-black text-rose-600">{validationFailuresCount} Discarded</span>
                 </div>
-                <div className="bg-slate-50 border p-4.5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Spaced Repetition Hit Rate</span>
-                  <span className="text-2xl font-black text-emerald-700">84.2% Success</span>
+                <div className="bg-muted/50 border p-4.5 rounded-2xl space-y-1">
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Spaced Repetition Hit Rate</span>
+                  <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300">84.2% Success</span>
                 </div>
               </div>
 
               {/* IRT calibrations parameters view */}
               <div className="space-y-2">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Psychometrics Calibration Table</h4>
-                <div className="bg-slate-50 border p-4 rounded-xl text-xs space-y-2">
-                  <div className="grid grid-cols-4 font-bold border-b pb-1 text-slate-500 uppercase text-[9px]">
+                <h4 className="text-xs font-black text-foreground uppercase tracking-wider">Psychometrics Calibration Table</h4>
+                <div className="bg-muted/50 border p-4 rounded-xl text-xs space-y-2">
+                  <div className="grid grid-cols-4 font-bold border-b pb-1 text-muted-foreground uppercase text-[9px]">
                     <span>Concept Domain</span>
                     <span>Discrimination (a)</span>
                     <span>Difficulty (b)</span>
@@ -1901,7 +1901,7 @@ export default function AptitudePage() {
                     { domain: "Verbal Ability", a: 0.98, b: 0.45, c: 0.25 },
                     { domain: "English Grammar", a: 1.15, b: -0.05, c: 0.25 }
                   ].map(irt => (
-                    <div key={irt.domain} className="grid grid-cols-4 font-semibold text-slate-800">
+                    <div key={irt.domain} className="grid grid-cols-4 font-semibold text-foreground">
                       <span>{irt.domain}</span>
                       <span>{irt.a}</span>
                       <span>{irt.b}</span>
@@ -1913,14 +1913,14 @@ export default function AptitudePage() {
 
               {/* Logs */}
               <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+                <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <AlertCircle className="w-4 h-4 text-amber-500" />
                   Recent Validation Logs
                 </h4>
                 <div className="p-4 bg-slate-900 text-slate-100 rounded-2xl font-mono text-[11px] space-y-2 select-text">
                   {diagnosticsLogs.map((log, idx) => (
                     <div key={idx} className="flex gap-2">
-                      <span className="text-slate-500">[{new Date().toISOString().split("T")[0]}]</span>
+                      <span className="text-muted-foreground">[{new Date().toISOString().split("T")[0]}]</span>
                       <span>{log}</span>
                     </div>
                   ))}
