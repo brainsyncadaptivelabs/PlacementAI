@@ -32,6 +32,16 @@ const languageSnippets: Record<string, { language: string, filename: string, cod
     language: "c++",
     filename: "main.cpp",
     code: ""
+  },
+  r: {
+    language: "r",
+    filename: "main.r",
+    code: ""
+  },
+  mysql: {
+    language: "mysql",
+    filename: "main.sql",
+    code: "-- SQL Execution uses MySQL under the hood\nCREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255));\nINSERT INTO users (name) VALUES ('John'), ('Jane');\nSHOW TABLES;\nSELECT * FROM users;"
   }
 };
 
@@ -74,12 +84,28 @@ const JSLogo = () => (
   </svg>
 );
 
+const RLogo = () => (
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.3 14.5l-1.9-2.7c-.2-.2-.5-.4-.8-.4h-1.4v3.1H9.8V8.7h3.6c2 0 3.3 1 3.3 2.8 0 1.5-.9 2.5-2.2 2.7l2.2 3.1h-1.4zm-2.8-6.9h-1.4v2.7h1.4c.8 0 1.5-.4 1.5-1.3 0-1-.6-1.4-1.5-1.4z" fill="#276DC3"/>
+  </svg>
+);
+
+const MySQLLogo = () => (
+  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4 11.5c0 1.5-2 3-4 3s-4-1.5-4-3V11c0-1.5 2-3 4-3s4 1.5 4 3v2.5z" fill="#00758F"/>
+    <path d="M12 9c-1.3 0-2.5.7-2.5 2s1.2 2 2.5 2 2.5-.7 2.5-2-1.2-2-2.5-2z" fill="#F29111"/>
+  </svg>
+);
+
+
 const languages = [
   { id: "python", name: "Python 3", logo: <PythonLogo /> },
   { id: "c", name: "C", logo: <CLogo /> },
   { id: "c++", name: "C++", logo: <CppLogo /> },
   { id: "java", name: "Java", logo: <JavaLogo /> },
-  { id: "javascript", name: "JavaScript", logo: <JSLogo /> }
+  { id: "javascript", name: "JavaScript", logo: <JSLogo /> },
+  { id: "r", name: "R", logo: <RLogo /> },
+  { id: "mysql", name: "MySQL", logo: <MySQLLogo /> }
 ];
 
 type TerminalLine = {
@@ -145,12 +171,29 @@ export default function CodingPracticePage() {
     wsRef.current = ws;
 
     ws.onopen = () => {
+      let runLanguage = currentConfig.language;
+      let runFiles: { name: string, content: string }[] = [{ name: currentConfig.filename, content: code }];
+
+      if (currentConfig.language === "mysql") {
+        runLanguage = "bash";
+        runFiles = [
+          { 
+            name: "run.sh", 
+            content: `#!/bin/bash\nDB_NAME="sandbox_$(date +%s%N)"\nmysql -h mysql-sandbox -u root -proot -e "CREATE DATABASE $DB_NAME;" 2>/dev/null\nmysql -h mysql-sandbox -u root -proot $DB_NAME < main.sql 2>&1\nEXIT_CODE=$?\nmysql -h mysql-sandbox -u root -proot -e "DROP DATABASE $DB_NAME;" 2>/dev/null\nexit $EXIT_CODE\n`
+          },
+          {
+            name: "main.sql",
+            content: code
+          }
+        ];
+      }
+
       ws.send(JSON.stringify({
         type: "init",
-        language: currentConfig.language,
+        language: runLanguage,
         version: "*",
         run_timeout: 60000,
-        files: [{ name: currentConfig.filename, content: code }]
+        files: runFiles
       }));
     };
 
