@@ -68,23 +68,57 @@ export default function ResumeWizardPage() {
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setLoading(true);
-    // Simulate premium document parser extraction
-    setTimeout(() => {
-      const dummyJd = `Job Description: Senior Java Backend Developer
-Experience Required: 2-5 years
-Core Requirements:
-- Develop scalable REST APIs using Java and Spring Boot.
-- Manage databases using SQL, PostgreSQL, or Hibernate.
-- Deploy applications containerized with Docker and Kubernetes on AWS.
-- Write unit and integration tests to ensure system stability.`;
-      setJobDescription(dummyJd);
-      setLoading(false);
-    }, 1500);
+    setError(null);
+
+    const fileNameLower = file.name.toLowerCase();
+    if (fileNameLower.endsWith(".txt")) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setJobDescription(event.target.result as string);
+        }
+        setLoading(false);
+      };
+      reader.onerror = () => {
+        setError("Failed to read text file.");
+        setLoading(false);
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    if (fileNameLower.endsWith(".pdf") || fileNameLower.endsWith(".docx")) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api/v1";
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response = await fetch(`${API_URL}/resume/extract-text`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to extract text from file. Please ensure it is a valid PDF or DOCX.");
+        }
+
+        const text = await response.text();
+        setJobDescription(text);
+      } catch (err: any) {
+        setError(err.message || "An error occurred during file parsing.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    setError("Unsupported file format. Please upload a PDF, DOCX, or TXT file.");
+    setLoading(false);
   };
 
   return (
@@ -245,15 +279,15 @@ Core Requirements:
                 <input
                   type="file"
                   onChange={handleFileUpload}
-                  accept=".pdf,.docx,image/*"
+                  accept=".pdf,.docx,.txt"
                   className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                 />
                 <div className="w-10 h-10 bg-indigo-50 text-indigo-650 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
                   <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-bold text-slate-800">Drag & Drop PDF / DOCX here</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">Simulate parsing extraction instantly</p>
+                  <p className="text-xs font-bold text-slate-800">Drag & Drop PDF / DOCX / TXT here</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">Parse text from file instantly</p>
                 </div>
               </div>
 

@@ -22,6 +22,27 @@ public class ResumeController {
 
     private final OcrService ocrService;
 
+    private final com.aiplacement.backend.service.PdfService pdfService;
+
+    @PostMapping("/extract-text")
+    public ResponseEntity<String> extractText(
+            @RequestParam("file") MultipartFile file
+    ) {
+        log.info("Generic text extraction requested for file: {}", file.getOriginalFilename());
+        try {
+            java.io.File tempFile = java.io.File.createTempFile("extract-", "_" + file.getOriginalFilename());
+            file.transferTo(tempFile);
+            String text = pdfService.extractText(tempFile, file.getOriginalFilename());
+            if (!tempFile.delete()) {
+                log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
+            }
+            return ResponseEntity.ok(text);
+        } catch (Exception e) {
+            log.error("Failed to extract text from file", e);
+            return ResponseEntity.status(500).body("Failed to extract text: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/upload")
 
     public ResponseEntity<AtsResponseDto> uploadResume(
