@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 public class NvidiaVoiceConfig {
 
-    @Value("${nvidia.api.key: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}")
+    @Value("${nvidia.api.key}")
     private String apiKey;
 
-    @Value("${nvidia.stt.api.key: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}")
+    @Value("${nvidia.stt.api.key}")
     private String sttApiKey;
 
-    @Value("${nvidia.tts.api.key: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}")
+    @Value("${nvidia.tts.api.key}")
     private String ttsApiKey;
 
     @Value("${nvidia.stt.model:nvidia/parakeet-tdt-0.6b-v2}")

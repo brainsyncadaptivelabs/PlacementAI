@@ -109,20 +109,20 @@ logging:
 # ============================================================
 nvidia:
   api:
-    key: ${NVIDIA_API_KEY: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}
+    key: ${NVIDIA_API_KEY:YOUR_NVIDIA_API_KEY_PLACEHOLDER}
   stt:
     api:
-      key: ${NVIDIA_STT_API_KEY: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}
+      key: ${NVIDIA_STT_API_KEY:YOUR_NVIDIA_STT_API_KEY_PLACEHOLDER}
     model: ${PARAKEET_MODEL:nvidia/parakeet-tdt-0.6b-v2}
   tts:
     api:
-      key: ${NVIDIA_TTS_API_KEY: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}
+      key: ${NVIDIA_TTS_API_KEY:YOUR_NVIDIA_TTS_API_KEY_PLACEHOLDER}
     model: ${MAGPIE_MODEL:nvidia/magpie-tts-multilingual}
   base:
     url: ${NVIDIA_BASE_URL:https://integrate.api.nvidia.com/v1}
   ai:
     # API key — override with NVIDIA_API_KEY env var in production
-    api-key: ${NVIDIA_API_KEY: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}
+    api-key: ${NVIDIA_API_KEY:YOUR_NVIDIA_API_KEY_PLACEHOLDER}
 
     # NVIDIA Build API endpoint (OpenAI-compatible chat completions)
     base-url: ${NVIDIA_API_URL:https://integrate.api.nvidia.com/v1/chat/completions}
@@ -153,7 +153,7 @@ chatbot:
 
 # ── Security ─────────────────────────────────────────────────
 jwt:
-  secret: ${JWT_SECRET:ThisIsMyVerySecretKeyForJwtTokenGeneration123456789}
+  secret: ${JWT_SECRET:YOUR_JWT_SECRET_PLACEHOLDER}
 
 # ── Cloudinary (Resume Storage) ──────────────────────────────
 cloudinary:
@@ -169,6 +169,8 @@ google:
 admin:
   registration:
     code: ${ADMIN_REGISTRATION_CODE:ADMIN123}
+  email: ${ADMIN_EMAIL:admin@example.com}
+  password-hash: ${ADMIN_PASSWORD_HASH:YOUR_ADMIN_PASSWORD_HASH_PLACEHOLDER}
 
 # ── Frontend ─────────────────────────────────────────────────
 frontend:

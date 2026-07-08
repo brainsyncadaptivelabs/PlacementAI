@@ -92,8 +92,6 @@ public class AuthController {
     public ResponseEntity<AuthResponse> forgotPassword(
             @Valid @RequestBody ForgotPasswordRequest request
     ) {
-        System.out.println("FORGOT PASSWORD API HIT");
-        System.out.println("EMAIL: " + request.getEmail());
         authService.forgotPassword(request);
         return ResponseEntity.ok(new AuthResponse("OTP sent successfully"));
     }

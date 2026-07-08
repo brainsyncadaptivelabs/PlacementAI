@@ -39,14 +39,14 @@ ratelimit:
 
 nvidia:
   api:
-    key: "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"
+    key: "nvapi-dummy-api-key"
   stt:
     api:
-      key: "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"
+      key: "nvapi-dummy-stt-key"
     model: "nvidia/parakeet-tdt-0.6b-v2"
   tts:
     api:
-      key: "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"
+      key: "nvapi-dummy-tts-key"
     model: "nvidia/magpie-tts-multilingual"
   base:
     url: "https://integrate.api.nvidia.com/v1"

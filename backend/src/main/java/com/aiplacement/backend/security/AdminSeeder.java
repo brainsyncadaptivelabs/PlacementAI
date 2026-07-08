@@ -15,10 +15,10 @@ public class AdminSeeder implements CommandLineRunner {
 
     private final AdminUserRepository adminUserRepository;
 
-    @Value("${ADMIN_EMAIL:founders.brainsynclabs@gmail.com}")
+    @Value("${admin.email}")
     private String adminEmail;
 
-    @Value("${ADMIN_PASSWORD_HASH:$2a$12$6jjqI5BMAs9e9XUNEX4zserwB2e0sPykaQYuv5NqlcOEQFB2cii8i}")
+    @Value("${admin.password-hash}")
     private String adminPasswordHash;
 
     @Override

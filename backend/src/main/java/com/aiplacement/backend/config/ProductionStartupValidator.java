@@ -43,8 +43,8 @@ public class ProductionStartupValidator {
         validateSecret("spring.datasource.url", dbUrl, "jdbc:mysql");
         validateSecret("spring.datasource.username", dbUsername, "root");
         validateSecret("spring.datasource.password", dbPassword, "root");
-        validateSecret("jwt.secret", jwtSecret, "ThisIsMyVerySecretKeyForJwtTokenGeneration123456789");
-        validateSecret("nvidia.ai.api-key", nvidiaApiKey, "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");
+        validateSecret("jwt.secret", jwtSecret, "YOUR_JWT_SECRET_PLACEHOLDER");
+        validateSecret("nvidia.ai.api-key", nvidiaApiKey, "YOUR_NVIDIA_API_KEY_PLACEHOLDER");
         validateSecret("cloudinary.cloud-name", cloudinaryCloudName, "dummy");
         validateSecret("cloudinary.api-key", cloudinaryApiKey, "dummy");
         validateSecret("cloudinary.api-secret", cloudinaryApiSecret, "dummy");
