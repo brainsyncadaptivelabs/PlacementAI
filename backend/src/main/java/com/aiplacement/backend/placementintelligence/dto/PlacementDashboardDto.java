@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -28,4 +29,20 @@ public class PlacementDashboardDto {
     private List<String> insights;
     private List<String> detailedRoadmap;
     private String estimatedPackageRange;
+
+    // V2 Unified API Response fields
+    private int placementConfidence;
+    private String placementPrediction;
+    private int resumeScore;
+    private int atsScore;
+    private int codingScore;
+    private int communicationScore;
+    private int aptitudeScore;
+    private int interviewScore;
+    private Map<String, Integer> companyReadiness;
+    private List<String> skillGap;
+    private List<String> todayMission;
+    private List<String> timeline;
+    private List<String> mentorRecommendations;
+    private List<String> confidenceReasons;
 }

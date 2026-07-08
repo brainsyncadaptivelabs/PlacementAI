@@ -46,9 +46,14 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     private final PlacementRecommendationEngine recommendationEngine;
     private final PlacementWeaknessAnalyzer weaknessAnalyzer;
 
+    // Phase 8 Engines
+    private final com.aiplacement.backend.placementintelligence.timeline.TimelineEngine timelineEngine;
+    private final com.aiplacement.backend.placementintelligence.mentor.MentorDashboardService mentorDashboardService;
+
     @Cacheable(value = "placement_context", key = "#user.email")
     public PlacementContext getOrCreateContext(User user) {
-        log.info("[Placement AI] Building Placement Context");
+        log.info("[PlacementAI Engine] Resume Intelligence Updated");
+        log.info("[PlacementAI Engine] Coding Intelligence Updated");
         return contextBuilder.buildContext(user);
     }
 
@@ -56,13 +61,13 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     public PlacementProfileDto getPlacementProfile(User user) {
         PlacementContext context = getOrCreateContext(user);
 
-        log.info("[Placement AI] Loading Resume Intelligence");
+        log.info("[PlacementAI Engine] Loading Resume Intelligence");
         ResumeIntelligenceEngine.ResumeMetrics resumeMetrics = resumeIntelligenceEngine.analyzeResume(context);
 
-        log.info("[Placement AI] Loading Coding Intelligence");
+        log.info("[PlacementAI Engine] Loading Coding Intelligence");
         CodingIntelligenceEngine.CodingMetrics codingMetrics = codingIntelligenceEngine.analyzeCoding(context);
 
-        log.info("[Placement AI] Loading Interview Intelligence");
+        log.info("[PlacementAI Engine] Loading Interview Intelligence");
         InterviewIntelligenceEngine.InterviewMetrics interviewMetrics = interviewIntelligenceEngine.analyzeInterviews(context);
         CommunicationIntelligenceEngine.CommunicationMetrics commMetrics = communicationIntelligenceEngine.analyzeCommunication(context);
 
@@ -136,7 +141,9 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public PlacementDashboardDto getDashboardData(User user) {
+        log.info("[PlacementAI Engine] Dashboard Refreshed");
         PlacementContext context = getOrCreateContext(user);
         PlacementProfileDto profile = getPlacementProfile(user);
 
@@ -147,10 +154,9 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
         AptitudeIntelligenceEngine.AptitudeMetrics aptMetrics = aptitudeIntelligenceEngine.analyzeAptitude(context);
         SkillGapIntelligenceEngine.SkillGapMetrics skillMetrics = skillGapIntelligenceEngine.analyzeSkillGap(context);
 
-        log.info("[Placement AI] Generating Placement Prediction");
+        log.info("[PlacementAI Engine] Prediction Updated");
         Map<String, PlacementPredictionEngine.PredictionDetails> predictions = placementPredictionEngine.predictCompanySuccess(context);
 
-        log.info("[Placement AI] Calculating Package Prediction");
         PackagePredictionEngine.PackageDetails packageDetails = packagePredictionEngine.predictPackage(context, profile.getPlacementScore());
         ReadinessForecastEngine.ForecastDetails forecastDetails = readinessForecastEngine.forecastReadiness(context, profile.getPlacementScore());
         OfferProbabilityEngine.OfferProbabilityDetails offerDetails = offerProbabilityEngine.predictOffer(context, profile.getPlacementScore());
@@ -188,7 +194,22 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
             detailedRoadmap.add("Week 3: Align target resumes with JD Match constraints");
         }
 
-        log.info("[Placement AI] Returning Dashboard");
+        log.info("[PlacementAI Engine] Company Readiness Updated");
+        Map<String, Integer> readinessMap = predictions.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getProbability()));
+
+        log.info("[PlacementAI Engine] Mentor Generated");
+        Map<String, Object> mentorData = mentorDashboardService.getMentorData(user, profile.getPlacementScore());
+        List<String> unlockedOpportunities = (List<String>) mentorData.get("unlockedOpportunities");
+        List<String> reminders = (List<String>) mentorData.get("reminders");
+
+        log.info("[PlacementAI Engine] Timeline Updated");
+        List<com.aiplacement.backend.placementintelligence.timeline.TimelineEvent> timelineEvents = timelineEngine.getTimeline(context, profile.getPlacementScore());
+        List<String> timelineStrings = timelineEvents.stream()
+                .map(e -> e.getMonth() + " - " + e.getMilestone() + ": " + e.getDetails())
+                .collect(Collectors.toList());
+
+        log.info("[PlacementAI Engine] Placement Score Updated");
         return PlacementDashboardDto.builder()
                 .placementScore(profile.getPlacementScore())
                 .placementReady(profile.getPlacementScore() >= 75)
@@ -204,6 +225,21 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
                 .insights(reasoningList)
                 .detailedRoadmap(detailedRoadmap)
                 .estimatedPackageRange(packageDetails.getCurrentRange() + " (Potential: " + packageDetails.getPotentialRange() + ")")
+                // V2 Unified API Response fields
+                .placementConfidence(offerDetails.getConfidenceScore())
+                .placementPrediction(profile.getPlacementScore() >= 85 ? "Very Likely" : profile.getPlacementScore() >= 70 ? "Likely" : "Needs Improvement")
+                .resumeScore(context.getAtsScore())
+                .atsScore(context.getAtsScore())
+                .codingScore(context.getCodingScore())
+                .communicationScore(context.getCommunicationScore())
+                .aptitudeScore(aptMetrics.getAptitudeScore())
+                .interviewScore(context.getInterviewScore())
+                .companyReadiness(readinessMap)
+                .skillGap(skillMetrics.getMissingSkills())
+                .todayMission(unlockedOpportunities)
+                .timeline(timelineStrings)
+                .mentorRecommendations(reasoningList)
+                .confidenceReasons(reasoningList)
                 .build();
     }
 
