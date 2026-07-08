@@ -133,11 +133,6 @@ export default function PerfectStudentPortal() {
           return;
         }
 
-        if (planSelected === false) {
-          router.push("/plans");
-          return;
-        }
-
         fetchStats();
       } catch (err) {
         console.error("Auth check failed", err);

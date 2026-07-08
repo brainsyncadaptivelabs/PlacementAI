@@ -116,7 +116,7 @@ function ResumeEditor() {
   const previewScrollRef = useRef<HTMLDivElement>(null);
 
   // Zoom & Mode settings
-  const [zoom, setZoom] = useState<number>(0.85); // Default 85% zoom for perfect balance
+  const [zoom, setZoom] = useState<number>(0.95); // Default 95% zoom for perfect balance
   const [focusMode, setFocusMode] = useState<boolean>(false);
 
   // Autosave status
@@ -1222,16 +1222,11 @@ Risk: <e.g., Low or None>
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2.0));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
   const handleFitWidth = () => setZoom(1.0);
-  const handleFitPage = () => setZoom(0.85);
+  const handleFitPage = () => setZoom(0.95);
 
   // Focus mode toggle
   const toggleFocusMode = () => {
     setFocusMode(!focusMode);
-    if (!focusMode) {
-      setZoom(1.0); // Reset zoom in focus mode for better readability
-    } else {
-      setZoom(0.85);
-    }
   };
 
   // Mobile drawer state
@@ -1258,9 +1253,9 @@ Risk: <e.g., Low or None>
       
       {/* 1. FOCUS MODE (Fullscreen Preview) */}
       {focusMode && (
-        <div className="fixed inset-0 bg-background z-[100] flex flex-col overflow-hidden select-none">
+        <div className="fixed inset-0 bg-slate-50 z-[100] flex flex-col overflow-hidden select-none">
           {/* Focus mode header toolbar */}
-          <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-card text-card-foreground border-b border-border shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
+          <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white text-slate-900 border-b border-slate-200 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex items-center gap-3">
               <span className="text-sm font-black tracking-wider uppercase text-primary">
                 Focus Mode
@@ -1364,7 +1359,7 @@ Risk: <e.g., Low or None>
           </header>
 
           {/* Fullscreen workspace scrollarea */}
-          <div className="flex-1 overflow-y-auto overflow-x-auto p-12 flex flex-col items-center gap-6 bg-slate-100/50 dark:bg-slate-950/50">
+          <div className="flex-1 overflow-y-auto overflow-x-auto p-6 flex flex-col items-center gap-6 bg-slate-50">
             {pages.map((pageHtml, index) => (
               <div 
                 key={index} 
@@ -1378,7 +1373,7 @@ Risk: <e.g., Low or None>
                     position: "relative",
                     overflow: "visible"
                   }}
-                  className="shadow-2xl border border-border bg-card overflow-hidden"
+                  className="shadow-2xl border border-slate-200 bg-white overflow-hidden"
                 >
                   <div 
                     style={{
@@ -1520,7 +1515,7 @@ Risk: <e.g., Low or None>
 
       {/* Main Workspace flex layout */}
       {!focusMode && (
-        <div className="flex-1 flex gap-2 p-2 lg:gap-4 lg:p-4 h-[calc(100vh-64px)] overflow-hidden w-full max-w-none">
+        <div className="flex-1 flex gap-0 p-0 h-[calc(100vh-64px)] overflow-hidden w-full max-w-none bg-slate-50">
           
           {/* 1. EDITOR PANEL: Left Resizable */}
           <div 
@@ -2200,7 +2195,7 @@ Risk: <e.g., Low or None>
             {/* Centered Scrollable workspace with single scroll */}
             <div 
               ref={previewScrollRef}
-              className="flex-1 overflow-auto p-4 md:p-8 flex flex-col items-center gap-10 select-text scroll-smooth" 
+              className="flex-1 overflow-auto p-2 md:p-4 flex flex-col items-center gap-10 select-text scroll-smooth" 
               id="visible-preview-canvas"
             >
               {pages.map((pageHtml, index) => (

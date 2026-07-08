@@ -183,7 +183,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         stats.put("weeklyApiSpend", weeklyApiSpend);
 
         // Revenue Placeholder & Growth (calculated dynamically based on premium plans)
-        long premiumUsersCount = users.stream().filter(u -> "PREMIUM".equalsIgnoreCase(u.getPlan())).count();
+        long premiumUsersCount = users.stream().filter(u -> "PREMIUM".equalsIgnoreCase("FREE")).count();
         stats.put("revenuePlaceholder", "₹" + (premiumUsersCount * 299));
         
         long usersAddedToday = users.stream().filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(today.atStartOfDay())).count();
@@ -204,10 +204,9 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         String querySearch = (search != null && !search.trim().isEmpty()) ? search.trim() : null;
         String queryCollege = (college != null && !college.trim().isEmpty() && !college.equals("ALL")) ? college.trim() : null;
         String queryBranch = (branch != null && !branch.trim().isEmpty() && !branch.equals("ALL")) ? branch.trim() : null;
-        String queryPlan = (plan != null && !plan.trim().isEmpty() && !plan.equals("ALL")) ? plan.trim() : null;
         String queryStatus = (status != null && !status.trim().isEmpty() && !status.equals("ALL")) ? status.trim() : null;
 
-        Page<User> userPage = userRepository.searchUsers(querySearch, queryCollege, queryBranch, queryPlan, queryStatus, pageable);
+        Page<User> userPage = userRepository.searchUsers(querySearch, queryCollege, queryBranch, queryStatus, pageable);
 
         List<Map<String, Object>> mappedUsers = userPage.getContent().stream().map(u -> {
             Map<String, Object> m = new HashMap<>();
@@ -219,7 +218,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             m.put("graduationYear", u.getGraduationYear() != null ? u.getGraduationYear() : 0);
             m.put("createdAt", u.getCreatedAt());
             m.put("lastActive", u.getLastActive());
-            m.put("plan", u.getPlan() != null ? u.getPlan() : "FREE");
+            m.put("plan", "FREE" != null ? "FREE" : "FREE");
             m.put("creditsRemaining", u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 100);
             m.put("creditsUsed", u.getCreditsUsed() != null ? u.getCreditsUsed() : 0);
             m.put("totalResumes", u.getResumes().size());
@@ -271,7 +270,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         details.put("githubUrl", u.getGithubUrl());
         details.put("leetcodeUrl", u.getLeetcodeUrl());
         details.put("skills", u.getSkills());
-        details.put("plan", u.getPlan() != null ? u.getPlan() : "FREE");
+        details.put("plan", "FREE" != null ? "FREE" : "FREE");
         details.put("createdAt", u.getCreatedAt());
         details.put("lastActive", u.getLastActive());
         details.put("creditsRemaining", u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 100);
@@ -560,7 +559,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
                         .append("\"").append(u.getCollegeName() != null ? u.getCollegeName() : "N/A").append("\",")
                         .append("\"").append(u.getBranch() != null ? u.getBranch() : "N/A").append("\",")
                         .append(u.getGraduationYear()).append(",")
-                        .append(u.getPlan() != null ? u.getPlan() : "FREE").append(",")
+                        .append("FREE").append(",")
                         .append(u.getAccountStatus()).append(",")
                         .append(u.getCreatedAt()).append("\n");
             });
@@ -582,48 +581,6 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         }
 
         return sb.toString().getBytes(StandardCharsets.UTF_8);
-    }
-
-    @Override
-    @Transactional
-    public Map<String, Object> updateUserPlan(Long userId, String plan) {
-        log.info("[ADMIN_PORTAL] Upgrading user plan for ID: {} to {}", userId, plan);
-        User u = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        u.setPlan(plan.toUpperCase());
-        if ("PREMIUM".equalsIgnoreCase(plan)) {
-            u.setCreditsRemaining(5000);
-            u.setPaymentCompleted(true);
-            u.setPlanSelected(true);
-            u.setPaymentStatus("COMPLETED");
-            u.setPlanActivatedAt(LocalDateTime.now());
-            u.setPlanExpiresAt(LocalDateTime.now().plusYears(1));
-        } else if ("BASIC".equalsIgnoreCase(plan)) {
-            u.setCreditsRemaining(500);
-            u.setPaymentCompleted(true);
-            u.setPlanSelected(true);
-            u.setPaymentStatus("COMPLETED");
-            u.setPlanActivatedAt(LocalDateTime.now());
-            u.setPlanExpiresAt(LocalDateTime.now().plusMonths(1));
-        } else {
-            u.setPlan("FREE");
-            u.setCreditsRemaining(100);
-            u.setPaymentCompleted(false);
-            u.setPlanSelected(false);
-            u.setPaymentStatus("PENDING");
-            u.setPlanActivatedAt(null);
-            u.setPlanExpiresAt(null);
-        }
-
-        userRepository.save(u);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("message", "User plan updated successfully to " + plan);
-        response.put("plan", u.getPlan());
-        response.put("creditsRemaining", u.getCreditsRemaining());
-        return response;
     }
 
     @Override

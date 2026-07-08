@@ -20,14 +20,13 @@ import {
 
 interface SidebarProps {
   role: "STUDENT" | "RECRUITER" | "PLACEMENT_OFFICER" | "ADMIN" | "SUPER_ADMIN";
-  hasPlan?: boolean;
 }
 
-export function Sidebar({ role, hasPlan = true }: SidebarProps) {
+export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();
-  const menuItems = hasPlan ? (roleMenus[role] || []) : [];
+  const menuItems = (roleMenus[role] || []);
 
   const handleLogout = async () => {
     try {
@@ -64,7 +63,7 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
     >
       <SidebarHeader className="h-[80px] w-full flex items-center justify-center shrink-0 p-0">
         <Link 
-          href={hasPlan ? (roleMenus[role]?.[0]?.url || "/") : "/plans"} 
+          href={(roleMenus[role]?.[0]?.url || "/")} 
           className="h-full w-[90%] flex items-center justify-center gap-3 m-auto p-0 scale-75 origin-center transition-opacity duration-200 hover:opacity-85"
         >
           <div className={role === "RECRUITER" 
@@ -78,7 +77,7 @@ export function Sidebar({ role, hasPlan = true }: SidebarProps) {
         </Link>
       </SidebarHeader>
       <SidebarContent className="px-3 py-4 overflow-y-auto space-y-4">
-        {role === "STUDENT" && hasPlan ? (
+        {role === "STUDENT" ? (
           studentMenuGroups.map((group, idx) => (
             <div key={group.title || idx} className="space-y-1">
               {group.title && (

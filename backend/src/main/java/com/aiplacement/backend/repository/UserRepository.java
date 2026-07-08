@@ -17,13 +17,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.collegeName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
             "AND (:college IS NULL OR u.collegeName = :college) " +
             "AND (:branch IS NULL OR u.branch = :branch) " +
-            "AND (:plan IS NULL OR u.plan = :plan) " +
+            
             "AND (:status IS NULL OR u.accountStatus = :status)")
     org.springframework.data.domain.Page<User> searchUsers(
             @org.springframework.data.repository.query.Param("search") String search,
             @org.springframework.data.repository.query.Param("college") String college,
             @org.springframework.data.repository.query.Param("branch") String branch,
-            @org.springframework.data.repository.query.Param("plan") String plan,
+            
             @org.springframework.data.repository.query.Param("status") String status,
             org.springframework.data.domain.Pageable pageable
     );

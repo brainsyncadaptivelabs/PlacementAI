@@ -137,18 +137,6 @@ export function UserNav() {
             className="absolute right-0 mt-3 w-auto min-w-[160px] bg-card border border-border rounded-xl shadow-md z-50 overflow-hidden"
           >
             <div className="p-1.5 flex flex-col gap-0.5">
-              <Link 
-                href="/plans"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
-              >
-                <div className="flex items-center gap-3 text-foreground">
-                  <CreditCard className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
-                  <span className="text-sm font-semibold">Plans</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-              </Link>
-
               <button 
                 onClick={() => {
                   setIsOpen(false);

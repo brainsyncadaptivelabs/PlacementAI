@@ -14,7 +14,7 @@ public interface AdminPortalService {
     Map<String, Object> getSystemHealth();
     Page<?> getAuditLogs(int page, int size);
     byte[] generateReport(String type);
-    Map<String, Object> updateUserPlan(Long userId, String plan);
+    
     Map<String, Object> getCollegeAnalytics(String college, String branch);
     void deleteUser(Long id);
 }

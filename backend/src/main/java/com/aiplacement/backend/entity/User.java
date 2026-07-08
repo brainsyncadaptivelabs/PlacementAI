@@ -93,39 +93,12 @@ public class User {
         return profileCompleted != null && profileCompleted;
     }
 
-    @Column(name = "plan_selected")
-    @Builder.Default
-    private Boolean planSelected = false;
-
-    public boolean isPlanSelected() {
-        return planSelected != null && planSelected;
-    }
-
-    @Column(name = "payment_completed")
-    @Builder.Default
-    private Boolean paymentCompleted = false;
-
-    public boolean isPaymentCompleted() {
-        return paymentCompleted != null && paymentCompleted;
-    }
-
     @Column(name = "profile_image")
     private String profileImage;
-
-    private String plan; // FREE, BASIC, PREMIUM
-
-    @Column(name = "plan_activated_at")
-    private LocalDateTime planActivatedAt;
-
-    @Column(name = "plan_expires_at")
-    private LocalDateTime planExpiresAt;
 
     @Column(name = "welcome_email_sent")
     @Builder.Default
     private Boolean welcomeEmailSent = false;
-
-    @Column(name = "payment_status")
-    private String paymentStatus; // PENDING, COMPLETED
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

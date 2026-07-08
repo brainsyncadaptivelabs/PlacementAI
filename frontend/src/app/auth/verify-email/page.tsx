@@ -162,7 +162,14 @@ function VerifyEmailContent() {
       setVerified(true);
 
       setTimeout(() => {
-        router.push("/plans");
+        const destination = backendData.role === "RECRUITER"
+          ? "/recruiter"
+          : backendData.role === "PLACEMENT_OFFICER"
+          ? "/placement-officer"
+          : backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN"
+          ? "/admin"
+          : "/dashboard";
+        router.push(destination);
       }, 1500);
     } catch (err: any) {
       setError(err.message || "Failed to verify email");

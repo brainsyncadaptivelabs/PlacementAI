@@ -99,13 +99,8 @@ public class AdminPortalController {
         return ResponseEntity.ok(adminPortalService.getCollegeAnalytics(college, branch));
     }
 
-    @PutMapping("/users/{id}/plan")
-    public ResponseEntity<Map<String, Object>> updateUserPlan(
-            @PathVariable("id") Long id,
-            @RequestParam("plan") String plan
-    ) {
-        return ResponseEntity.ok(adminPortalService.updateUserPlan(id, plan));
-    }
+    
+
 
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Map<String, String>> deleteUser(@PathVariable("id") Long id) {

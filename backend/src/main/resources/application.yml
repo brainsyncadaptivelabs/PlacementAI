@@ -189,12 +189,6 @@ management:
     mail:
       enabled: false
 
-# ── Payments (Razorpay) ───────────────────────────────────────
-razorpay:
-  key:
-    id: ${RAZORPAY_KEY_ID:rzp_test_SyxPfm0CnhaMos}
-    secret: ${RAZORPAY_KEY_SECRET:UnRx6egZosu7DtQSBib5wVrk}
-
 # ── Web Push (VAPID) ─────────────────────────────────────────
 vapid:
   public:

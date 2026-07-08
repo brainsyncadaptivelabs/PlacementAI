@@ -424,7 +424,6 @@ export default function PlacementOfficerSettingsPage() {
           <CardContent className="flex flex-col gap-2">
             {[
               { label: "My Profile", icon: User },
-              { label: "Subscription Plans", icon: CreditCard, url: "/plans" },
               { label: "Change Password", icon: Key },
               { label: "Download My Data", icon: Download },
             ].map((item, i) => (

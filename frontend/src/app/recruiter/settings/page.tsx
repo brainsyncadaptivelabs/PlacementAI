@@ -425,7 +425,6 @@ export default function RecruiterSettingsPage() {
             {[
               { label: "My Profile", icon: User },
               { label: "Company Profile", icon: Building, url: "/recruiter/company" },
-              { label: "Subscription Plans", icon: CreditCard, url: "/plans" },
               { label: "Change Password", icon: Key },
               { label: "Download My Data", icon: Download },
             ].map((item, i) => (

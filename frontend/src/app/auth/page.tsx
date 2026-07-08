@@ -282,9 +282,7 @@ export default function AuthPage() {
       setSuccess("Account created successfully! Redirecting...");
       
       setTimeout(() => {
-        const destination = !backendData.planSelected
-          ? "/plans"
-          : backendData.role === "RECRUITER"
+        const destination = backendData.role === "RECRUITER"
           ? "/recruiter"
           : backendData.role === "PLACEMENT_OFFICER"
           ? "/placement-officer"
@@ -360,9 +358,7 @@ export default function AuthPage() {
       
       localStorage.setItem("token", backendData.accessToken);
 
-      const destination = !backendData.planSelected
-        ? "/plans"
-        : backendData.role === "RECRUITER"
+      const destination = backendData.role === "RECRUITER"
         ? "/recruiter"
         : backendData.role === "PLACEMENT_OFFICER"
         ? "/placement-officer"

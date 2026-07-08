@@ -185,8 +185,6 @@ public class EmailServiceImpl
                         .fullName(fullName)
                         .role(com.aiplacement.backend.entity.Role.STUDENT)
                         .accountStatus("ACTIVE")
-                        .plan("FREE")
-                        .paymentStatus("COMPLETED")
                         .createdAt(LocalDateTime.now())
                         .verifiedAt(LocalDateTime.now())
                         .build();
@@ -201,8 +199,8 @@ public class EmailServiceImpl
             log.error("Welcome email user is null. Cannot send email.");
             return;
         }
-        log.info("Calling sendWelcomeEmail() for User ID: {}, Email: {}, Plan: {}, welcomeEmailSent: {}", 
-                 user.getId(), user.getEmail(), user.getPlan(), user.getWelcomeEmailSent());
+        log.info("Calling sendWelcomeEmail() for User ID: {}, Email: {}, welcomeEmailSent: {}", 
+                 user.getId(), user.getEmail(), user.getWelcomeEmailSent());
         
         if (Boolean.TRUE.equals(user.getWelcomeEmailSent())) {
             log.info("Welcome email already sent for user: {}. Skipping.", user.getEmail());
@@ -225,8 +223,8 @@ public class EmailServiceImpl
                 log.error("User not found for ID: {}. Aborting email send.", userId);
                 return;
             }
-            log.info("User created - User ID: {}, Email: {}, Plan: {}, welcomeEmailSent: {}", 
-                     user.getId(), user.getEmail(), user.getPlan(), user.getWelcomeEmailSent());
+            log.info("User created - User ID: {}, Email: {}, welcomeEmailSent: {}", 
+                     user.getId(), user.getEmail(), user.getWelcomeEmailSent());
 
             if (Boolean.TRUE.equals(user.getWelcomeEmailSent())) {
                 log.info("Welcome email already marked as sent in DB for: {}. Skipping.", user.getEmail());
@@ -239,34 +237,19 @@ public class EmailServiceImpl
                 String template = loadTemplate("templates/welcome-premium.html");
                 
                 String firstName = getFirstName(user.getFullName());
-                String plan = user.getPlan();
-                if (plan == null || plan.trim().isEmpty()) {
-                    plan = "FREE";
-                }
+                String plan = "FREE";
                 
                 String planNameHtml = renderPlanNameHtml(plan);
-                String planName = plan.substring(0, 1).toUpperCase() + plan.substring(1).toLowerCase();
+                String planName = "Free";
                 String planStatus = "Active";
                 
-                LocalDateTime activationDateVal = user.getPlanActivatedAt();
-                if (activationDateVal == null) {
-                    activationDateVal = user.getVerifiedAt() != null ? user.getVerifiedAt() : user.getCreatedAt();
-                }
+                LocalDateTime activationDateVal = user.getVerifiedAt() != null ? user.getVerifiedAt() : user.getCreatedAt();
                 if (activationDateVal == null) {
                     activationDateVal = LocalDateTime.now();
                 }
                 String activationDate = formatDate(activationDateVal);
                 
-                String expiryDate = "Unlimited";
-                if (!plan.equalsIgnoreCase("FREE")) {
-                    LocalDateTime expiryDateVal = user.getPlanExpiresAt();
-                    if (expiryDateVal == null) {
-                        expiryDateVal = activationDateVal.plusDays(30);
-                    }
-                    expiryDate = formatDate(expiryDateVal);
-                } else {
-                    expiryDate = "Lifetime";
-                }
+                String expiryDate = "Lifetime";
 
                 String featuresHtml = renderPlanFeaturesHtml(plan);
                 

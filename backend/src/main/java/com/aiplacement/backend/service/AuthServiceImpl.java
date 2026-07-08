@@ -186,7 +186,7 @@ public class AuthServiceImpl implements AuthService {
                         .verifiedAt(LocalDateTime.now())
                         .accountStatus("ACTIVE")
                         .profileCompleted(false)
-                        .paymentStatus("PENDING")
+                        
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build();
@@ -228,10 +228,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.isPlanSelected())
-                .paymentCompleted(user.isPaymentCompleted())
-                .plan(user.getPlan())
-                .paymentStatus(user.getPaymentStatus())
+                .planSelected(true)
+                .paymentCompleted(true)
+                .plan("FREE")
+                
                 .build();
     }
     
@@ -428,7 +428,7 @@ public class AuthServiceImpl implements AuthService {
                 .verifiedAt(LocalDateTime.now())
                 .accountStatus("ACTIVE")
                 .profileCompleted(true)
-                .paymentStatus("PENDING")
+                
                 .authProvider(com.aiplacement.backend.entity.AuthProvider.LOCAL)
                 .build();
 
@@ -450,10 +450,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.isPlanSelected())
-                .paymentCompleted(user.isPaymentCompleted())
-                .plan(user.getPlan())
-                .paymentStatus(user.getPaymentStatus())
+                .planSelected(true)
+                .paymentCompleted(true)
+                .plan("FREE")
+                
                 .build();
     }
 
@@ -540,10 +540,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.isPlanSelected())
-                .paymentCompleted(user.isPaymentCompleted())
-                .plan(user.getPlan())
-                .paymentStatus(user.getPaymentStatus())
+                .planSelected(true)
+                .paymentCompleted(true)
+                .plan("FREE")
+                
                 .build();
     }
 
@@ -623,7 +623,7 @@ public class AuthServiceImpl implements AuthService {
                 .verifiedAt(LocalDateTime.now())
                 .accountStatus("ACTIVE")
                 .profileCompleted(true)
-                .paymentStatus("PENDING")
+                
                 .build();
 
         com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
@@ -642,10 +642,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.isPlanSelected())
-                .paymentCompleted(user.isPaymentCompleted())
-                .plan(user.getPlan())
-                .paymentStatus(user.getPaymentStatus())
+                .planSelected(true)
+                .paymentCompleted(true)
+                .plan("FREE")
+                
                 .build();
     }
 

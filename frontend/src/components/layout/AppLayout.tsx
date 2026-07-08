@@ -56,10 +56,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
       return;
     }
 
-    if (!user.planSelected) {
-      router.push("/plans");
-      return;
-    }
+
     // Prevent cross-role access (e.g., STUDENT trying to access RECRUITER dashboard)
     // Note: ADMIN and SUPER_ADMIN can bypass this restriction
     if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && user.role !== role) {
@@ -105,7 +102,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
         className={`flex min-h-screen w-full bg-background transition-colors duration-300 ${role === "PLACEMENT_OFFICER" ? "theme-placement-officer" : ""}`}
         style={{ "--accent": role === "RECRUITER" ? "#832838" : undefined } as React.CSSProperties}
       >
-        <Sidebar role={role} hasPlan={user.planSelected} />
+        <Sidebar role={role} />
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Topbar */}
           {!isChatMode && (
