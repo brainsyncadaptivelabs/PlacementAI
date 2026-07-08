@@ -54,6 +54,7 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
         return (
           <div
             key={section}
+            data-block="personalInfo"
             style={{
               textAlign: "center",
               marginBottom: "12px",
@@ -110,7 +111,7 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
       case "summary":
         if (!summary) return null;
         return (
-          <div key={section} style={{ marginBottom: theme.spacing.gapSections }}>
+          <div key={section} data-block="summary" style={{ marginBottom: theme.spacing.gapSections }}>
             {renderSectionHeader("Summary", isHighlighted)}
             <p style={{ margin: 0, fontSize: "10pt", textAlign: "justify" }}>{summary}</p>
           </div>
@@ -118,11 +119,38 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
 
       case "skills":
         if (!skills || skills.length === 0) return null;
+        
+        // Parse user-defined skills categories. Checks if array items contain colon tags "Category: Skill1, Skill2..."
+        const parsedCategories: Record<string, string[]> = {};
+        const defaultCategory = "Technical Skills";
+
+        skills.forEach(sk => {
+          if (sk.includes(":")) {
+            const parts = sk.split(":");
+            const category = parts[0].trim();
+            const val = parts.slice(1).join(":").trim();
+            if (category && val) {
+              const list = val.split(",").map(s => s.trim()).filter(Boolean);
+              if (!parsedCategories[category]) parsedCategories[category] = [];
+              parsedCategories[category] = [...parsedCategories[category], ...list];
+            }
+          } else {
+            const list = sk.split(",").map(s => s.trim()).filter(Boolean);
+            if (!parsedCategories[defaultCategory]) parsedCategories[defaultCategory] = [];
+            parsedCategories[defaultCategory] = [...parsedCategories[defaultCategory], ...list];
+          }
+        });
+
         return (
-          <div key={section} style={{ marginBottom: theme.spacing.gapSections }}>
+          <div key={section} data-block="skills" style={{ marginBottom: theme.spacing.gapSections }}>
             {renderSectionHeader("Technical Skills", isHighlighted)}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", fontSize: "9.5pt" }}>
-              <strong>Skills:</strong> {skills.join(", ")}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "9.5pt" }}>
+              {Object.entries(parsedCategories).map(([category, list]) => (
+                <div key={category} style={{ lineHeight: 1.45 }}>
+                  <strong style={{ color: theme.colors.primary }}>{category}:</strong>{" "}
+                  <span>{list.join(", ")}</span>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -130,7 +158,7 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
       case "experience":
         if (!experience || experience.length === 0) return null;
         return (
-          <div key={section} style={{ marginBottom: theme.spacing.gapSections }}>
+          <div key={section} data-block="experience" style={{ marginBottom: theme.spacing.gapSections }}>
             {renderSectionHeader("Experience", isHighlighted)}
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {experience.map((exp) => (
@@ -154,7 +182,7 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
       case "projects":
         if (!projects || projects.length === 0) return null;
         return (
-          <div key={section} style={{ marginBottom: theme.spacing.gapSections }}>
+          <div key={section} data-block="projects" style={{ marginBottom: theme.spacing.gapSections }}>
             {renderSectionHeader("Projects", isHighlighted)}
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {projects.map((proj) => (
@@ -178,7 +206,7 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
       case "education":
         if (!education || education.length === 0) return null;
         return (
-          <div key={section} style={{ marginBottom: theme.spacing.gapSections }}>
+          <div key={section} data-block="education" style={{ marginBottom: theme.spacing.gapSections }}>
             {renderSectionHeader("Education", isHighlighted)}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {education.map((edu) => (
@@ -200,11 +228,25 @@ export const TemplateEngine: React.FC<ResumeTemplateProps> = ({
       case "certifications":
         if (!certifications || certifications.length === 0) return null;
         return (
-          <div key={section} style={{ marginBottom: theme.spacing.gapSections }}>
+          <div key={section} data-block="certifications" style={{ marginBottom: theme.spacing.gapSections }}>
             {renderSectionHeader("Certifications", isHighlighted)}
             <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "9.5pt" }}>
               {certifications.map((cert, idx) => (
                 <li key={idx} style={{ marginBottom: "2px" }}>{cert}</li>
+              ))}
+            </ul>
+          </div>
+        );
+
+      case "achievements":
+        const achievementsList = resume.achievements || [];
+        if (achievementsList.length === 0) return null;
+        return (
+          <div key={section} data-block="achievements" style={{ marginBottom: theme.spacing.gapSections }}>
+            {renderSectionHeader("Achievements", isHighlighted)}
+            <ul style={{ margin: 0, paddingLeft: "18px", fontSize: "9.5pt" }}>
+              {achievementsList.map((ach, idx) => (
+                <li key={idx} style={{ marginBottom: "2px" }}>{ach}</li>
               ))}
             </ul>
           </div>

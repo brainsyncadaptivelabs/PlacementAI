@@ -1,0 +1,60 @@
+{
+  "id": "ey-style",
+  "name": "EY",
+  "category": "Company Based Resume Templates",
+  "subCategory": "EY",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "tags": [
+    "EY",
+    "Audit Analytics",
+    "Business Intelligence",
+    "Excel",
+    "SQL",
+    "Power BI",
+    "Python",
+    "Consulting",
+    "Data Analysis",
+    "Financial Reporting",
+    "Communication",
+    "Professional Writing",
+    "Business Process Improvement"
+  ],
+  "bestFor": [
+    "EY hiring standard",
+    "Audit Analytics and BI roles",
+    "Financial Consulting positions"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 96,
+  "aiScore": 95,
+  "recommendedRoles": [
+    "Analyst",
+    "Consultant",
+    "Business Intelligence Developer",
+    "Data Analyst"
+  ],
+  "recommendedCompanies": [
+    "EY",
+    "Deloitte",
+    "PwC",
+    "KPMG"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

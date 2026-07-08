@@ -1,0 +1,54 @@
+{
+  "id": "executive-style",
+  "name": "Executive ATS",
+  "category": "ATS Resume Templates",
+  "subCategory": "Executive",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills",
+    "certifications"
+  ],
+  "tags": [
+    "Executive",
+    "Leadership",
+    "Management",
+    "Transformation",
+    "ATS Friendly"
+  ],
+  "bestFor": [
+    "Senior Managers",
+    "Directors",
+    "Architects",
+    "Executive Roles"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 98,
+  "aiScore": 98,
+  "recommendedRoles": [
+    "Engineering Manager",
+    "Director of Engineering",
+    "Principal Architect"
+  ],
+  "recommendedCompanies": [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Meta"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": true,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": true,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": true
+  }
+}

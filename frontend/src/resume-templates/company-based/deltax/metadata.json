@@ -1,0 +1,52 @@
+{
+  "id": "deltax-style",
+  "name": "DeltaX",
+  "category": "Company Based Resume Templates",
+  "subCategory": "DeltaX",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "tags": [
+    "Data Engineering",
+    "Advertising Technology",
+    "Analytics",
+    "Python",
+    "SQL",
+    "Cloud Pipelines",
+    "ATS Friendly"
+  ],
+  "bestFor": [
+    "DeltaX Hiring",
+    "AdTech engineering roles",
+    "Data Analyst and Pipeline Developers"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 94,
+  "aiScore": 93,
+  "recommendedRoles": [
+    "Data Engineer",
+    "AdTech Software Developer",
+    "Analytics Engineer"
+  ],
+  "recommendedCompanies": [
+    "DeltaX",
+    "InMobi",
+    "Media.net"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "oracle-style",
+  "name": "Oracle",
+  "category": "Company Based Resume Templates",
+  "subCategory": "Oracle",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "tags": [
+    "Oracle Cloud",
+    "Enterprise Data",
+    "SQL",
+    "Spark",
+    "Cloud Engineering",
+    "Performance Tuning",
+    "ATS Friendly"
+  ],
+  "bestFor": [
+    "Oracle Hiring",
+    "Cloud and Systems Engineers",
+    "Database Administrators and Data Engineers"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 96,
+  "aiScore": 95,
+  "recommendedRoles": [
+    "Cloud Engineer",
+    "Database Administrator",
+    "Oracle Solutions Consultant"
+  ],
+  "recommendedCompanies": [
+    "Oracle",
+    "Salesforce",
+    "SAP"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

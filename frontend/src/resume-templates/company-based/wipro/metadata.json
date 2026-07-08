@@ -1,0 +1,54 @@
+{
+  "id": "wipro-style",
+  "name": "Wipro",
+  "category": "Company Based Resume Templates",
+  "subCategory": "Wipro",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "tags": [
+    "Data Engineer",
+    "Digital Transformation",
+    "ETL",
+    "Python",
+    "SQL",
+    "Spark",
+    "Cloud",
+    "Fresher",
+    "ATS Friendly"
+  ],
+  "bestFor": [
+    "Wipro Hiring",
+    "Entry-level Data Engineers",
+    "Digital transformation candidates"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 95,
+  "aiScore": 94,
+  "recommendedRoles": [
+    "Data Engineer",
+    "ETL Developer",
+    "Associate Software Engineer"
+  ],
+  "recommendedCompanies": [
+    "Wipro",
+    "TCS",
+    "Cognizant"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

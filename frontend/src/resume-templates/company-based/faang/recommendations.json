@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Algorithms",
+    "Data Structures",
+    "System Design",
+    "Distributed Systems",
+    "Scalability"
+  ],
+  "preferredProjects": [
+    "High performance caching service",
+    "Distributed messaging broker"
+  ],
+  "preferredExperience": [
+    "Senior Software Engineer",
+    "Backend Engineer"
+  ],
+  "preferredSummary": [
+    "Systems engineer focused on high-throughput backend performance, algorithmic optimization, and system scale."
+  ],
+  "preferredKeywords": [
+    "engineered",
+    "optimized",
+    "reduced latency",
+    "scaled"
+  ],
+  "avoidKeywords": [
+    "responsible for",
+    "worked on"
+  ],
+  "recommendedBulletStyle": "STAR",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills"
+  ],
+  "resumeTone": "Highly Technical",
+  "atsWeightages": {
+    "dsa": 30,
+    "projects": 25,
+    "systemDesign": 25,
+    "leadership": 20
+  },
+  "aiPriorities": [
+    "quantify engineering impact",
+    "algorithmic complexity optimization",
+    "large-scale distributed design"
+  ]
+}

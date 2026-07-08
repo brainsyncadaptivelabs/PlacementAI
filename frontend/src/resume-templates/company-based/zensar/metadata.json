@@ -1,0 +1,52 @@
+{
+  "id": "zensar-style",
+  "name": "Zensar",
+  "category": "Company Based Resume Templates",
+  "subCategory": "Zensar",
+  "version": "1.0.0",
+  "supportedSections": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "tags": [
+    "Enterprise Data Engineering",
+    "Digital Transformation",
+    "Cloud Data",
+    "ETL",
+    "Spark",
+    "Python",
+    "ATS Friendly"
+  ],
+  "bestFor": [
+    "Zensar Hiring",
+    "Enterprise Cloud Migrations",
+    "ETL and Spark Developers"
+  ],
+  "layout": "Single Column",
+  "atsFriendly": true,
+  "atsScore": 95,
+  "aiScore": 94,
+  "recommendedRoles": [
+    "Enterprise Data Engineer",
+    "Cloud Migration Specialist",
+    "Data Platform Engineer"
+  ],
+  "recommendedCompanies": [
+    "Zensar Technologies",
+    "Tech Mahindra",
+    "Wipro"
+  ],
+  "supports": {
+    "photo": false,
+    "icons": false,
+    "multiColumn": false,
+    "ratingBars": false,
+    "timeline": false,
+    "qrCode": false,
+    "references": true,
+    "coverLetter": false
+  }
+}

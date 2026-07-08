@@ -1,0 +1,52 @@
+{
+  "preferredSkills": [
+    "System Design",
+    "Scalability",
+    "Microservices",
+    "Kubernetes"
+  ],
+  "preferredProjects": [
+    "High throughput backend platform",
+    "Large scale data migration"
+  ],
+  "preferredExperience": [
+    "Senior Software Engineer",
+    "Tech Lead",
+    "Architect"
+  ],
+  "preferredSummary": [
+    "Technical leader with 5+ years of experience directing architecture and system scaling."
+  ],
+  "preferredKeywords": [
+    "architected",
+    "scaled",
+    "mentored",
+    "directed",
+    "designed"
+  ],
+  "avoidKeywords": [
+    "worked on",
+    "helped with"
+  ],
+  "recommendedBulletStyle": "STAR",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills"
+  ],
+  "resumeTone": "Executive",
+  "atsWeightages": {
+    "experience": 40,
+    "leadership": 30,
+    "achievements": 20,
+    "architecture": 10
+  },
+  "aiPriorities": [
+    "leadership achievements",
+    "architecture design scale",
+    "business impact"
+  ]
+}

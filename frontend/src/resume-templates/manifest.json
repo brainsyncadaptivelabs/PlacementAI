@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
   "engineVersion": "1.0.0",
-  "totalTemplates": 9,
+  "totalTemplates": 17,
   "atsTemplates": 5,
-  "companyTemplates": 4,
+  "companyTemplates": 12,
   "defaultTemplate": "professional-ats"
 }

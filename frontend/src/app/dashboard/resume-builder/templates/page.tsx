@@ -56,16 +56,19 @@ export default function TemplateGalleryPage() {
   const categories = ["ATS Resume", "Company Based"];
 
   const filteredTemplates = ACTIVE_TEMPLATES.filter((tpl) => {
-    const query = searchQuery.toLowerCase();
-    const matchesName = tpl.name.toLowerCase().includes(query);
-    const matchesCategory = tpl.category.toLowerCase().includes(query);
-    const matchesTags = tpl.tags?.some(tag => tag.toLowerCase().includes(query)) ?? false;
-    const matchesRoles = tpl.recommendedRoles?.some(role => role.toLowerCase().includes(query)) ?? false;
-    const matchesSearch = matchesName || matchesCategory || matchesTags || matchesRoles;
+    const query = searchQuery.toLowerCase().trim();
+    let matchesSearch = true;
+    if (query !== "") {
+      const matchesName = tpl.name.toLowerCase().includes(query);
+      const matchesCategory = tpl.category.toLowerCase().includes(query);
+      const matchesTags = tpl.tags?.some(tag => tag.toLowerCase().includes(query)) ?? false;
+      const matchesRoles = tpl.recommendedRoles?.some(role => role.toLowerCase().includes(query)) ?? false;
+      matchesSearch = matchesName || matchesCategory || matchesTags || matchesRoles;
+    }
     
     const targetCategory = selectedCategory === "ATS Resume" ? "ATS" : "COMPANY";
     return matchesSearch && tpl.category.toUpperCase() === targetCategory;
-  });
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   const handleSelectTemplate = (templateId: string) => {
     setLoadingTemplate(templateId);

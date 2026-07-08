@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Spring Boot",
+    "Java",
+    "Angular",
+    "REST APIs",
+    "Docker",
+    "Kubernetes"
+  ],
+  "preferredProjects": [
+    "Microservices e-commerce platform",
+    "Angular user dashboard"
+  ],
+  "preferredExperience": [
+    "Java Full Stack Developer",
+    "Associate Programmer"
+  ],
+  "preferredSummary": [
+    "Enterprise developer specializing in Java microservices, REST APIs, and containerized deployments."
+  ],
+  "preferredKeywords": [
+    "developed",
+    "containerized",
+    "orchestrated",
+    "built"
+  ],
+  "avoidKeywords": [
+    "casual",
+    "helper"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "experience",
+    "projects",
+    "skills",
+    "education"
+  ],
+  "resumeTone": "Enterprise",
+  "atsWeightages": {
+    "springBoot": 30,
+    "microservices": 35,
+    "cloud": 20,
+    "database": 15
+  },
+  "aiPriorities": [
+    "highlight Spring Boot and Microservices",
+    "production deployment systems",
+    "Docker Kubernetes scaling"
+  ]
+}

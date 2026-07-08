@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Audit Analytics",
+    "Business Intelligence",
+    "Excel",
+    "SQL",
+    "Power BI",
+    "Python",
+    "Consulting"
+  ],
+  "preferredProjects": [
+    "Internal audit automation system",
+    "Business process model design"
+  ],
+  "preferredExperience": [
+    "Financial Analyst",
+    "Consultant"
+  ],
+  "preferredSummary": [
+    "Analytical consultant focused on business process improvements, audit analytics, stakeholder communication, and BI reporting."
+  ],
+  "preferredKeywords": [
+    "audited",
+    "analyzed process",
+    "communicated with stakeholders",
+    "optimized reporting"
+  ],
+  "avoidKeywords": [
+    "hardware",
+    "testing code"
+  ],
+  "recommendedBulletStyle": "Consulting",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Consulting",
+  "atsWeightages": {
+    "consulting": 30,
+    "analytics": 25,
+    "businessImpact": 20,
+    "financialReporting": 15,
+    "professionalCommunication": 10
+  },
+  "aiPriorities": [
+    "highlight analytical thinking, consulting exposure, financial data analysis, stakeholder communication, and business problem solving."
+  ]
+}

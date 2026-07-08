@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Java",
+    "OOP",
+    "SQL",
+    "DBMS",
+    "DSA"
+  ],
+  "preferredProjects": [
+    "Banking application",
+    "Database management project"
+  ],
+  "preferredExperience": [
+    "Assistant System Engineer",
+    "Systems Engineer"
+  ],
+  "preferredSummary": [
+    "Structured developer with a strong foundation in Java, database management, and SDLC."
+  ],
+  "preferredKeywords": [
+    "designed",
+    "implemented",
+    "developed",
+    "coded"
+  ],
+  "avoidKeywords": [
+    "pioneered",
+    "disrupted"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "experience",
+    "projects",
+    "education"
+  ],
+  "resumeTone": "Structured",
+  "atsWeightages": {
+    "dsa": 30,
+    "projects": 30,
+    "systemDesign": 20,
+    "leadership": 20
+  },
+  "aiPriorities": [
+    "strengthen Java, OOP and DBMS",
+    "academic projects details",
+    "SDLC compliance"
+  ]
+}

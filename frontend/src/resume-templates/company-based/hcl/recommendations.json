@@ -1,0 +1,50 @@
+{
+  "preferredSkills": [
+    "Core Java",
+    "Networking",
+    "Operating Systems",
+    "Cloud Fundamentals",
+    "OOP"
+  ],
+  "preferredProjects": [
+    "Chat application over sockets",
+    "Network packet analyzer"
+  ],
+  "preferredExperience": [
+    "Graduate Engineer Trainee",
+    "Software Intern"
+  ],
+  "preferredSummary": [
+    "Computer science graduate with foundational understanding of core Java, networking, OOP, and cloud systems."
+  ],
+  "preferredKeywords": [
+    "implemented",
+    "coded",
+    "configured",
+    "learned"
+  ],
+  "avoidKeywords": [
+    "managed team",
+    "architected platform"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Structured",
+  "atsWeightages": {
+    "java": 30,
+    "networking": 30,
+    "oop": 20,
+    "cloud": 20
+  },
+  "aiPriorities": [
+    "strengthen fundamentals",
+    "academic projects detail",
+    "certifications lists"
+  ]
+}

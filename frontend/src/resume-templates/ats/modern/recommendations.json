@@ -1,0 +1,50 @@
+{
+  "preferredSkills": [
+    "React",
+    "Next.js",
+    "TypeScript",
+    "TailwindCSS"
+  ],
+  "preferredProjects": [
+    "SaaS platform dashboard",
+    "Interactive mobile app"
+  ],
+  "preferredExperience": [
+    "Frontend Engineer",
+    "UI Developer"
+  ],
+  "preferredSummary": [
+    "Creative developer focused on building intuitive user interfaces and modern products."
+  ],
+  "preferredKeywords": [
+    "designed",
+    "engineered",
+    "innovated",
+    "optimized"
+  ],
+  "avoidKeywords": [
+    "legacy",
+    "maintained"
+  ],
+  "recommendedBulletStyle": "Action-oriented",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Innovative",
+  "atsWeightages": {
+    "projects": 35,
+    "skills": 25,
+    "experience": 20,
+    "summary": 20
+  },
+  "aiPriorities": [
+    "highlight modern technologies",
+    "personal projects",
+    "clean spacing"
+  ]
+}

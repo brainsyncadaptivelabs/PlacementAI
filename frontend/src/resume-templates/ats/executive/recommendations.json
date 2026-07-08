@@ -1,0 +1,55 @@
+{
+  "preferredSkills": [
+    "Leadership",
+    "Strategy",
+    "Management",
+    "Transformation",
+    "Architecture",
+    "Business Growth"
+  ],
+  "preferredProjects": [
+    "Global migration program orchestration",
+    "Multi-million dollar system architectural overhaul"
+  ],
+  "preferredExperience": [
+    "Director",
+    "Engineering Manager",
+    "Vice President"
+  ],
+  "preferredSummary": [
+    "Strategic executive driving operational performance, enterprise technology transformation, and organizational growth."
+  ],
+  "preferredKeywords": [
+    "directed",
+    "spearheaded",
+    "orchestrated",
+    "pioneered",
+    "transformed"
+  ],
+  "avoidKeywords": [
+    "coded",
+    "fixed bug"
+  ],
+  "recommendedBulletStyle": "Consulting",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills",
+    "certifications"
+  ],
+  "resumeTone": "Executive",
+  "atsWeightages": {
+    "experience": 40,
+    "leadership": 30,
+    "achievements": 20,
+    "architecture": 10
+  },
+  "aiPriorities": [
+    "show leadership achievements",
+    "business transformation growth",
+    "budgeting and team management"
+  ]
+}

@@ -26,7 +26,16 @@ export enum TemplateSubCategory {
   ACCENTURE = "Accenture",
   TCS = "TCS",
   COGNIZANT = "Cognizant",
-  FAANG = "FAANG"
+  FAANG = "FAANG",
+  IBM = "IBM",
+  WIPRO = "Wipro",
+  ORACLE = "Oracle",
+  DELTAX = "DeltaX",
+  ZENSAR = "Zensar",
+  HCL = "HCL",
+  DELOITTE = "Deloitte",
+  EXECUTIVE = "Executive",
+  EY = "EY"
 }
 
 export enum TemplateMode {
@@ -42,7 +51,8 @@ export type ResumeSection =
   | "projects"
   | "skills"
   | "education"
-  | "certifications";
+  | "certifications"
+  | "achievements";
 
 export interface TemplateTheme {
   fonts: {

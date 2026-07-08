@@ -1,0 +1,14 @@
+{
+  "columns": 1,
+  "headerHeight": 120,
+  "sidebarWidth": 0,
+  "sectionOrder": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills",
+    "certifications"
+  ]
+}

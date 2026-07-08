@@ -1,0 +1,52 @@
+{
+  "preferredSkills": [
+    "Enterprise Delivery",
+    "Cloud",
+    "SQL",
+    "ETL",
+    "Spark",
+    "Python",
+    "Digital Transformation"
+  ],
+  "preferredProjects": [
+    "Enterprise digital transformation",
+    "Cloud migration project"
+  ],
+  "preferredExperience": [
+    "Data Engineer",
+    "Software Developer"
+  ],
+  "preferredSummary": [
+    "Data engineer focusing on delivery pipelines, digital transformation initiatives, and ETL development."
+  ],
+  "preferredKeywords": [
+    "delivered",
+    "transformed",
+    "developed",
+    "migrated"
+  ],
+  "avoidKeywords": [
+    "theorized",
+    "conceptualized"
+  ],
+  "recommendedBulletStyle": "Action-oriented",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Professional",
+  "atsWeightages": {
+    "etl": 30,
+    "cloud": 30,
+    "sql": 20,
+    "spark": 20
+  },
+  "aiPriorities": [
+    "highlight enterprise delivery",
+    "digital transformation scale",
+    "collaborative cloud systems"
+  ]
+}

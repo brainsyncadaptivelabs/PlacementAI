@@ -73,6 +73,15 @@ function getRotatedName(templateId: string): string {
     case "tcs-style": return "Abhinav";
     case "cognizant-style": return "Bharath";
     case "faang-style": return "Likith";
+    case "ibm-style": return "Likith";
+    case "wipro-style": return "Bharath";
+    case "oracle-style": return "Abhinav";
+    case "deltax-style": return "Abhinav";
+    case "zensar-style": return "Likith";
+    case "hcl-style": return "Bharath";
+    case "deloitte-style": return "Abhinav";
+    case "executive-style": return "Likith";
+    case "ey-style": return "Abhinav";
     default: return "Sree Alekhya";
   }
 }

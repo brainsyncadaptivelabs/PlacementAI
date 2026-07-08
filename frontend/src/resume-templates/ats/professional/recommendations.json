@@ -1,0 +1,52 @@
+{
+  "preferredSkills": [
+    "Java",
+    "Python",
+    "SQL",
+    "Git",
+    "Docker"
+  ],
+  "preferredProjects": [
+    "Enterprise Web Application",
+    "REST API Service"
+  ],
+  "preferredExperience": [
+    "Software Engineer",
+    "Systems Analyst"
+  ],
+  "preferredSummary": [
+    "Results-oriented professional with experience building scalable systems."
+  ],
+  "preferredKeywords": [
+    "optimized",
+    "engineered",
+    "spearheaded",
+    "automated"
+  ],
+  "avoidKeywords": [
+    "responsible for",
+    "assisted",
+    "helped"
+  ],
+  "recommendedBulletStyle": "STAR",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "experience",
+    "projects",
+    "education"
+  ],
+  "resumeTone": "Professional",
+  "atsWeightages": {
+    "projects": 30,
+    "experience": 30,
+    "skills": 20,
+    "summary": 20
+  },
+  "aiPriorities": [
+    "measurable achievements",
+    "action verbs",
+    "STAR metrics"
+  ]
+}

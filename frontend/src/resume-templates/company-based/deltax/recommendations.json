@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Advertising Technology",
+    "Analytics",
+    "Python",
+    "SQL",
+    "Cloud Pipelines",
+    "Performance Analysis"
+  ],
+  "preferredProjects": [
+    "Ad click attribution model",
+    "Marketing metrics pipeline"
+  ],
+  "preferredExperience": [
+    "Data Analyst",
+    "Marketing Analytics Developer"
+  ],
+  "preferredSummary": [
+    "Analytic developer focusing on processing ad technology campaigns, attribution pipelines, and SQL/Python scripting."
+  ],
+  "preferredKeywords": [
+    "analyzed",
+    "pipelines",
+    "optimized campaigns",
+    "calculated"
+  ],
+  "avoidKeywords": [
+    "general",
+    "non-technical"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Analytical",
+  "atsWeightages": {
+    "analytics": 35,
+    "python": 25,
+    "sql": 20,
+    "adtech": 20
+  },
+  "aiPriorities": [
+    "show analytics impact",
+    "advertising metrics integration",
+    "Python script optimization"
+  ]
+}

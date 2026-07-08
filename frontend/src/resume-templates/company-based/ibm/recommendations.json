@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Enterprise Engineering",
+    "Spark",
+    "ETL",
+    "SQL",
+    "Cloud",
+    "Data Quality"
+  ],
+  "preferredProjects": [
+    "High volume data platform",
+    "ETL migration pipeline"
+  ],
+  "preferredExperience": [
+    "Data Engineer",
+    "Enterprise Architect"
+  ],
+  "preferredSummary": [
+    "Data engineer with experience building reliable ETL pipelines, database schemas, and Spark data processing platforms."
+  ],
+  "preferredKeywords": [
+    "optimized",
+    "pipelines",
+    "engineered",
+    "validated"
+  ],
+  "avoidKeywords": [
+    "slow",
+    "simple"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Enterprise",
+  "atsWeightages": {
+    "spark": 30,
+    "etl": 30,
+    "cloud": 20,
+    "dataQuality": 20
+  },
+  "aiPriorities": [
+    "mention Spark optimization",
+    "enterprise pipeline reliability",
+    "AWS Azure cloud structures"
+  ]
+}

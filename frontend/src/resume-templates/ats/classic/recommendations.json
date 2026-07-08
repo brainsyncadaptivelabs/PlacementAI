@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "C++",
+    "Java",
+    "SQL",
+    "Linux"
+  ],
+  "preferredProjects": [
+    "Foundational Compiler",
+    "Database Engine"
+  ],
+  "preferredExperience": [
+    "Systems Developer",
+    "Software Engineer"
+  ],
+  "preferredSummary": [
+    "Experienced engineer specializing in clean code and core architectures."
+  ],
+  "preferredKeywords": [
+    "implemented",
+    "designed",
+    "developed",
+    "maintained"
+  ],
+  "avoidKeywords": [
+    "passionate",
+    "rockstar",
+    "ninja"
+  ],
+  "recommendedBulletStyle": "Action-oriented",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "experience",
+    "projects",
+    "education",
+    "skills"
+  ],
+  "resumeTone": "Formal",
+  "atsWeightages": {
+    "formatting": 30,
+    "consistency": 30,
+    "professionalTone": 20,
+    "keywordDensity": 20
+  },
+  "aiPriorities": [
+    "clean layout",
+    "formal language",
+    "no design bloat"
+  ]
+}

@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Python",
+    "SQL",
+    "Git",
+    "CI/CD",
+    "Docker"
+  ],
+  "preferredProjects": [
+    "Automated test suite",
+    "Data ingestion pipeline"
+  ],
+  "preferredExperience": [
+    "Quality Assurance Engineer",
+    "Software Developer"
+  ],
+  "preferredSummary": [
+    "Detail-oriented engineer focusing on automation, validation, and delivery pipelines."
+  ],
+  "preferredKeywords": [
+    "automated",
+    "validated",
+    "implemented",
+    "integrated"
+  ],
+  "avoidKeywords": [
+    "creative",
+    "enthusiastic"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "experience",
+    "projects",
+    "education"
+  ],
+  "resumeTone": "Technical",
+  "atsWeightages": {
+    "skills": 30,
+    "experience": 30,
+    "projects": 20,
+    "summary": 20
+  },
+  "aiPriorities": [
+    "keyword parsing optimization",
+    "clear structure",
+    "avoid formatting traps"
+  ]
+}

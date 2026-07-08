@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Enterprise Data",
+    "Cloud Migration",
+    "Digital Transformation",
+    "Spark",
+    "ETL",
+    "Python"
+  ],
+  "preferredProjects": [
+    "Legacy data migration to cloud",
+    "ETL validation engine"
+  ],
+  "preferredExperience": [
+    "Cloud Data Engineer",
+    "Analyst"
+  ],
+  "preferredSummary": [
+    "Data migration specialist focusing on digital transformation, ETL orchestration, and Spark processing."
+  ],
+  "preferredKeywords": [
+    "migrated",
+    "transformed",
+    "processed",
+    "automated"
+  ],
+  "avoidKeywords": [
+    "local",
+    "manual"
+  ],
+  "recommendedBulletStyle": "Action-oriented",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Enterprise",
+  "atsWeightages": {
+    "cloudMigration": 30,
+    "digitalTransformation": 30,
+    "spark": 20,
+    "python": 20
+  },
+  "aiPriorities": [
+    "mention cloud transformation",
+    "legacy data migration benchmarks",
+    "Spark ETL speed improvements"
+  ]
+}

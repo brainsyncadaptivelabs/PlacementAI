@@ -43,5 +43,50 @@
     "id": "faang-style",
     "category": "Company Based Resume Templates",
     "path": "company-based/faang"
+  },
+  {
+    "id": "ibm-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/ibm"
+  },
+  {
+    "id": "wipro-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/wipro"
+  },
+  {
+    "id": "oracle-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/oracle"
+  },
+  {
+    "id": "deltax-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/deltax"
+  },
+  {
+    "id": "zensar-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/zensar"
+  },
+  {
+    "id": "hcl-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/hcl"
+  },
+  {
+    "id": "deloitte-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/deloitte"
+  },
+  {
+    "id": "executive-style",
+    "category": "ATS Resume Templates",
+    "path": "ats/executive"
+  },
+  {
+    "id": "ey-style",
+    "category": "Company Based Resume Templates",
+    "path": "company-based/ey"
   }
 ]

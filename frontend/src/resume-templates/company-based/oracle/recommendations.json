@@ -1,0 +1,50 @@
+{
+  "preferredSkills": [
+    "Oracle Cloud",
+    "SQL",
+    "Database Optimization",
+    "Performance Tuning",
+    "Cloud Infrastructure"
+  ],
+  "preferredProjects": [
+    "Enterprise database migration",
+    "OCI infrastructure provisioning"
+  ],
+  "preferredExperience": [
+    "Database Administrator",
+    "Cloud Engineer"
+  ],
+  "preferredSummary": [
+    "Oracle Cloud infrastructure specialist with deep database performance tuning capabilities."
+  ],
+  "preferredKeywords": [
+    "tuned",
+    "optimized",
+    "provisioned",
+    "migrated"
+  ],
+  "avoidKeywords": [
+    "basic",
+    "unscaled"
+  ],
+  "recommendedBulletStyle": "Technical",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Technical",
+  "atsWeightages": {
+    "database": 30,
+    "cloud": 30,
+    "sql": 20,
+    "optimization": 20
+  },
+  "aiPriorities": [
+    "mention Oracle Cloud",
+    "SQL database optimization metrics",
+    "performance engineering benchmarks"
+  ]
+}

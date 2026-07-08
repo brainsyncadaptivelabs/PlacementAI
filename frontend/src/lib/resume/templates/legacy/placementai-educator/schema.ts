@@ -32,6 +32,7 @@ export interface ResumeState {
     details: string;
   }[];
   certifications: string[];
+  achievements: string[];
 }
 
 export const initialEducatorState: ResumeState = {
@@ -93,5 +94,10 @@ export const initialEducatorState: ResumeState = {
     "Oracle Certified Professional: Java SE 17",
     "AWS Certified Cloud Practitioner",
     "SQL Advanced Certification (HackerRank)"
+  ],
+  achievements: [
+    "Secured 1st place in Inter-University Hackathon among 100+ teams.",
+    "Solved 300+ coding challenges on LeetCode with top 5% rank.",
+    "Led college tech club of 150+ members organizing national symposia."
   ]
 };

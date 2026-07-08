@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Consulting",
+    "Business Analysis",
+    "Excel",
+    "Power BI",
+    "SQL",
+    "Client Communication"
+  ],
+  "preferredProjects": [
+    "Client dashboard implementation",
+    "Operational analysis strategy"
+  ],
+  "preferredExperience": [
+    "Consultant",
+    "Business Analyst"
+  ],
+  "preferredSummary": [
+    "Strategic consultant providing metrics-driven business intelligence, data modeling, and stakeholder reporting."
+  ],
+  "preferredKeywords": [
+    "consulted",
+    "analyzed",
+    "presented",
+    "optimized process"
+  ],
+  "avoidKeywords": [
+    "coded",
+    "programmed"
+  ],
+  "recommendedBulletStyle": "Consulting",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Consulting",
+  "atsWeightages": {
+    "business": 30,
+    "presentation": 30,
+    "communication": 20,
+    "analytics": 20
+  },
+  "aiPriorities": [
+    "highlight consulting mindset",
+    "client delivery outcomes",
+    "data visualization dashboards"
+  ]
+}

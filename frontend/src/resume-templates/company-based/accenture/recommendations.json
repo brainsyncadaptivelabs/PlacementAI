@@ -1,0 +1,51 @@
+{
+  "preferredSkills": [
+    "Agile",
+    "Scrum",
+    "Azure",
+    "DevOps",
+    "Spring Boot"
+  ],
+  "preferredProjects": [
+    "Cloud native banking app",
+    "Enterprise DevOps pipeline"
+  ],
+  "preferredExperience": [
+    "Software Engineer",
+    "Consultant"
+  ],
+  "preferredSummary": [
+    "Collaborative consultant experienced in delivering Agile cloud migrations and enterprise systems."
+  ],
+  "preferredKeywords": [
+    "delivered",
+    "migrated",
+    "facilitated",
+    "optimized"
+  ],
+  "avoidKeywords": [
+    "solo",
+    "independent"
+  ],
+  "recommendedBulletStyle": "Consulting",
+  "recommendedSectionOrder": [
+    "personalInfo",
+    "summary",
+    "skills",
+    "projects",
+    "experience",
+    "education"
+  ],
+  "resumeTone": "Professional",
+  "atsWeightages": {
+    "agile": 30,
+    "cloud": 30,
+    "communication": 20,
+    "delivery": 20
+  },
+  "aiPriorities": [
+    "highlight Agile and Sprint experience",
+    "enterprise client delivery",
+    "DevOps Azure integration"
+  ]
+}
