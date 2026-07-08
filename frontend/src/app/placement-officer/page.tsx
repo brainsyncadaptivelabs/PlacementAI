@@ -26,12 +26,17 @@ import { toast } from "sonner";
 export default function PlacementOfficerDashboard() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
+  const [officerIntel, setOfficerIntel] = useState<any>(null);
 
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/ppo/dashboard/stats");
-      setData(response.data);
+      const [statsRes, intelRes] = await Promise.allSettled([
+        api.get("/ppo/dashboard/stats"),
+        api.get("/placement-officer/dashboard"),
+      ]);
+      if (statsRes.status === "fulfilled") setData(statsRes.value.data);
+      if (intelRes.status === "fulfilled") setOfficerIntel(intelRes.value.data);
     } catch (err) {
       toast.error("Failed to fetch dashboard stats.");
       setData(null);
@@ -134,6 +139,109 @@ export default function PlacementOfficerDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {officerIntel && (
+        <div className="space-y-6 mt-8">
+          <h2 className="text-xl font-bold font-heading flex items-center gap-2 text-foreground">
+             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+             AI Placement Officer Intelligence
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             <Card className="border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-md font-bold">Branch Performance Leaderboard</CardTitle>
+                   <CardDescription>Average readiness index by department.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                   {Object.entries(officerIntel.branchAverages || {}).map(([branch, score]) => (
+                      <div key={branch} className="space-y-1.5 border-b border-border/40 pb-2">
+                         <div className="flex justify-between text-xs font-bold">
+                            <span>{branch}</span>
+                            <span className="text-primary">{score as number}%</span>
+                         </div>
+                         <Progress value={score as number} className="h-1.5 indicatorClassName=bg-primary" />
+                      </div>
+                   ))}
+                </CardContent>
+             </Card>
+
+             <Card className="border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-md font-bold">Student Readiness Segmentation</CardTitle>
+                   <CardDescription>Automatic classification of batch status.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                   {Object.entries(officerIntel.studentDistribution || {}).map(([segment, count]) => (
+                      <div key={segment} className="flex justify-between items-center text-xs border-b border-border/30 pb-1.5">
+                         <span className="font-semibold text-muted-foreground">{segment}</span>
+                         <Badge variant="secondary" className="font-bold">{count as number} Students</Badge>
+                      </div>
+                   ))}
+                </CardContent>
+             </Card>
+
+             <Card className="border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-md font-bold">AI Intervention Recommender</CardTitle>
+                   <CardDescription>Suggested workshops based on trend blockers.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                   {officerIntel.interventions?.map((rec: any, idx: number) => (
+                      <div key={idx} className="p-3.5 rounded-xl border border-border bg-muted/30 space-y-1.5">
+                         <div className="flex justify-between items-center">
+                            <span className="font-black text-xs text-foreground">{rec.title}</span>
+                            <Badge variant="outline" className="text-[9px] font-black uppercase text-primary border-primary/20 bg-primary/5">{rec.priority}</Badge>
+                         </div>
+                         <p className="text-[11px] text-muted-foreground/80 leading-relaxed">{rec.description}</p>
+                      </div>
+                   ))}
+                </CardContent>
+             </Card>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+             <Card className="border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-md font-bold">Batch Placement Forecasts</CardTitle>
+                   <CardDescription>Predictive conversion stats.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-2 gap-4">
+                   <div className="p-4 rounded-xl border border-border bg-muted/20">
+                      <div className="text-[10px] font-black text-muted-foreground/60 uppercase">Expected Placements</div>
+                      <div className="text-xl font-black text-foreground mt-1">{officerIntel.forecast?.expectedPlacements} Students</div>
+                   </div>
+                   <div className="p-4 rounded-xl border border-border bg-muted/20">
+                      <div className="text-[10px] font-black text-muted-foreground/60 uppercase">Expected Offers</div>
+                      <div className="text-xl font-black text-foreground mt-1">{officerIntel.forecast?.expectedOffers} Offers</div>
+                   </div>
+                   <div className="p-4 rounded-xl border border-border bg-muted/20">
+                      <div className="text-[10px] font-black text-muted-foreground/60 uppercase">Est. Highest Package</div>
+                      <div className="text-xl font-black text-foreground mt-1">{officerIntel.forecast?.expectedHighestPackage}</div>
+                   </div>
+                   <div className="p-4 rounded-xl border border-border bg-muted/20">
+                      <div className="text-[10px] font-black text-muted-foreground/60 uppercase">Est. Average Package</div>
+                      <div className="text-xl font-black text-foreground mt-1">{officerIntel.forecast?.averagePackage}</div>
+                   </div>
+                </CardContent>
+             </Card>
+
+             <Card className="border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-md font-bold">AI College Insights</CardTitle>
+                   <CardDescription>High-level institutional highlights.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                   {officerIntel.aiCollegeInsights?.map((insight: string, idx: number) => (
+                      <div key={idx} className="flex gap-2 text-xs font-semibold text-muted-foreground">
+                         <span className="text-primary font-bold">•</span>
+                         <span>{insight}</span>
+                      </div>
+                   ))}
+                </CardContent>
+             </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

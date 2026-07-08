@@ -77,6 +77,9 @@ RadialProgress.displayName = "RadialProgress";
 
 export default function PerfectStudentPortal() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [placementIntel, setPlacementIntel] = useState<any | null>(null);
+  const [mentorData, setMentorData] = useState<any | null>(null);
+  const [timelineData, setTimelineData] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
   const [activeRoadmap, setActiveRoadmap] = useState<any | null>(null);
@@ -96,9 +99,24 @@ export default function PerfectStudentPortal() {
 
   const fetchStats = useCallback(async () => {
     try {
+      setLoading(true);
       setStatsError(null);
       const response = await api.get("/dashboard/stats");
       setStats(response.data);
+      
+      // Additive fetching for Placement Intelligence
+      try {
+        const [intelRes, mentorRes, timelineRes] = await Promise.all([
+          api.get("/placement-intelligence/dashboard"),
+          api.get("/placement-intelligence/mentor"),
+          api.get("/placement-intelligence/timeline"),
+        ]);
+        setPlacementIntel(intelRes.data);
+        setMentorData(mentorRes.data);
+        setTimelineData(timelineRes.data);
+      } catch (err) {
+        console.error("Failed to fetch placement intelligence dashboard stats", err);
+      }
     } catch (err: unknown) {
       console.error("Failed to fetch stats", err);
       setStatsError("Unable to load dashboard statistics.");
@@ -312,9 +330,195 @@ export default function PerfectStudentPortal() {
                   </Button>
                </Card>
             )}
+
+            {placementIntel && (
+               <Card className="bg-card overflow-hidden mt-8 border-primary/20 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
+                  <CardHeader className="px-8 py-6 flex flex-row items-center justify-between bg-primary/5">
+                     <div>
+                        <CardTitle className="text-xl font-bold font-heading flex items-center gap-2">
+                           <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                           Placement Intelligence
+                        </CardTitle>
+                        <CardDescription>Context-aware career assessment & target profiles</CardDescription>
+                     </div>
+                     <div className="flex gap-2">
+                        <Badge variant="outline" className="font-bold text-xs uppercase tracking-wider py-1 px-2.5 bg-primary/10 text-primary border-primary/20">
+                           AI Confidence: {placementIntel.placementScore >= 75 ? "90%" : "70%"}
+                        </Badge>
+                        <Badge variant="secondary" className="font-bold text-xs uppercase tracking-wider py-1 px-2.5">
+                           {placementIntel.readinessLevel || "Developing"}
+                        </Badge>
+                        <Badge variant="outline" className={`rounded-lg py-1.5 px-3 font-bold border-transparent ${placementIntel.placementReady ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                           {placementIntel.placementReady ? "Placement Ready" : "Enhancement Recommended"}
+                        </Badge>
+                     </div>
+                  </CardHeader>
+                  <CardContent className="p-8 space-y-6">
+                     <div className="flex flex-col md:flex-row items-center justify-between gap-8 pb-6 border-b border-border">
+                        <div className="flex items-center gap-6">
+                           <div className="relative w-24 h-24">
+                              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                 <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/5" />
+                                 <circle cx="50" cy="50" r="40" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="251.2" strokeDashoffset={251.2 * (1 - (placementIntel.placementScore / 100))} className="text-primary transition-all duration-1000 ease-out" strokeLinecap="round" />
+                              </svg>
+                              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                 <span className="text-2xl font-black">{placementIntel.placementScore}</span>
+                                 <span className="text-[8px] uppercase tracking-wider font-semibold text-muted-foreground">Score</span>
+                              </div>
+                           </div>
+                           <div>
+                              <h4 className="font-bold text-lg">Overall Placement Score</h4>
+                              <div className="text-xs text-primary font-black uppercase tracking-wider mt-0.5">
+                                 Est. Package: <span className="underline">{placementIntel.estimatedPackageRange || "4 - 8 LPA"}</span>
+                              </div>
+                              <p className="text-xs text-muted-foreground/80 mt-1.5 max-w-xs">
+                                 Calculated dynamically using coding analytics, ATS metrics, communication fluency and mock interviews.
+                              </p>
+                           </div>
+                        </div>
+                        
+                        <div className="w-full md:w-64 flex flex-col gap-2">
+                           <div className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest mb-1">Top Target Rankings</div>
+                           <div className="space-y-1.5">
+                              {placementIntel.companyRanking?.slice(0, 3).map((item: string, index: number) => (
+                                 <div key={index} className="flex justify-between text-xs font-medium border-b border-border/40 pb-1">
+                                    <span className="text-foreground">{item.split(" - ")[0]}</span>
+                                    <span className="text-primary font-bold">{item.split(" - ")[1]}</span>
+                                 </div>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                           <div className="text-xs font-black uppercase tracking-wider text-muted-foreground/60 flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                              Weak Areas
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                              {placementIntel.weakAreas?.map((area: string) => (
+                                  <span key={area} className="text-xs font-bold text-red-400 bg-red-500/10 border border-red-500/20 px-2.5 py-1 rounded-lg">
+                                    {area}
+                                 </span>
+                              ))}
+                           </div>
+                        </div>
+
+                        <div className="space-y-3">
+                           <div className="text-xs font-black uppercase tracking-wider text-muted-foreground/60 flex items-center gap-1.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Strong Areas
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                              {placementIntel.strongAreas?.map((area: string) => (
+                                 <span key={area} className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg">
+                                    {area}
+                                 </span>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+
+                     <div className="bg-primary/5 border border-primary/10 rounded-2xl p-5 space-y-3">
+                        <div className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
+                           <Sparkles className="w-4 h-4" /> AI Placement Insights
+                        </div>
+                        <ul className="space-y-1.5">
+                           {placementIntel.insights?.map((insight: string, idx: number) => (
+                              <li key={idx} className="text-xs font-medium text-muted-foreground flex items-start gap-2">
+                                 <span className="text-primary mt-1">•</span>
+                                 <span>{insight}</span>
+                              </li>
+                           ))}
+                        </ul>
+                     </div>
+
+                     {/* Week-by-Week detailed roadmap */}
+                     <div className="border-t border-border pt-6 space-y-4">
+                        <div className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Personalized Learning Roadmap</div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                           {placementIntel.detailedRoadmap?.map((item: string, idx: number) => (
+                              <div key={idx} className="bg-muted/40 border border-border/60 rounded-xl p-4 space-y-2">
+                                 <div className="text-[10px] font-black text-primary uppercase tracking-widest">Week {idx + 1}</div>
+                                 <p className="text-xs font-semibold text-foreground/90">{item.replace(/^Week \d+:\s*/, "")}</p>
+                              </div>
+                           ))}
+                        </div>
+                     </div>
+                  </CardContent>
+               </Card>
+            )}
          </div>
 
          <div className="space-y-8">
+             {mentorData && (
+                <Card className="border-primary/20 bg-card overflow-hidden shadow-sm">
+                   <CardHeader className="bg-primary/5 pb-4">
+                      <CardTitle className="text-sm font-bold flex items-center gap-1.5">
+                         <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                         AI Placement Mentor
+                      </CardTitle>
+                      <CardDescription className="text-xs font-semibold text-foreground/80 mt-1">
+                         {mentorData.mentorGuidance}
+                      </CardDescription>
+                   </CardHeader>
+                   <CardContent className="p-5 space-y-4">
+                      {mentorData.dailyMission && (
+                         <div className="space-y-2">
+                            <div className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">Today's Placement Mission</div>
+                            <div className="p-3 bg-muted/40 rounded-xl border border-border/60 space-y-2">
+                               <div className="text-xs font-black text-foreground">{mentorData.dailyMission.missionTitle}</div>
+                               <div className="space-y-1.5 text-xs text-muted-foreground">
+                                  <div className="flex gap-2"><span className="text-primary font-bold">•</span><span><strong>Resume:</strong> {mentorData.dailyMission.resumeTask}</span></div>
+                                  <div className="flex gap-2"><span className="text-primary font-bold">•</span><span><strong>Coding:</strong> {mentorData.dailyMission.codingTask}</span></div>
+                                  <div className="flex gap-2"><span className="text-primary font-bold">•</span><span><strong>Interview:</strong> {mentorData.dailyMission.interviewTask}</span></div>
+                               </div>
+                               <div className="flex justify-between items-center text-[10px] font-bold text-primary border-t border-border/40 pt-2 mt-2">
+                                  <span>Time: {mentorData.dailyMission.estimatedTime}</span>
+                                  <span>{mentorData.dailyMission.expectedProgress}</span>
+                               </div>
+                            </div>
+                         </div>
+                      )}
+
+                      {mentorData.unlockedOpportunities && mentorData.unlockedOpportunities.length > 0 && (
+                         <div className="space-y-2">
+                            <div className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">Opportunity Alerts</div>
+                            <div className="space-y-1.5">
+                               {mentorData.unlockedOpportunities.map((op: string, idx: number) => (
+                                  <div key={idx} className="p-2.5 bg-emerald-500/5 border border-emerald-500/10 text-emerald-400 rounded-xl text-[11px] font-semibold flex gap-2">
+                                     <Sparkles className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                     <span>{op}</span>
+                                  </div>
+                               ))}
+                            </div>
+                         </div>
+                      )}
+                   </CardContent>
+                </Card>
+             )}
+
+             {timelineData && (
+                <Card className="border-border bg-card shadow-sm">
+                   <CardHeader>
+                      <CardTitle className="text-sm font-bold">Your Placement Timeline</CardTitle>
+                   </CardHeader>
+                   <CardContent className="p-5 space-y-4">
+                      <div className="relative border-l border-border/60 pl-4 ml-1 space-y-5">
+                         {timelineData.map((ev: any, idx: number) => (
+                            <div key={idx} className="relative">
+                               <div className={`absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-background ${ev.status === 'COMPLETED' ? 'bg-emerald-500' : ev.status === 'IN_PROGRESS' ? 'bg-primary' : 'bg-muted-foreground/40'}`} />
+                               <div className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">{ev.month}</div>
+                               <div className="text-xs font-bold text-foreground">{ev.milestone}</div>
+                               <p className="text-[10px] text-muted-foreground mt-0.5">{ev.details}</p>
+                            </div>
+                         ))}
+                      </div>
+                   </CardContent>
+                </Card>
+             )}
+
             <UpcomingEvents events={stats?.upcomingEvents} />
             <CareerMentorWidget onOpenChat={() => router.push('/dashboard/chat')} />
 

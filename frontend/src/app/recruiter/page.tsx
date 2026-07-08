@@ -24,16 +24,19 @@ export default function RecruiterDashboard() {
   const [stats, setStats] = useState<any>(null);
 
   const [analytics, setAnalytics] = useState<any>(null);
+  const [recruiterIntel, setRecruiterIntel] = useState<any>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [dashRes, analyticsRes] = await Promise.allSettled([
+        const [dashRes, analyticsRes, intelRes] = await Promise.allSettled([
           api.get("/recruiter/dashboard/stats"),
           api.get("/recruiter/analytics"),
+          api.get("/recruiter-intelligence/dashboard"),
         ]);
         if (dashRes.status === "fulfilled") setStats(dashRes.value.data);
         if (analyticsRes.status === "fulfilled") setAnalytics(analyticsRes.value.data);
+        if (intelRes.status === "fulfilled") setRecruiterIntel(intelRes.value.data);
       } catch (err: any) {
         toast.error("Failed to load dashboard statistics.");
       } finally {
@@ -116,6 +119,87 @@ export default function RecruiterDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {recruiterIntel && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-bold font-heading flex items-center gap-2 mt-8 text-foreground">
+             <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
+             AI Recruiter Intelligence
+          </h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+             <Card className="lg:col-span-2 border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-lg font-bold flex items-center gap-2">
+                      Top Candidate Rankings
+                   </CardTitle>
+                   <CardDescription>Dynamic leaderboard ranked by Placement Score, coding progress, and communication quality.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                   {recruiterIntel.topCandidates?.map((candidate: any, idx: number) => {
+                      const shortlist = recruiterIntel.shortlist?.find((s: any) => s.userId === candidate.userId);
+                      const status = shortlist ? shortlist.status : "Recommended";
+                      const reason = shortlist ? shortlist.reasoning : candidate.reason;
+
+                      return (
+                         <div key={candidate.userId || idx} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 rounded-xl border border-border bg-muted/30">
+                            <div>
+                               <div className="flex items-center gap-2">
+                                  <span className="font-bold text-foreground">{idx + 1}. {candidate.name}</span>
+                                  <Badge variant="outline" className={status === 'Recommended' ? 'bg-emerald-500/10 text-emerald-400 border-transparent' : status === 'Maybe' ? 'bg-amber-500/10 text-amber-400 border-transparent' : 'bg-red-500/10 text-red-400 border-transparent'}>
+                                     {status}
+                                  </Badge>
+                               </div>
+                               <p className="text-xs text-muted-foreground/80 mt-1">{reason}</p>
+                            </div>
+                            <div className="flex items-center gap-4 shrink-0">
+                               <div className="text-right">
+                                  <div className="text-xs font-bold uppercase text-muted-foreground/70">Placement Score</div>
+                                  <div className="text-lg font-black text-primary">{candidate.overallScore}%</div>
+                               </div>
+                               <div className="text-right">
+                                  <div className="text-xs font-bold uppercase text-muted-foreground/70">AI Confidence</div>
+                                  <div className="text-xs font-semibold text-foreground/80">{candidate.confidence}%</div>
+                               </div>
+                            </div>
+                         </div>
+                      );
+                   })}
+                </CardContent>
+             </Card>
+
+             <Card className="border-border bg-card">
+                <CardHeader>
+                   <CardTitle className="text-lg font-bold">AI Pipeline Insights</CardTitle>
+                   <CardDescription>Sourcing actions and overall statistics.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                   <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 rounded-xl border border-border bg-muted/20 text-center">
+                         <div className="text-[10px] font-black uppercase text-muted-foreground/60">Avg. Score</div>
+                         <div className="text-2xl font-black text-foreground mt-1">{recruiterIntel.averagePlacementScore}%</div>
+                      </div>
+                      <div className="p-4 rounded-xl border border-border bg-muted/20 text-center">
+                         <div className="text-[10px] font-black uppercase text-muted-foreground/60">Offers Ready</div>
+                         <div className="text-2xl font-black text-foreground mt-1">{recruiterIntel.highlyReadyCount}</div>
+                      </div>
+                   </div>
+
+                   <div className="space-y-3">
+                      <div className="text-xs font-bold uppercase text-muted-foreground/70 tracking-wider">Strategic Recommendations</div>
+                      <ul className="space-y-2">
+                         {recruiterIntel.recommendations?.map((rec: string, i: number) => (
+                            <li key={i} className="text-xs font-medium text-muted-foreground flex items-start gap-2">
+                               <span className="text-primary">•</span>
+                               <span>{rec}</span>
+                            </li>
+                         ))}
+                      </ul>
+                   </div>
+                </CardContent>
+             </Card>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
