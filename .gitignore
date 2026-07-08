@@ -1,102 +1,94 @@
-# ======================
+# ============================================================
+# PlacementAI – Global .gitignore
+# ============================================================
 
-# ENV FILES
-
-# ======================
-
+# Environment Files
 .env
 .env.local
-.env.development
-.env.production
+.env.development.local
+.env.test.local
+.env.production.local
 *_env*.zip
+!/.env.example
 
-# Keep example file
-
-!.env.example
-
-# ======================
-
-# OS FILES
-
-# ======================
-
+# OS Files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# ======================
-
-# NODE
-
-# ======================
-
+# Node (Frontend)
 node_modules/
 .next/
 out/
 build/
+dist/
+.pnp
+.pnp.js
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.tsbuildinfo
+next-env.d.ts
+.vercel
 
-# ======================
-
-# JAVA
-
-# ======================
-
+# Java / Maven (Backend)
 target/
 *.class
 *.jar
 *.war
+*.nar
 *.ear
-.mvn/wrapper/*.jar
+*.zip
+*.tar.gz
+*.rar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.restoreBackup
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# Avoid ignoring Maven wrapper jar
+!.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*
+replay_pid*
 
-# ======================
+# Python (Tests / Helpers)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
 
-# IDE
-
-# ======================
-
+# IDE / Editor Files
 .idea/
 .vscode/
+*.iml
+*.ipr
+*.iws
 *.swp
 *.swo
+.project
+.classpath
+.settings/
+.nb-confidence
 
-# ======================
-
-# DOCKER
-
-# ======================
-
-.docker/
-
-# ======================
-
-# LOGS
-
-# ======================
-
+# Logs
 logs/
 *.log
 
-# ======================
-
-# TEMP / UPLOADS
-
-# ======================
-
+# Temp / Uploads
 temp/
 uploads/
-
-# ======================
-
-# CACHE
-
-# ======================
-
 .cache/
-
-# ======================
-
-# SPRING
-
-# ======================
-
-application-local.properties
-application-secret.properties
