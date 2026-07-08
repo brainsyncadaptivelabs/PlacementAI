@@ -1,5 +1,7 @@
 package com.aiplacement.backend.controller.recruiter;
 
+// IDE refresh trigger
+
 import com.aiplacement.backend.dto.shared.PlacementAnalyticsDto;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;

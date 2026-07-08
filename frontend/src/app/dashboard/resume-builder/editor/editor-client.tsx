@@ -116,11 +116,96 @@ function ResumeEditor() {
   const previewScrollRef = useRef<HTMLDivElement>(null);
 
   // Zoom & Mode settings
-  const [zoom, setZoom] = useState<number>(1.0); // Default 100% zoom
+  const [zoom, setZoom] = useState<number>(0.85); // Default 85% zoom for perfect balance
   const [focusMode, setFocusMode] = useState<boolean>(false);
 
   // Autosave status
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Saving..." | "Unsaved Changes" | "Error: Unauthenticated">("Saved");
+
+  // AI Panel State (moved from inner render IIFE to fix hook order bug)
+  const [sidebarWidth, setSidebarWidth] = useState(320);
+  const [isDragging, setIsDragging] = useState(false);
+  const [expandedSuggestId, setExpandedSuggestId] = useState<string | null>(null);
+
+  const [leftSidebarWidth, setLeftSidebarWidth] = useState(320);
+  const [isLeftDragging, setIsLeftDragging] = useState(false);
+  const [leftExpanded, setLeftExpanded] = useState(true);
+
+  useEffect(() => {
+    const savedWidth = localStorage.getItem("placementai_coach_sidebar_width");
+    if (savedWidth) {
+      const parsed = parseInt(savedWidth, 10);
+      if (!isNaN(parsed) && parsed >= 250 && parsed <= 600) {
+        setSidebarWidth(parsed);
+      }
+    }
+    
+    const savedLeftWidth = localStorage.getItem("placementai_editor_sidebar_width");
+    if (savedLeftWidth) {
+      const parsed = parseInt(savedLeftWidth, 10);
+      if (!isNaN(parsed) && parsed >= 250 && parsed <= 800) {
+        setLeftSidebarWidth(parsed);
+      }
+    }
+  }, []);
+
+  const startLeftResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsLeftDragging(true);
+  };
+
+  useEffect(() => {
+    if (!isLeftDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // For left panel, width is roughly e.clientX minus left offset
+      // Since it's in a flex container with p-4 (16px), offset is around 16px.
+      const newWidth = e.clientX - 16;
+      if (newWidth >= 250 && newWidth <= 800) {
+        setLeftSidebarWidth(newWidth);
+        localStorage.setItem("placementai_editor_sidebar_width", newWidth.toString());
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsLeftDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isLeftDragging]);
+
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = window.innerWidth - e.clientX;
+      if (newWidth >= 250 && newWidth <= 600) {
+        setSidebarWidth(newWidth);
+        localStorage.setItem("placementai_coach_sidebar_width", newWidth.toString());
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
 
   // Scroll to top when template or resume changes
   useEffect(() => {
@@ -885,7 +970,7 @@ function ResumeEditor() {
     
     // Determine the template display name from TEMPLATE_REGISTRY or fallback to ID
     const tplMeta = TEMPLATE_REGISTRY[templateId];
-    const rawName = tplMeta?.name || templateId;
+    const rawName = (tplMeta as any)?.name || templateId;
     // Replace spaces and special chars with underscores
     const formattedTplName = rawName.replace(/[\s\-_]+/g, "_");
     
@@ -968,7 +1053,7 @@ function ResumeEditor() {
     const skillGap = session.blueprint?.missingKeywords && session.blueprint.missingKeywords.length > 0 
       ? `Skill Gap (Missing): ${session.blueprint.missingKeywords.join(", ")}` 
       : "Skill Gap: No major missing keywords identified against job profile.";
-    const currentJd = session.blueprint?.jobDescription || "Job Description: Entry level technical specialist developer.";
+    const currentJd = (session.blueprint as any)?.jobDescription || "Job Description: Entry level technical specialist developer.";
 
     // Read template specific recommendations to supply context to AI prompt
     let templateInstructions = "";
@@ -1134,8 +1219,8 @@ Risk: <e.g., Low or None>
   };
 
   // Zoom helpers
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.15, 1.5));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.15, 0.7));
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 2.0));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
   const handleFitWidth = () => setZoom(1.0);
   const handleFitPage = () => setZoom(0.85);
 
@@ -1169,48 +1254,41 @@ Risk: <e.g., Low or None>
   };
 
   return (
-    <div className="h-screen flex flex-col bg-transparent overflow-hidden font-sans relative selection:bg-indigo-150">
+    <div className="h-screen flex flex-col overflow-hidden font-sans relative selection:bg-indigo-150 bg-white">
       
       {/* 1. FOCUS MODE (Fullscreen Preview) */}
       {focusMode && (
-        <div className="fixed inset-0 bg-slate-900 z-[100] flex flex-col overflow-hidden select-none">
+        <div className="fixed inset-0 bg-background z-[100] flex flex-col overflow-hidden select-none">
           {/* Focus mode header toolbar */}
-          <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-slate-950 text-white border-b border-slate-800 shadow-[0_4px_20px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-top-4 duration-300">
+          <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-card text-card-foreground border-b border-border shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex items-center gap-3">
-              <span className="text-sm font-black tracking-wider uppercase text-indigo-400">
+              <span className="text-sm font-black tracking-wider uppercase text-primary">
                 Focus Mode
               </span>
-              <span className="text-[10px] font-extrabold text-muted-foreground/70 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded uppercase">
+              <span className="text-xs font-extrabold text-muted-foreground bg-muted border border-border px-2 py-0.5 rounded uppercase">
                 {pages.length} Pages
               </span>
             </div>
 
             {/* Zoom controls inside Focus Mode */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+              <div className="flex items-center gap-1.5 bg-muted p-0.5 rounded-lg border border-border">
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={handleZoomOut} 
-                  className="h-8 w-8 rounded text-muted-foreground/70 hover:text-white hover:bg-slate-800"
+                  className="h-8 w-8 rounded text-muted-foreground hover:text-foreground hover:bg-background"
                 >
                   <ZoomOut className="w-4 h-4" />
                 </Button>
-                <select
-                  value={`${Math.round(zoom * 100)}%`}
-                  onChange={(e) => setZoom(parseFloat(e.target.value) / 100)}
-                  className="text-xs font-bold text-muted-foreground/50 bg-transparent border-none focus:outline-none focus:ring-0 w-16 text-center cursor-pointer"
-                >
-                  <option value="75%" className="bg-slate-900 text-white">75%</option>
-                  <option value="100%" className="bg-slate-900 text-white">100%</option>
-                  <option value="125%" className="bg-slate-900 text-white">125%</option>
-                  <option value="150%" className="bg-slate-900 text-white">150%</option>
-                </select>
+                <span className="text-xs font-bold text-foreground w-12 text-center">
+                  {Math.round(zoom * 100)}%
+                </span>
                 <Button 
                   variant="ghost" 
                   size="icon" 
                   onClick={handleZoomIn} 
-                  className="h-8 w-8 rounded text-muted-foreground/70 hover:text-white hover:bg-slate-800"
+                  className="h-8 w-8 rounded text-muted-foreground hover:text-foreground hover:bg-background"
                 >
                   <ZoomIn className="w-4 h-4" />
                 </Button>
@@ -1219,7 +1297,7 @@ Risk: <e.g., Low or None>
                 variant="ghost" 
                 size="sm" 
                 onClick={handleFitWidth} 
-                className="text-xs font-bold h-9 text-muted-foreground/70 hover:text-white rounded-lg px-3 hover:bg-slate-800"
+                className="text-xs font-bold h-9 text-muted-foreground hover:text-foreground rounded-lg px-3 hover:bg-muted"
               >
                 Fit Width
               </Button>
@@ -1227,7 +1305,7 @@ Risk: <e.g., Low or None>
                 variant="ghost" 
                 size="sm" 
                 onClick={handleFitPage} 
-                className="text-xs font-bold h-9 text-muted-foreground/70 hover:text-white rounded-lg px-3 hover:bg-slate-800"
+                className="text-xs font-bold h-9 text-muted-foreground hover:text-foreground rounded-lg px-3 hover:bg-muted"
               >
                 Fit Page
               </Button>
@@ -1237,7 +1315,7 @@ Risk: <e.g., Low or None>
               <Button 
                 variant="ghost"
                 onClick={handleSaveToCloud} 
-                className="h-9 rounded-lg text-indigo-300 hover:text-white hover:bg-indigo-900/30 text-xs font-bold px-3 gap-1.5"
+                className="h-9 rounded-lg text-primary hover:text-primary hover:bg-primary/10 text-xs font-bold px-3 gap-1.5"
               >
                 <Save className="w-4 h-4" />
                 Save to Cloud
@@ -1246,7 +1324,7 @@ Risk: <e.g., Low or None>
               <Button 
                 variant="ghost"
                 onClick={() => setShowVersionModal(true)} 
-                className="h-9 rounded-lg text-muted-foreground/70 hover:text-white hover:bg-slate-800 text-xs font-bold px-3 gap-1.5"
+                className="h-9 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted text-xs font-bold px-3 gap-1.5"
               >
                 <Save className="w-4 h-4" />
                 Save
@@ -1254,20 +1332,20 @@ Risk: <e.g., Low or None>
 
               {/* Export dropdown */}
               <div className="relative group">
-                <Button className="h-9 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 px-4">
+                <Button className="h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold flex items-center gap-1.5 px-4">
                   <Download className="w-4 h-4" />
                   Export
                 </Button>
                 <div className="absolute right-0 top-full pt-1 hidden group-hover:block z-50">
-                  <div className="w-40 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-1">
-                    <button onClick={() => handlePrintPdf()} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 flex items-center justify-between">
+                  <div className="w-40 bg-card border border-border rounded-xl shadow-xl py-1">
+                    <button onClick={() => handlePrintPdf()} className="w-full text-left px-4 py-2 text-xs font-bold text-foreground hover:bg-muted flex items-center justify-between">
                       <span>PDF</span>
-                      <span className="bg-indigo-900/50 text-indigo-300 border border-indigo-700/30 px-1.5 py-0.5 rounded text-[8px] uppercase">Best</span>
+                      <span className="bg-primary/10 text-primary border border-primary/20 px-1.5 py-0.5 rounded text-[11px] uppercase">Best</span>
                     </button>
-                    <button onClick={() => handleExportDocx()} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
+                    <button onClick={() => handleExportDocx()} className="w-full text-left px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground">
                       Word (.doc)
                     </button>
-                    <button onClick={() => handleExportLatex()} className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-350 hover:bg-slate-800">
+                    <button onClick={() => handleExportLatex()} className="w-full text-left px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground">
                       LaTeX (.tex)
                     </button>
                   </div>
@@ -1277,7 +1355,7 @@ Risk: <e.g., Low or None>
               <Button 
                 variant="outline" 
                 onClick={() => setFocusMode(false)} 
-                className="h-9 rounded-lg border-slate-850 text-muted-foreground/50 hover:bg-slate-800 text-xs font-bold gap-1.5 bg-transparent"
+                className="h-9 rounded-lg border-border text-muted-foreground hover:text-foreground hover:bg-muted text-xs font-bold gap-1.5 bg-transparent"
               >
                 <Minimize2 className="w-4 h-4" />
                 Exit Focus
@@ -1286,7 +1364,7 @@ Risk: <e.g., Low or None>
           </header>
 
           {/* Fullscreen workspace scrollarea */}
-          <div className="flex-1 overflow-y-auto overflow-x-auto p-12 flex flex-col items-center gap-6 bg-slate-950">
+          <div className="flex-1 overflow-y-auto overflow-x-auto p-12 flex flex-col items-center gap-6 bg-slate-100/50 dark:bg-slate-950/50">
             {pages.map((pageHtml, index) => (
               <div 
                 key={index} 
@@ -1300,7 +1378,7 @@ Risk: <e.g., Low or None>
                     position: "relative",
                     overflow: "visible"
                   }}
-                  className="shadow-[0_24px_64px_rgba(0,0,0,0.6)] border border-slate-800 bg-card overflow-hidden"
+                  className="shadow-2xl border border-border bg-card overflow-hidden"
                 >
                   <div 
                     style={{
@@ -1318,7 +1396,7 @@ Risk: <e.g., Low or None>
                 </div>
                 {index < pages.length - 1 && (
                   <div className="w-full h-8 flex items-center justify-center">
-                    <div className="w-24 h-0.5 bg-slate-800 rounded-full" />
+                    <div className="w-24 h-0.5 bg-border rounded-full" />
                   </div>
                 )}
               </div>
@@ -1329,21 +1407,21 @@ Risk: <e.g., Low or None>
 
       {/* Top action/score header bar - Sticky */}
       {!focusMode && (
-        <header className="h-14 shrink-0 flex items-center justify-between px-6 bg-card border-b border-border z-40">
+        <header className="h-16 shrink-0 flex items-center justify-between px-6 bg-white border-b border-slate-100 z-40">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/resume-builder")} className="rounded-lg hover:bg-muted h-9 px-2">
-              <ArrowLeft className="w-4 h-4 text-foreground mr-1" />
-              <span className="text-xs font-bold text-foreground">Back</span>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/dashboard/resume-builder")} className="rounded-xl hover:bg-slate-100 h-10 px-3 text-slate-700 transition-all">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              <span className="text-sm font-black uppercase tracking-wider">Back</span>
             </Button>
-            <div className="h-6 w-px bg-slate-200 mx-1" />
+            <div className="h-8 w-px bg-slate-200 mx-2" />
             <input 
               type="text" 
               value={resumeTitle}
               onChange={(e) => setResumeTitle(e.target.value)}
-              className="text-sm font-bold text-foreground leading-none bg-transparent border-none focus:outline-none focus:ring-0 p-0"
+              className="text-xl font-black text-slate-900 leading-none bg-transparent border-none focus:outline-none focus:ring-0 p-1.5 hover:bg-slate-50 transition-colors rounded-lg -ml-1.5 w-[300px]"
             />
-            <div className="flex items-center gap-2">
-              <span className={`text-[10px] font-bold ${saveStatus === "Saved" ? "text-emerald-600" : "text-amber-500"}`}>
+            <div className="flex items-center gap-2 ml-2">
+              <span className={`text-xs uppercase tracking-wider font-black px-3 py-1.5 rounded-lg ${saveStatus === "Saved" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"}`}>
                 {saveStatus}
               </span>
             </div>
@@ -1376,16 +1454,25 @@ Risk: <e.g., Low or None>
             <Button 
               variant="outline" 
               onClick={() => setShowVersionModal(true)} 
-              className="rounded-lg border-border text-foreground hover:bg-muted text-[11px] font-bold h-9 px-3"
+              className="rounded-lg border-border text-foreground hover:bg-muted text-xs font-bold h-9 px-3"
             >
               Versions ({versions.length})
             </Button>
 
-            {/* AI Coach toggle */}
+            <Button 
+              variant="outline" 
+              onClick={() => setLeftExpanded(!leftExpanded)} 
+              className={`rounded-xl text-xs font-bold gap-1.5 h-10 px-3 ${
+                leftExpanded ? "bg-card text-slate-700" : "bg-indigo-600 text-white"
+              }`}
+            >
+              {leftExpanded ? "Hide Editor" : "Show Editor"}
+            </Button>
+            
             <Button 
               id="ai-coach-toggle-btn"
               onClick={() => setAiExpanded(!aiExpanded)} 
-              className={`rounded-lg text-[11px] font-bold gap-1.5 h-9 px-3 ${
+              className={`rounded-xl text-xs font-bold gap-1.5 h-10 px-3 ${
                 aiExpanded ? "bg-indigo-600 text-white hover:bg-indigo-705" : "bg-card border border-border text-foreground hover:bg-muted"
               }`}
             >
@@ -1397,7 +1484,7 @@ Risk: <e.g., Low or None>
             <Button
               variant="outline"
               onClick={handleSaveToCloud}
-              className="rounded-lg border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-[11px] font-bold gap-1.5 h-9 px-3"
+              className="rounded-lg border-indigo-200 text-indigo-700 hover:bg-indigo-50 text-xs font-bold gap-1.5 h-9 px-3"
             >
               <Save className="w-3.5 h-3.5" />
               Save to Cloud
@@ -1407,7 +1494,7 @@ Risk: <e.g., Low or None>
             <Button 
               variant="outline" 
               onClick={toggleFocusMode} 
-              className="rounded-lg border-border text-foreground hover:bg-muted text-[11px] font-bold gap-1.5 h-9 px-3"
+              className="rounded-lg border-border text-foreground hover:bg-muted text-xs font-bold gap-1.5 h-9 px-3"
             >
               <Maximize2 className="w-3.5 h-3.5" />
               Focus Mode
@@ -1415,7 +1502,7 @@ Risk: <e.g., Low or None>
 
             {/* Export Dropdown */}
             <div className="relative group">
-              <Button className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold flex items-center gap-1.5 h-9 px-4">
+              <Button className="rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 h-9 px-4">
                 <Download className="w-3.5 h-3.5" />
                 Export
               </Button>
@@ -1433,19 +1520,24 @@ Risk: <e.g., Low or None>
 
       {/* Main Workspace flex layout */}
       {!focusMode && (
-        <div className="flex-1 flex gap-4 p-4 h-[calc(100vh-56px)] overflow-hidden w-full bg-transparent max-w-none">
-
+        <div className="flex-1 flex gap-2 p-2 lg:gap-4 lg:p-4 h-[calc(100vh-64px)] overflow-hidden w-full max-w-none">
           
-          {/* 1. EDITOR PANEL: Left 25% on desktop (lg), 40% on tablet (md), 100% on mobile */}
-          <div data-slot="card" className="w-full md:w-[40%] lg:w-[25%] h-full flex flex-col overflow-hidden shrink-0 z-10">
+          {/* 1. EDITOR PANEL: Left Resizable */}
+          <div 
+            style={leftExpanded ? { width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${leftSidebarWidth}px` : undefined } : undefined}
+            className={cn(
+              "h-full flex flex-col overflow-hidden shrink-0 z-10 bg-white transition-all duration-300",
+              leftExpanded ? "w-full md:w-[40%] lg:w-auto opacity-100" : "w-0 opacity-0 pointer-events-none hidden lg:block"
+            )}
+          >
             {/* Section tabs */}
-            <div className="p-3 bg-muted/50 border-b border-border shrink-0">
-              <div className="grid grid-cols-4 gap-1 bg-slate-200/50 p-1 rounded-xl">
+            <div className="p-3 bg-white border-b border-slate-100 shrink-0">
+              <div className="grid grid-cols-4 gap-1 bg-slate-200/50 p-1.5 rounded-xl">
                 {(["personal", "summary", "skills", "experience", "projects", "education", "certifications", "achievements"] as const).map(section => (
                   <button
                     key={section}
                     onClick={() => setActiveSection(section)}
-                    className={`py-1 text-[8px] font-black uppercase tracking-wider rounded-lg transition-all ${
+                    className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
                       activeSection === section 
                         ? "bg-card text-foreground shadow-sm" 
                         : "text-muted-foreground hover:text-foreground"
@@ -1458,12 +1550,12 @@ Risk: <e.g., Low or None>
             </div>
 
             {/* Scrollable form content - Smooth scrolling */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-6 scroll-smooth">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 scroll-smooth">
               {/* PERSONAL INFO */}
               {activeSection === "personal" && (
                 <div className="space-y-4">
                   <div className="space-y-1">
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name" className="text-xs font-bold text-slate-700">Full Name</Label>
                     <Input
                       id="name"
                       value={state.personalInfo.name}
@@ -1472,11 +1564,11 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, name: e.target.value }
                       })}
-                      className="rounded-xl border-border"
+                      className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="email">Email Address</Label>
+                    <Label htmlFor="email" className="text-xs font-bold text-slate-700">Email Address</Label>
                     <Input
                       id="email"
                       value={state.personalInfo.email}
@@ -1485,11 +1577,11 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, email: e.target.value }
                       })}
-                      className="rounded-xl border-border"
+                      className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="phone">Phone Number</Label>
+                    <Label htmlFor="phone" className="text-xs font-bold text-slate-700">Phone Number</Label>
                     <Input
                       id="phone"
                       value={state.personalInfo.phone}
@@ -1498,11 +1590,11 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, phone: e.target.value }
                       })}
-                      className="rounded-xl border-border"
+                      className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                    <Label htmlFor="linkedin" className="text-xs font-bold text-slate-700">LinkedIn Profile</Label>
                     <Input
                       id="linkedin"
                       value={state.personalInfo.linkedin}
@@ -1511,11 +1603,11 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, linkedin: e.target.value }
                       })}
-                      className="rounded-xl border-border"
+                      className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="github">GitHub Profile</Label>
+                    <Label htmlFor="github" className="text-xs font-bold text-slate-700">GitHub Profile</Label>
                     <Input
                       id="github"
                       value={state.personalInfo.github}
@@ -1524,11 +1616,11 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, github: e.target.value }
                       })}
-                      className="rounded-xl border-border"
+                      className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="leetcode">LeetCode Profile</Label>
+                    <Label htmlFor="leetcode" className="text-xs font-bold text-slate-700">LeetCode Profile</Label>
                     <Input
                       id="leetcode"
                       value={state.personalInfo.leetcode}
@@ -1537,7 +1629,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         personalInfo: { ...state.personalInfo, leetcode: e.target.value }
                       })}
-                      className="rounded-xl border-border"
+                      className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                     />
                   </div>
                 </div>
@@ -1548,7 +1640,7 @@ Risk: <e.g., Low or None>
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs text-muted-foreground/70 font-medium mb-1">
-                      <Label htmlFor="summary">Summary Details</Label>
+                      <Label htmlFor="summary" className="text-xs font-bold text-slate-700">Summary Details</Label>
                       <span>{state.summary.length} characters</span>
                     </div>
                     <Textarea
@@ -1560,7 +1652,7 @@ Risk: <e.g., Low or None>
                         ...state,
                         summary: e.target.value
                       })}
-                      className="rounded-xl border-border resize-none leading-relaxed"
+                      className="rounded-xl border-slate-200 resize-none text-sm p-4 leading-relaxed"
                     />
                   </div>
                 </div>
@@ -1662,7 +1754,7 @@ Risk: <e.g., Low or None>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Jobs List</h3>
-                    <Button onClick={() => addNewItem("experience")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-8 text-[10px]">
+                    <Button onClick={() => addNewItem("experience")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-9 px-4 text-xs shadow-sm hover:shadow">
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Job
                     </Button>
                   </div>
@@ -1698,7 +1790,7 @@ Risk: <e.g., Low or None>
                         {!isCollapsed && (
                           <div className="p-3 space-y-3">
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Company</Label>
+                              <Label className="text-xs font-bold text-slate-700">Company</Label>
                               <Input
                                 value={exp.company}
                                 onFocus={() => setActiveSection("experience")}
@@ -1707,11 +1799,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], company: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Role Title</Label>
+                              <Label className="text-xs font-bold text-slate-700">Role Title</Label>
                               <Input
                                 value={exp.role}
                                 onFocus={() => setActiveSection("experience")}
@@ -1720,11 +1812,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], role: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Duration</Label>
+                              <Label className="text-xs font-bold text-slate-700">Duration</Label>
                               <Input
                                 value={exp.duration}
                                 onFocus={() => setActiveSection("experience")}
@@ -1733,11 +1825,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], duration: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Description (newlines for bullets)</Label>
+                              <Label className="text-xs font-bold text-slate-700">Description (newlines for bullets)</Label>
                               <Textarea
                                 value={exp.description}
                                 rows={4}
@@ -1747,7 +1839,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], description: e.target.value };
                                   updateState({ ...state, experience: list });
                                 }}
-                                className="rounded-xl border-border resize-none text-xs"
+                                className="rounded-xl border-slate-200 resize-none text-sm p-4"
                               />
                             </div>
                           </div>
@@ -1763,7 +1855,7 @@ Risk: <e.g., Low or None>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Projects List</h3>
-                    <Button onClick={() => addNewItem("projects")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-8 text-[10px]">
+                    <Button onClick={() => addNewItem("projects")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-9 px-4 text-xs shadow-sm hover:shadow">
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Project
                     </Button>
                   </div>
@@ -1799,7 +1891,7 @@ Risk: <e.g., Low or None>
                         {!isCollapsed && (
                           <div className="p-3 space-y-3">
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Project Name</Label>
+                              <Label className="text-xs font-bold text-slate-700">Project Name</Label>
                               <Input
                                 value={proj.name}
                                 onFocus={() => setActiveSection("projects")}
@@ -1808,11 +1900,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], name: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Technologies</Label>
+                              <Label className="text-xs font-bold text-slate-700">Technologies</Label>
                               <Input
                                 value={proj.role}
                                 onFocus={() => setActiveSection("projects")}
@@ -1821,11 +1913,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], role: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Duration</Label>
+                              <Label className="text-xs font-bold text-slate-700">Duration</Label>
                               <Input
                                 value={proj.duration}
                                 onFocus={() => setActiveSection("projects")}
@@ -1834,11 +1926,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], duration: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Description (newlines for bullets)</Label>
+                              <Label className="text-xs font-bold text-slate-700">Description (newlines for bullets)</Label>
                               <Textarea
                                 value={proj.description}
                                 rows={4}
@@ -1848,7 +1940,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], description: e.target.value };
                                   updateState({ ...state, projects: list });
                                 }}
-                                className="rounded-xl border-border resize-none text-xs"
+                                className="rounded-xl border-slate-200 resize-none text-sm p-4"
                               />
                             </div>
                           </div>
@@ -1864,7 +1956,7 @@ Risk: <e.g., Low or None>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center mb-2">
                     <h3 className="text-xs font-black text-muted-foreground/70 uppercase tracking-wider">Degrees</h3>
-                    <Button onClick={() => addNewItem("education")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-8 text-[10px]">
+                    <Button onClick={() => addNewItem("education")} size="sm" className="rounded-xl bg-slate-900 text-white font-bold h-9 px-4 text-xs shadow-sm hover:shadow">
                       <Plus className="w-3.5 h-3.5 mr-1" /> Add Degree
                     </Button>
                   </div>
@@ -1897,7 +1989,7 @@ Risk: <e.g., Low or None>
                         {!isCollapsed && (
                           <div className="p-3 space-y-3">
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Institution</Label>
+                              <Label className="text-xs font-bold text-slate-700">Institution</Label>
                               <Input
                                 value={edu.institution}
                                 onFocus={() => setActiveSection("education")}
@@ -1906,11 +1998,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], institution: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Degree / Major</Label>
+                              <Label className="text-xs font-bold text-slate-700">Degree / Major</Label>
                               <Input
                                 value={edu.degree}
                                 onFocus={() => setActiveSection("education")}
@@ -1919,11 +2011,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], degree: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Duration</Label>
+                              <Label className="text-xs font-bold text-slate-700">Duration</Label>
                               <Input
                                 value={edu.duration}
                                 onFocus={() => setActiveSection("education")}
@@ -1932,11 +2024,11 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], duration: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                             <div className="space-y-1">
-                              <Label className="text-[10px]">Details (GPA, achievements)</Label>
+                              <Label className="text-xs font-bold text-slate-700">Details (GPA, achievements)</Label>
                               <Input
                                 value={edu.details}
                                 onFocus={() => setActiveSection("education")}
@@ -1945,7 +2037,7 @@ Risk: <e.g., Low or None>
                                   list[index] = { ...list[index], details: e.target.value };
                                   updateState({ ...state, education: list });
                                 }}
-                                className="rounded-xl border-border h-9"
+                                className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                               />
                             </div>
                           </div>
@@ -1969,7 +2061,7 @@ Risk: <e.g., Low or None>
                           nextCerts[index] = e.target.value;
                           updateState({ ...state, certifications: nextCerts });
                         }}
-                        className="rounded-xl border-border h-9"
+                        className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                       />
                       <Button
                         variant="ghost"
@@ -2007,7 +2099,7 @@ Risk: <e.g., Low or None>
                           nextAchs[index] = e.target.value;
                           updateState({ ...state, achievements: nextAchs });
                         }}
-                        className="rounded-xl border-border h-9"
+                        className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                       />
                       <Button
                         variant="ghost"
@@ -2034,6 +2126,18 @@ Risk: <e.g., Low or None>
             </div>
           </div>
 
+          {/* Drag handle line element for left panel */}
+          {leftExpanded && (
+            <div
+              onMouseDown={startLeftResize}
+              className={cn(
+                "hidden lg:block w-2 bg-transparent hover:bg-indigo-500/50 cursor-col-resize transition-all duration-150 relative z-30 shrink-0",
+                isLeftDragging && "bg-indigo-500/80"
+              )}
+              title="Drag to resize Editor workspace"
+            />
+          )}
+
           {/* 2. DOME PREVIEW WORKSPACE: Middle panel (takes remaining space on desktop, 60% tablet, hidden on mobile) */}
           <div id="resume-preview-panel" className={cn(
             "hidden md:flex flex-col h-full overflow-hidden relative transition-all duration-300 flex-grow"
@@ -2049,7 +2153,7 @@ Risk: <e.g., Low or None>
                 >
                   <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
                 </Button>
-                <span className="text-[10px] font-bold text-muted-foreground px-2 py-0.5 rounded-md uppercase select-none">
+                <span className="text-xs font-bold text-muted-foreground px-2 py-0.5 rounded-md uppercase select-none">
                   Page {currentPageIdx + 1} of {pages.length || 1}
                 </span>
                 <Button 
@@ -2065,16 +2169,16 @@ Risk: <e.g., Low or None>
               {/* Scale Zoom widgets */}
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5 bg-muted p-0.5 rounded-lg border border-border">
-                  <Button variant="ghost" size="icon" onClick={() => setZoom(prev => Math.max(0.5, prev - 0.1))} className="h-6 w-6 rounded">
+                  <Button variant="ghost" size="icon" onClick={handleZoomOut} className="h-6 w-6 rounded">
                     <ZoomOut className="w-3 h-3 text-muted-foreground" />
                   </Button>
-                  <span className="text-[10px] font-bold text-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
-                  <Button variant="ghost" size="icon" onClick={() => setZoom(prev => Math.min(2.0, prev + 0.1))} className="h-6 w-6 rounded">
+                  <span className="text-xs font-bold text-foreground w-10 text-center">{Math.round(zoom * 100)}%</span>
+                  <Button variant="ghost" size="icon" onClick={handleZoomIn} className="h-6 w-6 rounded">
                     <ZoomIn className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </div>
                 
-                <Button variant="ghost" size="sm" onClick={handleFitWidth} className="text-[9px] font-bold uppercase tracking-wider h-7 rounded-lg px-2 hover:bg-muted text-muted-foreground">
+                <Button variant="ghost" size="sm" onClick={handleFitWidth} className="text-xs font-bold uppercase tracking-wider h-7 rounded-lg px-2 hover:bg-muted text-muted-foreground">
                   Fit Width
                 </Button>
               </div>
@@ -2096,7 +2200,7 @@ Risk: <e.g., Low or None>
             {/* Centered Scrollable workspace with single scroll */}
             <div 
               ref={previewScrollRef}
-              className="flex-1 overflow-y-auto p-12 flex flex-col items-center gap-10 select-text scroll-smooth" 
+              className="flex-1 overflow-auto p-4 md:p-8 flex flex-col items-center gap-10 select-text scroll-smooth" 
               id="visible-preview-canvas"
             >
               {pages.map((pageHtml, index) => (
@@ -2142,49 +2246,6 @@ Risk: <e.g., Low or None>
 
           {/* 3. AI PANEL COLUMN: Resizable sidebar panel on desktop, overlay drawer on tablet/mobile */}
           {(() => {
-            // Local state to manage resizable width on desktop
-            const [sidebarWidth, setSidebarWidth] = useState(430);
-            const [isDragging, setIsDragging] = useState(false);
-            const [expandedSuggestId, setExpandedSuggestId] = useState<string | null>(null);
-
-            useEffect(() => {
-              const savedWidth = localStorage.getItem("placementai_coach_sidebar_width");
-              if (savedWidth) {
-                const parsed = parseInt(savedWidth, 10);
-                if (!isNaN(parsed) && parsed >= 380 && parsed <= 520) {
-                  setSidebarWidth(parsed);
-                }
-              }
-            }, []);
-
-            const startResize = (e: React.MouseEvent) => {
-              e.preventDefault();
-              setIsDragging(true);
-            };
-
-            useEffect(() => {
-              if (!isDragging) return;
-
-              const handleMouseMove = (e: MouseEvent) => {
-                const newWidth = window.innerWidth - e.clientX;
-                if (newWidth >= 380 && newWidth <= 520) {
-                  setSidebarWidth(newWidth);
-                  localStorage.setItem("placementai_coach_sidebar_width", newWidth.toString());
-                }
-              };
-
-              const handleMouseUp = () => {
-                setIsDragging(false);
-              };
-
-              document.addEventListener("mousemove", handleMouseMove);
-              document.addEventListener("mouseup", handleMouseUp);
-              return () => {
-                document.removeEventListener("mousemove", handleMouseMove);
-                document.removeEventListener("mouseup", handleMouseUp);
-              };
-            }, [isDragging]);
-
             // Map templates to premium descriptions & badges
             const getTemplateMeta = () => {
               const lowerId = templateId.toLowerCase();
@@ -2208,8 +2269,8 @@ Risk: <e.g., Low or None>
                   <div
                     onMouseDown={startResize}
                     className={cn(
-                      "hidden lg:block w-1.5 hover:w-2 bg-slate-200 hover:bg-indigo-500 cursor-col-resize transition-all duration-150 relative z-30 shrink-0",
-                      isDragging && "bg-indigo-650 w-2"
+                      "hidden lg:block w-2 bg-transparent hover:bg-indigo-500/50 cursor-col-resize transition-all duration-150 relative z-30 shrink-0",
+                      isDragging && "bg-indigo-500/80"
                     )}
                     title="Drag to resize AI Copilot workspace"
                   />
@@ -2217,71 +2278,72 @@ Risk: <e.g., Low or None>
 
                 <div 
                   ref={aiPanelRef}
-                  data-slot="card"
                   style={aiExpanded ? { width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined } : undefined}
                   className={cn(
-                    "fixed right-4 top-24 bottom-4 z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:right-0 lg:top-0 lg:h-full shrink-0 bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-2xl",
+                    "fixed right-4 top-24 bottom-4 z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:right-0 lg:top-0 lg:h-full shrink-0 bg-white text-slate-900",
                     aiExpanded ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none lg:hidden",
                     !aiExpanded && "w-0"
                   )}
                 >
                   {/* Sticky Fixed Header */}
-                  <div className="p-4 shrink-0 bg-slate-950/70 backdrop-blur-md border-b border-slate-800/80 flex justify-between items-center z-10">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-indigo-400 animate-pulse" />
+                  <div className="p-6 shrink-0 bg-white border-b border-slate-100 flex justify-between items-center z-10">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-indigo-100 p-2.5 rounded-xl border border-indigo-200">
+                        <Sparkles className="w-6 h-6 text-indigo-700 animate-pulse" />
+                      </div>
                       <div>
-                        <h3 className="font-extrabold text-xs text-white uppercase tracking-wider flex items-center gap-1.5">
+                        <h3 className="font-black text-lg text-slate-900 uppercase tracking-widest flex items-center gap-1.5">
                           AI Resume Copilot
                         </h3>
-                        <span className="text-[8px] font-black text-indigo-400 tracking-widest block uppercase mt-0.5">Workspace 3.0</span>
+                        <span className="text-xs font-black text-indigo-700 tracking-widest block uppercase mt-1">Workspace 3.0</span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-900 px-2 py-0.5 rounded-lg uppercase tracking-wider select-none animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl uppercase tracking-widest select-none animate-pulse shadow-sm">
                         Live Audit
                       </span>
-                      <Button variant="ghost" size="icon" onClick={() => setAiExpanded(false)} className="rounded-xl h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800">
-                        <X className="w-4 h-4" />
+                      <Button variant="ghost" size="icon" onClick={() => setAiExpanded(false)} className="rounded-xl h-11 w-11 text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all border border-transparent hover:border-slate-200">
+                        <X className="w-5 h-5" />
                       </Button>
                     </div>
                   </div>
 
                   {/* Scrollable workspace content */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-6 select-text scrollbar-thin">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-8 select-text scrollbar-thin">
                     
                     {/* Active Template Badge Header */}
-                    <div className="bg-slate-950/50 border border-slate-800 p-3.5 rounded-xl space-y-2">
+                    <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <span className="text-[7.5px] uppercase font-black tracking-wider text-slate-400">Current Target Template</span>
-                          <span className="font-black text-white text-xs block mt-0.5">{tempMeta.name}</span>
+                          <span className="text-xs uppercase font-black tracking-wider text-slate-600">Current Target Template</span>
+                          <span className="font-black text-slate-900 text-sm block mt-1">{tempMeta.name}</span>
                         </div>
-                        <span className="text-[8.5px] font-black text-indigo-400">{tempMeta.rating}</span>
+                        <span className="text-xs font-black text-indigo-700">{tempMeta.rating}</span>
                       </div>
-                      <div className="flex justify-between items-center pt-2 border-t border-slate-800/50">
-                        <span className="text-[8px] uppercase font-bold text-slate-400">{tempMeta.priority}</span>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[8px] uppercase font-bold text-slate-400">Compliance:</span>
-                          <span className="text-[10px] font-black text-emerald-400">{tempMeta.compliance}%</span>
+                      <div className="flex justify-between items-center pt-4 border-t border-slate-200">
+                        <span className="text-xs uppercase font-bold text-slate-600">{tempMeta.priority}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs uppercase font-bold text-slate-600">Compliance:</span>
+                          <span className="text-xs font-black text-emerald-700">{tempMeta.compliance}%</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Unified Floating Score Banner */}
-                    <div className="bg-gradient-to-br from-indigo-950 to-slate-950 border border-indigo-900/35 p-3.5 rounded-xl flex items-center justify-between shadow-lg">
-                      <div className="space-y-1">
-                        <span className="text-[8px] uppercase font-black tracking-wider text-indigo-300">Resume Health Index</span>
-                        <span className="font-black text-white text-base block leading-none">{scores.ats}% ATS Score</span>
-                        <span className="text-[8px] font-bold text-indigo-350 block">Targeting {tempMeta.name} rules</span>
+                    <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 border border-indigo-200 p-5 rounded-2xl flex items-center justify-between shadow-sm">
+                      <div className="space-y-2">
+                        <span className="text-xs uppercase font-black tracking-wider text-indigo-700">Resume Health Index</span>
+                        <span className="font-black text-slate-900 text-xl block leading-none">{scores.ats}% ATS Score</span>
+                        <span className="text-xs font-bold text-indigo-600 block">Targeting {tempMeta.name} rules</span>
                       </div>
-                      <div className="h-11 w-11 rounded-full bg-slate-900 border-2 border-indigo-500/80 flex items-center justify-center font-black text-xs text-white shadow-inner select-none">
+                      <div className="h-14 w-14 rounded-full bg-white border-2 border-indigo-400 flex items-center justify-center font-black text-sm text-indigo-700 shadow-inner select-none">
                         {scores.ats}%
                       </div>
                     </div>
 
                     {/* Resume Health Dashboard (Horizontal Progress Bars) */}
-                    <div className="space-y-3 bg-slate-950/30 border border-slate-800/50 p-3.5 rounded-xl">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block mb-1">Health Dashboard</span>
+                    <div className="space-y-5 bg-slate-50/50 border border-slate-200 p-5 rounded-2xl">
+                      <span className="text-xs font-black uppercase tracking-widest text-slate-600 block mb-3">Health Dashboard</span>
                       
                       {[
                         { label: "ATS Parsing Reliability", val: scores.ats },
@@ -2291,16 +2353,16 @@ Risk: <e.g., Low or None>
                         { label: "Quantifiable Impact Metrics", val: scores.impact },
                         { label: "Leadership & STAR Verbs", val: scores.compliance }
                       ].map((item, idx) => (
-                        <div key={idx} className="space-y-1">
-                          <div className="flex justify-between text-[8px] font-black uppercase text-slate-350">
+                        <div key={idx} className="space-y-2">
+                          <div className="flex justify-between text-xs font-black uppercase text-slate-700">
                             <span>{item.label}</span>
-                            <span className={item.val >= 85 ? "text-indigo-400" : "text-amber-400"}>{item.val}%</span>
+                            <span className={item.val >= 85 ? "text-indigo-700" : "text-amber-600"}>{item.val}%</span>
                           </div>
-                          <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden border border-slate-850/65">
+                          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden border border-slate-300/50">
                             <div 
                               className={cn(
                                 "h-full rounded-full transition-all duration-500",
-                                item.val >= 85 ? "bg-indigo-500" : "bg-gradient-to-r from-amber-500 to-indigo-500"
+                                item.val >= 85 ? "bg-indigo-500" : "bg-gradient-to-r from-amber-400 to-indigo-500"
                               )} 
                               style={{ width: `${item.val}%` }} 
                             />
@@ -2310,43 +2372,43 @@ Risk: <e.g., Low or None>
                     </div>
 
                     {/* AI Coach Context Panel */}
-                    <div className="bg-slate-950/40 border border-slate-800/60 p-3.5 rounded-xl space-y-2">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">AI Context Scope</span>
-                      <div className="grid grid-cols-2 gap-1.5 text-[8px] font-extrabold text-slate-400 uppercase">
-                        <div className="flex items-center gap-1 bg-slate-950/80 p-1.5 rounded border border-slate-800/80">
-                          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                    <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-4">
+                      <span className="text-xs font-black uppercase tracking-widest text-slate-600 block">AI Context Scope</span>
+                      <div className="grid grid-cols-2 gap-3 text-xs font-extrabold text-slate-700 uppercase">
+                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse shrink-0" />
                           <span>✓ Resume Data</span>
                         </div>
-                        <div className="flex items-center gap-1 bg-slate-950/80 p-1.5 rounded border border-slate-800/80">
-                          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse shrink-0" />
                           <span>✓ Target JD</span>
                         </div>
-                        <div className="flex items-center gap-1 bg-slate-950/80 p-1.5 rounded border border-slate-800/80">
-                          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse shrink-0" />
                           <span>✓ Skill Gap</span>
                         </div>
-                        <div className="flex items-center gap-1 bg-slate-950/80 p-1.5 rounded border border-slate-800/80">
-                          <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                        <div className="flex items-center gap-2 bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                          <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-pulse shrink-0" />
                           <span>✓ Template Rules</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Template Mentor Tips */}
-                    <div className="p-3.5 bg-indigo-950/30 border border-indigo-900/25 rounded-xl text-[10px] space-y-1">
-                      <span className="font-black text-indigo-300 uppercase block tracking-wider">Template Mentor Insights</span>
-                      <p className="text-slate-300 leading-relaxed font-semibold">{getTemplateTips(templateId)}</p>
+                    <div className="p-5 bg-indigo-50 border border-indigo-100 rounded-2xl text-xs space-y-2.5 shadow-sm">
+                      <span className="font-black text-indigo-700 uppercase block tracking-wider text-xs">Template Mentor Insights</span>
+                      <p className="text-slate-700 leading-relaxed font-medium">{getTemplateTips(templateId)}</p>
                     </div>
 
                     {/* Quick AI Workspace Actions */}
-                    <div className="space-y-2.5">
-                      <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">Optimize Section Action workspace</span>
-                      <div className="grid grid-cols-1 gap-1.5">
+                    <div className="space-y-4">
+                      <span className="text-xs font-black uppercase tracking-widest text-slate-600 block">Optimize Section Action workspace</span>
+                      <div className="grid grid-cols-1 gap-3">
                         <Button 
                           onClick={() => handleQuickAction("optimize")} 
                           size="sm" 
                           variant="outline" 
-                          className="w-full text-[9px] font-black uppercase tracking-wider h-8 rounded-xl border-slate-800 hover:bg-slate-800 text-slate-200"
+                          className="w-full text-xs font-black uppercase tracking-wider h-11 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 shadow-sm"
                         >
                           Optimize for Job Description (JD)
                         </Button>
@@ -2354,7 +2416,7 @@ Risk: <e.g., Low or None>
                           onClick={() => handleQuickAction("ats")} 
                           size="sm" 
                           variant="outline" 
-                          className="w-full text-[9px] font-black uppercase tracking-wider h-8 rounded-xl border-slate-800 hover:bg-slate-800 text-slate-200"
+                          className="w-full text-xs font-black uppercase tracking-wider h-11 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 shadow-sm"
                         >
                           Boost ATS Parsing Score
                         </Button>
@@ -2362,7 +2424,7 @@ Risk: <e.g., Low or None>
                           onClick={() => handleQuickAction("summary")} 
                           size="sm" 
                           variant="outline" 
-                          className="w-full text-[9px] font-black uppercase tracking-wider h-8 rounded-xl border-slate-800 hover:bg-slate-800 text-slate-200"
+                          className="w-full text-xs font-black uppercase tracking-wider h-11 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 shadow-sm"
                         >
                           Rewrite Summary Profile
                         </Button>
@@ -2370,7 +2432,7 @@ Risk: <e.g., Low or None>
                           onClick={() => handleQuickAction("star")} 
                           size="sm" 
                           variant="outline" 
-                          className="w-full text-[9px] font-black uppercase tracking-wider h-8 rounded-xl border-slate-800 hover:bg-slate-800 text-slate-200"
+                          className="w-full text-xs font-black uppercase tracking-wider h-11 rounded-xl border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 shadow-sm"
                         >
                           Generate STAR Bullet Points
                         </Button>
@@ -2378,50 +2440,50 @@ Risk: <e.g., Low or None>
                     </div>
 
                     {/* Suggestions list grouped by priority */}
-                    <div className="space-y-4 pt-1">
+                    <div className="space-y-6 pt-3">
                       {["High Priority", "Medium Priority", "Optional"].map(priorityGroup => {
                         const groupList = aiSuggestions.filter(s => (s.priority || "Optional") === priorityGroup);
                         if (groupList.length === 0) return null;
 
                         return (
-                          <div key={priorityGroup} className="space-y-2.5">
-                            <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
-                              <span className={`w-2 h-2 rounded-full ${
+                          <div key={priorityGroup} className="space-y-4">
+                            <h4 className="text-xs font-black uppercase tracking-widest text-slate-600 flex items-center gap-2.5">
+                              <span className={`w-3 h-3 rounded-full ${
                                 priorityGroup === "High Priority" ? "bg-rose-500" :
-                                priorityGroup === "Medium Priority" ? "bg-amber-500" : "bg-emerald-400"
+                                priorityGroup === "Medium Priority" ? "bg-amber-500" : "bg-emerald-500"
                               }`} />
                               {priorityGroup === "High Priority" ? "🔴 " : priorityGroup === "Medium Priority" ? "🟠 " : "🟢 "}
                               {priorityGroup}
                             </h4>
 
-                            <div className="space-y-2.5">
+                            <div className="space-y-4">
                               {groupList.map(suggest => {
                                 const isExpanded = expandedSuggestId === suggest.id;
                                 return (
                                   <Card 
                                     key={suggest.id} 
-                                    className="border border-slate-800/80 rounded-xl bg-slate-950/40 overflow-hidden hover:border-slate-700/80 transition-all cursor-pointer"
+                                    className="border border-slate-200 rounded-2xl bg-white overflow-hidden hover:border-slate-300 transition-all cursor-pointer shadow-sm hover:shadow"
                                     onClick={() => setExpandedSuggestId(isExpanded ? null : suggest.id)}
                                   >
-                                    <CardContent className="p-3.5 space-y-3">
+                                    <CardContent className="p-5 space-y-5">
                                       <div className="flex justify-between items-center">
-                                        <span className="text-[8px] font-black px-2 py-0.5 rounded bg-indigo-900/50 text-indigo-300 border border-indigo-800/30 select-none">
+                                        <span className="text-xs font-black px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 select-none">
                                           {suggest.gain}
                                         </span>
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-[8px] font-extrabold text-slate-400 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded uppercase">
+                                        <div className="flex items-center gap-3">
+                                          <span className="text-xs font-extrabold text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg uppercase">
                                             {suggest.category}
                                           </span>
-                                          <span className="text-[9px] font-bold text-indigo-400">
+                                          <span className="text-xs font-bold text-indigo-600 ml-1">
                                             {isExpanded ? "▼" : "▶"}
                                           </span>
                                         </div>
                                       </div>
 
-                                      <div className="space-y-2 text-xs">
-                                        <div className="p-2.5 bg-slate-900 border border-slate-800/80 rounded-xl">
-                                          <span className="text-[8px] font-black text-indigo-400 block uppercase tracking-wider">Suggested Change</span>
-                                          <p className="text-[10.5px] text-white font-semibold mt-1 leading-relaxed">
+                                      <div className="space-y-3 text-sm">
+                                        <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                                          <span className="text-xs font-black text-indigo-700 block uppercase tracking-wider">Suggested Change</span>
+                                          <p className="text-sm text-slate-900 font-semibold mt-2 leading-relaxed">
                                             {suggest.text}
                                           </p>
                                         </div>
@@ -2429,22 +2491,22 @@ Risk: <e.g., Low or None>
 
                                       {/* Collapsible Detailed Coach Explanation Rationale */}
                                       {isExpanded && (
-                                        <div className="text-[10px] text-slate-350 bg-slate-900/50 p-3 rounded-xl leading-relaxed border border-slate-850 flex flex-col gap-2 transition-all">
+                                        <div className="text-xs text-slate-700 bg-indigo-50/50 p-5 rounded-xl leading-relaxed border border-indigo-100 flex flex-col gap-3 transition-all">
                                           <div>
-                                            <span className="font-black text-indigo-400 uppercase text-[8px] tracking-wider block">Why does this help?</span>
-                                            <p className="mt-0.5">{suggest.reason}</p>
+                                            <span className="font-black text-indigo-700 uppercase text-xs tracking-wider block">Why does this help?</span>
+                                            <p className="mt-1.5 text-sm leading-relaxed">{suggest.reason}</p>
                                           </div>
                                           
                                           {suggest.category === "SUMMARY" && (
-                                            <div className="pt-2 border-t border-slate-800/60">
-                                              <span className="font-black text-indigo-400 uppercase text-[8px] tracking-wider block">Recommended STAR Pattern</span>
-                                              <p className="mt-0.5 text-[9.5px] text-slate-400 font-medium">Use the templates checklist above to structure: engineered (metric outcome) using (tech stack).</p>
+                                            <div className="pt-4 border-t border-indigo-100">
+                                              <span className="font-black text-indigo-700 uppercase text-xs tracking-wider block">Recommended STAR Pattern</span>
+                                              <p className="mt-1.5 text-sm text-slate-600 font-medium">Use the templates checklist above to structure: engineered (metric outcome) using (tech stack).</p>
                                             </div>
                                           )}
                                         </div>
                                       )}
 
-                                      <div className="flex gap-1.5 pt-1" onClick={(e) => e.stopPropagation()}>
+                                      <div className="flex gap-3 pt-3" onClick={(e) => e.stopPropagation()}>
                                         <Button
                                           size="sm"
                                           onClick={() => {
@@ -2463,14 +2525,14 @@ Risk: <e.g., Low or None>
                                             }
                                             handleSuggestionDiscard(suggest.id);
                                           }}
-                                          className="flex-1 text-[9px] font-black uppercase tracking-wider rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 h-8"
+                                          className="flex-1 text-xs font-black uppercase tracking-wider rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 h-10"
                                         >
                                           Accept
                                         </Button>
                                         <Button
                                           size="sm"
                                           onClick={() => handleSuggestionDiscard(suggest.id)}
-                                          className="flex-1 text-[9px] font-black uppercase tracking-wider rounded-xl border border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white h-8"
+                                          className="flex-1 text-xs font-black uppercase tracking-wider rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 h-10"
                                         >
                                           Discard
                                         </Button>
@@ -2485,10 +2547,10 @@ Risk: <e.g., Low or None>
                       })}
 
                       {aiSuggestions.length === 0 && !aiStreaming && (
-                        <div className="border border-dashed border-slate-800 p-6 text-center rounded-2xl bg-slate-905">
-                          <Info className="w-5 h-5 text-slate-500 mx-auto mb-2 animate-pulse" />
-                          <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest">Audit Completed</p>
-                          <p className="text-[10px] text-slate-450 mt-1 leading-normal">Your layout rules and content match target parameters perfectly.</p>
+                        <div className="border border-dashed border-slate-300 p-8 text-center rounded-2xl bg-slate-50/50">
+                          <Info className="w-6 h-6 text-indigo-500 mx-auto mb-3 animate-pulse" />
+                          <p className="text-xs text-slate-700 font-black uppercase tracking-widest">Audit Completed</p>
+                          <p className="text-sm text-slate-600 mt-2 leading-relaxed">Your layout rules and content match target parameters perfectly.</p>
                         </div>
                       )}
                     </div>
@@ -2509,7 +2571,7 @@ Risk: <e.g., Low or None>
           <div className="h-16 shrink-0 border-b flex items-center justify-between px-4 bg-muted">
             <span className="font-extrabold text-foreground text-sm">Resume Preview</span>
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={() => handlePrintPdf()} className="rounded-xl h-8 text-[10px] font-bold">
+              <Button size="sm" onClick={() => handlePrintPdf()} className="rounded-xl h-8 text-xs font-bold">
                 Export PDF
               </Button>
               <Button variant="ghost" size="icon" onClick={() => setMobileShowPreview(false)} className="rounded-xl h-8 w-8">
@@ -2522,7 +2584,7 @@ Risk: <e.g., Low or None>
           <div className="flex-1 overflow-auto p-4 bg-muted flex flex-col items-center gap-4">
             {pages.map((pageHtml, index) => (
               <div key={index} className="flex flex-col items-center">
-                <span className="text-[9px] font-bold text-muted-foreground/70 mb-1">Page {index + 1} of {pages.length}</span>
+                <span className="text-xs font-bold text-muted-foreground/70 mb-1">Page {index + 1} of {pages.length}</span>
                 <div 
                   style={{
                     width: `${950 * 0.38}px`,
@@ -2573,7 +2635,7 @@ Risk: <e.g., Low or None>
                     placeholder="Describe snapshot details..."
                     value={newVersionName}
                     onChange={(e) => setNewVersionName(e.target.value)}
-                    className="rounded-xl border-border"
+                    className="rounded-xl border-slate-200 h-11 px-4 text-sm"
                   />
                 </div>
                 <Button onClick={handleSaveVersion} disabled={!newVersionName.trim()} className="rounded-xl bg-slate-900 text-white font-bold h-10 px-5">
@@ -2588,7 +2650,7 @@ Risk: <e.g., Low or None>
                     <div key={v.id} className="flex justify-between items-center p-3 bg-card border border-border rounded-lg shadow-sm">
                       <div>
                         <div className="text-xs font-bold text-foreground">{v.name}</div>
-                        <div className="text-[10px] text-muted-foreground/70 mt-0.5">{v.timestamp}</div>
+                        <div className="text-xs text-muted-foreground/70 mt-0.5">{v.timestamp}</div>
                       </div>
                       <Button
                         size="sm"
@@ -2695,8 +2757,8 @@ Risk: <e.g., Low or None>
       {session.blueprint && (
         <div className="fixed bottom-6 right-6 z-50 bg-card border border-border shadow-[0_12px_32px_rgba(0,0,0,0.12)] p-4 rounded-2xl w-64 space-y-3 select-none">
           <div className="flex justify-between items-center">
-            <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">Resume Progress</span>
-            <span className="text-[10px] font-extrabold text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-md">
+            <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">Resume Progress</span>
+            <span className="text-xs font-extrabold text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-md">
               {scores.ats >= 85 ? "Placement Ready" : "Needs Work"}
             </span>
           </div>
@@ -2714,7 +2776,7 @@ Risk: <e.g., Low or None>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-1.5 text-[9px] font-semibold text-slate-500 pt-2 border-t">
+          <div className="grid grid-cols-2 gap-1.5 text-xs font-semibold text-slate-500 pt-2 border-t">
             <div className="flex items-center gap-1">
               <span className={session.acceptedSuggestions.includes("summary") ? "text-emerald-500 font-bold" : "text-slate-300"}>✓</span>
               <span>Summary</span>
@@ -2741,7 +2803,7 @@ Risk: <e.g., Low or None>
           <Card className="w-full max-w-xl border-none shadow-2xl rounded-2xl bg-card animate-in zoom-in-95 duration-200">
             <CardHeader className="flex flex-row justify-between items-start border-b pb-4">
               <div>
-                <span className="px-2.5 py-1 bg-indigo-50 text-indigo-650 text-[9px] font-black uppercase tracking-wider rounded-md">
+                <span className="px-2.5 py-1 bg-indigo-50 text-indigo-650 text-xs font-black uppercase tracking-wider rounded-md">
                   Resume Intelligence Report
                 </span>
                 <CardTitle className="text-xl font-black text-slate-900 mt-2">Resume Optimization Report</CardTitle>
@@ -2755,11 +2817,11 @@ Risk: <e.g., Low or None>
               {/* Score overview */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 border rounded-xl text-center">
-                  <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider block">Overall ATS Score</span>
+                  <span className="text-xs text-muted-foreground font-bold uppercase tracking-wider block">Overall ATS Score</span>
                   <span className="text-3xl font-black text-slate-900 mt-1 block">{scores.ats}%</span>
                 </div>
                 <div className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl text-center">
-                  <span className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider block">Interview Readiness</span>
+                  <span className="text-xs text-indigo-600 font-bold uppercase tracking-wider block">Interview Readiness</span>
                   <span className="text-3xl font-black text-indigo-650 mt-1 block">{scores.ats >= 85 ? "88%" : "65%"}</span>
                 </div>
               </div>
@@ -2793,7 +2855,7 @@ Risk: <e.g., Low or None>
                   <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Remaining Skill Gaps</h4>
                   <div className="flex flex-wrap gap-1.5">
                     {session.blueprint.missingKeywords.map(kw => (
-                      <span key={kw} className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded text-[10px] font-bold">
+                      <span key={kw} className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded text-xs font-bold">
                         {kw}
                       </span>
                     ))}
@@ -3008,13 +3070,13 @@ function SkillsEditorPanel({
 
   // Filter only non-empty categories. Fallback to Languages/Tools if everything is empty
   const activeCats = Object.entries(classified).filter(([_, list]) => list.length > 0);
-  const categoriesToRender = activeCats.length > 0 ? activeCats : [["Languages", []], ["Tools", []]];
+  const categoriesToRender: [string, string[]][] = activeCats.length > 0 ? activeCats : [["Languages", []], ["Tools", []]];
 
   return (
     <div className="space-y-6">
       {categoriesToRender.map(([cat, list]) => (
         <div key={cat} className="space-y-2 border-b border-border/40 pb-4 last:border-0 last:pb-0">
-          <span className="text-[10px] font-black uppercase tracking-wider text-indigo-650 block mb-1.5">{cat}</span>
+          <span className="text-xs font-black uppercase tracking-wider text-indigo-650 block mb-1.5">{cat}</span>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {list.map((skill, idx) => (
               <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-full border border-slate-200 transition-colors">
@@ -3027,7 +3089,7 @@ function SkillsEditorPanel({
                     const nextGroups = { ...classified, [cat]: nextList };
                     saveGroupedSkills(nextGroups);
                   }}
-                  className="bg-transparent border-none outline-none text-[10px] font-bold text-slate-800 w-16 focus:w-24 transition-all"
+                  className="bg-transparent border-none outline-none text-xs font-bold text-slate-800 w-16 focus:w-24 transition-all"
                 />
                 <button
                   onClick={() => {
@@ -3035,7 +3097,7 @@ function SkillsEditorPanel({
                     const nextGroups = { ...classified, [cat]: nextList };
                     saveGroupedSkills(nextGroups);
                   }}
-                  className="text-slate-400 hover:text-red-500 font-bold text-[10px] cursor-pointer"
+                  className="text-slate-400 hover:text-red-500 font-bold text-xs cursor-pointer"
                 >
                   ×
                 </button>
@@ -3060,12 +3122,12 @@ function SkillsEditorPanel({
                       setNewSkillVal("");
                     }
                   }}
-                  className="h-7 text-[10px] rounded-lg border-border focus-visible:ring-1"
+                  className="h-7 text-xs rounded-lg border-border focus-visible:ring-1"
                 />
                 <Button 
                   size="sm" 
                   onClick={() => handleAddSkill(cat, newSkillVal)} 
-                  className="h-7 px-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-[10px]"
+                  className="h-7 px-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-xs"
                 >
                   Add
                 </Button>
@@ -3076,7 +3138,7 @@ function SkillsEditorPanel({
                     setActiveCategoryAdd(null);
                     setNewSkillVal("");
                   }} 
-                  className="h-7 px-2 rounded-lg text-[10px]"
+                  className="h-7 px-2 rounded-lg text-xs"
                 >
                   Cancel
                 </Button>
@@ -3088,7 +3150,7 @@ function SkillsEditorPanel({
                   setNewSkillVal("");
                   setActiveSection("skills");
                 }}
-                className="text-indigo-600 hover:text-indigo-700 font-bold text-[10px] flex items-center gap-1 cursor-pointer py-1"
+                className="text-indigo-600 hover:text-indigo-700 font-bold text-xs flex items-center gap-1 cursor-pointer py-1"
               >
                 <Plus className="w-3 h-3" /> Add to {cat}
               </button>
