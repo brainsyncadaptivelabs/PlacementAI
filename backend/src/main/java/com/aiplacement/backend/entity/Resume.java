@@ -45,7 +45,7 @@ public class Resume {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String extractedText;
 
     @Column(name = "created_at")

@@ -1,7 +1,7 @@
 package com.aiplacement.backend.controller;
 
 import com.aiplacement.backend.dto.chat.ChatAttachmentDto;
-import com.aiplacement.backend.service.cloudinary.CloudinaryService;
+import com.aiplacement.backend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +14,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AttachmentController {
 
-    private final CloudinaryService cloudinaryService;
+    private final StorageService storageService;
 
     @PostMapping("/upload")
     public ResponseEntity<ChatAttachmentDto> uploadAttachment(@RequestParam("file") MultipartFile file) {
-        String secureUrl = cloudinaryService.uploadFile(file);
+        String secureUrl = storageService.uploadFile(file);
         
         ChatAttachmentDto dto = new ChatAttachmentDto();
         dto.setId(UUID.randomUUID().toString());

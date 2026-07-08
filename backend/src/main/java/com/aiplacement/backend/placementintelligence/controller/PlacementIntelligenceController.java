@@ -19,10 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @RestController
 @RequestMapping({"/api/v1/placement-intelligence", "/api/placement-intelligence"})
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*")
+@Transactional(readOnly = true)
 public class PlacementIntelligenceController {
 
     private final PlacementIntelligenceService placementIntelligenceService;

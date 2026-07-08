@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.aiplacement.backend.service.cloudinary.CloudinaryService;
+import com.aiplacement.backend.service.storage.StorageService;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,7 +21,7 @@ import org.springframework.http.MediaType;
 public class ProfileController {
 
     private final ProfileService profileService;
-    private final CloudinaryService cloudinaryService;
+    private final StorageService storageService;
     private final UserRepository userRepository;
 
     @PostMapping(value = "/upload-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -30,7 +30,7 @@ public class ProfileController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String imageUrl = cloudinaryService.uploadFile(file);
+        String imageUrl = storageService.uploadFile(file);
         user.setProfileImage(imageUrl);
         userRepository.save(user);
 

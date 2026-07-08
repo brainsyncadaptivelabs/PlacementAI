@@ -53,7 +53,7 @@ public class AtsAnalysis {
 
     private String bestRole;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(columnDefinition = "TEXT")
     private String extractedText;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)

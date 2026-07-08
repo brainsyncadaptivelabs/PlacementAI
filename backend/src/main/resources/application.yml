@@ -36,6 +36,7 @@ spring:
     hibernate:
       ddl-auto: update
     defer-datasource-initialization: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
       hibernate:
         default_batch_fetch_size: 100
@@ -43,9 +44,9 @@ spring:
         order_updates: true
 
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3306/placementai}
-    username: ${DB_USERNAME:root}
-    password: ${DB_PASSWORD:root}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/placementai}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     hikari:
       minimum-idle: 2
       maximum-pool-size: 8
@@ -62,7 +63,7 @@ spring:
   # ── Caching ──────────────────────────────────────────────
   cache:
     type: simple
-    cache-names: roadmaps,jd_analysis,skills_gap,dashboard_stats
+    cache-names: roadmaps,jd_analysis,skills_gap,dashboard_stats,placement_context
 
   # ── Redis ────────────────────────────────────────────────
   data:
@@ -155,12 +156,6 @@ chatbot:
 jwt:
   secret: ${JWT_SECRET:YOUR_JWT_SECRET_PLACEHOLDER}
 
-# ── Cloudinary (Resume Storage) ──────────────────────────────
-cloudinary:
-  cloud-name: ${CLOUDINARY_CLOUD_NAME:dummy}
-  api-key: ${CLOUDINARY_API_KEY:dummy}
-  api-secret: ${CLOUDINARY_API_SECRET:dummy}
-
 # ── Google OAuth ─────────────────────────────────────────────
 google:
   client-id: ${GOOGLE_CLIENT_ID:dummy}
@@ -219,3 +214,9 @@ ratelimit:
   mock-interview:
     capacity: ${RATE_LIMIT_INTERVIEW_CAPACITY:15}
     duration-seconds: ${RATE_LIMIT_INTERVIEW_DURATION:3600}
+
+# ── Supabase Storage ─────────────────────────────────────────
+supabase:
+  url: ${NEXT_PUBLIC_SUPABASE_URL:https://glyvbdltoxjpwlzsbcyx.supabase.co}
+  key: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:sb_publishable_1_N-QV-c57Lsca-hGpJxTg_QubCK2Kt}
+  bucket: ${SUPABASE_STORAGE_BUCKET:placementai-files}

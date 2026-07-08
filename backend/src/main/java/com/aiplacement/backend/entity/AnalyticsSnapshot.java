@@ -22,6 +22,6 @@ public class AnalyticsSnapshot {
     @Column(name = "snapshot_date", nullable = false, unique = true)
     private LocalDate snapshotDate;
 
-    @Column(name = "metrics_json", nullable = false, columnDefinition = "LONGTEXT")
+    @Column(name = "metrics_json", nullable = false, columnDefinition = "TEXT")
     private String metricsJson;
 }

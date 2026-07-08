@@ -1,19 +1,20 @@
 
 services:
 
-  mysql:
-    image: mysql:8.0
-    container_name: placement-mysql
+  postgres:
+    image: postgres:15-alpine
+    container_name: placement-postgres
     restart: always
     env_file:
       - .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-placementai}
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - mysql-data:/var/lib/mysql
+      - pg-data:/var/lib/postgresql/data
 
   redis:
     image: redis:alpine
@@ -29,21 +30,21 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - mysql
+      - postgres
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${PERF_PROFILE:-standard}
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-placementai}
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-root}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-root}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-placementai}
+      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET}
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      SUPABASE_STORAGE_BUCKET: ${SUPABASE_STORAGE_BUCKET:-placementai-files}
       ADMIN_REGISTRATION_CODE: ${ADMIN_REGISTRATION_CODE}
       FRONTEND_URL: ${FRONTEND_URL}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY}
@@ -75,21 +76,22 @@ services:
     volumes:
       - piston-data:/piston
     depends_on:
-      - mysql-sandbox
+      - postgres-sandbox
 
-  mysql-sandbox:
-    image: mysql:8.0
-    container_name: placement-mysql-sandbox
+  postgres-sandbox:
+    image: postgres:15-alpine
+    container_name: placement-postgres-sandbox
     restart: always
-    command: --default-authentication-plugin=mysql_native_password
     env_file:
       - .env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: placementai_sandbox
     ports:
-      - "3308:3306"
+      - "5433:5432"
     tmpfs:
-      - /var/lib/mysql
+      - /var/lib/postgresql/data
 
   frontend:
     build:
@@ -120,5 +122,5 @@ services:
 
 
 volumes:
-  mysql-data:
+  pg-data:
   piston-data:

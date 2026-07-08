@@ -12,8 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class PlacementReadinessService {
 
     private final AtsIntelligenceService atsIntelligenceService;

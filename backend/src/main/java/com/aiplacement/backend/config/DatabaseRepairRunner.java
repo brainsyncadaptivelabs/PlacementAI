@@ -19,8 +19,8 @@ public class DatabaseRepairRunner implements CommandLineRunner {
         try {
             ensureColumnExists("users", "plan", "VARCHAR(20) DEFAULT NULL");
             ensureColumnExists("users", "payment_status", "VARCHAR(20) DEFAULT 'PENDING'");
-            ensureColumnExists("users", "plan_selected", "BIT(1) DEFAULT 0");
-            ensureColumnExists("users", "payment_completed", "BIT(1) DEFAULT 0");
+            ensureColumnExists("users", "plan_selected", "BOOLEAN DEFAULT FALSE");
+            ensureColumnExists("users", "payment_completed", "BOOLEAN DEFAULT FALSE");
             log.info("[DatabaseRepair] Schema check complete.");
         } catch (Exception e) {
             log.error("[DatabaseRepair] Schema update failed", e);
@@ -32,7 +32,7 @@ public class DatabaseRepairRunner implements CommandLineRunner {
             // Check if column exists
             String checkSql = String.format(
                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS " +
-                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '%s' AND COLUMN_NAME = '%s'",
+                "WHERE TABLE_SCHEMA = CURRENT_SCHEMA AND TABLE_NAME = '%s' AND COLUMN_NAME = '%s'",
                 tableName, columnName
             );
             

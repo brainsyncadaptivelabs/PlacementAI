@@ -8,7 +8,7 @@ import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.AtsAnalysisRepository;
 import com.aiplacement.backend.repository.ResumeRepository;
 import com.aiplacement.backend.repository.UserRepository;
-import com.aiplacement.backend.service.cloudinary.CloudinaryService;
+import com.aiplacement.backend.service.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -31,7 +31,7 @@ public class ResumeServiceImpl implements ResumeService {
     private final PdfService pdfService;
     private final GeminiService geminiService;
     private final AtsAnalysisRepository atsAnalysisRepository;
-    private final CloudinaryService cloudinaryService;
+    private final StorageService storageService;
     private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
 
     @Override
@@ -70,8 +70,8 @@ public class ResumeServiceImpl implements ResumeService {
             String extractedText = pdfService.extractText(tempFile, originalFilename);
             log.info("Document text extracted successfully, character length: {}", extractedText.length());
 
-            String cloudinaryUrl = cloudinaryService.uploadFile(file);
-            log.info("Resume uploaded to Cloudinary successfully");
+            String storageUrl = storageService.uploadFile(file);
+            log.info("Resume uploaded to Supabase Storage successfully");
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
@@ -83,7 +83,7 @@ public class ResumeServiceImpl implements ResumeService {
 
             Resume resume = Resume.builder()
                     .fileName(fileName)
-                    .filePath(cloudinaryUrl)
+                    .filePath(storageUrl)
                     .extractedText(extractedText)
                     .user(user)
                     .createdAt(LocalDateTime.now())
