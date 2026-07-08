@@ -14,7 +14,7 @@ public class RecruiterAnalyticsEngine {
         Map<String, Object> map = new HashMap<>();
 
         double avgScore = candidates.stream()
-                .mapToInt(RankedCandidate::getOverallScore)
+                .mapToInt(c -> c.getOverallScore())
                 .average()
                 .orElse(70.0);
 

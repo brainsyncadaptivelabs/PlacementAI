@@ -25,7 +25,7 @@ public class RoadmapServiceImpl implements RoadmapService {
     private final AIClient aiClient;
 
     @Override
-    @Cacheable(value = "roadmaps", key = "#request.careerGoal + '-' + #request.resumeText.hashCode()")
+    @Cacheable(value = "roadmaps", key = "#request.careerGoal + '-' + (#request.resumeText != null ? #request.resumeText.hashCode() : 0)")
     public RoadmapResponseDto generateRoadmap(RoadmapRequestDto request) {
         String prompt = """
                 Generate a career roadmap. Return ONLY JSON.

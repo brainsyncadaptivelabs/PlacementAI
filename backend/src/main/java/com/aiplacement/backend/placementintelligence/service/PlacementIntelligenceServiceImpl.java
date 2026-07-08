@@ -8,11 +8,11 @@ import com.aiplacement.backend.placementintelligence.dto.*;
 import com.aiplacement.backend.placementintelligence.prediction.*;
 import com.aiplacement.backend.placementintelligence.scoring.PlacementIntelligenceScoring;
 import com.aiplacement.backend.placementintelligence.recommendation.PlacementRecommendationEngine;
-import com.aiplacement.backend.placementintelligence.analyzer.PlacementWeaknessAnalyzer;
+
 import com.aiplacement.backend.service.shared.SalaryPredictionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
+
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +44,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
 
     private final PlacementIntelligenceScoring scoringEngine;
     private final PlacementRecommendationEngine recommendationEngine;
-    private final PlacementWeaknessAnalyzer weaknessAnalyzer;
+
 
     // Phase 8 Engines
     private final com.aiplacement.backend.placementintelligence.timeline.TimelineEngine timelineEngine;
@@ -62,14 +62,14 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
         PlacementContext context = getOrCreateContext(user);
 
         log.info("[PlacementAI Engine] Loading Resume Intelligence");
-        ResumeIntelligenceEngine.ResumeMetrics resumeMetrics = resumeIntelligenceEngine.analyzeResume(context);
+        resumeIntelligenceEngine.analyzeResume(context);
 
         log.info("[PlacementAI Engine] Loading Coding Intelligence");
-        CodingIntelligenceEngine.CodingMetrics codingMetrics = codingIntelligenceEngine.analyzeCoding(context);
+        codingIntelligenceEngine.analyzeCoding(context);
 
         log.info("[PlacementAI Engine] Loading Interview Intelligence");
-        InterviewIntelligenceEngine.InterviewMetrics interviewMetrics = interviewIntelligenceEngine.analyzeInterviews(context);
-        CommunicationIntelligenceEngine.CommunicationMetrics commMetrics = communicationIntelligenceEngine.analyzeCommunication(context);
+        interviewIntelligenceEngine.analyzeInterviews(context);
+        communicationIntelligenceEngine.analyzeCommunication(context);
 
         AptitudeIntelligenceEngine.AptitudeMetrics aptMetrics = aptitudeIntelligenceEngine.analyzeAptitude(context);
         SkillGapIntelligenceEngine.SkillGapMetrics skillMetrics = skillGapIntelligenceEngine.analyzeSkillGap(context);
@@ -82,7 +82,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
 
         Map<String, PlacementPredictionEngine.PredictionDetails> predictions = placementPredictionEngine.predictCompanySuccess(context);
         Map<String, Integer> readinessMap = predictions.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getProbability()));
+                .collect(Collectors.toMap(e -> e.getKey(), entry -> entry.getValue().getProbability()));
 
         return PlacementProfileDto.builder()
                 .studentId(user.getId())
@@ -120,7 +120,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
         PlacementContext context = getOrCreateContext(user);
         Map<String, PlacementPredictionEngine.PredictionDetails> predictions = placementPredictionEngine.predictCompanySuccess(context);
         Map<String, Integer> readinessMap = predictions.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getProbability()));
+                .collect(Collectors.toMap(e -> e.getKey(), entry -> entry.getValue().getProbability()));
 
         return CompanyReadinessDto.builder()
                 .readiness(readinessMap)
@@ -158,7 +158,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
         Map<String, PlacementPredictionEngine.PredictionDetails> predictions = placementPredictionEngine.predictCompanySuccess(context);
 
         PackagePredictionEngine.PackageDetails packageDetails = packagePredictionEngine.predictPackage(context, profile.getPlacementScore());
-        ReadinessForecastEngine.ForecastDetails forecastDetails = readinessForecastEngine.forecastReadiness(context, profile.getPlacementScore());
+        readinessForecastEngine.forecastReadiness(context, profile.getPlacementScore());
         OfferProbabilityEngine.OfferProbabilityDetails offerDetails = offerProbabilityEngine.predictOffer(context, profile.getPlacementScore());
 
         List<String> reasoningList = reasoningEngine.generateReasoning(
@@ -176,7 +176,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
 
         List<String> topCompanies = sortedPredictions.stream()
                 .filter(e -> e.getValue().getProbability() >= 75)
-                .map(Map.Entry::getKey)
+                .map(e -> e.getKey())
                 .collect(Collectors.toList());
         if (topCompanies.isEmpty()) {
             topCompanies = List.of("Accenture", "TCS");
@@ -196,12 +196,12 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
 
         log.info("[PlacementAI Engine] Company Readiness Updated");
         Map<String, Integer> readinessMap = predictions.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getProbability()));
+                .collect(Collectors.toMap(e -> e.getKey(), entry -> entry.getValue().getProbability()));
 
         log.info("[PlacementAI Engine] Mentor Generated");
         Map<String, Object> mentorData = mentorDashboardService.getMentorData(user, profile.getPlacementScore());
         List<String> unlockedOpportunities = (List<String>) mentorData.get("unlockedOpportunities");
-        List<String> reminders = (List<String>) mentorData.get("reminders");
+
 
         log.info("[PlacementAI Engine] Timeline Updated");
         List<com.aiplacement.backend.placementintelligence.timeline.TimelineEvent> timelineEvents = timelineEngine.getTimeline(context, profile.getPlacementScore());
@@ -248,7 +248,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
             return new ArrayList<>();
         }
         return Arrays.stream(skillsStr.split(","))
-                .map(String::trim)
+                .map(s -> s.trim())
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
     }

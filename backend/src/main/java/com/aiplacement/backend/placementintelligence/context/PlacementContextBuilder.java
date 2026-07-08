@@ -1,7 +1,6 @@
 package com.aiplacement.backend.placementintelligence.context;
 
-import com.aiplacement.backend.entity.Resume;
-import com.aiplacement.backend.entity.ResumeBuilder;
+
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.service.shared.*;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +29,13 @@ public class PlacementContextBuilder {
 
         String selectedTemplate = user.getResumeBuilders() != null ?
                 user.getResumeBuilders().stream()
-                        .map(ResumeBuilder::getTemplateName)
+                        .map(rb -> rb.getTemplateName())
                         .findFirst()
                         .orElse("Modern") : "Modern";
 
         String targetRole = user.getResumes() != null ?
                 user.getResumes().stream()
-                        .map(Resume::getAnalyzedRole)
+                        .map(r -> r.getAnalyzedRole())
                         .filter(role -> role != null && !role.isEmpty())
                         .findFirst()
                         .orElse("Software Engineer") : "Software Engineer";

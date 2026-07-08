@@ -22,7 +22,7 @@ public class SkillGapIntelligenceEngine {
 
         List<String> userSkills = userSkillsStr == null ? new ArrayList<>() :
                 Arrays.stream(userSkillsStr.split(","))
-                        .map(String::trim)
+                        .map(s -> s.trim())
                         .filter(s -> !s.isEmpty())
                         .collect(Collectors.toList());
 

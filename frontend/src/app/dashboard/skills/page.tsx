@@ -26,7 +26,7 @@ export default function SkillGapPage() {
       const resumeRes = await api.get("/resume/latest");
       const resumeText = resumeRes.data;
 
-      if (!resumeText) {
+      if (!resumeText || typeof resumeText !== 'string' || resumeText.trim() === '') {
         setError("No resume found. Please upload your resume first.");
         setLoading(false);
         return;

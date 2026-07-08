@@ -1,6 +1,6 @@
 package com.aiplacement.backend.placementintelligence.ai;
 
-import com.aiplacement.backend.entity.Resume;
+
 import com.aiplacement.backend.placementintelligence.context.PlacementContext;
 import org.springframework.stereotype.Component;
 

@@ -15,6 +15,7 @@ import {
   Compass, 
   Sparkles, 
   ChevronRight, 
+  ChevronDown,
   Zap, 
   Calendar,
   RotateCcw,
@@ -197,7 +198,7 @@ const CATEGORIES = [
 ];
 
 export default function AptitudePage() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "practice" | "history" | "roadmap" | "review" | "admin" | "company">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "practice" | "history" | "company">("dashboard");
   
   // Storage variables
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
@@ -872,10 +873,7 @@ export default function AptitudePage() {
             { id: "dashboard", label: "Dashboard", icon: BarChart3 },
             { id: "practice", label: "Practice", icon: BookOpen },
             { id: "company", label: "Company Readiness", icon: Compass },
-            { id: "roadmap", label: "Roadmap", icon: Compass },
-            { id: "review", label: "Review Hub", icon: BookMarked },
-            { id: "history", label: "History", icon: RotateCcw },
-            ...(isAdmin ? [{ id: "admin", label: "Admin Diagnostics", icon: Settings }] : [])
+            { id: "history", label: "History", icon: RotateCcw }
           ].map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -1479,12 +1477,7 @@ export default function AptitudePage() {
                 <CardTitle className="text-xl font-extrabold text-foreground">Setup Assessment Blueprint</CardTitle>
                 <CardDescription>Procure a custom generated mock assessment matching test parameters</CardDescription>
               </div>
-              <Button
-                onClick={handleScheduleDrive}
-                className="h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
-              >
-                <span>Schedule University Assessment Drive</span>
-              </Button>
+
             </CardHeader>
             <CardContent className="p-8 space-y-8">
               
@@ -1525,48 +1518,57 @@ export default function AptitudePage() {
                 {/* Company Select */}
                 <div className="space-y-2">
                   <label className="text-xs font-black text-foreground uppercase tracking-wider">Company Target Pattern</label>
-                  <select 
-                    value={selectedCompany}
-                    onChange={(e) => setSelectedCompany(e.target.value)}
-                    className="w-full bg-muted/50 border border-border rounded-2xl p-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-600"
-                  >
-                    {COMPANIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select 
+                      value={selectedCompany}
+                      onChange={(e) => setSelectedCompany(e.target.value)}
+                      className="w-full appearance-none bg-muted/50 border border-border rounded-2xl p-3.5 pr-10 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-600 cursor-pointer"
+                    >
+                      {COMPANIES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  </div>
                 </div>
 
                 {/* Category Selection */}
                 <div className="space-y-2">
                   <label className="text-xs font-black text-foreground uppercase tracking-wider">Category Focus</label>
-                  <select 
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      setSelectedCategory(e.target.value);
-                      setSelectedTopic("any"); 
-                    }}
-                    className="w-full bg-muted/50 border border-border rounded-2xl p-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650"
-                  >
-                    <option value="any">All Sections (Mixed)</option>
-                    {CATEGORIES.map(c => (
-                      <option key={c.name} value={c.name}>{c.name}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select 
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        setSelectedCategory(e.target.value);
+                        setSelectedTopic("any"); 
+                      }}
+                      className="w-full appearance-none bg-muted/50 border border-border rounded-2xl p-3.5 pr-10 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650 cursor-pointer"
+                    >
+                      <option value="any">All Sections (Mixed)</option>
+                      {CATEGORIES.map(c => (
+                        <option key={c.name} value={c.name}>{c.name}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  </div>
                 </div>
 
                 {/* Topic Selection */}
                 <div className="space-y-2">
                   <label className="text-xs font-black text-foreground uppercase tracking-wider">Topic Focus</label>
-                  <select 
-                    value={selectedTopic}
-                    onChange={(e) => setSelectedTopic(e.target.value)}
-                    className="w-full bg-muted/50 border border-border rounded-2xl p-3.5 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650"
-                  >
-                    <option value="any">All Topics (Mixed)</option>
-                    {selectedCategory !== "any" && CATEGORIES.find(c => c.name === selectedCategory)?.topics.map(t => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select 
+                      value={selectedTopic}
+                      onChange={(e) => setSelectedTopic(e.target.value)}
+                      className="w-full appearance-none bg-muted/50 border border-border rounded-2xl p-3.5 pr-10 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650 cursor-pointer"
+                    >
+                      <option value="any">All Topics (Mixed)</option>
+                      {selectedCategory !== "any" && CATEGORIES.find(c => c.name === selectedCategory)?.topics.map(t => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+                  </div>
                 </div>
               </div>
 
@@ -1600,49 +1602,6 @@ export default function AptitudePage() {
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </CardFooter>
-          </Card>
-        </div>
-      )}
-
-      {/* ROADMAP TAB VIEW */}
-      {!isQuizActive && !showQuizResultsSummary && activeTab === "roadmap" && (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
-          <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm select-none">
-            <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-1.5">
-                <Compass className="w-5 h-5 text-indigo-650" />
-                Adaptive Learning Path Roadmap
-              </CardTitle>
-              <CardDescription>Week-by-week practice schedule dynamically calibrated to low ELO ratings</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              {roadmap.weeks.length === 0 ? (
-                <div className="text-center text-xs text-muted-foreground font-semibold py-8">
-                  Complete a mock test to build a custom adaptive learning plan.
-                </div>
-              ) : (
-                <div className="relative border-l-2 border-indigo-500/20 ml-4 space-y-8">
-                  {roadmap.weeks.map(week => (
-                    <div key={week.weekNum} className="relative pl-8">
-                      <div className="absolute -left-3 top-0.5 w-6.5 h-6.5 rounded-full bg-indigo-600 border border-white flex items-center justify-center text-white text-[10px] font-black">
-                        W{week.weekNum}
-                      </div>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-black text-foreground">Week {week.weekNum} Preparation Focus</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {week.topics.map(t => (
-                            <div key={t} className="p-4 bg-secondary/35 border border-border/60 rounded-2xl flex flex-col justify-between items-start gap-2">
-                              <span className="text-xs font-bold text-foreground">{t}</span>
-                              <span className="text-[10px] font-bold text-indigo-600">ELO Rating: {eloRatings[t] || 1200}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
           </Card>
         </div>
       )}
@@ -1681,69 +1640,6 @@ export default function AptitudePage() {
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* REVIEW HUB TAB VIEW (SPACED REPETITION) */}
-      {!isQuizActive && !showQuizResultsSummary && activeTab === "review" && (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300">
-          <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm select-none">
-            <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-1.5">
-                <BookMarked className="w-5 h-5 text-indigo-650" />
-                Spaced Repetition Review Hub
-              </CardTitle>
-              <CardDescription>Practice items answered incorrectly scheduled to reinforce concept retention</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {spacedRepetition.length === 0 ? (
-                <div className="text-center text-xs text-muted-foreground font-semibold py-8">
-                  No review items currently active. Incorrect quiz responses will schedule reviews.
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {spacedRepetition.map((item, idx) => {
-                    const isDue = item.nextReviewAt < Date.now();
-                    return (
-                      <div key={idx} className="p-4 bg-secondary/30 border border-border/50 rounded-2xl flex justify-between items-center gap-6">
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-foreground truncate block max-w-lg">{item.question.text}</span>
-                          <div className="flex gap-3 text-[10px] text-muted-foreground font-bold">
-                            <span>Topic: {item.question.topic}</span>
-                            <span>•</span>
-                            <span>Difficulty: {item.question.difficulty}</span>
-                            <span>•</span>
-                            <span>Incorrect attempts: {item.incorrectCount}</span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-4 shrink-0">
-                          {isDue ? (
-                            <Badge className="bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                              Ready for Review
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-muted/50 text-muted-foreground border border-border">
-                              Scheduled review
-                            </Badge>
-                          )}
-                          <button
-                            onClick={() => {
-                              setSelectedMode("revision");
-                              handlePracticeRepetition(item);
-                            }}
-                            className="bg-indigo-650 hover:bg-indigo-700 text-white font-bold h-8 text-[11px] px-3.5 rounded-lg cursor-pointer transition-all"
-                          >
-                            Practice
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
@@ -1804,132 +1700,6 @@ export default function AptitudePage() {
         </div>
       )}
 
-      {/* ADMIN CONTENT MANAGEMENT DIAGNOSTICS VIEW */}
-      {!isQuizActive && !showQuizResultsSummary && activeTab === "admin" && (
-        <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-300 select-none">
-          <Card className="border border-border rounded-3xl p-6 bg-card shadow-sm">
-            <CardHeader className="p-0 pb-6 border-b border-border/40">
-              <CardTitle className="text-lg font-black text-foreground flex items-center gap-2">
-                <Settings className="w-5 h-5 text-indigo-650" />
-                Assessment Engine Content Diagnostics
-              </CardTitle>
-              <CardDescription>Internal metrics dashboard monitoring validation loops and template integrity</CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-6">
-              
-              {/* Telemetry logs (SRE benchmarks) */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Activity className="w-4 h-4 text-indigo-650" />
-                  SRE Latency Metrics Benchmarks (SLA &gt; 99.9%)
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-foreground">
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Gen Latency</span>
-                    <span>{telemetryLogs.generationLatency} ms</span>
-                  </div>
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Validation Latency</span>
-                    <span>{telemetryLogs.validationLatency} ms</span>
-                  </div>
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">CAT Computation</span>
-                    <span>{telemetryLogs.catSelectionLatency} ms</span>
-                  </div>
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Cache Hit Ratio</span>
-                    <span className="text-emerald-700 dark:text-emerald-300">{telemetryLogs.cacheHitRatio}%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fairness & Bias Auditing */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Layers className="w-4 h-4 text-emerald-600" />
-                  Psychometric Fairness & Demographic Auditing
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-bold text-foreground">
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Topic Balance Ratio</span>
-                    <span>{fairnessMetrics.topicBalanceRatio}%</span>
-                  </div>
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Demographic Parity</span>
-                    <span>{fairnessMetrics.demographicParity}%</span>
-                  </div>
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Psychometric Stability</span>
-                    <span>{fairnessMetrics.psychometricStability}%</span>
-                  </div>
-                  <div className="p-3 bg-secondary/35 border rounded-2xl">
-                    <span className="text-muted-foreground block text-[9px]">Difficulty Variance</span>
-                    <span>Minimal (&lt; 1.2%)</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Internal metrics */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-muted/50 border p-4.5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Procedural Validity</span>
-                  <span className="text-2xl font-black text-foreground">99.4% Pass</span>
-                </div>
-                <div className="bg-muted/50 border p-4.5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Failed Generations Cache</span>
-                  <span className="text-2xl font-black text-rose-600">{validationFailuresCount} Discarded</span>
-                </div>
-                <div className="bg-muted/50 border p-4.5 rounded-2xl space-y-1">
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">Spaced Repetition Hit Rate</span>
-                  <span className="text-2xl font-black text-emerald-700 dark:text-emerald-300">84.2% Success</span>
-                </div>
-              </div>
-
-              {/* IRT calibrations parameters view */}
-              <div className="space-y-2">
-                <h4 className="text-xs font-black text-foreground uppercase tracking-wider">Psychometrics Calibration Table</h4>
-                <div className="bg-muted/50 border p-4 rounded-xl text-xs space-y-2">
-                  <div className="grid grid-cols-4 font-bold border-b pb-1 text-muted-foreground uppercase text-[9px]">
-                    <span>Concept Domain</span>
-                    <span>Discrimination (a)</span>
-                    <span>Difficulty (b)</span>
-                    <span>Guessing (c)</span>
-                  </div>
-                  {[
-                    { domain: "Quantitative Aptitude", a: 1.25, b: 0.12, c: 0.25 },
-                    { domain: "Logical Reasoning", a: 1.42, b: -0.22, c: 0.25 },
-                    { domain: "Verbal Ability", a: 0.98, b: 0.45, c: 0.25 },
-                    { domain: "English Grammar", a: 1.15, b: -0.05, c: 0.25 }
-                  ].map(irt => (
-                    <div key={irt.domain} className="grid grid-cols-4 font-semibold text-foreground">
-                      <span>{irt.domain}</span>
-                      <span>{irt.a}</span>
-                      <span>{irt.b}</span>
-                      <span>{irt.c}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Logs */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-black text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
-                  Recent Validation Logs
-                </h4>
-                <div className="p-4 bg-slate-900 text-slate-100 rounded-2xl font-mono text-[11px] space-y-2 select-text">
-                  {diagnosticsLogs.map((log, idx) => (
-                    <div key={idx} className="flex gap-2">
-                      <span className="text-muted-foreground">[{new Date().toISOString().split("T")[0]}]</span>
-                      <span>{log}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 

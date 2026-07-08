@@ -3,7 +3,7 @@ package com.aiplacement.backend.placementintelligence.mentor;
 import com.aiplacement.backend.placementintelligence.context.PlacementContext;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+
 
 @Component
 public class LearningCoachEngine {

@@ -29,7 +29,7 @@ export default function RoadmapPage() {
       const resumeRes = await api.get("/resume/latest");
       const resumeText = resumeRes.data;
 
-      if (!resumeText) {
+      if (!resumeText || typeof resumeText !== 'string' || resumeText.trim() === '') {
         setError("No resume found. Please upload your resume in the ATS section first.");
         setLoading(false);
         return;

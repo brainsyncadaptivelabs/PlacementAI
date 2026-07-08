@@ -1,7 +1,7 @@
 package com.aiplacement.backend.placementintelligence.ai;
 
 import com.aiplacement.backend.entity.interview.MockInterview;
-import com.aiplacement.backend.entity.interview.InterviewFeedback;
+
 import com.aiplacement.backend.placementintelligence.context.PlacementContext;
 import org.springframework.stereotype.Component;
 
