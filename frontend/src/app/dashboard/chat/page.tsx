@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeSanitize from "rehype-sanitize";
+import ChatMarkdown from "@/components/chat/ChatMarkdown";
 import { Avatar } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { 
@@ -57,45 +55,19 @@ import {
 
 // --- REASONING STATUS CHIPS COMPONENT ---
 const ReasoningStatus = ({ loadingPhase }: { loadingPhase: number }) => {
-  const statusList = [
-    { text: "Thinking...", icon: Sparkles, color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-100" },
-    { text: "Reading Resume...", icon: FileText, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 border-blue-100" },
-    { text: "Analyzing Job Description...", icon: Target, color: "text-purple-600 bg-purple-50 dark:bg-purple-950/20 border-purple-100" },
-    { text: "Comparing Skills...", icon: Award, color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20 border-amber-100" },
-    { text: "Generating Recommendations...", icon: Zap, color: "text-orange-600 bg-orange-50 dark:bg-orange-950/20 border-orange-100" },
-    { text: "Building Roadmap...", icon: Sliders, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100" },
-    { text: "Finalizing Response...", icon: Check, color: "text-pink-600 bg-pink-50 dark:bg-pink-950/20 border-pink-100" }
-  ];
-
-  const activeIdx = Math.min(loadingPhase - 1, statusList.length - 1);
-  if (activeIdx < 0) return null;
+  if (loadingPhase <= 0) return null;
 
   return (
     <div className="flex flex-wrap gap-2.5 my-3 select-none">
-      <AnimatePresence mode="popLayout">
-        {statusList.slice(0, activeIdx + 1).map((status, idx) => {
-          const Icon = status.icon;
-          const isActive = idx === activeIdx;
-          return (
-            <motion.div
-              key={status.text}
-              initial={{ opacity: 0, scale: 0.85, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold shadow-sm ${status.color}`}
-            >
-              {isActive ? (
-                <Loader2 className="w-3 h-3 animate-spin" />
-              ) : (
-                <Check className="w-3 h-3 text-emerald-500" />
-              )}
-              <Icon className="w-3.5 h-3.5" />
-              <span>{status.text}</span>
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold shadow-sm text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 border-indigo-100"
+      >
+        <Loader2 className="w-3 h-3 animate-spin" />
+        <Sparkles className="w-3.5 h-3.5" />
+        <span>Thinking...</span>
+      </motion.div>
     </div>
   );
 };
@@ -646,32 +618,7 @@ const MessageItem = memo(({
   // Render markdown parser
   const renderMarkdown = (textStr: string) => (
     <SafeMarkdownBoundary fallbackText={textStr}>
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeSanitize]}
-        components={{
-          p: ({children}) => <p className="leading-[1.8] text-[15px] font-medium text-foreground/90 mb-4 last:mb-0 select-text">{children}</p>,
-          h1: ({children}) => <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-6 mb-3">{children}</h1>,
-          h2: ({children}) => <h2 className="text-lg font-bold text-foreground tracking-tight mt-5 mb-2">{children}</h2>,
-          ul: ({children}) => <ul className="list-disc pl-6 space-y-2 mb-4 select-text">{children}</ul>,
-          ol: ({children}) => <ol className="list-decimal pl-6 space-y-2 mb-4 select-text">{children}</ol>,
-          li: ({children}) => <li className="text-[14.5px] font-medium leading-[1.8] text-foreground/90">{children}</li>,
-          code: ({className, children}) => {
-            const codeStr = String(children);
-            if (codeStr.startsWith("class ") || codeStr.startsWith("public ") || codeStr.includes("\n") || className) {
-              return <CodeBlock className={className}>{codeStr}</CodeBlock>;
-            }
-            return <code className="px-1.5 py-0.5 rounded-md bg-muted/65 border border-border/50 text-indigo-650 font-mono text-[13px]">{children}</code>;
-          },
-          blockquote: ({children}) => (
-            <blockquote className="border-l-4 border-muted-foreground/30 pl-4 py-1 italic my-4 text-muted-foreground/90 leading-relaxed font-serif">
-              {children}
-            </blockquote>
-          )
-        }}
-      >
-        {textStr + (isLoading ? " ▋" : "")}
-      </ReactMarkdown>
+      <ChatMarkdown content={textStr + (isLoading ? " ▋" : "")} />
     </SafeMarkdownBoundary>
   );
 
@@ -847,6 +794,8 @@ export default function ChatPage() {
   const {
     conversations,
     activeConversationId,
+    activeMessages,
+    loadingHistory,
     setActiveConversationId,
     activeConversation,
     createNewChat,
@@ -859,7 +808,7 @@ export default function ChatPage() {
     updateMessages
   } = useConversationManager();
 
-  const messages = activeConversation?.messages || [];
+  const messages = activeMessages;
   const setMessages = (setter: Message[] | ((prev: Message[]) => Message[])) => {
     if (activeConversationId) {
       updateMessages(activeConversationId, setter);
@@ -1156,6 +1105,7 @@ export default function ChatPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ 
+          conversationId: activeConversationId ? parseInt(activeConversationId) : null,
           question: finalInput,
           history: historyList,
           attachments: currentAttachments
@@ -1203,9 +1153,13 @@ export default function ChatPage() {
               let partContent = "";
               for (const line of lines) {
                 if (line.startsWith('data:')) {
-                  let dataValue = line.substring(5);
-                  if (dataValue.startsWith(' ')) {
-                    dataValue = dataValue.substring(1);
+                  const dataValue = line.substring(5);
+                  console.log("[AI Log] Chunk received by frontend: '" + dataValue + "'");
+
+                  if (dataValue.startsWith('[CONVERSATION_ID:')) {
+                    const newId = dataValue.replace('[CONVERSATION_ID:', '').replace(']', '').trim();
+                    setActiveConversationId(newId);
+                    continue;
                   }
                   
                   if (dataFound) {

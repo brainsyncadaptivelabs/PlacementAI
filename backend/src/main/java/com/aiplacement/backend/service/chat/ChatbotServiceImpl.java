@@ -1,17 +1,9 @@
 package com.aiplacement.backend.service.chat;
 
-import com.aiplacement.backend.ai.client.AIClient;
-import com.aiplacement.backend.ai.CopilotBrain;
-import com.aiplacement.backend.ai.PromptContext;
-import com.aiplacement.backend.ai.multimodal.MultimodalRouter;
-import com.aiplacement.backend.ai.multimodal.AnalysisResult;
-import com.aiplacement.backend.dto.chat.ChatMessageDto;
+import com.aiplacement.backend.ai.AISessionContext;
+import com.aiplacement.backend.ai.ModelConfiguration;
+import com.aiplacement.backend.entity.chat.ChatConversation;
 import com.aiplacement.backend.dto.chat.ChatRequestDto;
-import com.aiplacement.backend.dto.chat.ChatAttachmentDto;
-import com.aiplacement.backend.dto.shared.PlacementIntelligenceDto;
-import com.aiplacement.backend.entity.User;
-import com.aiplacement.backend.repository.UserRepository;
-import com.aiplacement.backend.service.shared.PlacementReadinessService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -32,113 +20,132 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ChatbotServiceImpl implements ChatbotService {
 
-    private final AIClient aiClient;
-    private final UserRepository userRepository;
-    private final PlacementReadinessService placementReadinessService;
+    private final LLMOrchestrator llmOrchestrator;
+    private final ChatConversationManager chatConversationManager;
     private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
-    private final CopilotBrain copilotBrain = new CopilotBrain();
-    private final MultimodalRouter multimodalRouter = new MultimodalRouter();
-
-    // Session-level attachment memory cache
-    private static final Map<String, List<ChatAttachmentDto>> sessionAttachments = new ConcurrentHashMap<>();
-
-    @Value("${chatbot.context-size:10}")
-    private int contextSize;
 
     @Value("${chatbot.max-tokens:1000}")
     private int maxTokens;
-
-    @Value("${chatbot.truncate-limit:1000}")
-    private int truncateLimit;
 
     @Override
     @Transactional(readOnly = false)
     public String askQuestion(ChatRequestDto request) {
         placementMetrics.incrementChats();
-        if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
-            placementMetrics.incrementWidgetsGenerated();
-        }
-        List<ChatMessageDto> history = request.getHistory();
-        if (history != null && history.size() > 10) {
-            history = history.subList(history.size() - 10, history.size());
-        }
-        String prompt = buildPrompt(request.getQuestion(), history, request.getAttachments());
+        
+        String email = getAuthenticatedEmail();
+        ModelConfiguration modelConfig = ModelConfiguration.builder()
+                .modelName("meta/llama-3.1-70b-instruct")
+                .temperature(0.7)
+                .topP(0.7)
+                .maxTokens(maxTokens)
+                .supportsVision(false)
+                .supportsReasoning(false)
+                .build();
 
-        try {
-            log.info("Sending chat question to AI provider with context size: {}", contextSize);
-            return aiClient.generate(
-                    "You are PlacementAI. Never expose internal JSON schemas or implementation details. " +
-                    "Always answer users naturally using conversational English and rich Markdown. " +
-                    "Only emit structured widget metadata (in placementai code blocks) if the user's query explicitly requests structured data (like roadmaps, skill trees, comparisons, or progress tracking). " +
-                    "For normal questions and conversation, answer directly in pure markdown/text and do NOT include any JSON or placementai code blocks. " +
-                    "The visible chat must always resemble ChatGPT or Claude.",
-                    prompt, 0.7, maxTokens);
-        } catch (Exception e) {
-            log.error("Failed to generate chatbot response", e);
-            throw new RuntimeException("Failed to generate chatbot response");
+        AISessionContext sessionContext = AISessionContext.builder()
+                .requestId(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .conversationId(request.getConversationId())
+                .email(email)
+                .modelConfig(modelConfig)
+                .attachments(request.getAttachments())
+                .streaming(false)
+                .build();
+
+        // 1. Save user message if conversation is persistent
+        if (request.getConversationId() != null) {
+            chatConversationManager.saveMessage(request.getConversationId(), "USER", request.getQuestion(), modelConfig.getModelName(), null);
         }
+
+        // 2. Compose and generate
+        StringBuilder responseBuilder = new StringBuilder();
+        llmOrchestrator.executeStreamPipeline(sessionContext, request.getQuestion())
+                .doOnNext(responseBuilder::append)
+                .blockLast();
+
+        String answer = responseBuilder.toString();
+
+        // 3. Save assistant message
+        if (request.getConversationId() != null && !answer.isEmpty()) {
+            chatConversationManager.saveMessage(request.getConversationId(), "ASSISTANT", answer, modelConfig.getModelName(), null);
+        }
+
+        return answer;
     }
 
     @Override
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public Flux<String> streamQuestion(ChatRequestDto request) {
         placementMetrics.incrementChats();
-        if (request.getAttachments() != null && !request.getAttachments().isEmpty()) {
-            placementMetrics.incrementWidgetsGenerated();
-        }
-        List<ChatMessageDto> history = request.getHistory();
-        if (history != null && history.size() > 10) {
-            history = history.subList(history.size() - 10, history.size());
-        }
-        String prompt = buildPrompt(truncate(request.getQuestion(), truncateLimit), history, request.getAttachments());
-        log.info("Streaming chat question to AI provider with max tokens: {}", maxTokens);
-        return aiClient.stream(
-                "You are PlacementAI. Never expose internal JSON schemas or implementation details. " +
-                "Always answer users naturally using conversational English and rich Markdown. " +
-                "Only emit structured widget metadata (in placementai code blocks) if the user's query explicitly requests structured data (like roadmaps, skill trees, comparisons, or progress tracking). " +
-                "For normal questions and conversation, answer directly in pure markdown/text and do NOT include any JSON or placementai code blocks. " +
-                "The visible chat must always resemble ChatGPT or Claude.",
-                prompt, 0.7, maxTokens)
-                .retry(1)
-                .onErrorResume(err -> {
-                    log.error("AI stream generation failed after retry", err);
-                    return Flux.just("\n[ERROR: Failed to connect to AI server. Please try again.]");
-                });
-    }
 
-    private String buildPrompt(String question, List<ChatMessageDto> history, List<ChatAttachmentDto> attachments) {
-        String email = "anonymous";
-        if (SecurityContextHolder.getContext().getAuthentication() != null) {
-            email = SecurityContextHolder.getContext().getAuthentication().getName();
-        }
+        String email = getAuthenticatedEmail();
+        ModelConfiguration modelConfig = ModelConfiguration.builder()
+                .modelName("meta/llama-3.1-70b-instruct")
+                .temperature(0.7)
+                .topP(0.7)
+                .maxTokens(maxTokens)
+                .supportsVision(false)
+                .supportsReasoning(false)
+                .build();
 
-        User user = null;
-        PlacementIntelligenceDto intelligence = null;
-        Optional<User> userOpt = userRepository.findByEmailIgnoreCase(email);
-        if (userOpt.isPresent()) {
-            user = userOpt.get();
-            intelligence = placementReadinessService.getIntelligence(user);
-        }
-
-        // Maintain attachment memory across session
-        List<ChatAttachmentDto> activeAttachments = attachments;
-        if (activeAttachments != null && !activeAttachments.isEmpty()) {
-            sessionAttachments.put(email, activeAttachments);
-        } else {
-            String q = question.toLowerCase();
-            if (q.contains("resume") || q.contains("code") || q.contains("pdf") || q.contains("file") || 
-                q.contains("it") || q.contains("this") || q.contains("diagram") || q.contains("screenshot") || q.contains("error")) {
-                activeAttachments = sessionAttachments.getOrDefault(email, new ArrayList<>());
+        Long conversationId = request.getConversationId();
+        if (conversationId == null) {
+            try {
+                ChatConversation defaultConv = chatConversationManager.createConversation(email, "New Chat");
+                conversationId = defaultConv.getId();
+                log.info("Automatically created default chat conversation ID: {}", conversationId);
+            } catch (Exception e) {
+                log.error("Failed to dynamically auto-create chat conversation", e);
             }
         }
 
-        List<AnalysisResult> analysisResults = multimodalRouter.routeAttachments(activeAttachments);
-        PromptContext context = new PromptContext(question, history, user, intelligence, analysisResults);
-        return copilotBrain.planResponsePrompt(context);
+        AISessionContext sessionContext = AISessionContext.builder()
+                .requestId(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .conversationId(conversationId)
+                .email(email)
+                .modelConfig(modelConfig)
+                .attachments(request.getAttachments())
+                .streaming(true)
+                .build();
+
+        // 1. Save user message if conversation is persistent
+        if (conversationId != null) {
+            chatConversationManager.saveMessage(conversationId, "USER", request.getQuestion(), modelConfig.getModelName(), null);
+        }
+
+        // 2. Stream pipeline and accumulate result asynchronously
+        StringBuilder responseAccumulator = new StringBuilder();
+        Long finalConvId = conversationId;
+
+        Flux<String> metaFlux = Flux.just("[CONVERSATION_ID: " + finalConvId + "]");
+        Flux<String> pipelineFlux = llmOrchestrator.executeStreamPipeline(sessionContext, request.getQuestion());
+        
+        return Flux.concat(metaFlux, pipelineFlux)
+                .doOnNext(chunk -> {
+                    if (chunk != null && !chunk.startsWith("[CONVERSATION_ID:")) {
+                        responseAccumulator.append(chunk);
+                    }
+                })
+                .doOnComplete(() -> saveAssistantResponse(finalConvId, responseAccumulator.toString(), modelConfig.getModelName()))
+                .doOnCancel(() -> saveAssistantResponse(finalConvId, responseAccumulator.toString(), modelConfig.getModelName()));
     }
 
-    private String truncate(String text, int limit) {
-        if (text == null || text.length() <= limit) return text;
-        return text.substring(0, limit);
+    private void saveAssistantResponse(Long conversationId, String content, String modelName) {
+        if (conversationId != null && content != null && !content.trim().isEmpty() && !content.contains("[ERROR:")) {
+            try {
+                chatConversationManager.saveMessage(conversationId, "ASSISTANT", content, modelName, null);
+                log.info("Saved assistant message for conversation: {}", conversationId);
+            } catch (Exception e) {
+                log.error("Failed to save async assistant response", e);
+            }
+        }
+    }
+
+    private String getAuthenticatedEmail() {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return SecurityContextHolder.getContext().getAuthentication().getName();
+        }
+        return "anonymous";
     }
 }

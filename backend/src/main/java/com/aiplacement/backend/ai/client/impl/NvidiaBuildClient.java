@@ -321,6 +321,7 @@ public class NvidiaBuildClient implements AIClient {
 
     /** Parse a single SSE line and extract delta.content. */
     private String parseStreamChunk(String line) {
+        log.info("[AI Log] Chunk received from NVIDIA: '{}'", line);
         if (line == null || line.isBlank() || "[DONE]".equals(line.trim())) return "";
         String data = line.startsWith("data: ") ? line.substring(6).trim() : line.trim();
         if (data.isEmpty() || "[DONE]".equals(data)) return "";
@@ -328,7 +329,9 @@ public class NvidiaBuildClient implements AIClient {
             NvidiaResponse chunk = objectMapper.readValue(data, NvidiaResponse.class);
             if (chunk.getChoices() != null && !chunk.getChoices().isEmpty()) {
                 NvidiaResponse.Delta delta = chunk.getChoices().get(0).getDelta();
-                return delta != null && delta.getContent() != null ? delta.getContent() : "";
+                String content = delta != null && delta.getContent() != null ? delta.getContent() : "";
+                log.info("[AI Log] Chunk transformed: '{}'", content);
+                return content;
             }
         } catch (Exception e) {
             log.trace("[AI] Skipped non-JSON SSE chunk");
