@@ -2,7 +2,6 @@ package com.aiplacement.backend.controller.recruiter;
 
 import com.aiplacement.backend.dto.recruiter.RecruiterNoteDto;
 import com.aiplacement.backend.dto.shared.PlacementIntelligenceDto;
-import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.service.recruiter.RecruiterNoteService;
