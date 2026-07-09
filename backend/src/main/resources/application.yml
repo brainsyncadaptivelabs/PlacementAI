@@ -220,3 +220,4 @@ supabase:
   url: ${NEXT_PUBLIC_SUPABASE_URL:https://glyvbdltoxjpwlzsbcyx.supabase.co}
   key: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:sb_publishable_1_N-QV-c57Lsca-hGpJxTg_QubCK2Kt}
   bucket: ${SUPABASE_STORAGE_BUCKET:placementai-files}
+#
