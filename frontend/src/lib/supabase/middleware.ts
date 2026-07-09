@@ -53,11 +53,14 @@ export async function updateSession(request: NextRequest) {
 
   console.log(`[SUPABASE_MIDDLEWARE] Path: ${request.nextUrl.pathname}, User: ${user ? user.email : "none"}`);
 
+  const hasPlacementToken = request.nextUrl.searchParams.has("_pat");
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/admin') &&
-    request.nextUrl.pathname !== '/'
+    !hasPlacementToken &&
+    !request.nextUrl.pathname.startsWith("/auth") &&
+    !request.nextUrl.pathname.startsWith("/admin") &&
+    request.nextUrl.pathname !== "/"
   ) {
     const url = request.nextUrl.clone();
     if (request.nextUrl.pathname.startsWith('/recruiter')) {

@@ -99,7 +99,10 @@ export async function GET(request: Request) {
     }
     destination.searchParams.set('_role', backendRole);
 
-    console.log(`[AUTH_CALLBACK] Redirecting to: ${destination.toString()}`);
+    console.log("[AUTH_CALLBACK] backendRole =", backendRole);
+    console.log("[AUTH_CALLBACK] rolePath =", rolePath);
+    console.log("[AUTH_CALLBACK] placementToken exists =", !!placementToken);
+    console.log("[AUTH_CALLBACK] destination =", destination.toString());
     return NextResponse.redirect(destination.toString());
 
   } catch (err) {
