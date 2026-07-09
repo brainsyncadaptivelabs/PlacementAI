@@ -86,7 +86,7 @@ spring:
 
 # ── Server ───────────────────────────────────────────────────
 server:
-  port: 8080
+  port: ${PORT:8080}
   compression:
     enabled: true
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
