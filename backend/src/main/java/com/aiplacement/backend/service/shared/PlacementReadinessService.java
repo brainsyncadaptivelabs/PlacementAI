@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.aiplacement.backend.repository.evaluation.*;
+import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.entity.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
 
 @Service
 @RequiredArgsConstructor
@@ -34,11 +36,14 @@ public class PlacementReadinessService {
     private final RecruiterSummaryService recruiterSummaryService;
 
     private final InterviewEvaluationRepository evaluationRepository;
+    private final UserRepository userRepository;
     private final InterviewCompetencyScoreRepository competencyScoreRepository;
     private final InterviewEvidenceRepository evidenceRepository;
     private final InterviewReasoningRepository reasoningRepository;
     private final InterviewImprovementRepository improvementRepository;
 
+    @Cacheable(value = "placement_readiness", key = "#user.email")
+    @Transactional
     public PlacementIntelligenceDto getIntelligence(User user) {
         
         int atsScore = atsIntelligenceService.calculateAtsScore(user);
@@ -56,6 +61,14 @@ public class PlacementReadinessService {
         );
         
         int hiringProbability = hiringProbabilityService.calculateHiringProbability(overallPlacementReadiness);
+
+        // Update denormalized user score columns in database
+        user.setReadinessScore(overallPlacementReadiness);
+        user.setAtsScore(atsScore);
+        user.setCodingScore(codingScore);
+        user.setInterviewScore(interviewScore);
+        user.setCommunicationScore(communicationScore);
+        userRepository.save(user);
         
         Map<String, Integer> companyReadiness = companyReadinessService.calculateCompanyReadiness(user);
         String salaryPrediction = salaryPredictionService.predictSalary(overallPlacementReadiness, user);
@@ -73,11 +86,7 @@ public class PlacementReadinessService {
         if (riskAnalysis == null) riskAnalysis = List.of();
 
         // Retrieve latest evaluation and compile soft competencies details
-        InterviewEvaluation latestEval = user.getMockInterviews() != null ? user.getMockInterviews().stream()
-                .sorted((a, b) -> b.getId().compareTo(a.getId()))
-                .map(m -> evaluationRepository.findByMockInterview(m).orElse(null))
-                .filter(java.util.Objects::nonNull)
-                .findFirst().orElse(null) : null;
+        InterviewEvaluation latestEval = evaluationRepository.findFirstByMockInterviewUserOrderByIdDesc(user).orElse(null);
 
         List<PlacementIntelligenceDto.SoftCompetencyDto> softCompDtos = new ArrayList<>();
         List<String> personalizedRecs = new ArrayList<>();

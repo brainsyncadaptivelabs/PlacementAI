@@ -33,6 +33,7 @@ public class ResumeServiceImpl implements ResumeService {
     private final AtsAnalysisRepository atsAnalysisRepository;
     private final StorageService storageService;
     private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -141,6 +142,19 @@ public class ResumeServiceImpl implements ResumeService {
             atsAnalysisRepository.save(atsAnalysis);
 
             log.info("ATS analysis saved to database");
+
+            // Evict user intelligence cache on resume upload
+            try {
+                if (cacheManager.getCache("placement_context") != null) {
+                    cacheManager.getCache("placement_context").evict(email);
+                }
+                if (cacheManager.getCache("placement_readiness") != null) {
+                    cacheManager.getCache("placement_readiness").evict(email);
+                }
+                log.info("Evicted placement caches for: {}", email);
+            } catch (Exception ex) {
+                log.warn("Failed to evict placement caches: {}", ex.getMessage());
+            }
 
             return atsResponse;
 

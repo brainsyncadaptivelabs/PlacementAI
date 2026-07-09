@@ -36,69 +36,30 @@ public class RecruiterCandidateController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size
     ) {
-        List<User> students = userRepository.findAll().stream()
-                .filter(u -> u.getRole() == Role.STUDENT)
-                .collect(Collectors.toList());
-
-        // Apply filters
-        if (search != null && !search.isBlank()) {
-            String q = search.toLowerCase();
-            students = students.stream()
-                    .filter(s -> (s.getFullName() != null && s.getFullName().toLowerCase().contains(q))
-                            || (s.getSkills() != null && s.getSkills().toLowerCase().contains(q))
-                            || (s.getCollegeName() != null && s.getCollegeName().toLowerCase().contains(q))
-                            || (s.getBranch() != null && s.getBranch().toLowerCase().contains(q)))
-                    .collect(Collectors.toList());
+        org.springframework.data.domain.Sort sort;
+        if ("ATS".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "atsScore");
+        } else if ("CODING".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "codingScore");
+        } else if ("INTERVIEW".equalsIgnoreCase(sortBy)) {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "interviewScore");
+        } else {
+            sort = org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "readinessScore");
         }
 
-        if (college != null && !college.isBlank()) {
-            String c = college.toLowerCase();
-            students = students.stream()
-                    .filter(s -> s.getCollegeName() != null && s.getCollegeName().toLowerCase().contains(c))
-                    .collect(Collectors.toList());
-        }
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, sort);
+        org.springframework.data.domain.Page<User> studentPage = userRepository.searchStudentsForRecruiter(
+                search, college, department, graduationYear, pageable
+        );
 
-        if (department != null && !department.isBlank()) {
-            String d = department.toLowerCase();
-            students = students.stream()
-                    .filter(s -> s.getBranch() != null && s.getBranch().toLowerCase().contains(d))
-                    .collect(Collectors.toList());
-        }
-
-        if (graduationYear != null) {
-            students = students.stream()
-                    .filter(s -> graduationYear.equals(s.getGraduationYear()))
-                    .collect(Collectors.toList());
-        }
-
-        // Build summaries with intelligence scores
-        List<CandidateSummaryDto> summaries = students.stream()
+        List<CandidateSummaryDto> summaries = studentPage.getContent().stream()
                 .map(s -> {
                     PlacementIntelligenceDto intel = placementReadinessService.getIntelligence(s);
                     return buildSummary(s, intel);
                 })
                 .collect(Collectors.toList());
 
-        // Sort
-        if ("ATS".equals(sortBy)) {
-            summaries.sort((a, b) -> Integer.compare(b.atsScore(), a.atsScore()));
-        } else if ("CODING".equals(sortBy)) {
-            summaries.sort((a, b) -> Integer.compare(b.codingScore(), a.codingScore()));
-        } else if ("INTERVIEW".equals(sortBy)) {
-            summaries.sort((a, b) -> Integer.compare(b.hiringProbability(), a.hiringProbability()));
-        } else {
-            // Default: READINESS
-            summaries.sort((a, b) -> Integer.compare(b.readinessScore(), a.readinessScore()));
-        }
-
-        // Paginate
-        int from = page * size;
-        int to = Math.min(from + size, summaries.size());
-        if (from >= summaries.size()) {
-            return ResponseEntity.ok(List.of());
-        }
-
-        return ResponseEntity.ok(summaries.subList(from, to));
+        return ResponseEntity.ok(summaries);
     }
 
     // ─── Full Intelligence Profile ────────────────────────────────────────────────

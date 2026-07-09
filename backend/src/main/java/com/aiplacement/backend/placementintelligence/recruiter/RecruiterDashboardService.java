@@ -23,11 +23,10 @@ public class RecruiterDashboardService {
     private final RecruiterRecommendationEngine recommendationEngine;
 
     private List<User> getStudents() {
-        return userRepository.findAll().stream()
-                .filter(u -> u.getRole() == com.aiplacement.backend.entity.Role.STUDENT)
-                .collect(Collectors.toList());
+        return userRepository.findByRole(com.aiplacement.backend.entity.Role.STUDENT);
     }
 
+    @org.springframework.cache.annotation.Cacheable(value = "dashboard_stats", key = "'recruiter_dashboard'")
     public Map<String, Object> getRecruiterDashboardData() {
         List<User> students = getStudents();
         List<RankedCandidate> ranked = rankingEngine.rankCandidates(students);

@@ -32,6 +32,7 @@ public class CodingInterviewOrchestrationServiceImpl implements CodingInterviewO
     private final CodingSubmissionRepository submissionRepository;
     private final CodingLanguageProfileRepository languageProfileRepository;
     private final ObjectMapper objectMapper;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     @Override
     @Transactional
@@ -104,6 +105,21 @@ public class CodingInterviewOrchestrationServiceImpl implements CodingInterviewO
         // 9. Update AdaptiveState codingScore
         if (submission.getPassRate() != null) {
             state.setCodingScore(submission.getPassRate());
+        }
+ 
+        // Evict caches
+        if (user != null) {
+            try {
+                if (cacheManager.getCache("placement_context") != null) {
+                    cacheManager.getCache("placement_context").evict(user.getEmail());
+                }
+                if (cacheManager.getCache("placement_readiness") != null) {
+                    cacheManager.getCache("placement_readiness").evict(user.getEmail());
+                }
+                log.info("Evicted placement caches for coding submission: {}", user.getEmail());
+            } catch (Exception ex) {
+                log.warn("Failed to evict placement caches: {}", ex.getMessage());
+            }
         }
 
         log.info("[CODING] [ORCHESTRATION] Submission processing complete. Status: {}, Pass rate: {}%",

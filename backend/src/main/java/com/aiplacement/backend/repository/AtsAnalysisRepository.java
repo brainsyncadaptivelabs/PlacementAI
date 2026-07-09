@@ -33,4 +33,14 @@ public interface AtsAnalysisRepository
     Integer findHighestAtsScoreByUser(
             User user
     );
+
+    @org.springframework.data.jpa.repository.Query("SELECT AVG(a.atsScore) FROM AtsAnalysis a")
+    Double getGlobalAverageAtsScore();
+
+    @org.springframework.data.jpa.repository.Query("SELECT MAX(a.atsScore) FROM AtsAnalysis a")
+    Integer getGlobalHighestAtsScore();
+
+    long countByAtsScoreLessThan(int score);
+    long countByAtsScoreGreaterThanEqualAndAtsScoreLessThan(int startScore, int endScore);
+    long countByAtsScoreGreaterThanEqual(int score);
 }

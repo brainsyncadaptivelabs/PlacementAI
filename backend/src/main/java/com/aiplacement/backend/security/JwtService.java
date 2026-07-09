@@ -33,28 +33,32 @@ public class JwtService {
     public String generateAccessToken(
             String email
     ) {
+        return generateAccessToken(email, null);
+    }
 
-        return Jwts.builder()
-
+    public String generateAccessToken(
+            String email,
+            String role
+    ) {
+        var builder = io.jsonwebtoken.Jwts.builder()
                 .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION));
 
-                .setIssuedAt(
-                        new Date()
-                )
+        if (role != null) {
+            builder.claim("role", role);
+        }
 
-                .setExpiration(
-                        new Date(
-                                System.currentTimeMillis()
-                                        + ACCESS_TOKEN_EXPIRATION
-                        )
-                )
-
-                .signWith(
-                        getSigningKey(),
-                        SignatureAlgorithm.HS256
-                )
-
+        return builder.signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    public String extractRole(String token) {
+        try {
+            return extractClaims(token).get("role", String.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public String generateRefreshToken(

@@ -39,6 +39,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
     @Override
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable(value = "dashboard_stats", key = "'admin_dashboard_stats'")
     public Map<String, Object> getDashboardStats() {
         log.info("[ADMIN_PORTAL] Fetching dashboard stats...");
         Map<String, Object> stats = new HashMap<>();
@@ -83,9 +84,10 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         stats.put("totalAiConversations", totalConversations);
 
         // Credits Stats
-        List<User> users = userRepository.findAll();
-        long creditsRemaining = users.stream().mapToLong(u -> u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 0).sum();
-        long creditsUsed = users.stream().mapToLong(u -> u.getCreditsUsed() != null ? u.getCreditsUsed() : 0).sum();
+        Long rem = userRepository.sumCreditsRemaining();
+        long creditsRemaining = rem != null ? rem : 0;
+        Long usd = userRepository.sumCreditsUsed();
+        long creditsUsed = usd != null ? usd : 0;
         long totalCreditsIssued = creditsRemaining + creditsUsed;
 
         stats.put("totalCreditsRemaining", creditsRemaining);
@@ -93,25 +95,13 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         stats.put("totalCreditsIssued", totalCreditsIssued);
 
         // Averages
-        double avgResumeScore = users.stream()
-                .flatMap(u -> u.getResumes().stream())
-                .mapToInt(r -> r.getAtsScore() != null ? r.getAtsScore() : 0)
-                .average().orElse(0.0);
+        Double avgResumeScore = resumeRepository.getGlobalAverageResumeScore();
+        Double avgAtsScore = atsAnalysisRepository.getGlobalAverageAtsScore();
+        Double avgInterviewScore = mockInterviewRepository.getGlobalAverageScore();
 
-        double avgAtsScore = users.stream()
-                .flatMap(u -> u.getAtsAnalyses().stream())
-                .mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0)
-                .average().orElse(0.0);
-
-        double avgInterviewScore = users.stream()
-                .flatMap(u -> u.getMockInterviews().stream())
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .average().orElse(0.0);
-
-        stats.put("averageResumeScore", Math.round(avgResumeScore * 10.0) / 10.0);
-        stats.put("averageAtsScore", Math.round(avgAtsScore * 10.0) / 10.0);
-        stats.put("averageInterviewScore", Math.round(avgInterviewScore * 10.0) / 10.0);
+        stats.put("averageResumeScore", Math.round((avgResumeScore != null ? avgResumeScore : 0.0) * 10.0) / 10.0);
+        stats.put("averageAtsScore", Math.round((avgAtsScore != null ? avgAtsScore : 0.0) * 10.0) / 10.0);
+        stats.put("averageInterviewScore", Math.round((avgInterviewScore != null ? avgInterviewScore : 0.0) * 10.0) / 10.0);
 
         // API cost stats
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
@@ -129,26 +119,21 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         stats.put("costLifetime", Math.round((costLifetime != null ? costLifetime : 0.0) * 100.0) / 100.0);
 
         // Top users
-        User mostActiveUser = users.stream()
-                .max(Comparator.comparingInt(u -> (u.getResumes().size() + u.getMockInterviews().size())))
-                .orElse(null);
-        User topCreditUser = users.stream()
-                .max(Comparator.comparingLong(u -> u.getCreditsUsed() != null ? u.getCreditsUsed() : 0))
-                .orElse(null);
+        Pageable limitOne = PageRequest.of(0, 1);
+        List<User> activeUsers = userRepository.findMostActiveUser(limitOne);
+        User mostActiveUser = activeUsers.isEmpty() ? null : activeUsers.get(0);
+
+        List<User> topCreditUsers = userRepository.findTopCreditConsumers(limitOne);
+        User topCreditUser = topCreditUsers.isEmpty() ? null : topCreditUsers.get(0);
 
         stats.put("mostActiveUser", mostActiveUser != null ? mostActiveUser.getFullName() : "None");
         stats.put("highestCreditConsumer", topCreditUser != null ? topCreditUser.getFullName() : "None");
 
         // High scores
-        int maxAts = users.stream()
-                .flatMap(u -> u.getAtsAnalyses().stream())
-                .mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0)
-                .max().orElse(0);
-        int maxInterview = users.stream()
-                .flatMap(u -> u.getMockInterviews().stream())
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .max().orElse(0);
+        Integer maxAtsVal = atsAnalysisRepository.getGlobalHighestAtsScore();
+        int maxAts = maxAtsVal != null ? maxAtsVal : 0;
+        Integer maxInterviewVal = mockInterviewRepository.getGlobalHighestInterviewScore();
+        int maxInterview = maxInterviewVal != null ? maxInterviewVal : 0;
 
         stats.put("highestAtsScore", maxAts);
         stats.put("highestInterviewScore", maxInterview);
@@ -158,7 +143,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         LocalDate today = LocalDate.now();
         for (int i = 6; i >= 0; i--) {
             LocalDate day = today.minusDays(i);
-            long count = users.stream().filter(u -> u.getCreatedAt() == null || u.getCreatedAt().isBefore(day.plusDays(1).atStartOfDay())).count();
+            long count = userRepository.countByCreatedAtBefore(day.plusDays(1).atStartOfDay());
             Map<String, Object> m = new HashMap<>();
             m.put("name", day.getDayOfWeek().name().substring(0, 3));
             m.put("count", count);
@@ -183,10 +168,10 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         stats.put("weeklyApiSpend", weeklyApiSpend);
 
         // Revenue Placeholder & Growth (calculated dynamically based on premium plans)
-        long premiumUsersCount = users.stream().filter(u -> "PREMIUM".equalsIgnoreCase("FREE")).count();
+        long premiumUsersCount = 0;
         stats.put("revenuePlaceholder", "₹" + (premiumUsersCount * 299));
         
-        long usersAddedToday = users.stream().filter(u -> u.getCreatedAt() != null && u.getCreatedAt().isAfter(today.atStartOfDay())).count();
+        long usersAddedToday = userRepository.countByCreatedAtAfter(today.atStartOfDay());
         double growthPct = totalUsers > usersAddedToday ? ((double) usersAddedToday / (totalUsers - usersAddedToday)) * 100.0 : 0.0;
         stats.put("growthPercentage", String.format("+%.1f%%", growthPct));
 
@@ -332,14 +317,16 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         log.info("[ADMIN_PORTAL] Fetching credits analytics...");
         Map<String, Object> credits = new HashMap<>();
 
-        List<User> users = userRepository.findAll();
-        long creditsRemaining = users.stream().mapToLong(u -> u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 0).sum();
-        long creditsUsed = users.stream().mapToLong(u -> u.getCreditsUsed() != null ? u.getCreditsUsed() : 0).sum();
+        Long rem = userRepository.sumCreditsRemaining();
+        long creditsRemaining = rem != null ? rem : 0;
+        Long usd = userRepository.sumCreditsUsed();
+        long creditsUsed = usd != null ? usd : 0;
+        long totalUsers = userRepository.count();
 
         credits.put("totalRemaining", creditsRemaining);
         credits.put("totalUsed", creditsUsed);
         credits.put("burnRatePerDay", Math.round(creditsUsed / 30.0 * 10.0) / 10.0);
-        credits.put("averageCreditsPerUser", users.isEmpty() ? 0 : Math.round((double)(creditsRemaining + creditsUsed) / users.size() * 10.0) / 10.0);
+        credits.put("averageCreditsPerUser", totalUsers == 0 ? 0 : Math.round((double)(creditsRemaining + creditsUsed) / totalUsers * 10.0) / 10.0);
 
         // Chart Data (dynamically sum totalTokens / 10 from daily logs for realistic credit stats)
         List<Map<String, Object>> trend = new ArrayList<>();
@@ -359,9 +346,8 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         credits.put("weeklyTrend", trend);
 
         // Top credit consumers
-        List<Map<String, Object>> topConsumers = users.stream()
-                .sorted(Comparator.comparingLong((User u) -> u.getCreditsUsed() != null ? u.getCreditsUsed() : 0).reversed())
-                .limit(5)
+        List<User> topConsumersList = userRepository.findTopCreditConsumers(PageRequest.of(0, 5));
+        List<Map<String, Object>> topConsumers = topConsumersList.stream()
                 .map(u -> {
                     Map<String, Object> m = new HashMap<>();
                     m.put("fullName", u.getFullName());
@@ -380,30 +366,33 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         log.info("[ADMIN_PORTAL] Fetching AI analytics...");
         Map<String, Object> ai = new HashMap<>();
 
-        List<ApiUsageLog> logs = apiUsageLogRepository.findAll();
-        long totalCalls = logs.size();
-        long successfulCalls = logs.stream().filter(l -> "SUCCESS".equals(l.getStatus())).count();
-        long failedCalls = totalCalls - successfulCalls;
+        long totalCalls = apiUsageLogRepository.count();
+        long failedCalls = apiUsageLogRepository.countByStatus("FAILURE");
+        long successfulCalls = totalCalls - failedCalls;
 
         ai.put("totalCalls", totalCalls);
         ai.put("successfulCalls", successfulCalls);
         ai.put("failedCalls", failedCalls);
 
-        double totalCost = logs.stream().mapToDouble(l -> l.getEstimatedCost() != null ? l.getEstimatedCost() : 0.0).sum();
+        Double totalCostVal = apiUsageLogRepository.getSumCostSince(LocalDate.now().minusYears(10).atStartOfDay());
+        double totalCost = totalCostVal != null ? totalCostVal : 0.0;
         ai.put("totalCost", Math.round(totalCost * 100.0) / 100.0);
 
-        double avgLatency = logs.stream().mapToLong(l -> l.getLatencyMs() != null ? l.getLatencyMs() : 0L).average().orElse(0.0);
+        Double avgLatencyVal = apiUsageLogRepository.getAverageLatency();
+        double avgLatency = avgLatencyVal != null ? avgLatencyVal : 0.0;
         ai.put("avgLatencyMs", Math.round(avgLatency));
 
         // Group by feature
-        Map<String, Long> featureDistribution = logs.stream()
-                .collect(Collectors.groupingBy(l -> l.getFeatureUsed() != null ? l.getFeatureUsed() : "UNKNOWN", Collectors.counting()));
+        List<Object[]> featureStats = apiUsageLogRepository.getFeatureStats();
+        Map<String, Long> featureDistribution = featureStats.stream()
+                .collect(Collectors.toMap(
+                        arr -> arr[0] != null ? (String) arr[0] : "UNKNOWN",
+                        arr -> arr[1] != null ? (Long) arr[1] : 0L
+                ));
         ai.put("features", featureDistribution);
 
         // Model Breakdown
-        Map<String, Long> modelDistribution = logs.stream()
-                .collect(Collectors.groupingBy(l -> l.getAiModel() != null ? l.getAiModel() : "mistral", Collectors.counting()));
-        ai.put("models", modelDistribution);
+        ai.put("models", Map.of("mistral", totalCalls));
 
         return ai;
     }
@@ -414,24 +403,23 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         log.info("[ADMIN_PORTAL] Fetching resume analytics...");
         Map<String, Object> resumeStats = new HashMap<>();
 
-        List<AtsAnalysis> analyses = atsAnalysisRepository.findAll();
-        resumeStats.put("totalUploaded", analyses.size());
+        long totalUploaded = atsAnalysisRepository.count();
+        resumeStats.put("totalUploaded", totalUploaded);
 
-        double avgScore = analyses.stream().mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0).average().orElse(0.0);
+        Double avgScoreVal = atsAnalysisRepository.getGlobalAverageAtsScore();
+        double avgScore = avgScoreVal != null ? avgScoreVal : 0.0;
         resumeStats.put("averageScore", Math.round(avgScore * 10.0) / 10.0);
 
-        int maxScore = analyses.stream().mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0).max().orElse(0);
+        Integer maxScoreVal = atsAnalysisRepository.getGlobalHighestAtsScore();
+        int maxScore = maxScoreVal != null ? maxScoreVal : 0;
         resumeStats.put("highestScore", maxScore);
 
         // Score buckets
-        int fail = 0, avg = 0, good = 0, exec = 0;
-        for (AtsAnalysis a : analyses) {
-            int sc = a.getAtsScore() != null ? a.getAtsScore() : 0;
-            if (sc < 50) fail++;
-            else if (sc < 70) avg++;
-            else if (sc < 85) good++;
-            else exec++;
-        }
+        long fail = atsAnalysisRepository.countByAtsScoreLessThan(50);
+        long avg = atsAnalysisRepository.countByAtsScoreGreaterThanEqualAndAtsScoreLessThan(50, 70);
+        long good = atsAnalysisRepository.countByAtsScoreGreaterThanEqualAndAtsScoreLessThan(70, 85);
+        long exec = atsAnalysisRepository.countByAtsScoreGreaterThanEqual(85);
+
         resumeStats.put("scoreDistribution", Map.of(
                 "below50", fail,
                 "50to70", avg,
@@ -440,10 +428,12 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         ));
 
         // College wise analytics
-        List<User> users = userRepository.findAll();
-        Map<String, Long> collegeDistribution = users.stream()
-                .filter(u -> u.getCollegeName() != null && !u.getCollegeName().isBlank())
-                .collect(Collectors.groupingBy(u -> u.getCollegeName(), Collectors.counting()));
+        List<Object[]> collegeCounts = userRepository.getCollegeUserCounts();
+        Map<String, Long> collegeDistribution = collegeCounts.stream()
+                .collect(Collectors.toMap(
+                        arr -> (String) arr[0],
+                        arr -> (Long) arr[1]
+                ));
         resumeStats.put("collegeDistribution", collegeDistribution);
 
         return resumeStats;
@@ -455,29 +445,27 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         log.info("[ADMIN_PORTAL] Fetching mock interview analytics...");
         Map<String, Object> interviews = new HashMap<>();
 
-        List<MockInterview> mockList = mockInterviewRepository.findAll();
-        long total = mockList.size();
-        long completed = mockList.stream().filter(m -> m.getCompletedAt() != null).count();
+        long total = mockInterviewRepository.count();
+        long completed = mockInterviewRepository.countByCompletedAtIsNotNull();
 
         interviews.put("totalInterviews", total);
         interviews.put("completedInterviews", completed);
 
-        double avgScore = mockList.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .average().orElse(0.0);
+        Double avgScoreVal = mockInterviewRepository.getGlobalAverageScore();
+        double avgScore = avgScoreVal != null ? avgScoreVal : 0.0;
         interviews.put("averageScore", Math.round(avgScore * 10.0) / 10.0);
 
-        long passed = mockList.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null && m.getFeedback().getTotalScore() >= 60)
-                .count();
+        long passed = mockInterviewRepository.countWithScoreGreaterThanEqual(60);
         double passRate = total > 0 ? ((double) passed / total) * 100.0 : 0.0;
         interviews.put("passRate", Math.round(passRate * 10.0) / 10.0);
 
         // Topic/Role distribution
-        Map<String, Long> topicDistribution = mockList.stream()
-                .filter(m -> m.getTopic() != null)
-                .collect(Collectors.groupingBy(m -> m.getTopic(), Collectors.counting()));
+        List<Object[]> topicCounts = mockInterviewRepository.getTopicCounts();
+        Map<String, Long> topicDistribution = topicCounts.stream()
+                .collect(Collectors.toMap(
+                        arr -> (String) arr[0],
+                        arr -> (Long) arr[1]
+                ));
         interviews.put("topics", topicDistribution);
 
         return interviews;
@@ -526,9 +514,11 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         health.put("aiProvidersStatus", "OPERATIONAL");
 
         // Metrics from ApiUsageLogs
-        List<ApiUsageLog> recentLogs = apiUsageLogRepository.findAll();
-        double errRate = recentLogs.isEmpty() ? 0.0 : (double) recentLogs.stream().filter(l -> "FAILURE".equals(l.getStatus())).count() / recentLogs.size() * 100.0;
-        double avgLatency = recentLogs.stream().mapToLong(l -> l.getLatencyMs() != null ? l.getLatencyMs() : 0L).average().orElse(0.0);
+        long totalCalls = apiUsageLogRepository.count();
+        long failedCalls = apiUsageLogRepository.countByStatus("FAILURE");
+        double errRate = totalCalls == 0 ? 0.0 : ((double) failedCalls / totalCalls) * 100.0;
+        Double avgLatencyVal = apiUsageLogRepository.getAverageLatency();
+        double avgLatency = avgLatencyVal != null ? avgLatencyVal : 0.0;
 
         health.put("errorRate", Math.round(errRate * 10.0) / 10.0);
         health.put("apiLatency", Math.round(avgLatency));
@@ -589,16 +579,10 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         log.info("[ADMIN_PORTAL] Fetching college analytics for college: {}, branch: {}", college, branch);
         Map<String, Object> result = new HashMap<>();
 
-        List<User> collegeUsers = userRepository.findAll().stream()
-                .filter(u -> (college == null || college.trim().isEmpty() || college.equalsIgnoreCase(u.getCollegeName())))
-                .filter(u -> (branch == null || branch.trim().isEmpty() || branch.equalsIgnoreCase(u.getBranch())))
-                .collect(Collectors.toList());
-
+        List<User> collegeUsers = userRepository.findUsersByCollegeAndBranch(college, branch);
         result.put("totalStudents", collegeUsers.size());
 
-        List<MockInterview> interviews = collegeUsers.stream()
-                .flatMap(u -> mockInterviewRepository.findByUserOrderByCreatedAtDesc(u).stream())
-                .collect(Collectors.toList());
+        List<MockInterview> interviews = mockInterviewRepository.findInterviewsByCollegeAndBranch(college, branch);
 
         long completedInterviews = interviews.stream()
                 .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
@@ -634,6 +618,10 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         result.put("avgCommunicationScore", Math.round(avgComm * 10.0) / 10.0);
         result.put("avgConfidenceScore", Math.round(avgConfidence * 10.0) / 10.0);
 
+        Map<Long, List<MockInterview>> interviewsByUserId = interviews.stream()
+                .filter(m -> m.getUser() != null)
+                .collect(Collectors.groupingBy(m -> m.getUser().getId()));
+
         List<Map<String, Object>> studentRankings = collegeUsers.stream()
                 .map(u -> {
                     Map<String, Object> map = new HashMap<>();
@@ -642,12 +630,13 @@ public class AdminPortalServiceImpl implements AdminPortalService {
                     map.put("email", u.getEmail());
                     map.put("branch", u.getBranch() != null ? u.getBranch() : "General");
                     
-                    int maxScore = u.getMockInterviews().stream()
+                    List<MockInterview> userInterviews = interviewsByUserId.getOrDefault(u.getId(), Collections.emptyList());
+                    int maxScore = userInterviews.stream()
                             .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
                             .mapToInt(m -> m.getFeedback().getTotalScore())
                             .max().orElse(0);
                     map.put("bestScore", maxScore);
-                    map.put("interviewsCount", u.getMockInterviews().size());
+                    map.put("interviewsCount", userInterviews.size());
                     return map;
                 })
                 .sorted((a, b) -> Integer.compare((int) b.get("bestScore"), (int) a.get("bestScore")))
@@ -667,7 +656,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             map.put("studentCount", entry.getValue().size());
             
             double bAvg = entry.getValue().stream()
-                    .flatMap(u -> u.getMockInterviews().stream())
+                    .flatMap(u -> interviewsByUserId.getOrDefault(u.getId(), Collections.emptyList()).stream())
                     .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
                     .mapToInt(m -> m.getFeedback().getTotalScore())
                     .average().orElse(0.0);

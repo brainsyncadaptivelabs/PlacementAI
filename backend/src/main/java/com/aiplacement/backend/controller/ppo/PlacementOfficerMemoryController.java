@@ -23,6 +23,7 @@ public class PlacementOfficerMemoryController {
     private final CandidateLearningProgressRepository learningProgressRepository;
 
     @GetMapping("/cohort/metrics")
+    @org.springframework.cache.annotation.Cacheable(value = "dashboard_stats", key = "'cohort_metrics'")
     public ResponseEntity<Map<String, Object>> getCohortMetrics() {
         List<CandidateSkillConfidence> allSkillConfs = skillConfidenceRepository.findAll();
         List<CandidateLearningProgress> allProgress = learningProgressRepository.findAll();
@@ -36,7 +37,7 @@ public class PlacementOfficerMemoryController {
 
         for (CandidateSkillConfidence sc : allSkillConfs) {
             User student = sc.getUser();
-            String department = (student.getBranch() != null) ? student.getBranch() : "General";
+            String department = (student != null && student.getBranch() != null) ? student.getBranch() : "General";
             
             deptHeatmap.computeIfAbsent(department, k -> new HashMap<>());
             deptHeatmap.get(department).put(sc.getSkill(), sc.getConfidence());
@@ -71,18 +72,8 @@ public class PlacementOfficerMemoryController {
         double trainingImpactRatio = (improvementSum + regressionSum) > 0 ? (improvementSum / (regressionSum + improvementSum)) * 100 : 100.0;
 
         // 6. Placement Readiness (Percentage of candidates with high confidence)
-        long totalStudents = userRepository.findAll().stream().filter(u -> u.getRole() == com.aiplacement.backend.entity.Role.STUDENT).count();
-        long readyCount = 0;
-        List<User> students = userRepository.findAll().stream().filter(u -> u.getRole() == com.aiplacement.backend.entity.Role.STUDENT).toList();
-        for (User student : students) {
-            List<CandidateSkillConfidence> studentSkills = skillConfidenceRepository.findByUser(student);
-            if (!studentSkills.isEmpty()) {
-                double avg = studentSkills.stream().mapToDouble(s -> s.getConfidence() != null ? s.getConfidence() : 0.0).average().orElse(0.0);
-                if (avg >= 75.0) {
-                    readyCount++;
-                }
-            }
-        }
+        long totalStudents = userRepository.countByRole(com.aiplacement.backend.entity.Role.STUDENT);
+        long readyCount = userRepository.countReadyStudents(75);
         double placementReadinessRate = totalStudents > 0 ? ((double) readyCount / totalStudents) * 100 : 80.0;
 
         Map<String, Object> response = new HashMap<>();

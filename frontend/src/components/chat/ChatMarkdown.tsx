@@ -5,7 +5,9 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import { Copy, Check, Download } from "lucide-react";
-import MermaidDiagram from "./widgets/mermaid/MermaidDiagram";
+import dynamic from "next/dynamic";
+
+const MermaidDiagram = dynamic(() => import("./widgets/mermaid/MermaidDiagram"), { ssr: false });
 
 interface ChatMarkdownProps {
   content: string;

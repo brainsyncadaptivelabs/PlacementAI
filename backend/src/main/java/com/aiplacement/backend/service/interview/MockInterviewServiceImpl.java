@@ -46,6 +46,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     private final KnowledgeGraphNodeRepository nodeRepository;
     private final KnowledgeGraphEdgeRepository edgeRepository;
     private final CandidateFollowupRepository followupRepository;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -491,6 +492,20 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
         MockInterview savedInterview = mockInterviewRepository.save(interview);
         log.info("Mock interview results persisted. ID: {}", savedInterview.getId());
+
+        // Evict user intelligence cache on interview completion
+        try {
+            if (cacheManager.getCache("placement_context") != null) {
+                cacheManager.getCache("placement_context").evict(email);
+            }
+            if (cacheManager.getCache("placement_readiness") != null) {
+                cacheManager.getCache("placement_readiness").evict(email);
+            }
+            log.info("Evicted placement caches for: {}", email);
+        } catch (Exception ex) {
+            log.warn("Failed to evict placement caches: {}", ex.getMessage());
+        }
+
         return mapToDto(savedInterview);
     }
 
@@ -530,6 +545,19 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
         mockInterviewRepository.delete(interview);
         log.info("Mock interview with ID {} successfully deleted.", id);
+
+        // Evict user intelligence cache on interview deletion
+        try {
+            if (cacheManager.getCache("placement_context") != null) {
+                cacheManager.getCache("placement_context").evict(email);
+            }
+            if (cacheManager.getCache("placement_readiness") != null) {
+                cacheManager.getCache("placement_readiness").evict(email);
+            }
+            log.info("Evicted placement caches on deletion for: {}", email);
+        } catch (Exception ex) {
+            log.warn("Failed to evict placement caches: {}", ex.getMessage());
+        }
     }
 
     @Override
@@ -987,12 +1015,9 @@ public class MockInterviewServiceImpl implements MockInterviewService {
             return null;
         }
         int candidateScore = interview.getFeedback().getTotalScore();
-
-        List<MockInterview> allInterviews = mockInterviewRepository.findAll().stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                .collect(Collectors.toList());
-
-        if (allInterviews.isEmpty()) {
+ 
+        long totalCompared = mockInterviewRepository.countWithFeedback();
+        if (totalCompared == 0) {
             return InterviewFeedbackDto.BenchmarkDto.builder()
                     .percentileCategory("Average")
                     .percentile(50.0)
@@ -1003,19 +1028,15 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                     .totalCompared(1)
                     .build();
         }
-
-        List<Integer> globalScores = allInterviews.stream()
-                .map(m -> m.getFeedback().getTotalScore())
-                .sorted()
-                .collect(Collectors.toList());
-
-        double globalAvg = globalScores.stream().mapToInt(val -> val != null ? val : 0).average().orElse(70.0);
-
-        long scoresBelow = globalScores.stream().filter(s -> s < candidateScore).count();
-        long scoresEqual = globalScores.stream().filter(s -> s == candidateScore).count();
-        double percentile = allInterviews.size() <= 1 ? 50.0 : 
-                ((double) scoresBelow + (0.5 * scoresEqual)) / allInterviews.size() * 100.0;
-
+ 
+        Double globalAvgVal = mockInterviewRepository.getGlobalAverageScore();
+        double globalAvg = globalAvgVal != null ? globalAvgVal : 70.0;
+ 
+        long scoresBelow = mockInterviewRepository.countWithScoreBelow(candidateScore);
+        long scoresEqual = mockInterviewRepository.countWithScoreEqual(candidateScore);
+        double percentile = totalCompared <= 1 ? 50.0 : 
+                ((double) scoresBelow + (0.5 * scoresEqual)) / totalCompared * 100.0;
+ 
         String category;
         if (percentile >= 90.0) {
             category = "Top 10%";
@@ -1028,24 +1049,17 @@ public class MockInterviewServiceImpl implements MockInterviewService {
         } else {
             category = "Needs Improvement";
         }
-
-        double roleAvg = allInterviews.stream()
-                .filter(m -> interview.getRole() != null && interview.getRole().equalsIgnoreCase(m.getRole()))
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .average().orElse(globalAvg);
-
-        double collegeAvg = allInterviews.stream()
-                .filter(m -> m.getUser() != null && interview.getUser() != null &&
-                        interview.getUser().getCollegeName() != null &&
-                        interview.getUser().getCollegeName().equalsIgnoreCase(m.getUser().getCollegeName()))
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .average().orElse(globalAvg);
-
-        double companyAvg = allInterviews.stream()
-                .filter(m -> interview.getCompany() != null && interview.getCompany().equalsIgnoreCase(m.getCompany()))
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .average().orElse(globalAvg);
-
+ 
+        Double roleAvgVal = interview.getRole() != null ? mockInterviewRepository.getAverageScoreByRole(interview.getRole()) : null;
+        double roleAvg = roleAvgVal != null ? roleAvgVal : globalAvg;
+ 
+        Double collegeAvgVal = (interview.getUser() != null && interview.getUser().getCollegeName() != null) ?
+                mockInterviewRepository.getAverageScoreByCollege(interview.getUser().getCollegeName()) : null;
+        double collegeAvg = collegeAvgVal != null ? collegeAvgVal : globalAvg;
+ 
+        Double companyAvgVal = interview.getCompany() != null ? mockInterviewRepository.getAverageScoreByCompany(interview.getCompany()) : null;
+        double companyAvg = companyAvgVal != null ? companyAvgVal : globalAvg;
+ 
         return InterviewFeedbackDto.BenchmarkDto.builder()
                 .percentile(Math.round(percentile * 10.0) / 10.0)
                 .percentileCategory(category)
@@ -1053,7 +1067,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                 .collegeAverage(Math.round(collegeAvg * 10.0) / 10.0)
                 .companyAverage(Math.round(companyAvg * 10.0) / 10.0)
                 .globalAverage(Math.round(globalAvg * 10.0) / 10.0)
-                .totalCompared(allInterviews.size())
+                .totalCompared((int) totalCompared)
                 .build();
     }
 

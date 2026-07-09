@@ -120,7 +120,9 @@ class BehavioralIntelligenceTest {
                 mock(com.aiplacement.backend.service.shared.ActivityScoreService.class),
                 mock(com.aiplacement.backend.service.shared.RiskAnalysisService.class),
                 mock(com.aiplacement.backend.service.shared.RecruiterSummaryService.class),
-                evaluationRepository, competencyScoreRepository, evidenceRepository, reasoningRepository, improvementRepository
+                evaluationRepository,
+                mock(com.aiplacement.backend.repository.UserRepository.class),
+                competencyScoreRepository, evidenceRepository, reasoningRepository, improvementRepository
         );
 
         User candidate = User.builder().id(2L).email("student@example.com").build();
@@ -128,7 +130,7 @@ class BehavioralIntelligenceTest {
         candidate.setMockInterviews(List.of(interview));
 
         InterviewEvaluation eval = InterviewEvaluation.builder().id(500L).mockInterview(interview).build();
-        when(evaluationRepository.findByMockInterview(interview)).thenReturn(Optional.of(eval));
+        when(evaluationRepository.findFirstByMockInterviewUserOrderByIdDesc(candidate)).thenReturn(Optional.of(eval));
 
         // Soft competency score below 70 to trigger recommendation blending
         InterviewCompetencyScore scoreRecord = InterviewCompetencyScore.builder()

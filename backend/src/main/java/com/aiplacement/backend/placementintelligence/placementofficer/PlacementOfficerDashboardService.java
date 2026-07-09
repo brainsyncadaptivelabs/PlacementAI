@@ -23,11 +23,10 @@ public class PlacementOfficerDashboardService {
     private final BatchPredictionEngine batchPredictionEngine;
 
     private List<User> getStudents() {
-        return userRepository.findAll().stream()
-                .filter(u -> u.getRole() == com.aiplacement.backend.entity.Role.STUDENT)
-                .collect(Collectors.toList());
+        return userRepository.findByRole(com.aiplacement.backend.entity.Role.STUDENT);
     }
 
+    @org.springframework.cache.annotation.Cacheable(value = "dashboard_stats", key = "'placement_officer_dashboard'")
     public Map<String, Object> getDashboardData() {
         List<User> students = getStudents();
         Map<String, Object> collegeAverages = collegeAnalyticsEngine.calculateCollegeAverages(students);

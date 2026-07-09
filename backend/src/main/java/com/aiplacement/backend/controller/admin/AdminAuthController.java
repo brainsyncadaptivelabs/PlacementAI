@@ -88,7 +88,7 @@ public class AdminAuthController {
         admin.setLockoutUntil(null);
         adminUserRepository.save(admin);
 
-        String jwtToken = jwtService.generateAccessToken(admin.getEmail());
+        String jwtToken = jwtService.generateAccessToken(admin.getEmail(), "SUPER_ADMIN");
         String csrfToken = UUID.randomUUID().toString();
 
         AdminSession session = AdminSession.builder()

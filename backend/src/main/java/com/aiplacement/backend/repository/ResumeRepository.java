@@ -11,4 +11,7 @@ public interface ResumeRepository
     Long countByUser(User user);
     Optional<Resume> findFirstByUserOrderByCreatedAtDesc(User user);
     java.util.List<Resume> findByUserOrderByCreatedAtDesc(User user);
+
+    @org.springframework.data.jpa.repository.Query("SELECT AVG(r.atsScore) FROM Resume r")
+    Double getGlobalAverageResumeScore();
 }

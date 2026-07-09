@@ -75,26 +75,36 @@ public class JwtAuthenticationFilter
                     );
 
             if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                User user = userRepository.findByEmail(email).orElse(null);
-
-                if (user != null) {
+                String role = jwtService.extractRole(token);
+                if (role != null) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
-                    com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email).orElse(null);
-                    if (admin != null) {
+                    User user = userRepository.findByEmail(email).orElse(null);
+                    if (user != null) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 email,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
+                                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+                    } else {
+                        com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email).orElse(null);
+                        if (admin != null) {
+                            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                                    email,
+                                    null,
+                                    List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
+                            );
+                            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                            SecurityContextHolder.getContext().setAuthentication(authToken);
+                        }
                     }
                 }
             }

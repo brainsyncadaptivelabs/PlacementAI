@@ -10,6 +10,7 @@ import com.aiplacement.backend.exception.DatabaseConflictException;
 import com.aiplacement.backend.repository.EmailVerificationOtpRepository;
 import com.aiplacement.backend.repository.PendingSignupRepository;
 import com.aiplacement.backend.repository.UserRepository;
+import com.aiplacement.backend.repository.AdminUserRepository;
 import com.aiplacement.backend.security.JwtService;
 import com.aiplacement.backend.service.email.EmailService;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
@@ -40,6 +41,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final OtpService otpService;
     private final EmailVerificationOtpRepository emailVerificationOtpRepository;
+    private final AdminUserRepository adminUserRepository;
 
     @Value("${google.client-id:default}")
     private String googleClientId;
@@ -220,7 +222,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         log.info("[SOCIAL_LOGIN] Issuing access and refresh tokens for user: {}", user.getEmail());
-        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return TokenResponse.builder()
@@ -442,7 +444,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("New user registered successfully: {}", user.getEmail());
 
         // 6. Generate and return tokens
-        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return TokenResponse.builder()
@@ -531,7 +533,7 @@ public class AuthServiceImpl implements AuthService {
 
 
         log.info("Login authentication successful for user: {}", user.getEmail());
-        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
 
@@ -559,8 +561,13 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String email = jwtService.extractEmail(refreshToken);
+        String role = userRepository.findByEmailIgnoreCase(email)
+                .map(u -> u.getRole().name())
+                .orElseGet(() -> adminUserRepository.findByEmail(email)
+                        .map(a -> "SUPER_ADMIN")
+                        .orElse("STUDENT"));
         log.info("Generating new access token for user: {}", email);
-        String newAccessToken = jwtService.generateAccessToken(email);
+        String newAccessToken = jwtService.generateAccessToken(email, role);
 
         return TokenResponse.builder()
                 .accessToken(newAccessToken)
@@ -634,7 +641,7 @@ public class AuthServiceImpl implements AuthService {
         pendingSignupRepository.delete(pendingSignup);
 
         // Generate tokens
-        String accessToken = jwtService.generateAccessToken(user.getEmail());
+        String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtService.generateRefreshToken(user.getEmail());
 
         return TokenResponse.builder()

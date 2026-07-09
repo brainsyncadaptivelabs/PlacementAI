@@ -24,4 +24,7 @@ public interface CodingSubmissionRepository extends JpaRepository<CodingSubmissi
 
     @Query("SELECT cs.language, COUNT(cs), AVG(cs.passRate) FROM CodingSubmission cs WHERE cs.interviewQuestion.mockInterview.user.id = :userId GROUP BY cs.language")
     List<Object[]> findLanguageStatsForUser(@Param("userId") Long userId);
+
+    @Query("SELECT cs FROM CodingSubmission cs WHERE cs.interviewQuestion.mockInterview.user.id = :userId")
+    List<CodingSubmission> findByUserId(@Param("userId") Long userId);
 }

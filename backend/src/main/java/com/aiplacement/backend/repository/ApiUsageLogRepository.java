@@ -24,4 +24,9 @@ public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> 
     @Query("SELECT a.featureUsed, COUNT(a), AVG(a.latencyMs), COALESCE(SUM(a.estimatedCost), 0.0) " +
            "FROM ApiUsageLog a GROUP BY a.featureUsed")
     List<Object[]> getFeatureStats();
+
+    long countByStatus(String status);
+
+    @Query("SELECT AVG(a.latencyMs) FROM ApiUsageLog a")
+    Double getAverageLatency();
 }

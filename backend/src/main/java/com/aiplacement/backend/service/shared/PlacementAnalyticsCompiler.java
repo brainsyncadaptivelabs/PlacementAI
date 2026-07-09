@@ -21,16 +21,16 @@ public class PlacementAnalyticsCompiler {
     private final MockInterviewRepository mockInterviewRepository;
 
     public PlacementAnalyticsDto compileRecruiterStats(Long recruiterId) {
-        long totalStudents = userRepository.findAll().stream().filter(u -> u.getRole() == Role.STUDENT).count();
-        long eligibleStudents = userRepository.findAll().stream().filter(u -> u.getRole() == Role.STUDENT && Boolean.TRUE.equals(u.getProfileCompleted())).count();
+        long totalStudents = userRepository.countByRole(Role.STUDENT);
+        long eligibleStudents = userRepository.countByRoleAndProfileCompleted(Role.STUDENT, true);
 
         List<JobApplication> apps = applicationRepository.findByRecruiterIdOrderByCreatedAtDesc(recruiterId);
         return compileStatsFromApplications(apps, totalStudents, eligibleStudents);
     }
 
     public PlacementAnalyticsDto compileGlobalStats() {
-        long totalStudents = userRepository.findAll().stream().filter(u -> u.getRole() == Role.STUDENT).count();
-        long eligibleStudents = userRepository.findAll().stream().filter(u -> u.getRole() == Role.STUDENT && Boolean.TRUE.equals(u.getProfileCompleted())).count();
+        long totalStudents = userRepository.countByRole(Role.STUDENT);
+        long eligibleStudents = userRepository.countByRoleAndProfileCompleted(Role.STUDENT, true);
 
         List<JobApplication> apps = applicationRepository.findAll();
         return compileStatsFromApplications(apps, totalStudents, eligibleStudents);

@@ -1,1 +1,2 @@
--- Database initialization queries (left empty to prevent seeding mock/dummy data)
+-- Database initialization queries
+SELECT 1;

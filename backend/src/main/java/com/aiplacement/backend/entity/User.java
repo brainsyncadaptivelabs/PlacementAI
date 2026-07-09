@@ -7,7 +7,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users", indexes = {
-        @Index(name = "idx_user_email", columnList = "email")
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_role", columnList = "role"),
+        @Index(name = "idx_user_college_branch", columnList = "college_name, branch"),
+        @Index(name = "idx_user_created_active", columnList = "created_at, last_active"),
+        @Index(name = "idx_user_readiness_score", columnList = "readiness_score")
 })
 
 @Getter
@@ -193,4 +197,24 @@ public class User {
 
     @Column(name = "aptitude_data", columnDefinition = "TEXT")
     private String aptitudeData;
+
+    @Column(name = "readiness_score", nullable = false)
+    @Builder.Default
+    private Integer readinessScore = 0;
+
+    @Column(name = "ats_score", nullable = false)
+    @Builder.Default
+    private Integer atsScore = 0;
+
+    @Column(name = "coding_score", nullable = false)
+    @Builder.Default
+    private Integer codingScore = 0;
+
+    @Column(name = "interview_score", nullable = false)
+    @Builder.Default
+    private Integer interviewScore = 0;
+
+    @Column(name = "communication_score", nullable = false)
+    @Builder.Default
+    private Integer communicationScore = 0;
 }
