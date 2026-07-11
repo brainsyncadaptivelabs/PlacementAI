@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
 import { useTheme } from "next-themes";
+import { getDashboardRouteForRole } from "@/lib/auth-routes";
 
 import { usePathname } from "next/navigation";
 
@@ -282,14 +283,7 @@ export default function AuthPage() {
       setSuccess("Account created successfully! Redirecting...");
       
       setTimeout(() => {
-        const destination = backendData.role === "RECRUITER"
-          ? "/recruiter"
-          : backendData.role === "PLACEMENT_OFFICER"
-          ? "/placement-officer"
-          : backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN"
-          ? "/admin"
-          : "/dashboard";
-        router.push(destination);
+        router.push(getDashboardRouteForRole(backendData.role));
       }, 1500);
     } catch (err: any) {
       setError(err.message || "Signup failed");
@@ -358,14 +352,7 @@ export default function AuthPage() {
       
       localStorage.setItem("token", backendData.accessToken);
 
-      const destination = backendData.role === "RECRUITER"
-        ? "/recruiter"
-        : backendData.role === "PLACEMENT_OFFICER"
-        ? "/placement-officer"
-        : backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN"
-        ? "/admin"
-        : "/dashboard";
-      router.push(destination);
+      router.push(getDashboardRouteForRole(backendData.role));
     } catch (err: any) {
       setError(err.message || "Login failed");
       if (err.message === "Please verify your email first.") {

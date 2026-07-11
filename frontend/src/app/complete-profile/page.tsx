@@ -12,6 +12,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useUser } from "@/hooks/use-user";
+import { getDashboardRouteForRole } from "@/lib/auth-routes";
 
 export default function CompleteProfilePage() {
   const { user, loading: userLoading } = useUser();
@@ -45,13 +46,7 @@ export default function CompleteProfilePage() {
       setSuccess("Profile completed successfully! Redirecting...");
       
       setTimeout(() => {
-        if (role === "RECRUITER") {
-          router.push("/recruiter");
-        } else if (role === "PLACEMENT_OFFICER") {
-          router.push("/placement-officer");
-        } else {
-          router.push("/dashboard");
-        }
+        router.push(getDashboardRouteForRole(role));
       }, 2000);
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));

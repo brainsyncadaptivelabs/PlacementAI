@@ -27,6 +27,7 @@ import {
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { usePerformanceProfile } from "@/hooks/usePerformanceProfile";
+import { getProfileCompletionRouteForRole } from "@/lib/auth-routes";
 
 // Lazy load non-critical components to reduce first paint
 const CareerMentorWidget = dynamic(() => import("@/components/dashboard/CareerMentorWidget"), { 
@@ -139,15 +140,7 @@ export default function PerfectStudentPortal() {
         const { profileCompleted, planSelected, role } = profileRes.data;
 
         if (profileCompleted === false) {
-          if (role === "RECRUITER") {
-            router.push("/complete-profile/recruiter");
-          } else if (role === "PLACEMENT_OFFICER") {
-            router.push("/complete-profile/placement-officer");
-          } else if (role === "STUDENT") {
-            router.push("/complete-profile/student");
-          } else {
-            router.push("/auth");
-          }
+          router.push(getProfileCompletionRouteForRole(role));
           return;
         }
 

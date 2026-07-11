@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getDashboardRouteForRole } from '@/lib/auth-routes';
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
 
     // ── Exchange Supabase token for PlacementAI JWT ────────────────────────
     const API_URL =
+      process.env.NEXT_PUBLIC_API_URL ||
       process.env.API_URL ||
       'http://localhost:8080/api/v1';
     const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];
@@ -85,13 +87,7 @@ export async function GET(request: Request) {
 
     // ── Build redirect URL with tokens + role as query params ─────────────
     // The client-side AuthProvider picks these up on mount and stores them.
-    const rolePath = {
-      RECRUITER: '/recruiter',
-      PLACEMENT_OFFICER: '/placement-officer',
-      ADMIN: '/admin',
-      SUPER_ADMIN: '/admin',
-      STUDENT: '/dashboard',
-    }[backendRole] ?? '/dashboard';
+    const rolePath = getDashboardRouteForRole(backendRole);
 
     const destination = new URL(`${origin}${rolePath}`);
     if (placementToken) {

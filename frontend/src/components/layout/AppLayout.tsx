@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, Sun, Moon, Bell } from "lucide-react";
+import { Loader2, Sun, Moon, Bell, WifiOff, RefreshCw } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -11,6 +11,7 @@ import { UserNav } from "@/components/dashboard/user-nav";
 import { Sidebar } from "./Sidebar";
 import { useUser } from "@/hooks/use-user";
 import { useAuthStore } from '@/store/auth-store';
+import { getDashboardRouteForRole, getProfileCompletionRouteForRole, normalizeRole } from "@/lib/auth-routes";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -18,8 +19,9 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, role }: AppLayoutProps) {
-  const { user, loading } = useUser();
+  const { user, loading, error, mutate } = useUser();
   const isAuthLoading = useAuthStore((state) => state.isLoading);
+  const session = useAuthStore((state) => state.session);
   const pathname = usePathname();
   const router = useRouter();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -29,10 +31,20 @@ export function AppLayout({ children, role }: AppLayoutProps) {
     setMounted(true);
   }, []);
   
+  // Determine Route Guard State Machine State
+  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const isInitializing = isAuthLoading;
+  const isTokenSyncPending = !isAuthLoading && !!session && !token;
+  const isProfileLoading = !isAuthLoading && !!token && !user && loading;
+  const isAuthError = !isAuthLoading && !user && !loading && !!error;
+  const isUnauthenticated = !isAuthLoading && !user && !loading && !error && !token && !session;
+  
   React.useEffect(() => {
-    if (loading || isAuthLoading) return;
+    if (isInitializing || isTokenSyncPending || isProfileLoading || isAuthError) {
+      return; // Do not redirect during loading, sync, or network errors
+    }
 
-    if (!user) {
+    if (isUnauthenticated) {
       if (role === "RECRUITER") {
         router.push("/auth/recruiter");
       } else if (role === "PLACEMENT_OFFICER") {
@@ -43,43 +55,53 @@ export function AppLayout({ children, role }: AppLayoutProps) {
       return;
     }
 
-    if (!user.profileCompleted) {
-      if (user.role === "RECRUITER") {
-        router.push("/complete-profile/recruiter");
-      } else if (user.role === "PLACEMENT_OFFICER") {
-        router.push("/complete-profile/placement-officer");
-      } else if (user.role === "STUDENT") {
-        router.push("/complete-profile/student");
-      } else {
-        router.push("/auth");
+    if (user) {
+      if (!user.profileCompleted) {
+        const targetRoute = getProfileCompletionRouteForRole(user.role);
+        if (pathname !== targetRoute) {
+          router.push(targetRoute);
+        }
+        return;
       }
-      return;
-    }
 
-
-    // Prevent cross-role access (e.g., STUDENT trying to access RECRUITER dashboard)
-    // Note: ADMIN and SUPER_ADMIN can bypass this restriction
-    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && user.role !== role) {
-      if (user.role === "RECRUITER") {
-        router.push("/recruiter");
-      } else if (user.role === "PLACEMENT_OFFICER") {
-        router.push("/placement-officer");
-      } else if (user.role === "STUDENT") {
-        router.push("/dashboard");
-      } else {
-        router.push("/auth");
+      // Role check & mismatch resolution
+      const userRole = normalizeRole(user.role);
+      const targetRole = normalizeRole(role);
+      if (userRole !== "ADMIN" && userRole !== "SUPER_ADMIN" && userRole !== targetRole) {
+        const correctDashboard = getDashboardRouteForRole(user.role);
+        router.push(correctDashboard);
+        return;
       }
-      return;
     }
-  }, [user, loading, isAuthLoading, pathname, router, role]);
+  }, [user, isInitializing, isTokenSyncPending, isProfileLoading, isAuthError, isUnauthenticated, pathname, router, role]);
 
   const isWorkspaceMode = pathname?.includes('/resume-builder/editor');
   const isChatMode = pathname === '/dashboard/chat' || pathname === '/dashboard/chatbot';
 
-  if (loading || isAuthLoading) {
+  if (isInitializing || isTokenSyncPending || isProfileLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (isAuthError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 space-y-6 text-center">
+        <div className="p-4 bg-destructive/10 rounded-full text-destructive">
+          <WifiOff className="w-12 h-12" />
+        </div>
+        <div className="max-w-md space-y-2">
+          <h2 className="text-2xl font-black font-heading tracking-tight">Connection Problem</h2>
+          <p className="text-muted-foreground text-sm">
+            We are having trouble communicating with the PlacementAI servers. Your session is active, but we couldn't load your profile.
+          </p>
+          {error && <p className="text-xs text-destructive bg-destructive/5 py-1 px-3 rounded-lg border border-destructive/10 font-mono mt-2">{error}</p>}
+        </div>
+        <Button onClick={() => mutate()} className="font-black px-6 h-12 rounded-xl">
+          <RefreshCw className="w-4 h-4 mr-2" /> Retry Connection
+        </Button>
       </div>
     );
   }
@@ -137,3 +159,4 @@ export function AppLayout({ children, role }: AppLayoutProps) {
     </SidebarProvider>
   );
 }
+
