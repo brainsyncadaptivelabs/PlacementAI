@@ -88,11 +88,11 @@ export function ShareProfileDialog({
 
    return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-         <DialogContent className="sm:max-w-[90vw] lg:max-w-6xl max-h-[90vh] p-0 overflow-hidden flex flex-col md:flex-row bg-background rounded-xl">
+         <DialogContent className="w-full h-full sm:h-auto sm:max-w-[90vw] lg:max-w-6xl max-h-screen sm:max-h-[90vh] p-0 overflow-y-auto sm:overflow-hidden flex flex-col md:flex-row bg-background sm:rounded-xl">
             <DialogTitle className="sr-only">Share Your Profile</DialogTitle>
 
             {/* Left Sidebar */}
-            <div className="w-full md:w-[350px] flex flex-col border-r border-border bg-background h-full max-h-[90vh] overflow-y-auto">
+            <div className="w-full md:w-[350px] flex flex-col border-b md:border-b-0 md:border-r border-border bg-background shrink-0">
                <div className="p-6 border-b border-border flex items-center gap-2">
                   <Share2 className="w-5 h-5 text-foreground" />
                   <h2 className="text-xl font-bold text-foreground">Share Your Profile</h2>

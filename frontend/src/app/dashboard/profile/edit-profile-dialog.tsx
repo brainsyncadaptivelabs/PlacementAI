@@ -138,11 +138,11 @@ export function EditProfileDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent style={getThemeVariables()} className={`sm:max-w-5xl w-[95vw] sm:w-[90vw] max-h-[90vh] overflow-hidden p-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 ${user?.role === 'PLACEMENT_OFFICER' ? 'dark text-slate-100' : ''}`}>
+      <DialogContent style={getThemeVariables()} className={`w-full h-full sm:h-auto sm:max-w-5xl sm:w-[90vw] max-h-screen sm:max-h-[90vh] overflow-y-auto sm:overflow-hidden p-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 ${user?.role === 'PLACEMENT_OFFICER' ? 'dark text-slate-100' : ''}`}>
         
-        <div className="flex flex-col md:flex-row h-full max-h-[90vh]">
+        <div className="flex flex-col md:flex-row h-full max-h-screen sm:max-h-[90vh]">
           {/* Left Sidebar */}
-          <div className="w-full md:w-[320px] bg-slate-50/50 dark:bg-slate-950/50 border-r border-slate-100 dark:border-slate-800 p-8 flex flex-col gap-8 shrink-0 overflow-y-auto">
+          <div className="w-full md:w-[320px] bg-slate-50/50 dark:bg-slate-950/50 border-b md:border-b-0 md:border-r border-slate-100 dark:border-slate-800 p-6 md:p-8 flex flex-col sm:flex-row md:flex-col gap-6 md:gap-8 shrink-0 items-center sm:items-start md:items-center justify-between sm:justify-start md:justify-between">
             {/* Avatar Section */}
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="relative">

@@ -23,7 +23,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { PanelLeftIcon } from "lucide-react"
+import { PanelLeftIcon, Menu } from "lucide-react"
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -82,11 +82,29 @@ function SidebarProvider({
         _setOpen(openState)
       }
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem(SIDEBAR_COOKIE_NAME, String(openState))
+      }
       // This sets the cookie to keep the sidebar state.
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
     },
     [setOpenProp, open]
   )
+
+  // Initialize from localStorage and collapse by default on tablet viewports
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const width = window.innerWidth
+      if (width >= 768 && width < 1024) {
+        _setOpen(false)
+      } else {
+        const persisted = localStorage.getItem(SIDEBAR_COOKIE_NAME)
+        if (persisted !== null) {
+          _setOpen(persisted === "true")
+        }
+      }
+    }
+  }, [])
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
@@ -256,7 +274,7 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, isMobile } = useSidebar()
 
   return (
     <Button
@@ -271,7 +289,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      {isMobile ? <Menu className="w-5 h-5" /> : <PanelLeftIcon className="w-5 h-5" />}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )

@@ -154,7 +154,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
           {!isChatMode && (
             <header className="h-16 flex items-center justify-between px-8 bg-background border-b border-border/40 shrink-0 sticky top-0 z-30">
               <div className="flex items-center gap-4 flex-1">
-                <SidebarTrigger className="md:hidden" />
+                <SidebarTrigger />
                 <SearchBar />
               </div>
               <div className="flex items-center gap-4">

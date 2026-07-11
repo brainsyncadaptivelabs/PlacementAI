@@ -16,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 interface SidebarProps {
@@ -26,7 +27,14 @@ export function Sidebar({ role }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuth();
+  const { isMobile, setOpenMobile } = useSidebar();
   const menuItems = (roleMenus[role] || []);
+
+  const handleItemClick = React.useCallback(() => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [isMobile, setOpenMobile]);
 
   const handleLogout = async () => {
     try {
@@ -53,6 +61,7 @@ export function Sidebar({ role }: SidebarProps) {
 
   return (
     <ShadcnSidebar 
+      collapsible="icon"
       style={{ 
         "--sidebar": role === "RECRUITER" ? "var(--recruiter-sidebar)" : undefined,
         "--sidebar-foreground": role === "RECRUITER" ? "var(--recruiter-sidebar-foreground)" : undefined,
@@ -96,10 +105,11 @@ export function Sidebar({ role }: SidebarProps) {
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
-                        render={item.comingSoon ? <button className="cursor-not-allowed opacity-80" /> : <Link href={item.url} />}
+                        render={item.comingSoon ? <button className="cursor-not-allowed opacity-80" /> : <Link href={item.url} onClick={handleItemClick} />}
                         isActive={isActive}
                         className="hover:bg-muted transition-colors py-6 flex items-center justify-between w-full"
                         tooltip={item.title}
+                        onClick={handleItemClick}
                       >
                         <div className="flex items-center gap-2.5">
                           <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
@@ -127,12 +137,13 @@ export function Sidebar({ role }: SidebarProps) {
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
-                    render={<Link href={item.url} />}
+                    render={<Link href={item.url} onClick={handleItemClick} />}
                     isActive={isActive}
                     className={role === "RECRUITER" 
                       ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
                       : "hover:bg-muted transition-colors py-6"}
                     tooltip={item.title}
+                    onClick={handleItemClick}
                   >
                     <item.icon className={`w-5 h-5 ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary' : 'text-muted-foreground')}`} />
                     <span className={`font-medium ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground font-semibold' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary font-semibold' : 'text-foreground')}`}>{item.title}</span>
@@ -154,12 +165,13 @@ export function Sidebar({ role }: SidebarProps) {
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
-                      render={<Link href={item.url} />}
+                      render={<Link href={item.url} onClick={handleItemClick} />}
                       isActive={isActive}
                       className={role === "RECRUITER" 
                         ? `py-6 transition-colors rounded-xl ${isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent/90' : 'text-white/70 dark:text-sidebar-foreground/70 hover:bg-white/5 dark:hover:bg-sidebar-accent hover:text-white dark:hover:text-sidebar-accent-foreground'}`
                         : "hover:bg-muted transition-colors py-6"}
                       tooltip={item.title}
+                      onClick={handleItemClick}
                     >
                       <item.icon className={`w-5 h-5 ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary' : 'text-muted-foreground')}`} />
                       <span className={`font-medium ${role === "RECRUITER" ? (isActive ? 'text-white dark:text-sidebar-accent-foreground font-semibold' : 'text-white/70 dark:text-sidebar-foreground/70') : (isActive ? 'text-primary font-semibold' : 'text-foreground')}`}>{item.title}</span>
