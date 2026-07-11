@@ -127,7 +127,6 @@ public class PlacementIntelligenceController {
     // Step 16 Unified OS APIs
     private final com.aiplacement.backend.placementintelligence.mentor.MentorDashboardService mentorDashboardService;
     private final com.aiplacement.backend.placementintelligence.graph.PlacementGraphBuilder placementGraphBuilder;
-    private final com.aiplacement.backend.placementintelligence.timeline.TimelineEngine timelineEngine;
 
     @GetMapping("/roadmap")
     public ResponseEntity<List<String>> getRoadmap() {
@@ -164,9 +163,7 @@ public class PlacementIntelligenceController {
     @GetMapping("/timeline")
     public ResponseEntity<List<com.aiplacement.backend.placementintelligence.timeline.TimelineEvent>> getTimeline() {
         User user = getAuthenticatedUser();
-        PlacementContext context = ((PlacementIntelligenceServiceImpl) placementIntelligenceService).getOrCreateContext(user);
-        PlacementProfileDto profile = placementIntelligenceService.getPlacementProfile(user);
-        return ResponseEntity.ok(timelineEngine.getTimeline(context, profile.getPlacementScore()));
+        return ResponseEntity.ok(placementIntelligenceService.getTimelineData(user));
     }
 
     @GetMapping("/opportunities")

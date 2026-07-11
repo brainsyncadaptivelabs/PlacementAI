@@ -495,11 +495,16 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
         // Evict user intelligence cache on interview completion
         try {
-            if (cacheManager.getCache("placement_context") != null) {
-                cacheManager.getCache("placement_context").evict(email);
-            }
-            if (cacheManager.getCache("placement_readiness") != null) {
-                cacheManager.getCache("placement_readiness").evict(email);
+            String[] cachesToEvict = {
+                "placement_context", "placement_readiness", "placement_profile",
+                "placement_score", "company_readiness", "placement_recommendations",
+                "placement_dashboard", "mentor_data", "timeline_data"
+            };
+            for (String cacheName : cachesToEvict) {
+                org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                if (cache != null) {
+                    cache.evict(email);
+                }
             }
             log.info("Evicted placement caches for: {}", email);
         } catch (Exception ex) {
@@ -548,11 +553,16 @@ public class MockInterviewServiceImpl implements MockInterviewService {
 
         // Evict user intelligence cache on interview deletion
         try {
-            if (cacheManager.getCache("placement_context") != null) {
-                cacheManager.getCache("placement_context").evict(email);
-            }
-            if (cacheManager.getCache("placement_readiness") != null) {
-                cacheManager.getCache("placement_readiness").evict(email);
+            String[] cachesToEvict = {
+                "placement_context", "placement_readiness", "placement_profile",
+                "placement_score", "company_readiness", "placement_recommendations",
+                "placement_dashboard", "mentor_data", "timeline_data"
+            };
+            for (String cacheName : cachesToEvict) {
+                org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                if (cache != null) {
+                    cache.evict(email);
+                }
             }
             log.info("Evicted placement caches on deletion for: {}", email);
         } catch (Exception ex) {

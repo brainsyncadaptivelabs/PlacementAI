@@ -98,62 +98,48 @@ export default function PerfectStudentPortal() {
     }
   }, []);
 
-  const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true);
-      setStatsError(null);
-      const response = await api.get("/dashboard/stats");
-      setStats(response.data);
-      
-      // Additive fetching for Placement Intelligence
+  useEffect(() => {
+    const loadDashboardData = async () => {
       try {
-        const [intelRes, mentorRes, timelineRes] = await Promise.all([
+        setLoading(true);
+        setStatsError(null);
+
+        // Fetch all data in parallel to eliminate sequential network request blocks
+        const [profileRes, statsRes, intelRes, mentorRes, timelineRes] = await Promise.all([
+          api.get("/user/profile"),
+          api.get("/dashboard/stats"),
           api.get("/placement-intelligence/dashboard"),
           api.get("/placement-intelligence/mentor"),
           api.get("/placement-intelligence/timeline"),
         ]);
-        setPlacementIntel(intelRes.data);
-        setMentorData(mentorRes.data);
-        setTimelineData(timelineRes.data);
-      } catch (err) {
-        console.error("Failed to fetch placement intelligence dashboard stats", err);
-      }
-    } catch (err: unknown) {
-      console.error("Failed to fetch stats", err);
-      setStatsError("Unable to load dashboard statistics.");
-      setStats({
-        fullName: "Test Student",
-        readinessScore: 0,
-        highestAtsScore: 0,
-        mockInterviewsCount: 0,
-        roadmapsCount: 0,
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    const checkProfile = async () => {
-      try {
-        const profileRes = await api.get("/user/profile");
-        const { profileCompleted, planSelected, role } = profileRes.data;
-
+        const { profileCompleted, role } = profileRes.data;
         if (profileCompleted === false) {
           router.push(getProfileCompletionRouteForRole(role));
           return;
         }
 
-        fetchStats();
-      } catch (err) {
-        console.error("Auth check failed", err);
+        setStats(statsRes.data);
+        setPlacementIntel(intelRes.data);
+        setMentorData(mentorRes.data);
+        setTimelineData(timelineRes.data);
+      } catch (err: any) {
+        console.error("Failed to load dashboard data", err);
         setStatsError("Unable to load dashboard data. Please refresh or contact support.");
+        setStats({
+          fullName: "Test Student",
+          readinessScore: 0,
+          highestAtsScore: 0,
+          mockInterviewsCount: 0,
+          roadmapsCount: 0,
+        });
+      } finally {
         setLoading(false);
       }
     };
 
-    checkProfile();
-  }, [router, fetchStats]);
+    loadDashboardData();
+  }, [router]);
 
   const userStats = useMemo(() => ({
     fullName: stats?.fullName || "Student",
@@ -207,7 +193,11 @@ export default function PerfectStudentPortal() {
             </div>
          </div>
 
-         <RadialProgress score={userStats.readinessScore} animate={perfProfile !== 'low'} />
+         {stats ? (
+            <RadialProgress score={userStats.readinessScore} animate={perfProfile !== 'low'} />
+         ) : (
+            <div className="w-full lg:w-72 h-72 animate-pulse bg-slate-800/50 border border-slate-700/30 rounded-[2.5rem]" />
+         )}
 
          {/* Abstract background blobs */}
          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 rounded-full blur-3xl -mr-32 -mt-32" />
@@ -216,115 +206,126 @@ export default function PerfectStudentPortal() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          <div className="lg:col-span-2 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <Card className="flex flex-col justify-between h-full">
-                  <div className="flex-1 flex flex-col justify-between">
-                     <div className="flex justify-between items-center mb-6">
-                        <div className="icon-wrapper">
-                           <Target className="w-6 h-6 text-primary" />
-                        </div>
-                        <Badge variant="secondary" className="font-bold">Resumes</Badge>
-                     </div>
-                     <div>
-                        <h3 className="text-lg font-bold font-heading mb-2">Resume ATS Stats</h3>
-                        <div className="space-y-2">
-                           <div className="flex justify-between text-xs font-bold text-muted-foreground/70">
-                              <span>Highest Score</span>
-                              <span className="text-foreground">{userStats.highestAtsScore}</span>
+            {stats ? (
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card className="flex flex-col justify-between h-full">
+                     <div className="flex-1 flex flex-col justify-between">
+                        <div className="flex justify-between items-center mb-6">
+                           <div className="icon-wrapper">
+                              <Target className="w-6 h-6 text-primary" />
                            </div>
-                           <Progress value={userStats.highestAtsScore} className="h-1.5" />
+                           <Badge variant="secondary" className="font-bold">Resumes</Badge>
                         </div>
-                     </div>
-                  </div>
-                  <div className="pt-6">
-                     <Button variant="ghost" className="w-full justify-between text-primary font-bold px-4" onClick={() => router.push('/dashboard/ats')}>
-                        Upload New Resume <ChevronRight className="w-4 h-4" />
-                     </Button>
-                  </div>
-               </Card>
-
-               <Card className="flex flex-col justify-between h-full">
-                  <div className="flex-1 flex flex-col justify-between">
-                     <div className="flex justify-between items-center mb-6">
-                        <div className="icon-wrapper">
-                           <Zap className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex items-center gap-1 text-primary text-xs font-bold">
-                           <Trophy className="w-3 h-3" /> Interviews: {userStats.mockInterviewsCount}
-                        </div>
-                     </div>
-                     <div>
-                        <h3 className="text-lg font-bold font-heading mb-2">Active Roadmaps</h3>
-                        <div className="space-y-4">
-                           <div>
-                              <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
-                                 <span>Progress</span>
-                                 <span>{userStats.roadmapsCount > 0 ? "Active" : "None"}</span>
+                        <div>
+                           <h3 className="text-lg font-bold font-heading mb-2">Resume ATS Stats</h3>
+                           <div className="space-y-2">
+                              <div className="flex justify-between text-xs font-bold text-muted-foreground/70">
+                                 <span>Highest Score</span>
+                                 <span className="text-foreground">{userStats.highestAtsScore}</span>
                               </div>
-                              <Progress value={userStats.roadmapsCount > 0 ? 50 : 0} className="h-1.5" />
+                              <Progress value={userStats.highestAtsScore} className="h-1.5" />
                            </div>
                         </div>
                      </div>
-                  </div>
-                  <div className="pt-6">
-                     <Button variant="ghost" className="w-full justify-between text-primary font-bold px-4" onClick={() => router.push('/dashboard/roadmap')}>
-                        View Career Roadmap <ChevronRight className="w-4 h-4" />
-                     </Button>
-                  </div>
-               </Card>
-            </div>
+                     <div className="pt-6">
+                        <Button variant="ghost" className="w-full justify-between text-primary font-bold px-4" onClick={() => router.push('/dashboard/ats')}>
+                           Upload New Resume <ChevronRight className="w-4 h-4" />
+                        </Button>
+                     </div>
+                  </Card>
 
-            {activeRoadmap ? (
-               <Card className="bg-card overflow-hidden">
-                  <CardHeader className="px-8 py-6 flex flex-row items-center justify-between">
-                     <div>
-                        <CardTitle className="text-xl font-bold font-heading">Personalized Roadmap</CardTitle>
-                        <CardDescription>Target: {activeRoadmap.careerGoal}</CardDescription>
-                     </div>
-                     <Badge variant="outline" className="rounded-lg py-1.5 px-3 font-bold border-border">In Progress</Badge>
-                  </CardHeader>
-                  <CardContent className="p-8">
-                     <div className="relative space-y-12">
-                        <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-transparent" />
-                        {activeRoadmap.learningPath?.slice(0, 4).map((step: string, i: number) => {
-                           const stepSkills = activeRoadmap.recommendedSkills?.slice(i * 2, i * 2 + 2) || [];
-                           const status = (i === 0 ? "In Progress" : "Upcoming") as "Completed" | "In Progress" | "Upcoming";
-                           const Icon = i === 0 ? Brain : i === 1 ? Code2 : i === 2 ? BookOpen : Star;
-                           return (
-                              <div key={i} className="relative pl-12 group">
-                                 <div className={`absolute left-0 w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-all duration-300 z-10 ${status === 'Completed' ? 'bg-primary text-white' : status === 'In Progress' ? 'bg-card text-primary border border-border' : 'bg-muted text-muted-foreground/70'}`}>
-                                    <Icon className="w-3.5 h-3.5" />
+                  <Card className="flex flex-col justify-between h-full">
+                     <div className="flex-1 flex flex-col justify-between">
+                        <div className="flex justify-between items-center mb-6">
+                           <div className="icon-wrapper">
+                              <Zap className="w-6 h-6 text-primary" />
+                           </div>
+                           <div className="flex items-center gap-1 text-primary text-xs font-bold">
+                              <Trophy className="w-3 h-3" /> Interviews: {userStats.mockInterviewsCount}
+                           </div>
+                        </div>
+                        <div>
+                           <h3 className="text-lg font-bold font-heading mb-2">Active Roadmaps</h3>
+                           <div className="space-y-4">
+                              <div>
+                                 <div className="flex justify-between text-xs font-bold uppercase tracking-wider text-muted-foreground/70 mb-2">
+                                    <span>Progress</span>
+                                    <span>{userStats.roadmapsCount > 0 ? "Active" : "None"}</span>
                                  </div>
-                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                       <h4 className="font-black text-foreground">{step}</h4>
-                                       <div className="flex flex-wrap gap-2 mt-2">
-                                          {stepSkills.map((item: string) => (
-                                             <span key={item} className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest bg-muted border border-transparent px-2 py-0.5 rounded">{item}</span>
-                                          ))}
-                                       </div>
-                                    </div>
-                                    <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${status === 'Completed' ? 'text-emerald-500' : status === 'In Progress' ? 'text-primary' : 'text-muted-foreground/50'}`}>{status}</span>
-                                 </div>
+                                 <Progress value={userStats.roadmapsCount > 0 ? 50 : 0} className="h-1.5" />
                               </div>
-                           );
-                        })}
+                           </div>
+                        </div>
                      </div>
-                  </CardContent>
-               </Card>
+                     <div className="pt-6">
+                        <Button variant="ghost" className="w-full justify-between text-primary font-bold px-4" onClick={() => router.push('/dashboard/roadmap')}>
+                           View Career Roadmap <ChevronRight className="w-4 h-4" />
+                        </Button>
+                     </div>
+                  </Card>
+               </div>
             ) : (
-               <Card className="bg-card overflow-hidden p-8 text-center space-y-4">
-                  <h3 className="text-lg font-bold font-heading text-foreground">No Career Roadmap Generated Yet</h3>
-                  <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-                     Create a fully personalized AI roadmap based on your profile and target job role.
-                  </p>
-                  <Button onClick={() => router.push('/dashboard/roadmap')} className="bg-primary hover:bg-primary/90 text-white font-bold px-6 rounded-xl">
-                     Generate Career Roadmap
-                  </Button>
-               </Card>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="h-56 animate-pulse bg-muted/20 rounded-3xl" />
+                  <div className="h-56 animate-pulse bg-muted/20 rounded-3xl" />
+               </div>
             )}
 
-            {placementIntel && (
+            {stats ? (
+               activeRoadmap ? (
+                  <Card className="bg-card overflow-hidden">
+                     <CardHeader className="px-8 py-6 flex flex-row items-center justify-between">
+                        <div>
+                           <CardTitle className="text-xl font-bold font-heading">Personalized Roadmap</CardTitle>
+                           <CardDescription>Target: {activeRoadmap.careerGoal}</CardDescription>
+                        </div>
+                        <Badge variant="outline" className="rounded-lg py-1.5 px-3 font-bold border-border">In Progress</Badge>
+                     </CardHeader>
+                     <CardContent className="p-8">
+                        <div className="relative space-y-12">
+                           <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-transparent" />
+                           {activeRoadmap.learningPath?.slice(0, 4).map((step: string, i: number) => {
+                              const stepSkills = activeRoadmap.recommendedSkills?.slice(i * 2, i * 2 + 2) || [];
+                              const status = (i === 0 ? "In Progress" : "Upcoming") as "Completed" | "In Progress" | "Upcoming";
+                              const Icon = i === 0 ? Brain : i === 1 ? Code2 : i === 2 ? BookOpen : Star;
+                              return (
+                                 <div key={i} className="relative pl-12 group">
+                                    <div className={`absolute left-0 w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-all duration-300 z-10 ${status === 'Completed' ? 'bg-primary text-white' : status === 'In Progress' ? 'bg-card text-primary border border-border' : 'bg-muted text-muted-foreground/70'}`}>
+                                       <Icon className="w-3.5 h-3.5" />
+                                    </div>
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                       <div>
+                                          <h4 className="font-black text-foreground">{step}</h4>
+                                          <div className="flex flex-wrap gap-2 mt-2">
+                                             {stepSkills.map((item: string) => (
+                                                <span key={item} className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest bg-muted border border-transparent px-2 py-0.5 rounded">{item}</span>
+                                             ))}
+                                          </div>
+                                       </div>
+                                       <span className={`text-[10px] font-black uppercase tracking-[0.2em] ${status === 'Completed' ? 'text-emerald-500' : status === 'In Progress' ? 'text-primary' : 'text-muted-foreground/50'}`}>{status}</span>
+                                    </div>
+                                 </div>
+                              );
+                           })}
+                        </div>
+                     </CardContent>
+                  </Card>
+               ) : (
+                  <Card className="bg-card overflow-hidden p-8 text-center space-y-4">
+                     <h3 className="text-lg font-bold font-heading text-foreground">No Career Roadmap Generated Yet</h3>
+                     <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+                        Create a fully personalized AI roadmap based on your profile and target job role.
+                     </p>
+                     <Button onClick={() => router.push('/dashboard/roadmap')} className="bg-primary hover:bg-primary/90 text-white font-bold px-6 rounded-xl">
+                        Generate Career Roadmap
+                     </Button>
+                  </Card>
+               )
+            ) : (
+               <div className="h-80 animate-pulse bg-muted/20 rounded-3xl" />
+            )}
+
+            {placementIntel ? (
                <Card className="bg-card overflow-hidden mt-8 border-primary/20 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
                   <CardHeader className="px-8 py-6 flex flex-row items-center justify-between bg-primary/5">
                      <div>
@@ -441,11 +442,13 @@ export default function PerfectStudentPortal() {
                      </div>
                   </CardContent>
                </Card>
+            ) : (
+               <div className="h-96 animate-pulse bg-muted/20 rounded-3xl mt-8" />
             )}
          </div>
 
          <div className="space-y-8">
-             {mentorData && (
+             {mentorData ? (
                 <Card className="border-primary/20 bg-card overflow-hidden shadow-sm">
                    <CardHeader className="bg-primary/5 pb-4">
                       <CardTitle className="text-sm font-bold flex items-center gap-1.5">
@@ -490,9 +493,11 @@ export default function PerfectStudentPortal() {
                       )}
                    </CardContent>
                 </Card>
+             ) : (
+                <div className="h-64 animate-pulse bg-muted/20 rounded-3xl" />
              )}
 
-             {timelineData && (
+             {timelineData ? (
                 <Card className="border-border bg-card shadow-sm">
                    <CardHeader>
                       <CardTitle className="text-sm font-bold">Your Placement Timeline</CardTitle>
@@ -510,6 +515,8 @@ export default function PerfectStudentPortal() {
                       </div>
                    </CardContent>
                 </Card>
+             ) : (
+                <div className="h-64 animate-pulse bg-muted/20 rounded-3xl" />
              )}
 
             <UpcomingEvents events={stats?.upcomingEvents} />

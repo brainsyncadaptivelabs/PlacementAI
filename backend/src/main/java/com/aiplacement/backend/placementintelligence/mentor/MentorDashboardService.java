@@ -6,8 +6,8 @@ import com.aiplacement.backend.placementintelligence.context.PlacementContextBui
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import org.springframework.cache.annotation.Cacheable;
 import java.util.HashMap;
-
 import java.util.Map;
 
 @Service
@@ -23,6 +23,7 @@ public class MentorDashboardService {
     private final ReminderEngine reminderEngine;
     private final OpportunityEngine opportunityEngine;
 
+    @Cacheable(value = "mentor_data", key = "#user.email")
     public Map<String, Object> getMentorData(User user, int placementScore) {
         PlacementContext context = contextBuilder.buildContext(user);
 

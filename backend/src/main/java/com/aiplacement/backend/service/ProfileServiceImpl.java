@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProfileServiceImpl implements ProfileService {
 
     private final UserRepository userRepository;
+    private final org.springframework.cache.CacheManager cacheManager;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -42,6 +43,7 @@ public class ProfileServiceImpl implements ProfileService {
         
         user.setProfileCompleted(true);
         userRepository.save(user);
+        evictPlacementCaches(user.getEmail());
     }
 
     @Override
@@ -56,6 +58,7 @@ public class ProfileServiceImpl implements ProfileService {
         
         user.setProfileCompleted(true);
         userRepository.save(user);
+        evictPlacementCaches(user.getEmail());
     }
 
     @Override
@@ -70,6 +73,7 @@ public class ProfileServiceImpl implements ProfileService {
         
         user.setProfileCompleted(true);
         userRepository.save(user);
+        evictPlacementCaches(user.getEmail());
     }
 
     @Override
@@ -148,6 +152,26 @@ public class ProfileServiceImpl implements ProfileService {
         if (request.getPhone() != null) user.setPhone(request.getPhone());
         if (request.getDesignation() != null) user.setDesignation(request.getDesignation());
         userRepository.save(user);
+        evictPlacementCaches(user.getEmail());
+    }
+
+    private void evictPlacementCaches(String email) {
+        if (email == null) return;
+        try {
+            String[] cachesToEvict = {
+                "placement_context", "placement_readiness", "placement_profile",
+                "placement_score", "company_readiness", "placement_recommendations",
+                "placement_dashboard", "mentor_data", "timeline_data"
+            };
+            for (String cacheName : cachesToEvict) {
+                org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                if (cache != null) {
+                    cache.evict(email);
+                }
+            }
+        } catch (Exception ex) {
+            // Avoid throwing during eviction
+        }
     }
 
     @Override

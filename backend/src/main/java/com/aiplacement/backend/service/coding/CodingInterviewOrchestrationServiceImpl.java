@@ -110,11 +110,16 @@ public class CodingInterviewOrchestrationServiceImpl implements CodingInterviewO
         // Evict caches
         if (user != null) {
             try {
-                if (cacheManager.getCache("placement_context") != null) {
-                    cacheManager.getCache("placement_context").evict(user.getEmail());
-                }
-                if (cacheManager.getCache("placement_readiness") != null) {
-                    cacheManager.getCache("placement_readiness").evict(user.getEmail());
+                String[] cachesToEvict = {
+                    "placement_context", "placement_readiness", "placement_profile",
+                    "placement_score", "company_readiness", "placement_recommendations",
+                    "placement_dashboard", "mentor_data", "timeline_data"
+                };
+                for (String cacheName : cachesToEvict) {
+                    org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                    if (cache != null) {
+                        cache.evict(user.getEmail());
+                    }
                 }
                 log.info("Evicted placement caches for coding submission: {}", user.getEmail());
             } catch (Exception ex) {

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
+import { create } from 'zustand';
 import api from '@/lib/api';
 import { getErrorMessage } from '@/lib/errors';
 import { useAuthStore } from '@/store/auth-store';
@@ -34,51 +35,72 @@ export type UserProfile = {
   authProvider?: 'LOCAL' | 'GOOGLE' | 'GITHUB';
 };
 
+interface ProfileState {
+  user: UserProfile | null;
+  loading: boolean;
+  error: string | null;
+  fetchPromise: Promise<UserProfile> | null;
+  fetchUser: (force?: boolean) => Promise<UserProfile>;
+  setUser: (user: UserProfile | null) => void;
+  setError: (error: string | null) => void;
+  setLoading: (loading: boolean) => void;
+}
+
+// Centered Zustand store to cache and deduplicate user profile requests across the app
+export const useProfileStore = create<ProfileState>((set, get) => ({
+  user: null,
+  loading: true,
+  error: null,
+  fetchPromise: null,
+  fetchUser: async (force = false) => {
+    if (!force) {
+      if (get().fetchPromise) {
+        return get().fetchPromise!;
+      }
+      if (get().user) {
+        return get().user!;
+      }
+    }
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      set({ user: null, loading: false, error: null });
+      return null as any;
+    }
+
+    const promise = (async () => {
+      try {
+        const response = await api.get('/user/profile');
+        set({ user: response.data, error: null, loading: false });
+        return response.data;
+      } catch (err: any) {
+        set({ user: null, error: getErrorMessage(err, 'Failed to load profile'), loading: false });
+        throw err;
+      } finally {
+        set({ fetchPromise: null });
+      }
+    })();
+
+    set({ fetchPromise: promise, loading: true });
+    return promise;
+  },
+  setUser: (user) => set({ user }),
+  setError: (error) => set({ error }),
+  setLoading: (loading) => set({ loading }),
+}));
+
 export function useUser() {
   const session = useAuthStore((state) => state.session);
   const isAuthLoading = useAuthStore((state) => state.isLoading);
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  
+  const user = useProfileStore((state) => state.user);
+  const loading = useProfileStore((state) => state.loading);
+  const error = useProfileStore((state) => state.error);
+  const fetchUser = useProfileStore((state) => state.fetchUser);
 
-  const fetchUser = useCallback(async () => {
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
-    let hostname = "unknown";
-    try {
-      hostname = new URL(apiBase).hostname;
-    } catch (_) {}
-
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-
-    console.log("[PlacementAI Profile] request started");
-    console.log("[PlacementAI Profile] API hostname:", hostname);
-    console.log("[PlacementAI Profile] request pathname: /user/profile");
-    console.log("[PlacementAI Profile] token exists:", Boolean(token));
-    console.log("[PlacementAI Profile] token length:", token ? token.length : 0);
-    console.log("[PlacementAI Profile] Authorization header attached:", Boolean(token));
-
-    try {
-      const response = await api.get('/user/profile');
-      console.log("[PlacementAI Profile] response status: 200");
-      setUser(response.data);
-      setError(null);
-    } catch (err: any) {
-      setUser(null);
-      
-      const status = err.response?.status;
-      const data = err.response?.data;
-      
-      console.log("[PlacementAI Profile] response status:", status || "unknown");
-      console.log("[PlacementAI Profile] response content-type: application/json");
-      console.log("[PlacementAI Profile] sanitized error body:", data ? JSON.stringify(data).substring(0, 200) : "none");
-      console.log("[PlacementAI Profile] network exception name:", err.name || "Error");
-      console.log("[PlacementAI Profile] network exception message:", err.message || "none");
-      
-      setError(getErrorMessage(err, 'Failed to load profile'));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const forceRefresh = useCallback(async () => {
+    await fetchUser(true);
+  }, [fetchUser]);
 
   useEffect(() => {
     if (isAuthLoading) {
@@ -88,12 +110,9 @@ export function useUser() {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     if (!token) {
       if (!session) {
-        setUser(null);
-        setError(null);
-        setLoading(false);
+        useProfileStore.setState({ user: null, error: null, loading: false });
       } else {
-        // An authenticated Supabase session exists, but the backend JWT may still be synchronizing.
-        setLoading(true);
+        useProfileStore.setState({ loading: true });
       }
       return;
     }
@@ -105,20 +124,18 @@ export function useUser() {
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== 'token') return;
       if (event.newValue) {
-        fetchUser();
+        fetchUser(true);
       } else {
-        setUser(null);
-        setLoading(false);
+        useProfileStore.setState({ user: null, loading: false });
       }
     };
 
     const handleCustomUpdate = () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (token) {
-        fetchUser();
+        fetchUser(true);
       } else {
-        setUser(null);
-        setLoading(false);
+        useProfileStore.setState({ user: null, loading: false });
       }
     };
 
@@ -130,5 +147,5 @@ export function useUser() {
     };
   }, [fetchUser]);
 
-  return { user, loading: loading || isAuthLoading, error, mutate: fetchUser };
+  return { user, loading: loading || isAuthLoading, error, mutate: forceRefresh };
 }

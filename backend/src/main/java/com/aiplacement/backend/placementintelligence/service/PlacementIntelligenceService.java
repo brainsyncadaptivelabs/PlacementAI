@@ -9,4 +9,5 @@ public interface PlacementIntelligenceService {
     CompanyReadinessDto getCompanyReadiness(User user);
     RecommendationDto getRecommendations(User user);
     PlacementDashboardDto getDashboardData(User user);
+    java.util.List<com.aiplacement.backend.placementintelligence.timeline.TimelineEvent> getTimelineData(User user);
 }

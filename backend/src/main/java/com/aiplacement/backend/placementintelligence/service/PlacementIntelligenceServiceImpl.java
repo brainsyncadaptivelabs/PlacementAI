@@ -58,6 +58,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     }
 
     @Override
+    @Cacheable(value = "placement_profile", key = "#user.email")
     public PlacementProfileDto getPlacementProfile(User user) {
         PlacementContext context = getOrCreateContext(user);
 
@@ -103,6 +104,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     }
 
     @Override
+    @Cacheable(value = "placement_score", key = "#user.email")
     public PlacementScoreDto getPlacementScore(User user) {
         PlacementContext context = getOrCreateContext(user);
         AptitudeIntelligenceEngine.AptitudeMetrics aptMetrics = aptitudeIntelligenceEngine.analyzeAptitude(context);
@@ -116,6 +118,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     }
 
     @Override
+    @Cacheable(value = "company_readiness", key = "#user.email")
     public CompanyReadinessDto getCompanyReadiness(User user) {
         PlacementContext context = getOrCreateContext(user);
         Map<String, PlacementPredictionEngine.PredictionDetails> predictions = placementPredictionEngine.predictCompanySuccess(context);
@@ -128,6 +131,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     }
 
     @Override
+    @Cacheable(value = "placement_recommendations", key = "#user.email")
     public RecommendationDto getRecommendations(User user) {
         PlacementContext context = getOrCreateContext(user);
         AptitudeIntelligenceEngine.AptitudeMetrics aptMetrics = aptitudeIntelligenceEngine.analyzeAptitude(context);
@@ -141,6 +145,7 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     }
 
     @Override
+    @Cacheable(value = "placement_dashboard", key = "#user.email")
     @SuppressWarnings("unchecked")
     public PlacementDashboardDto getDashboardData(User user) {
         log.info("[PlacementAI Engine] Dashboard Refreshed");
@@ -251,5 +256,13 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
                 .map(s -> s.trim())
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Cacheable(value = "timeline_data", key = "#user.email")
+    public List<com.aiplacement.backend.placementintelligence.timeline.TimelineEvent> getTimelineData(User user) {
+        PlacementContext context = getOrCreateContext(user);
+        PlacementProfileDto profile = getPlacementProfile(user);
+        return timelineEngine.getTimeline(context, profile.getPlacementScore());
     }
 }

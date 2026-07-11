@@ -63,7 +63,7 @@ spring:
   # ── Caching ──────────────────────────────────────────────
   cache:
     type: simple
-    cache-names: roadmaps,jd_analysis,skills_gap,dashboard_stats,placement_context,placement_readiness
+    cache-names: roadmaps,jd_analysis,skills_gap,dashboard_stats,placement_context,placement_readiness,placement_profile,placement_score,company_readiness,placement_recommendations,placement_dashboard,mentor_data,timeline_data
 
   # ── Redis ────────────────────────────────────────────────
   data:
