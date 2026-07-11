@@ -87,15 +87,39 @@ export function AppLayout({ children, role }: AppLayoutProps) {
   }
 
   if (isAuthError) {
+    const errorStr = String(error || "");
+    let errorTitle = "Connection Problem";
+    let errorMessage = "We are having trouble communicating with the PlacementAI servers. Your session is active, but we couldn't load your profile.";
+
+    if (errorStr.includes("401")) {
+      errorTitle = "Session Expired";
+      errorMessage = "Authentication expired or invalid PlacementAI token. Please sign in again.";
+    } else if (errorStr.includes("403")) {
+      errorTitle = "Access Denied";
+      errorMessage = "Access denied / role authorization problem. You do not have permission to view this dashboard.";
+    } else if (errorStr.includes("404")) {
+      errorTitle = "Route Not Found";
+      errorMessage = "Profile endpoint routing problem (404). The server could not locate the profile path.";
+    } else if (errorStr.includes("500")) {
+      errorTitle = "Server Error";
+      errorMessage = "PlacementAI server profile error (500). Please contact support if this persists.";
+    } else if (errorStr.includes("CORS") || errorStr.toLowerCase().includes("cors")) {
+      errorTitle = "Configuration Problem";
+      errorMessage = "Production API/CORS configuration problem. The request origin is not allowed by the backend.";
+    } else if (errorStr.includes("Backend unavailable") || errorStr.includes("Failed to fetch")) {
+      errorTitle = "Connection Problem";
+      errorMessage = "We are having trouble communicating with the PlacementAI servers. The backend service appears to be down.";
+    }
+
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-8 space-y-6 text-center">
         <div className="p-4 bg-destructive/10 rounded-full text-destructive">
           <WifiOff className="w-12 h-12" />
         </div>
         <div className="max-w-md space-y-2">
-          <h2 className="text-2xl font-black font-heading tracking-tight">Connection Problem</h2>
+          <h2 className="text-2xl font-black font-heading tracking-tight">{errorTitle}</h2>
           <p className="text-muted-foreground text-sm">
-            We are having trouble communicating with the PlacementAI servers. Your session is active, but we couldn't load your profile.
+            {errorMessage}
           </p>
           {error && <p className="text-xs text-destructive bg-destructive/5 py-1 px-3 rounded-lg border border-destructive/10 font-mono mt-2">{error}</p>}
         </div>

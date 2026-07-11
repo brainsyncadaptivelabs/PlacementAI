@@ -42,12 +42,38 @@ export function useUser() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchUser = useCallback(async () => {
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+    let hostname = "unknown";
+    try {
+      hostname = new URL(apiBase).hostname;
+    } catch (_) {}
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+
+    console.log("[PlacementAI Profile] request started");
+    console.log("[PlacementAI Profile] API hostname:", hostname);
+    console.log("[PlacementAI Profile] request pathname: /user/profile");
+    console.log("[PlacementAI Profile] token exists:", Boolean(token));
+    console.log("[PlacementAI Profile] token length:", token ? token.length : 0);
+    console.log("[PlacementAI Profile] Authorization header attached:", Boolean(token));
+
     try {
       const response = await api.get('/user/profile');
+      console.log("[PlacementAI Profile] response status: 200");
       setUser(response.data);
       setError(null);
-    } catch (err: unknown) {
+    } catch (err: any) {
       setUser(null);
+      
+      const status = err.response?.status;
+      const data = err.response?.data;
+      
+      console.log("[PlacementAI Profile] response status:", status || "unknown");
+      console.log("[PlacementAI Profile] response content-type: application/json");
+      console.log("[PlacementAI Profile] sanitized error body:", data ? JSON.stringify(data).substring(0, 200) : "none");
+      console.log("[PlacementAI Profile] network exception name:", err.name || "Error");
+      console.log("[PlacementAI Profile] network exception message:", err.message || "none");
+      
       setError(getErrorMessage(err, 'Failed to load profile'));
     } finally {
       setLoading(false);
@@ -86,9 +112,21 @@ export function useUser() {
       }
     };
 
+    const handleCustomUpdate = () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      if (token) {
+        fetchUser();
+      } else {
+        setUser(null);
+        setLoading(false);
+      }
+    };
+
     window.addEventListener('storage', handleStorage);
+    window.addEventListener('placementai:auth-token-updated', handleCustomUpdate);
     return () => {
       window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('placementai:auth-token-updated', handleCustomUpdate);
     };
   }, [fetchUser]);
 

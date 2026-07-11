@@ -33,10 +33,16 @@ export async function GET(request: Request) {
     console.log(`[AUTH_CALLBACK] Session obtained for: ${userEmail}`);
 
     // ── Exchange Supabase token for PlacementAI JWT ────────────────────────
-    const API_URL =
+    let API_URL =
       process.env.NEXT_PUBLIC_API_URL ||
       process.env.API_URL ||
       'http://localhost:8080/api/v1';
+
+    // Swap localhost:8080 with backend:8080 inside Docker container network for server-side fetches
+    if (API_URL.includes('localhost:8080')) {
+      API_URL = API_URL.replace('localhost:8080', 'backend:8080');
+    }
+
     const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];
     const validatedRole = role && validRoles.includes(role) ? role : undefined;
 
@@ -52,6 +58,7 @@ export async function GET(request: Request) {
 
     let backendRole = 'STUDENT'; // safe default
     let placementToken: string | null = null;
+    let backendErrorType: string | null = null;
 
     try {
       const backendResponse = await fetch(`${API_URL}/auth/google`, {
@@ -62,9 +69,18 @@ export async function GET(request: Request) {
 
       if (backendResponse.ok) {
         const backendData = await backendResponse.json();
+        
+        // Step 1: Log only safe keys and metadata
+        console.log("[PlacementAI OAuth] backend response status:", backendResponse.status);
+        console.log("[PlacementAI OAuth] backend response keys:", Object.keys(backendData));
+        
         placementToken = backendData.accessToken;
+        
+        console.log("[PlacementAI OAuth] PlacementAI token exists:", Boolean(placementToken));
+        console.log("[PlacementAI OAuth] backend role:", backendData.role);
+        console.log("[PlacementAI OAuth] profileCompleted:", backendData.profileCompleted);
+
         backendRole = backendData.role ?? validatedRole ?? 'STUDENT';
-        console.log(`[AUTH_CALLBACK] Backend auth OK. role=${backendRole}`);
 
         // Enforce strict portal-based login for social login
         const portalRole = validatedRole ?? 'STUDENT';
@@ -80,25 +96,33 @@ export async function GET(request: Request) {
       } else {
         const errText = await backendResponse.text();
         console.error(`[AUTH_CALLBACK] Backend auth failed (${backendResponse.status}): ${errText}`);
+        backendErrorType = "oauth_failed";
       }
     } catch (backendErr) {
       console.error('[AUTH_CALLBACK] Backend unreachable:', backendErr);
+      backendErrorType = "backend_unreachable";
+    }
+
+    // Step 2: Refuse dashboard redirect when PlacementAI JWT is missing
+    if (!placementToken) {
+      console.error("[PlacementAI OAuth] Backend authentication succeeded but PlacementAI JWT is missing");
+      const errorParam = backendErrorType || "placement_token_missing";
+      return NextResponse.redirect(`${origin}/auth?error=${errorParam}`);
     }
 
     // ── Build redirect URL with tokens + role as query params ─────────────
     // The client-side AuthProvider picks these up on mount and stores them.
     const rolePath = getDashboardRouteForRole(backendRole);
-
     const destination = new URL(`${origin}${rolePath}`);
-    if (placementToken) {
-      destination.searchParams.set('_pat', placementToken); // PlacementAI Token
-    }
+    
+    // Step 3: Attach _pat before redirect
+    destination.searchParams.set('_pat', placementToken); // PlacementAI Token
     destination.searchParams.set('_role', backendRole);
 
-    console.log("[AUTH_CALLBACK] backendRole =", backendRole);
-    console.log("[AUTH_CALLBACK] rolePath =", rolePath);
-    console.log("[AUTH_CALLBACK] placementToken exists =", !!placementToken);
-    console.log("[AUTH_CALLBACK] destination =", destination.toString());
+    console.log("[PlacementAI OAuth] PAT attached to redirect:", destination.searchParams.has("_pat"));
+    console.log("[PlacementAI OAuth] role attached:", destination.searchParams.get("_role"));
+    console.log("[PlacementAI OAuth] redirect pathname:", destination.pathname);
+
     return NextResponse.redirect(destination.toString());
 
   } catch (err) {

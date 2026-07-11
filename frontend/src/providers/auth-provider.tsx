@@ -47,6 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // Dispatch so any other listeners (e.g., api.ts) pick up the new token
         window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
       }
     }
 
@@ -106,6 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('token', data.accessToken);
           console.log(`[AUTH_PROVIDER] Re-synced. role=${data.role}`);
           window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
         } else {
           const errText = await response.text();
           console.error(`[AUTH_PROVIDER] Backend sync failed (${response.status}): ${errText}`);
@@ -140,6 +142,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (event === 'SIGNED_OUT') {
         clearAuth();
         localStorage.removeItem('token');
+        window.dispatchEvent(new Event('storage'));
+        window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
       } else {
         setAuth(session?.user ?? null, session);
         if (session) {
