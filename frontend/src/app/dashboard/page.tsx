@@ -28,6 +28,8 @@ import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { usePerformanceProfile } from "@/hooks/usePerformanceProfile";
 import { getProfileCompletionRouteForRole } from "@/lib/auth-routes";
+import { useUser } from "@/hooks/use-user";
+import { useDashboardStore } from "@/store/dashboard-store";
 
 // Lazy load non-critical components to reduce first paint
 const CareerMentorWidget = dynamic(() => import("@/components/dashboard/CareerMentorWidget"), { 
@@ -77,11 +79,8 @@ const RadialProgress = memo(({ score, animate }: { score: number, animate: boole
 RadialProgress.displayName = "RadialProgress";
 
 export default function PerfectStudentPortal() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [placementIntel, setPlacementIntel] = useState<any | null>(null);
-  const [mentorData, setMentorData] = useState<any | null>(null);
-  const [timelineData, setTimelineData] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user: profile } = useUser();
+  const { stats, placementIntel, mentorData, timelineData, error: storeError, fetchDashboard } = useDashboardStore();
   const [statsError, setStatsError] = useState<string | null>(null);
   const [activeRoadmap, setActiveRoadmap] = useState<any | null>(null);
   const router = useRouter();
@@ -99,73 +98,35 @@ export default function PerfectStudentPortal() {
   }, []);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      try {
-        setLoading(true);
-        setStatsError(null);
+    if (!profile) return;
 
-        // Fetch all data in parallel to eliminate sequential network request blocks
-        const [profileRes, statsRes, intelRes, mentorRes, timelineRes] = await Promise.all([
-          api.get("/user/profile"),
-          api.get("/dashboard/stats"),
-          api.get("/placement-intelligence/dashboard"),
-          api.get("/placement-intelligence/mentor"),
-          api.get("/placement-intelligence/timeline"),
-        ]);
+    if (profile.profileCompleted === false) {
+      router.push(getProfileCompletionRouteForRole(profile.role));
+      return;
+    }
 
-        const { profileCompleted, role } = profileRes.data;
-        if (profileCompleted === false) {
-          router.push(getProfileCompletionRouteForRole(role));
-          return;
-        }
-
-        setStats(statsRes.data);
-        setPlacementIntel(intelRes.data);
-        setMentorData(mentorRes.data);
-        setTimelineData(timelineRes.data);
-      } catch (err: any) {
-        console.error("Failed to load dashboard data", err);
-        setStatsError("Unable to load dashboard data. Please refresh or contact support.");
-        setStats({
-          fullName: "Test Student",
-          readinessScore: 0,
-          highestAtsScore: 0,
-          mockInterviewsCount: 0,
-          roadmapsCount: 0,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadDashboardData();
-  }, [router]);
+    fetchDashboard().catch((err) => {
+      setStatsError("Unable to load dashboard data. Please refresh or contact support.");
+    });
+  }, [profile, router, fetchDashboard]);
 
   const userStats = useMemo(() => ({
-    fullName: stats?.fullName || "Student",
+    fullName: stats?.fullName || profile?.fullName || "Student",
     readinessScore: stats?.readinessScore || 0,
     highestAtsScore: stats?.highestAtsScore || 0,
     mockInterviewsCount: stats?.mockInterviewsCount || 0,
     roadmapsCount: stats?.roadmapsCount || 0,
-  }), [stats]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-primary animate-spin" />
-      </div>
-    );
-  }
+  }), [stats, profile]);
 
   return (
     <div className={`p-8 space-y-8 font-sans ${perfProfile === 'low' ? 'no-animations' : ''}`}>
-      {statsError && (
+      {(statsError || storeError) && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-2xl flex items-center justify-between text-xs font-bold shadow-sm backdrop-blur-md">
           <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4" />
-            <span>{statsError}</span>
+            <span>{statsError || storeError}</span>
           </div>
-          <button onClick={() => setStatsError(null)} className="opacity-70 hover:opacity-100 transition-opacity">
+          <button onClick={() => { setStatsError(null); useDashboardStore.setState({ error: null }); }} className="opacity-70 hover:opacity-100 transition-opacity">
             <X className="w-4 h-4" />
           </button>
         </div>

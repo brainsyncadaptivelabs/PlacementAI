@@ -113,7 +113,7 @@ public class CodingInterviewOrchestrationServiceImpl implements CodingInterviewO
                 String[] cachesToEvict = {
                     "placement_context", "placement_readiness", "placement_profile",
                     "placement_score", "company_readiness", "placement_recommendations",
-                    "placement_dashboard", "mentor_data", "timeline_data"
+                    "placement_dashboard", "mentor_data", "timeline_data", "dashboard_stats"
                 };
                 for (String cacheName : cachesToEvict) {
                     org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);

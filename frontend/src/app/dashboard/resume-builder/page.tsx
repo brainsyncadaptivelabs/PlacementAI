@@ -8,7 +8,7 @@ import { Loader2, Plus, Edit2, Trash2, FileText, CheckCircle2 } from "lucide-rea
 import { ACTIVE_TEMPLATES, TEMPLATE_REGISTRY } from "@/lib/resume/templates/templates";
 import { ResumeState } from "@/lib/resume/templates/legacy/placementai-educator/schema";
 import { ResumeService } from "@/services/resume.service";
-import { useAuth } from "@/hooks/use-auth";
+import { useUser } from "@/hooks/use-user";
 
 interface ResumeDto {
   id: string;
@@ -19,7 +19,7 @@ interface ResumeDto {
 
 export default function ResumeBuilderPortal() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [resumes, setResumes] = useState<ResumeDto[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +27,7 @@ export default function ResumeBuilderPortal() {
     if (!user) return;
     setLoading(true);
     try {
-      const response = await ResumeService.getAllResumes(user.id);
+      const response = await ResumeService.getAllResumes(String(user.id));
       setResumes(response as ResumeDto[]);
     } catch (err) {
       console.error("Failed to fetch resumes", err);
