@@ -42,8 +42,8 @@ public class ProductionStartupValidator {
         validateSecret("spring.datasource.password", dbPassword, "postgres");
         validateSecret("jwt.secret", jwtSecret, "YOUR_JWT_SECRET_PLACEHOLDER");
         validateSecret("nvidia.ai.api-key", nvidiaApiKey, "YOUR_NVIDIA_API_KEY_PLACEHOLDER");
-        validateSecret("supabase.url", supabaseUrl, "https://glyvbdltoxjpwlzsbcyx.supabase.co");
-        validateSecret("supabase.key", supabaseKey, "sb_publishable_1_N-QV-c57Lsca-hGpJxTg_QubCK2Kt");
+        validateSecret("supabase.url", supabaseUrl, "YOUR_SUPABASE_URL_PLACEHOLDER");
+        validateSecret("supabase.key", supabaseKey, "YOUR_SUPABASE_KEY_PLACEHOLDER");
 
         log.info("[Prod Boot] Production configuration validation successful.");
     }

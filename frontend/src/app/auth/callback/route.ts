@@ -70,7 +70,7 @@ export async function GET(request: Request) {
       }
 
       console.error(`[AUTH_CALLBACK] Mapped OAuth error category: ${mappedError}`);
-      return NextResponse.redirect(`${origin}/auth?error=oauth_failed&category=${mappedError}`);
+      return NextResponse.redirect(`${origin}/auth?error=oauth_failed&category=${mappedError}&msg=${encodeURIComponent(errMsg)}&status=${errStatus}&code=${errCode}`);
     }
 
     console.log(`[AUTH_CALLBACK] exchange success=true`);
@@ -83,14 +83,12 @@ export async function GET(request: Request) {
     console.log(`[AUTH_CALLBACK] Session obtained for: ${userEmail}`);
 
     // ── Exchange Supabase token for PlacementAI JWT ────────────────────────
-    let API_URL =
-      process.env.NEXT_PUBLIC_API_URL ||
-      process.env.API_URL ||
-      'http://localhost:8080/api/v1';
+    const API_URL =
+      process.env.API_URL ??
+      process.env.NEXT_PUBLIC_API_URL;
 
-    // Swap localhost:8080 with backend:8080 inside Docker container network for server-side fetches
-    if (API_URL.includes('localhost:8080')) {
-      API_URL = API_URL.replace('localhost:8080', 'backend:8080');
+    if (!API_URL) {
+      throw new Error("Production backend API URL is not configured");
     }
 
     const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];
@@ -146,11 +144,11 @@ export async function GET(request: Request) {
       } else {
         const errText = await backendResponse.text();
         console.error(`[AUTH_CALLBACK] Backend auth failed (${backendResponse.status}): ${errText}`);
-        backendErrorType = "oauth_failed";
+        backendErrorType = `oauth_failed&backend_status=${backendResponse.status}&backend_err=${encodeURIComponent(errText.substring(0, 100))}`;
       }
     } catch (backendErr) {
       console.error('[AUTH_CALLBACK] Backend unreachable:', backendErr);
-      backendErrorType = "backend_unreachable";
+      backendErrorType = `backend_unreachable&backend_err=${encodeURIComponent((backendErr as any)?.message || "unknown")}`;
     }
 
     // Step 2: Refuse dashboard redirect when PlacementAI JWT is missing
