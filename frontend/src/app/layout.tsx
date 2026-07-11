@@ -4,6 +4,8 @@ import "./globals.css";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Providers from "./providers";
 import { Toaster } from "sonner";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700", "800", "900"],
@@ -33,6 +35,8 @@ export default function RootLayout({
           <TooltipProvider>
             {children}
             <Toaster richColors position="top-right" />
+            <Analytics />
+            <SpeedInsights />
           </TooltipProvider>
         </Providers>
       </body>
