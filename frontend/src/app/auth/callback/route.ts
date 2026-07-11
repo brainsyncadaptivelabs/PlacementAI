@@ -3,12 +3,36 @@ import { createClient } from '@/lib/supabase/server';
 import { getDashboardRouteForRole } from '@/lib/auth-routes';
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const requestId = Math.random().toString(36).substring(2, 15);
+  const { searchParams, origin, pathname, protocol, host } = new URL(request.url);
   const code = searchParams.get('code');
   const role = searchParams.get('role');
   const next = searchParams.get('next') ?? '/auth/complete';
 
-  console.log(`[AUTH_CALLBACK] Hit. code=${code ? 'present' : 'absent'}, role=${role ?? 'none'}, next=${next}`);
+  console.log(`[AUTH_CALLBACK] requestId=${requestId}`);
+  console.log(`[AUTH_CALLBACK] callback entered`);
+  console.log(`[AUTH_CALLBACK] code present=${Boolean(code)}`);
+  console.log(`[AUTH_CALLBACK] code fingerprint=${code ? code.substring(0, 6) : "none"}`);
+  console.log(`[AUTH_CALLBACK] host=${host}`);
+  console.log(`[AUTH_CALLBACK] protocol=${protocol}`);
+  console.log(`[AUTH_CALLBACK] pathname=${pathname}`);
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  console.log("[AUTH_CALLBACK] NEXT_PUBLIC_SUPABASE_URL present:", Boolean(supabaseUrl));
+  if (supabaseUrl) {
+    try {
+      console.log("[AUTH_CALLBACK] NEXT_PUBLIC_SUPABASE_URL hostname:", new URL(supabaseUrl).hostname);
+    } catch (_) {}
+  }
+  console.log("[AUTH_CALLBACK] NEXT_PUBLIC_SUPABASE_ANON_KEY present:", Boolean(supabaseAnonKey));
+  console.log("[AUTH_CALLBACK] NEXT_PUBLIC_SUPABASE_ANON_KEY length:", supabaseAnonKey ? supabaseAnonKey.length : 0);
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("[AUTH_CALLBACK] Supabase environment variables missing!");
+    return NextResponse.redirect(`${origin}/auth?error=oauth_failed&category=SUPABASE_ENV_MISSING`);
+  }
 
   if (!code) {
     console.warn('[AUTH_CALLBACK] No code param — redirecting to /auth');
@@ -18,12 +42,38 @@ export async function GET(request: Request) {
   try {
     const supabase = await createClient();
 
+    console.log(`[AUTH_CALLBACK] exchange starting`);
     const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
     if (exchangeError || !exchangeData?.session) {
-      console.error('[AUTH_CALLBACK] exchangeCodeForSession failed:', exchangeError?.message);
-      return NextResponse.redirect(`${origin}/auth?error=oauth_failed`);
+      const errMsg = exchangeError?.message || "No session data returned";
+      const errStatus = (exchangeError as any)?.status || "unknown";
+      const errCode = (exchangeError as any)?.code || "unknown";
+
+      console.log(`[AUTH_CALLBACK] exchange success=false`);
+      console.log(`[AUTH_CALLBACK] exchange error code=${errCode}`);
+      console.log(`[AUTH_CALLBACK] exchange error message=${errMsg}`);
+      console.log(`[AUTH_CALLBACK] exchange error status=${errStatus}`);
+      console.error('[AUTH_CALLBACK] exchangeCodeForSession failed:', errMsg);
+
+      let mappedError = "oauth_failed";
+      if (errMsg.includes("code verifier") || errMsg.includes("PKCE") || errMsg.includes("verifier")) {
+        mappedError = "PKCE_VERIFIER_MISSING";
+      } else if (errMsg.includes("already been redeemed") || errMsg.includes("already used")) {
+        mappedError = "AUTH_CODE_ALREADY_USED";
+      } else if (errMsg.includes("invalid") || errMsg.includes("expired")) {
+        mappedError = "INVALID_AUTH_CODE";
+      } else if (errMsg.includes("network") || errMsg.includes("fetch")) {
+        mappedError = "NETWORK_ERROR";
+      } else if (errMsg.includes("cookie") || errMsg.includes("state")) {
+        mappedError = "COOKIE_STATE_MISSING";
+      }
+
+      console.error(`[AUTH_CALLBACK] Mapped OAuth error category: ${mappedError}`);
+      return NextResponse.redirect(`${origin}/auth?error=oauth_failed&category=${mappedError}`);
     }
+
+    console.log(`[AUTH_CALLBACK] exchange success=true`);
 
     const session = exchangeData.session;
     const accessToken = session.access_token; // Real Supabase JWT — not a mock

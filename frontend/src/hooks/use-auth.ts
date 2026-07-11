@@ -7,7 +7,11 @@ export const useAuth = () => {
   const supabase = createClient();
 
   const signInWithProvider = async (provider: Provider, role?: string) => {
-    const redirectUrl = `${window.location.origin}/auth/callback${role ? `?role=${encodeURIComponent(role)}` : ''}`;
+    let origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.placementai.in';
+    if (origin.includes('placementai.in') && !origin.includes('www.')) {
+      origin = 'https://www.placementai.in';
+    }
+    const redirectUrl = `${origin}/auth/callback${role ? `?role=${encodeURIComponent(role)}` : ''}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
