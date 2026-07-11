@@ -23,15 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByRoleAndProfileCompleted(Role role, Boolean profileCompleted);
 
-    List<User> findTop30ByRoleOrderByReadinessScoreDesc(Role role);
 
-    @Query("SELECT u FROM User u WHERE " +
-           "(:college IS NULL OR :college = '' OR LOWER(u.collegeName) = LOWER(:college)) AND " +
-           "(:branch IS NULL OR :branch = '' OR LOWER(u.branch) = LOWER(:branch))")
-    List<User> findByCollegeAndBranch(
-            @Param("college") String college,
-            @Param("branch") String branch
-    );
 
     @Query("SELECT u FROM User u WHERE " +
             "(:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.collegeName) LIKE LOWER(CONCAT('%', :search, '%'))) " +

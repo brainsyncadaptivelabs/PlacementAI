@@ -95,11 +95,11 @@ public class ProfileServiceImpl implements ProfileService {
                 .phone(user.getPhone())
                 .designation(user.getDesignation())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(true)
-                .paymentCompleted(true)
+                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
+                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
                 .profileImage(user.getProfileImage())
-                .plan("FREE")
-                .paymentStatus("COMPLETED")
+                .plan(user.getPlan() != null ? user.getPlan() : "FREE")
+                .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
     }
 

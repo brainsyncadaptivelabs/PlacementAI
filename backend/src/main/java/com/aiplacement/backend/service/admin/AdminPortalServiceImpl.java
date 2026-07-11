@@ -203,7 +203,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             m.put("graduationYear", u.getGraduationYear() != null ? u.getGraduationYear() : 0);
             m.put("createdAt", u.getCreatedAt());
             m.put("lastActive", u.getLastActive());
-            m.put("plan", "FREE" != null ? "FREE" : "FREE");
+            m.put("plan", u.getPlan() != null ? u.getPlan() : "FREE");
             m.put("creditsRemaining", u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 100);
             m.put("creditsUsed", u.getCreditsUsed() != null ? u.getCreditsUsed() : 0);
             m.put("totalResumes", u.getResumes().size());
@@ -255,7 +255,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         details.put("githubUrl", u.getGithubUrl());
         details.put("leetcodeUrl", u.getLeetcodeUrl());
         details.put("skills", u.getSkills());
-        details.put("plan", "FREE" != null ? "FREE" : "FREE");
+        details.put("plan", u.getPlan() != null ? u.getPlan() : "FREE");
         details.put("createdAt", u.getCreatedAt());
         details.put("lastActive", u.getLastActive());
         details.put("creditsRemaining", u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 100);
@@ -549,7 +549,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
                         .append("\"").append(u.getCollegeName() != null ? u.getCollegeName() : "N/A").append("\",")
                         .append("\"").append(u.getBranch() != null ? u.getBranch() : "N/A").append("\",")
                         .append(u.getGraduationYear()).append(",")
-                        .append("FREE").append(",")
+                        .append(u.getPlan() != null ? u.getPlan() : "FREE").append(",")
                         .append(u.getAccountStatus()).append(",")
                         .append(u.getCreatedAt()).append("\n");
             });

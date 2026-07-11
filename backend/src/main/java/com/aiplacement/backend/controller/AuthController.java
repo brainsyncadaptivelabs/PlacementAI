@@ -61,13 +61,7 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
-    @DeleteMapping("/test-clear-users")
-    public ResponseEntity<String> testClearUsers() {
-        // Helper endpoint for development testing
-        log.info("Clearing test users from database...");
-        authService.testClearUsers();
-        return ResponseEntity.ok("All non-admin users deleted successfully.");
-    }
+
 
     @PostMapping("/google")
     public ResponseEntity<TokenResponse> googleLogin(

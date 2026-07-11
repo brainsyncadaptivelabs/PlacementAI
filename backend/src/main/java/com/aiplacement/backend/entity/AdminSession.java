@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "admin_sessions", indexes = {
-        @Index(name = "idx_admin_session_token", columnList = "token"),
         @Index(name = "idx_admin_session_email", columnList = "admin_email")
 })
 @Getter

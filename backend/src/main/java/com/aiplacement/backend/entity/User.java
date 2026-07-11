@@ -4,10 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users", indexes = {
-        @Index(name = "idx_user_email", columnList = "email"),
         @Index(name = "idx_user_role", columnList = "role"),
         @Index(name = "idx_user_college_branch", columnList = "college_name, branch"),
         @Index(name = "idx_user_created_active", columnList = "created_at, last_active"),
@@ -217,4 +217,23 @@ public class User {
     @Column(name = "communication_score", nullable = false)
     @Builder.Default
     private Integer communicationScore = 0;
+
+    @Column(name = "plan", length = 20)
+    @Builder.Default
+    private String plan = "FREE";
+
+    @Column(name = "payment_status", length = 20)
+    @Builder.Default
+    private String paymentStatus = "COMPLETED";
+
+    @Column(name = "plan_selected")
+    @Builder.Default
+    private Boolean planSelected = true;
+
+    @Column(name = "payment_completed")
+    @Builder.Default
+    private Boolean paymentCompleted = true;
+
+    @Column(name = "supabase_uuid", unique = true)
+    private UUID supabaseUuid;
 }

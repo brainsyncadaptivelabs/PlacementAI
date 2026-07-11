@@ -93,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
         otpService.clearOtp(request.getEmail());
     }
 
-    private TokenResponse socialLogin(String email, String fullName, String requestedRole, String provider) {
+    private TokenResponse socialLogin(String email, String fullName, String requestedRole, String provider, String supabaseUuidStr) {
         boolean isGitHub = "github".equalsIgnoreCase(provider);
         if (isGitHub) {
             log.info("Github login started");
@@ -156,6 +156,17 @@ public class AuthServiceImpl implements AuthService {
                     changed = true;
                 }
 
+                if (supabaseUuidStr != null && !supabaseUuidStr.isBlank()) {
+                    try {
+                        java.util.UUID parsedUuid = java.util.UUID.fromString(supabaseUuidStr);
+                        if (!parsedUuid.equals(user.getSupabaseUuid())) {
+                            user.setSupabaseUuid(parsedUuid);
+                            changed = true;
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to parse supabase_uuid from JWT: {}", supabaseUuidStr);
+                    }
+                }
 
                 if (changed) {
                     user.setUpdatedAt(LocalDateTime.now());
@@ -178,17 +189,26 @@ public class AuthServiceImpl implements AuthService {
                     }
                 }
 
+                java.util.UUID suuid = null;
+                if (supabaseUuidStr != null && !supabaseUuidStr.isBlank()) {
+                    try {
+                        suuid = java.util.UUID.fromString(supabaseUuidStr);
+                    } catch (Exception e) {
+                        log.warn("Failed to parse supabase_uuid: {}", supabaseUuidStr);
+                    }
+                }
+
                 user = User.builder()
                         .email(email)
                         .fullName(fullName)
-                        .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                        .password(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
                         .role(role)
                         .authProvider(authProv)
                         .emailVerified(true)
                         .verifiedAt(LocalDateTime.now())
                         .accountStatus("ACTIVE")
                         .profileCompleted(false)
-                        
+                        .supabaseUuid(suuid)
                         .createdAt(LocalDateTime.now())
                         .updatedAt(LocalDateTime.now())
                         .build();
@@ -196,7 +216,7 @@ public class AuthServiceImpl implements AuthService {
                 com.aiplacement.backend.entity.UserStats stats = com.aiplacement.backend.entity.UserStats.builder().user(user).build();
                 user.setUserStats(stats);
                 user = userRepository.save(user);
-                
+
                 if (isGitHub) {
                     log.info("Github login completed");
                 } else {
@@ -230,24 +250,14 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(true)
-                .paymentCompleted(true)
-                .plan("FREE")
-                
+                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
+                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .plan(user.getPlan() != null ? user.getPlan() : "FREE")
+                .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
     }
     
-    @Override
-    @Transactional
-    public void testClearUsers() {
-        // Delete all users who are not ADMIN
-        List<User> users = userRepository.findAll();
-        for (User u : users) {
-            if (u.getRole() != Role.ADMIN) {
-                userRepository.delete(u);
-            }
-        }
-    }
+
 
     @Override
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
@@ -265,6 +275,7 @@ public class AuthServiceImpl implements AuthService {
         // already verified server-side by Supabase before the callback was called.
         String emailFromJwt = null;
         String nameFromJwt = null;
+        String supabaseUuidFromJwt = null;
         try {
             String[] parts = request.getIdToken().split("\\.");
             if (parts.length == 3) {
@@ -280,6 +291,9 @@ public class AuthServiceImpl implements AuthService {
 
                 if (payloadNode.has("email") && !payloadNode.get("email").isNull()) {
                     emailFromJwt = payloadNode.get("email").asText();
+                }
+                if (payloadNode.has("sub") && !payloadNode.get("sub").isNull()) {
+                    supabaseUuidFromJwt = payloadNode.get("sub").asText();
                 }
                 if (payloadNode.has("user_metadata")) {
                     com.fasterxml.jackson.databind.JsonNode meta = payloadNode.get("user_metadata");
@@ -299,7 +313,7 @@ public class AuthServiceImpl implements AuthService {
         // This handles Supabase access_token, which is already verified by Supabase.
         if (emailFromJwt != null && !emailFromJwt.isBlank()) {
             log.info("[GOOGLE_LOGIN] Using standard JWT claims for email: {}", emailFromJwt);
-            return socialLogin(emailFromJwt, nameFromJwt, request.getRole(), request.getProvider());
+            return socialLogin(emailFromJwt, nameFromJwt, request.getRole(), request.getProvider(), supabaseUuidFromJwt);
         }
 
         // ── Step 2: Fallback — try Google ID Token verification ───────────────────────
@@ -335,7 +349,7 @@ public class AuthServiceImpl implements AuthService {
             String email = payload.getEmail();
             String fullName = (String) payload.get("name");
             log.info("[GOOGLE_LOGIN] Google ID Token verified for email: {}", email);
-            return socialLogin(email, fullName, request.getRole(), request.getProvider());
+            return socialLogin(email, fullName, request.getRole(), request.getProvider(), null);
 
         } catch (Exception e) {
             log.error("[GOOGLE_LOGIN] Critical authentication failure: {}", e.getMessage(), e);
@@ -452,10 +466,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(true)
-                .paymentCompleted(true)
-                .plan("FREE")
-                
+                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
+                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .plan(user.getPlan() != null ? user.getPlan() : "FREE")
+                .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
     }
 
@@ -542,10 +556,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(true)
-                .paymentCompleted(true)
-                .plan("FREE")
-                
+                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
+                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .plan(user.getPlan() != null ? user.getPlan() : "FREE")
+                .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
     }
 
@@ -649,10 +663,10 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(true)
-                .paymentCompleted(true)
-                .plan("FREE")
-                
+                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
+                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .plan(user.getPlan() != null ? user.getPlan() : "FREE")
+                .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
     }
 

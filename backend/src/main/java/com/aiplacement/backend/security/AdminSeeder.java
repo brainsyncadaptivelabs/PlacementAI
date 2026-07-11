@@ -1,5 +1,6 @@
 package com.aiplacement.backend.security;
 
+// Touch file to trigger IDE re-analysis
 import com.aiplacement.backend.entity.AdminUser;
 import com.aiplacement.backend.repository.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -7,8 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Profile;
 
 @Component
+@Profile({"local", "dev", "test"})
 @RequiredArgsConstructor
 @Slf4j
 public class AdminSeeder implements CommandLineRunner {

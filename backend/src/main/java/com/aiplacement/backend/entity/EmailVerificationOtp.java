@@ -6,9 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "email_verification_otp", indexes = {
-        @Index(name = "idx_email_verification_email", columnList = "email")
-})
+@Table(name = "email_verification_otp")
 @Getter
 @Setter
 @NoArgsConstructor

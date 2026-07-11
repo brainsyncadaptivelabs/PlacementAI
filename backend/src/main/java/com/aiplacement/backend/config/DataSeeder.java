@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+import org.springframework.context.annotation.Profile;
+
 /**
  * Development data seeder.
  *
@@ -20,6 +22,7 @@ import java.util.List;
  * {@link com.aiplacement.backend.service.shared.PlacementReadinessService}.
  */
 @Configuration
+@Profile({"local", "dev", "test"})
 @RequiredArgsConstructor
 public class DataSeeder implements CommandLineRunner {
 
