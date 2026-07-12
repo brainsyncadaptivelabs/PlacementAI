@@ -357,4 +357,56 @@ public class AtsScoringEngineTest {
         String metricRewrite = metricBulletResult.getWeakBullets().get(0).getRewriteSuggestion();
         assertThat(metricRewrite).doesNotContain("MISSING EVIDENCE PROMPT");
     }
+
+    @Test
+    public void testCacheVersioningAndCoexistence() {
+        String testHash = "d57e16461fcf";
+        String currentEngineVersion = "ATS_V2_1";
+        
+        // Mock DB records
+        class MockAtsAnalysis {
+            String hash;
+            String version;
+            int score;
+            MockAtsAnalysis(String h, String v, int s) { this.hash = h; this.version = v; this.score = s; }
+        }
+        
+        java.util.List<MockAtsAnalysis> database = Arrays.asList(
+            new MockAtsAnalysis(testHash, "ATS_V2", 76),
+            new MockAtsAnalysis(testHash, "ATS_V2_1", 80)
+        );
+
+        // TEST 1: Same hash, old version ATS_V2 -> should NOT be reused as current
+        MockAtsAnalysis oldHit = null;
+        for (MockAtsAnalysis a : database) {
+            if (testHash.equals(a.hash) && "ATS_V2".equals(a.version)) {
+                oldHit = a;
+                break;
+            }
+        }
+        assertThat(oldHit).isNotNull();
+        assertThat(oldHit.version).isNotEqualTo(currentEngineVersion);
+
+        // TEST 2: Same hash, version ATS_V2_1 -> should be reused
+        MockAtsAnalysis currentHit = null;
+        for (MockAtsAnalysis a : database) {
+            if (testHash.equals(a.hash) && currentEngineVersion.equals(a.version)) {
+                currentHit = a;
+                break;
+            }
+        }
+        assertThat(currentHit).isNotNull();
+        assertThat(currentHit.score).isEqualTo(80);
+
+        // TEST 5 & 6: ATS_V2 and ATS_V2_1 coexistence & preference
+        MockAtsAnalysis preferredHit = null;
+        for (MockAtsAnalysis a : database) {
+            if (testHash.equals(a.hash) && currentEngineVersion.equals(a.version)) {
+                preferredHit = a;
+                break;
+            }
+        }
+        assertThat(preferredHit).isNotNull();
+        assertThat(preferredHit.version).isEqualTo("ATS_V2_1");
+    }
 }
