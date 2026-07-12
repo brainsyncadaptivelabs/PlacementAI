@@ -331,7 +331,7 @@ Certifications: ${selected.certifications || ""}
         <p className="text-muted-foreground">Premium diagnostic analysis mapping ATS, recruiter filters, and skill compatibility.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[minmax(460px,_0.85fr)_minmax(0,_1.15fr)] gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[minmax(0,_3fr)_minmax(0,_2fr)] gap-6 items-start">
         {/* Left Input Panel */}
         <div className="space-y-6">
           <Card className="border-none shadow-sm bg-card overflow-hidden">
