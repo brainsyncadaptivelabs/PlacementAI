@@ -251,4 +251,110 @@ public class AtsScoringEngineTest {
             assertThat(studentResult.get(i).getScore()).isEqualTo(studentResult2.get(i).getScore());
         }
     }
+
+    @Test
+    public void testGlobalCalibrationAndOrderingInvariants() {
+        // 1. SECTION HEADERS ONLY
+        ScoreBreakdown sectionHeadersOnly = AtsScoringEngine.calculate(
+            "SUMMARY\nEDUCATION\nSKILLS\nPROJECTS\nEXPERIENCE",
+            Collections.emptyList(), Collections.emptyList(), "STUDENT", 0, 0, false, false, false, false, 0.0, 0, false, false,
+            false, false, false, false, false
+        );
+
+        // 2. CONTACT + SECTION HEADERS ONLY
+        ScoreBreakdown contactAndHeaders = AtsScoringEngine.calculate(
+            "SUMMARY\nEDUCATION\nSKILLS\nPROJECTS\nEXPERIENCE\nEmail: test@gmail.com\nPhone: 1234567890",
+            Collections.emptyList(), Collections.emptyList(), "STUDENT", 0, 0, false, false, false, false, 0.0, 0, false, false,
+            true, true, false, false, false
+        );
+
+        // 3. SKILLS LIST ONLY
+        ScoreBreakdown skillsOnly = AtsScoringEngine.calculate(
+            "SKILLS\nJava, Python, SQL, React, Angular, Docker",
+            Arrays.asList("Java", "Python"), Collections.emptyList(), "STUDENT", 0, 0, false, false, false, false, 0.0, 0, false, false,
+            false, false, false, false, false
+        );
+
+        // 4. SHALLOW vs MODERATE vs DEEP PROJECT
+        ScoreBreakdown shallowProject = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech in Computer Science and Engineering from ABC University 2026.\nSKILLS\nJava, Python, SQL, Docker\nPROJECTS\nDeveloped a calculator using Python.",
+            Arrays.asList("Python"), Collections.emptyList(), "STUDENT", 0, 1, false, false, false, false, 0.0, 0, false, false,
+            true, true, false, false, false
+        );
+
+        ScoreBreakdown moderateProject = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech in Computer Science and Engineering from ABC University 2026.\nSKILLS\nJava, Python, SQL, Docker\nPROJECTS\nBuilt a Flask application with authentication and MySQL database integration.",
+            Arrays.asList("Python", "Flask", "MySQL"), Collections.emptyList(), "STUDENT", 0, 1, false, false, false, false, 0.0, 0, false, false,
+            true, true, false, false, false
+        );
+
+        ScoreBreakdown deepProject = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech in Computer Science and Engineering from ABC University 2026.\nSKILLS\nJava, Python, SQL, Docker\nPROJECTS\nDesigned a Spring Boot backend with REST APIs, JWT authentication, Redis caching, rate limiting, database indexing, transactional locking, and concurrency handling.",
+            Arrays.asList("Java", "Spring Boot", "Redis", "JWT", "REST API", "indexing", "concurrency"), Collections.emptyList(), "STUDENT", 0, 1, true, true, false, false, 0.0, 0, false, false,
+            true, true, true, true, false
+        );
+
+        // Assert Project Invariants
+        assertThat(shallowProject.getOverallScore()).isLessThan(moderateProject.getOverallScore());
+        assertThat(moderateProject.getOverallScore()).isLessThan(deepProject.getOverallScore());
+
+        // 5. DOMAIN EQUIVALENCE CHECKS (BACKEND vs FRONTEND vs DEVOPS)
+        ScoreBreakdown backendDepth = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech in Computer Science and Engineering from ABC University 2026.\nSKILLS\nJava, Python, SQL, Docker\nPROJECTS\nDesigned a Spring Boot backend with REST APIs, JWT authentication, Redis caching, database indexing, transactional locking, and concurrency.",
+            Arrays.asList("Java", "Spring Boot", "Redis", "JWT", "REST API"), Collections.emptyList(), "STUDENT", 0, 1, true, true, false, false, 0.0, 0, false, false,
+            true, true, true, true, false
+        );
+
+        ScoreBreakdown frontendDepth = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech in Computer Science and Engineering from ABC University 2026.\nSKILLS\nJava, Python, SQL, Docker\nPROJECTS\nDesigned a React application with Redux state management, WCAG accessibility, lazy loading, Core Web Vitals optimization, and design system integration.",
+            Arrays.asList("React", "Redux", "state management", "accessibility"), Collections.emptyList(), "STUDENT", 0, 1, true, true, false, false, 0.0, 0, false, false,
+            true, true, true, true, false
+        );
+
+        ScoreBreakdown devopsDepth = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech in Computer Science and Engineering from ABC University 2026.\nSKILLS\nJava, Python, SQL, Docker\nPROJECTS\nBuilt CI/CD pipeline using Jenkins, Docker containerization, Kubernetes orchestration, Prometheus and Grafana monitoring, and Terraform infrastructure.",
+            Arrays.asList("Docker", "Kubernetes", "CI/CD", "Terraform"), Collections.emptyList(), "STUDENT", 0, 1, true, true, false, false, 0.0, 0, false, false,
+            true, true, true, true, false
+        );
+
+        // Verify domain equivalence proximity (within 10 points tolerance)
+        assertThat(Math.abs(backendDepth.getOverallScore() - frontendDepth.getOverallScore())).isLessThanOrEqualTo(10);
+        assertThat(Math.abs(backendDepth.getOverallScore() - devopsDepth.getOverallScore())).isLessThanOrEqualTo(10);
+    }
+
+    @Test
+    public void testBulletIntelligenceSafetyAndSkillFiltering() {
+        // Test skill inventory filtering (should NOT count as achievement bullet)
+        ScoreBreakdown resultWithSkillList = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech CSE 2026.\nSKILLS\nJava, SQL\nPROJECTS\n- Languages & Tools: Java, Python, PostgreSQL, AWS\n- Worked on simple calculator app.",
+            Arrays.asList("Java"), Collections.emptyList(), "STUDENT", 0, 1, false, false, false, false, 0.0, 0, false, false,
+            true, true, false, false, false
+        );
+        
+        // The first line "- Languages & Tools: Java, Python..." should be ignored, so the only candidate for weakBullets is the second line
+        assertThat(resultWithSkillList.getWeakBullets()).hasSize(1);
+        assertThat(resultWithSkillList.getWeakBullets().get(0).getOriginalBullet()).contains("Worked on simple calculator");
+
+        // Test rewrite safety (no metric in original -> contains MISSING EVIDENCE PROMPT, no fabricated 20% or tools)
+        ScoreBreakdown weakBulletResult = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech CSE 2026.\nSKILLS\nJava\nPROJECTS\n- Worked on java backend features.",
+            Arrays.asList("Java"), Collections.emptyList(), "STUDENT", 0, 1, false, false, false, false, 0.0, 0, false, false,
+            true, true, false, false, false
+        );
+        assertThat(weakBulletResult.getWeakBullets()).isNotEmpty();
+        String rewrite = weakBulletResult.getWeakBullets().get(0).getRewriteSuggestion();
+        assertThat(rewrite).contains("MISSING EVIDENCE PROMPT: Can you quantify API latency, request volume, user count, or processing time?");
+        assertThat(rewrite).doesNotContain("20%");
+        assertThat(rewrite).doesNotContain("custom caching policies");
+
+        // Test rewrite with metric (metric present -> no prompt appended)
+        ScoreBreakdown metricBulletResult = AtsScoringEngine.calculate(
+            "EDUCATION\nB.Tech CSE 2026.\nSKILLS\nJava\nPROJECTS\n- Worked on java backend features, reducing load time by 30%.",
+            Arrays.asList("Java"), Collections.emptyList(), "STUDENT", 0, 1, true, false, false, false, 0.0, 0, false, false,
+            true, true, false, false, false
+        );
+        assertThat(metricBulletResult.getWeakBullets()).isNotEmpty();
+        String metricRewrite = metricBulletResult.getWeakBullets().get(0).getRewriteSuggestion();
+        assertThat(metricRewrite).doesNotContain("MISSING EVIDENCE PROMPT");
+    }
 }

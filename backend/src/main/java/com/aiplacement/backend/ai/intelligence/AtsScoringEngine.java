@@ -89,6 +89,116 @@ public class AtsScoringEngine {
             "assisted", "handled", "involved in", "duties included"
     );
 
+    private static final List<List<String>> TECHNICAL_SIGNAL_FAMILIES = Arrays.asList(
+        // API / Integration
+        Arrays.asList("api", "apis", "rest api", "restful", "graphql", "websocket", "websockets", "grpc", "integration"),
+        // Security / Auth
+        Arrays.asList("jwt", "oauth", "auth", "authentication", "authorization", "rbac", "security", "encryption", "owasp", "threat modeling", "siem"),
+        // Cache / Database / Storage
+        Arrays.asList("sql", "nosql", "mysql", "postgresql", "mongodb", "redis", "cache", "caching", "indexing", "transaction", "transactions", "locking", "persistence", "local storage"),
+        // Concurrency / System Design
+        Arrays.asList("concurrency", "thread", "threads", "locking", "rate limiting", "message queue", "kafka", "rabbitmq", "microservices", "distributed", "asynchronous", "async"),
+        // Container / Cloud / Deployment
+        Arrays.asList("docker", "kubernetes", "k8s", "terraform", "ci/cd", "deployment", "deployed", "jenkins", "aws", "gcp", "azure", "cloud", "autoscaling", "load balancing"),
+        // Frontend / UI
+        Arrays.asList("component", "redux", "zustand", "context api", "state management", "accessibility", "wcag", "lazy loading", "code splitting", "ssr", "hydration", "design system"),
+        // Data / Pipelines / Analytics
+        Arrays.asList("data cleaning", "feature engineering", "eda", "statistical", "etl", "data pipeline", "model evaluation", "cross validation", "data quality"),
+        // AI / ML / LLM
+        Arrays.asList("training pipeline", "precision", "recall", "f1 score", "roc", "rag", "embeddings", "vector retrieval", "fine tuning", "inference"),
+        // Testing / Quality
+        Arrays.asList("testing", "unit test", "integration test", "api testing", "load testing", "coverage", "regression testing", "automation framework", "pytest", "junit"),
+        // Observability / Monitoring
+        Arrays.asList("prometheus", "grafana", "logging", "monitoring", "observability", "elk stack", "datadog")
+    );
+
+    private static final List<String> OWNERSHIP_VERBS = Arrays.asList(
+        "owned", "led", "architected", "designed", "coordinated", "reviewed", 
+        "mentored", "delivered", "deployed", "migrated", "scaled", "optimized", 
+        "implemented", "integrated"
+    );
+
+    private static int getTechnicalSignalFamilyCount(String text) {
+        if (text == null || text.trim().isEmpty()) return 0;
+        String lower = text.toLowerCase();
+        int count = 0;
+        for (List<String> family : TECHNICAL_SIGNAL_FAMILIES) {
+            boolean matched = false;
+            for (String keyword : family) {
+                if (lower.contains(keyword)) {
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) count++;
+        }
+        return count;
+    }
+
+    private static int countOwnershipSignals(String text) {
+        if (text == null || text.trim().isEmpty()) return 0;
+        String[] lines = text.toLowerCase().split("\\r?\\n");
+        int count = 0;
+        for (String line : lines) {
+            String trimmed = line.trim();
+            if (trimmed.isEmpty()) continue;
+            boolean hasVerb = false;
+            for (String verb : OWNERSHIP_VERBS) {
+                if (trimmed.contains(verb)) {
+                    hasVerb = true;
+                    break;
+                }
+            }
+            if (hasVerb) {
+                int wordCount = trimmed.split("\\s+").length;
+                boolean hasTechnical = false;
+                for (List<String> family : TECHNICAL_SIGNAL_FAMILIES) {
+                    for (String kw : family) {
+                        if (trimmed.contains(kw)) {
+                            hasTechnical = true;
+                            break;
+                        }
+                    }
+                    if (hasTechnical) break;
+                }
+                if (wordCount >= 8 || hasTechnical) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static String generateSafeRewrite(String originalBullet, List<String> skills, boolean hasNum) {
+        String lower = originalBullet.toLowerCase();
+        String strongVerb = "Developed";
+        if (lower.contains("work") || lower.contains("build") || lower.contains("built")) strongVerb = "Spearheaded";
+        else if (lower.contains("design") || lower.contains("creat")) strongVerb = "Designed";
+        else if (lower.contains("optimi")) strongVerb = "Optimized";
+        else if (lower.contains("deploy")) strongVerb = "Deployed";
+        else if (lower.contains("integ")) strongVerb = "Integrated";
+        else if (lower.contains("run") || lower.contains("manag")) strongVerb = "Orchestrated";
+
+        List<String> matched = new ArrayList<>();
+        for (String sk : skills) {
+            if (lower.contains(sk.toLowerCase())) {
+                matched.add(sk);
+            }
+        }
+        if (matched.isEmpty()) {
+            matched.add(skills.isEmpty() ? "application feature" : skills.get(0));
+        }
+
+        String techContext = String.join(" and ", matched);
+        String baseRewrite = strongVerb + " " + techContext + " services with structured application integration and database-backed workflows";
+        
+        if (hasNum) {
+            return baseRewrite + ".";
+        } else {
+            return baseRewrite + ". MISSING EVIDENCE PROMPT: Can you quantify API latency, request volume, user count, or processing time?";
+        }
+    }
+
     private static final List<String> FIRST_PERSON = Arrays.asList(
             "i", "me", "my", "myself", "we", "us", "our", "ours", "ourselves"
     );
@@ -308,7 +418,13 @@ public class AtsScoringEngine {
                 .recommendation(contactPts == 3 ? "Contact info is complete." : "Add missing contact details. A professional recruiter requires email, phone, and LinkedIn link.")
                 .build());
 
-        int eduPts = hasEduSection ? 3 : 0;
+        int eduPts = 0;
+        if (hasEduSection) {
+            boolean hasSubstance = lowerText.contains("b.tech") || lowerText.contains("b.e") || lowerText.contains("bsc") || 
+                                   lowerText.contains("mca") || lowerText.contains("degree") || lowerText.contains("college") || 
+                                   lowerText.contains("university") || cgpaVal > 0.0 || hasGradYear;
+            eduPts = hasSubstance ? 3 : 1;
+        }
         earnedB += eduPts;
         checks.add(AtsResponseDto.AtsCheckDto.builder()
                 .checkId("ATS_SECTION_EDUCATION")
@@ -322,7 +438,11 @@ public class AtsScoringEngine {
                 .recommendation(hasEduSection ? "Section found." : "Create a clear 'Education' section heading.")
                 .build());
 
-        int skillSectionPts = hasSkillsSection ? 3 : 0;
+        int skillSectionPts = 0;
+        if (hasSkillsSection) {
+            boolean hasSubstance = !matchedSkills.isEmpty() || !missingSkills.isEmpty() || wordCount > 100;
+            skillSectionPts = hasSubstance ? 3 : 1;
+        }
         earnedB += skillSectionPts;
         checks.add(AtsResponseDto.AtsCheckDto.builder()
                 .checkId("ATS_SECTION_SKILLS")
@@ -339,10 +459,18 @@ public class AtsScoringEngine {
         // Experience or projects carrying structural weight (6 pts)
         int expProjPts = 0;
         if ("STUDENT".equals(candidateType) || "FRESHER".equals(candidateType)) {
-            if (hasProjSection || hasExpSection) expProjPts = 6;
+            if (hasProjSection || hasExpSection) {
+                boolean hasSubstance = (hasProjSection && projectCount > 0) || (hasExpSection && (yearsOfExp > 0 || lowerText.contains("intern") || lowerText.contains("trainee")));
+                expProjPts = hasSubstance ? 6 : 2;
+            }
         } else {
-            if (hasExpSection) expProjPts = 6;
-            else if (hasProjSection) expProjPts = 3;
+            if (hasExpSection) {
+                boolean hasSubstance = yearsOfExp > 0 || wordCount > 150;
+                expProjPts = hasSubstance ? 6 : 2;
+            } else if (hasProjSection) {
+                boolean hasSubstance = projectCount > 0;
+                expProjPts = hasSubstance ? 3 : 1;
+            }
         }
         earnedB += expProjPts;
         checks.add(AtsResponseDto.AtsCheckDto.builder()
@@ -384,8 +512,15 @@ public class AtsScoringEngine {
 
         // Count metrics / percentages
         int metricCount = 0;
-        Matcher numMatcher = Pattern.compile("\\b(\\d+%)|\\b(\\d+\\+?\\s*(?:LPA|cr|users|GB|MB|ms|seconds|x))\\b", Pattern.CASE_INSENSITIVE).matcher(cleanText);
+        Matcher numMatcher = Pattern.compile("\\b(\\d+%|\\d+\\+?\\s*(?:LPA|cr|users|GB|MB|ms|milliseconds|seconds|x|requests per second|rps|uptime|percent|coverage|test cases)\\b)", Pattern.CASE_INSENSITIVE).matcher(cleanText);
         while (numMatcher.find()) {
+            String val = numMatcher.group().trim().toLowerCase();
+            // Guard against years
+            if (val.matches("^(19|20)\\d{2}\\+?$")) continue;
+            // Guard against versions or ports (e.g., 8080, 5432, 3000, 3, 17, etc.)
+            if (val.matches("^(8080|3000|5432|80|443|17|11|8|21)$")) continue;
+            // Guard against decimal numbers that represent CGPA or GPA
+            if (val.contains(".") && val.matches("^[0-9]\\.[0-9]$")) continue;
             metricCount++;
         }
         int metricPts = metricCount >= 5 ? 7 : (metricCount >= 3 ? 4 : 1);
@@ -506,8 +641,17 @@ public class AtsScoringEngine {
                     .build());
         }
 
-        double evidenceRatio = (double) skillsWithEvidence / Math.max(1, allExtractedSkills.size());
-        int evidencePts = evidenceRatio >= 0.8 ? 10 : (evidenceRatio >= 0.5 ? 6 : (evidenceRatio >= 0.2 ? 3 : 0));
+        double evidenceSum = 0.0;
+        for (AtsResponseDto.SkillEvidenceDto se : skillEvidence) {
+            if ("STRONG_EVIDENCE".equals(se.getCredibilityStatus())) {
+                evidenceSum += 2.0;
+            } else if ("PARTIAL_EVIDENCE".equals(se.getCredibilityStatus())) {
+                evidenceSum += 1.0;
+            } else {
+                evidenceSum += 0.1;
+            }
+        }
+        int evidencePts = evidenceSum >= 12.0 ? 10 : (evidenceSum >= 8.0 ? 8 : (evidenceSum >= 5.0 ? 6 : (evidenceSum >= 3.0 ? 4 : (evidenceSum >= 1.0 ? 2 : 0))));
         earnedD += evidencePts;
         checks.add(AtsResponseDto.AtsCheckDto.builder()
                 .checkId("ATS_SKILL_EVIDENCE")
@@ -517,7 +661,7 @@ public class AtsScoringEngine {
                 .maxPoints(10).earnedPoints(evidencePts)
                 .severity(evidencePts == 10 ? "INFO" : "HIGH")
                 .status(evidencePts == 10 ? "PASS" : "FAIL")
-                .evidence(skillsWithEvidence + " out of " + allExtractedSkills.size() + " skills have evidence.")
+                .evidence(skillsWithEvidence + " out of " + allExtractedSkills.size() + " skills have evidence (Evidence score: " + String.format("%.1f", evidenceSum) + ").")
                 .recommendation(evidencePts == 10 ? "Skills are fully backed." : "Ensure your technical skills are explicitly mentioned in the project/experience bullets.")
                 .build());
 
@@ -537,10 +681,31 @@ public class AtsScoringEngine {
 
         // E. Project and Experience Intelligence (15 points)
         int earnedE = 0;
+        int technicalSignals = getTechnicalSignalFamilyCount(cleanText);
+        int ownershipSignals = countOwnershipSignals(cleanText);
+
         if ("STUDENT".equals(candidateType) || "FRESHER".equals(candidateType)) {
             // For freshers, projects are primary
-            int projDepthPts = hasSkillsSection && projectCount >= 2 ? 5 : 2;
-            int projOutcomePts = hasMetrics ? 5 : 2;
+            int projDepthPts = 0;
+            if (projectCount == 0) {
+                projDepthPts = 0;
+            } else if (technicalSignals <= 1) {
+                projDepthPts = 2; // Shallow: TIER 1
+            } else if (technicalSignals <= 3) {
+                projDepthPts = 3; // Moderate: TIER 2
+            } else if (technicalSignals <= 5) {
+                projDepthPts = 4; // Multiple families: TIER 3/4
+            } else {
+                projDepthPts = 5; // Exceptional: TIER 5
+            }
+
+            int projOutcomePts = 1;
+            if (hasMetrics && technicalSignals >= 4) {
+                projOutcomePts = 5;
+            } else if (hasMetrics || technicalSignals >= 2) {
+                projOutcomePts = 3;
+            }
+
             int projLinkPts = hasGithub || hasLiveLink ? 5 : 0;
             
             earnedE = projDepthPts + projOutcomePts + projLinkPts;
@@ -552,7 +717,7 @@ public class AtsScoringEngine {
                     .maxPoints(5).earnedPoints(projDepthPts)
                     .severity(projDepthPts == 5 ? "INFO" : "MEDIUM")
                     .status(projDepthPts == 5 ? "PASS" : "WARNING")
-                    .evidence("Project count: " + projectCount)
+                    .evidence("Project count: " + projectCount + ", Tech signals: " + technicalSignals)
                     .recommendation("Clearly describe database, API architecture, or frameworks used in projects.")
                     .build());
 
@@ -564,7 +729,7 @@ public class AtsScoringEngine {
                     .maxPoints(5).earnedPoints(projOutcomePts)
                     .severity(projOutcomePts == 5 ? "INFO" : "MEDIUM")
                     .status(projOutcomePts == 5 ? "PASS" : "WARNING")
-                    .evidence("Project metrics present: " + hasMetrics)
+                    .evidence("Project metrics present: " + hasMetrics + ", Tech signals: " + technicalSignals)
                     .recommendation("Describe speed improvements, cost savings, or user counts for your projects.")
                     .build());
 
@@ -581,8 +746,26 @@ public class AtsScoringEngine {
                     .build());
         } else {
             // For experienced candidates, roles are primary
-            int expDepthPts = hasSkillsSection && yearsOfExp >= 3 ? 7 : 4;
-            int expOutcomePts = hasMetrics ? 5 : 2;
+            int expDepthPts = 0;
+            if (yearsOfExp <= 0) {
+                expDepthPts = 1;
+            } else if (technicalSignals <= 2) {
+                expDepthPts = 3;
+            } else if (technicalSignals <= 5) {
+                expDepthPts = 5;
+            } else if (technicalSignals >= 6 && ownershipSignals >= 1) {
+                expDepthPts = 7;
+            } else {
+                expDepthPts = 6;
+            }
+
+            int expOutcomePts = 1;
+            if (hasMetrics && technicalSignals >= 5) {
+                expOutcomePts = 5;
+            } else if (hasMetrics) {
+                expOutcomePts = 4;
+            }
+
             int expLinkPts = hasLinkedin || hasGithub ? 3 : 0;
             
             earnedE = expDepthPts + expOutcomePts + expLinkPts;
@@ -594,7 +777,7 @@ public class AtsScoringEngine {
                     .maxPoints(7).earnedPoints(expDepthPts)
                     .severity(expDepthPts == 7 ? "INFO" : "MEDIUM")
                     .status(expDepthPts == 7 ? "PASS" : "WARNING")
-                    .evidence("Years of Exp: " + yearsOfExp)
+                    .evidence("Years of Exp: " + yearsOfExp + ", Tech signals: " + technicalSignals + ", Ownership: " + ownershipSignals)
                     .recommendation("Add details showing role responsibilities and how you led technical tasks.")
                     .build());
 
@@ -634,8 +817,13 @@ public class AtsScoringEngine {
         for (String line : lines) {
             String cleanLine = line.trim();
             if (cleanLine.startsWith("-") || cleanLine.startsWith("*") || cleanLine.startsWith("•") || cleanLine.matches("^\\d+\\..*")) {
-                totalBullets++;
                 String bulletText = cleanLine.replaceAll("^[-*•\\d+.]+", "").trim();
+                boolean isSkillInventory = bulletText.toLowerCase().matches(".*\\b(languages|frameworks|technologies|tools|databases|skills|developer tools)\\b\\s*:.*") ||
+                                           (bulletText.contains(",") && bulletText.split(",").length > 3 && !bulletText.contains(" developed") && !bulletText.contains(" built") && !bulletText.contains(" designed") && !bulletText.contains(" implemented"));
+                if (isSkillInventory) {
+                    continue;
+                }
+                totalBullets++;
                 int bulletWordCount = bulletText.split("\\s+").length;
                 
                 boolean appropriate = bulletWordCount >= 10 && bulletWordCount <= 35;
@@ -651,7 +839,7 @@ public class AtsScoringEngine {
                     }
                 }
                 
-                boolean hasNum = bulletText.matches(".*\\d+.*");
+                boolean hasNum = bulletText.matches(".*\\b(\\d+%|\\d+\\+?\\s*(?:LPA|cr|users|GB|MB|ms|milliseconds|seconds|x|requests per second|rps|uptime|percent|coverage|test cases)\\b).*");
                 if (!hasNum) {
                     problems.add("Lacks numerical metric/quantification");
                 }
@@ -665,13 +853,13 @@ public class AtsScoringEngine {
                 }
 
                 if (!problems.isEmpty() && weakBullets.size() < 3) {
-                    String cleanSkill = matchedSkills.isEmpty() ? "Java" : matchedSkills.get(0);
+                    String safeRewrite = generateSafeRewrite(cleanLine, matchedSkills, hasNum);
                     weakBullets.add(AtsResponseDto.WeakBulletDto.builder()
                             .originalBullet(cleanLine)
                             .problems(problems)
                             .whyItIsWeak(problems.get(0))
-                            .improvementStrategy("Use a strong action verb, remove any first person pronouns, and add a quantifiable metric (e.g. reduced load time by 20%).")
-                            .rewriteSuggestion("Spearheaded " + cleanSkill + " backend development, accelerating API response speed by 20% through custom caching policies.")
+                            .improvementStrategy("Use a strong action verb, remove any first person pronouns, and add a quantifiable metric (e.g., reduced latency by 30%).")
+                            .rewriteSuggestion(safeRewrite)
                             .build());
                 }
             }

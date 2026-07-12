@@ -94,8 +94,8 @@ public class ResumeServiceImpl implements ResumeService {
             // SHA-256 Cache Hit Check
             java.util.List<AtsAnalysis> existingAnalyses = atsAnalysisRepository.findByUserOrderByCreatedAtDesc(user);
             for (AtsAnalysis a : existingAnalyses) {
-                if (resumeHash.equals(a.getResumeHash()) && a.getRawJson() != null) {
-                    log.info("Resume cache hit (SHA-256 hash match). Returning cached analysis.");
+                if (resumeHash.equals(a.getResumeHash()) && "ATS_V2_1".equals(a.getEngineVersion()) && a.getRawJson() != null) {
+                    log.info("Resume cache hit (SHA-256 hash match with version ATS_V2_1). Returning cached analysis.");
                     try {
                         AtsResponseDto atsResponse = objectMapper.readValue(a.getRawJson(), AtsResponseDto.class);
                         atsResponse.setExtractedText(extractedText);
@@ -149,7 +149,7 @@ public class ResumeServiceImpl implements ResumeService {
                     .user(user)
                     .createdAt(LocalDateTime.now())
                     .analysisVersion("1.0")
-                    .engineVersion("ATS_V2")
+                    .engineVersion("ATS_V2_1")
                     .promptVersion("1.0")
                     .kbVersion("1.0")
                     .industry(atsResponse.getIndustry())
