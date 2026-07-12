@@ -545,7 +545,7 @@ export default function AtsAnalysisFromHistoryPage() {
               <span className="p-4 text-[10px] uppercase font-bold text-muted-foreground tracking-wider block shrink-0 bg-slate-100/50 dark:bg-slate-900/60">Resume Sections</span>
               <div className="p-2 space-y-1">
                 {["Summary", "Education", "Skills", "Projects", "Experience", "Certifications", "Contact & Profile"].map((secName) => {
-                  const mappedSec = analysis.atsSectionScores?.find(s => s.section.toLowerCase().startsWith(secName.toLowerCase().split(" ")[0]));
+                  const mappedSec = analysis.atsSectionScores?.find(s => (s.section || "").toLowerCase().startsWith((secName || "").toLowerCase().split(" ")[0]));
                   return (
                     <button
                       key={secName}
@@ -570,7 +570,7 @@ export default function AtsAnalysisFromHistoryPage() {
             {/* Selected Section Details Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {(() => {
-                const secDetails = analysis.atsSectionScores?.find(s => s.section.toLowerCase().startsWith(selectedSection.toLowerCase().split(" ")[0]));
+                const secDetails = analysis.atsSectionScores?.find(s => (s.section || "").toLowerCase().startsWith((selectedSection || "").toLowerCase().split(" ")[0]));
                 if (!secDetails) {
                   return <p className="text-xs text-muted-foreground">Section details unavailable for {selectedSection}.</p>;
                 }
@@ -580,10 +580,10 @@ export default function AtsAnalysisFromHistoryPage() {
                   const lowerSec = selectedSection.toLowerCase();
                   const lowerOrig = wb.originalBullet.toLowerCase();
                   if (lowerSec.startsWith("proj")) {
-                    return lowerOrig.includes("project") || lowerOrig.includes("built") || lowerOrig.contains("developed") || lowerOrig.contains("designed");
+                    return lowerOrig.includes("project") || lowerOrig.includes("built") || lowerOrig.includes("developed") || lowerOrig.includes("designed");
                   }
                   if (lowerSec.startsWith("exp")) {
-                    return lowerOrig.includes("intern") || lowerOrig.contains("work") || lowerOrig.contains("role") || lowerOrig.contains("job");
+                    return lowerOrig.includes("intern") || lowerOrig.includes("work") || lowerOrig.includes("role") || lowerOrig.includes("job");
                   }
                   return false;
                 }) || [];
@@ -754,7 +754,8 @@ export default function AtsAnalysisFromHistoryPage() {
               <CardContent className="flex-1 overflow-y-auto p-0 border-t">
                 {(() => {
                   const filteredSkills = analysis.skillEvidence?.filter(sk => {
-                    const matchesSearch = sk.skill.toLowerCase().includes(skillSearch.toLowerCase());
+                    const skillName = sk.skill || "";
+                    const matchesSearch = skillName.toLowerCase().includes(skillSearch.toLowerCase());
                     const matchesType = skillFilter === "ALL" || sk.credibilityStatus === skillFilter;
                     return matchesSearch && matchesType;
                   }) || [];
