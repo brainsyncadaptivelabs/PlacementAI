@@ -74,23 +74,7 @@ export default function LandingPage() {
                     See How It Works
                   </Button>
                 </div>
-                <div className="flex items-center gap-8 pt-4">
-                   <div className="flex -space-x-3">
-                      {[1,2,3,4].map(i => (
-                         <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm relative">
-                            <Image 
-                               src={`https://i.pravatar.cc/100?img=${i+10}`} 
-                               alt="user" 
-                               fill 
-                               sizes="40px"
-                               className="object-cover" 
-                            />
-                         </div>
-                      ))}
-                      <div className="w-10 h-10 rounded-full border-2 border-white bg-primary flex items-center justify-center text-white text-[10px] font-bold">+2k</div>
-                   </div>
-                   <p className="text-sm font-bold text-muted-foreground/70 uppercase tracking-wider">Trusted by 2,000+ Students</p>
-                </div>
+
               </div>
               <div className="lg:w-1/2 w-full relative">
                 <div className="relative aspect-[4/3] rounded-3xl bg-slate-900/5 overflow-hidden border border-border shadow-2xl p-4 group">
