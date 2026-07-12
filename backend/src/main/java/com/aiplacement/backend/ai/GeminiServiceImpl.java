@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -219,11 +221,11 @@ public class GeminiServiceImpl implements GeminiService {
             // 9. Build and return the final DTO
             return AtsResponseDto.builder()
                     .atsScore(scoring.getOverallScore())
-                    .strengths(strengths)
-                    .weaknesses(weaknesses)
+                    .strengths(scoring.getTopStrengths().isEmpty() ? strengths : scoring.getTopStrengths())
+                    .weaknesses(scoring.getCriticalIssues().isEmpty() ? weaknesses : scoring.getCriticalIssues())
                     .missingKeywords(missingKeywords)
                     .matchedKeywords(matchedKeywords)
-                    .suggestions(suggestions)
+                    .suggestions(scoring.getQuickWins().isEmpty() ? suggestions : scoring.getQuickWins())
                     .bestRole(primaryProfession)
                     .sectionScores(scoring.getCategories())
                     .recruiterFeedback(recruiterFeedback)
@@ -240,7 +242,7 @@ public class GeminiServiceImpl implements GeminiService {
                     .experienceLevelConfidence(experienceLevelConfidence)
                     .primaryProfessionConfidence(primaryProfessionConfidence)
                     .industryConfidence(industryConfidence)
-                    .experienceLevel(experienceLevel)
+                    .experienceLevel(scoring.getCandidateType()) // Map detected candidate type or exp level
                     .targetRole(jobDescription != null ? "Target Role Alignment" : primaryProfession)
                     .placementReadiness(readiness)
                     .criticalSkills(criticalSkills)
@@ -250,6 +252,22 @@ public class GeminiServiceImpl implements GeminiService {
                     .improvements(improvements)
                     .isJobDescriptionComparison(jobDescription != null)
                     .jobDescriptionTitle(jobDescription != null ? "Selected Job Description" : null)
+                    // V2 fields mapping
+                    .scoreBand(scoring.getScoreBand())
+                    .candidateType(scoring.getCandidateType())
+                    .candidateTypeConfidence(scoring.getCandidateTypeConfidence())
+                    .candidateTypeEvidence(scoring.getCandidateTypeEvidence())
+                    .confidence(scoring.getConfidence())
+                    .parseConfidence(scoring.getParseConfidence())
+                    .parseWarnings(scoring.getParseWarnings())
+                    .extractedCharacterCount(scoring.getExtractedCharacterCount())
+                    .detectedSectionCount(scoring.getDetectedSectionCount())
+                    .checks(scoring.getChecks())
+                    .skillEvidence(scoring.getSkillEvidence())
+                    .weakBullets(scoring.getWeakBullets())
+                    .topStrengths(scoring.getTopStrengths())
+                    .criticalIssues(scoring.getCriticalIssues())
+                    .quickWins(scoring.getQuickWins())
                     .build();
 
         } catch (Exception e) {
@@ -347,23 +365,72 @@ public class GeminiServiceImpl implements GeminiService {
 
     private AtsResponseDto getFallbackAts(String resumeText, boolean insufficientInfo) {
         String msg = insufficientInfo ? "Insufficient information" : "Analysis offline";
+        
+        List<String> matched = new ArrayList<>();
+        String[] keywords = {"Java", "Python", "React", "Docker", "SQL", "Spring Boot", "Git"};
+        for (String kw : keywords) {
+            if (resumeText != null && resumeText.toLowerCase().contains(kw.toLowerCase())) {
+                matched.add(kw);
+            }
+        }
+        
+        boolean hasEmail = resumeText != null && Pattern.compile("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", Pattern.CASE_INSENSITIVE).matcher(resumeText).find();
+        boolean hasPhone = resumeText != null && Pattern.compile("(\\+?\\d{1,3}[-.\\s]?)?\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}|\\b\\d{10}\\b").matcher(resumeText).find();
+        boolean hasLinkedin = resumeText != null && resumeText.toLowerCase().contains("linkedin.com/");
+        boolean hasGithub = resumeText != null && resumeText.toLowerCase().contains("github.com/");
+        boolean hasPortfolio = resumeText != null && (resumeText.toLowerCase().contains("portfolio") || resumeText.toLowerCase().contains("personal website"));
+        boolean hasDegree = resumeText != null && Pattern.compile("B\\.?Tech|B\\.?E\\.?|M\\.?Tech|MCA", Pattern.CASE_INSENSITIVE).matcher(resumeText).find();
+        boolean hasTopCollege = resumeText != null && Pattern.compile("IIT|NIT|IIIT|BITS", Pattern.CASE_INSENSITIVE).matcher(resumeText).find();
+        boolean hasMetrics = resumeText != null && Pattern.compile("\\b(\\d+%|\\d+\\+?\\s*(?:LPA|cr|users|GB|MB|ms))\\b", Pattern.CASE_INSENSITIVE).matcher(resumeText).find();
+        boolean hasLiveLink = resumeText != null && Pattern.compile("http[s]?://", Pattern.CASE_INSENSITIVE).matcher(resumeText).find();
+        
+        double cgpa = 0.0;
+        if (resumeText != null) {
+            Matcher m = Pattern.compile("\\b(?:cgpa|gpa|pointer)\\b:?\\s*\\b([0-9](?:\\.[0-9]{1,2})?)\\b", Pattern.CASE_INSENSITIVE).matcher(resumeText);
+            if (m.find()) {
+                try { cgpa = Double.parseDouble(m.group(1)); } catch (Exception ignored) {}
+            }
+        }
+        
+        int yearsOfExp = 0;
+        if (resumeText != null) {
+            Matcher m = Pattern.compile("(\\d+)\\+?\\s*years?\\s+(?:of\\s+)?(?:experience|exp)", Pattern.CASE_INSENSITIVE).matcher(resumeText);
+            if (m.find()) {
+                try { yearsOfExp = Integer.parseInt(m.group(1)); } catch (Exception ignored) {}
+            }
+        }
+        
+        int projectCount = 0;
+        if (resumeText != null) {
+            Matcher m = Pattern.compile("project", Pattern.CASE_INSENSITIVE).matcher(resumeText);
+            while (m.find() && projectCount < 3) projectCount++;
+        }
+        
+        AtsScoringEngine.ScoreBreakdown scoring = AtsScoringEngine.calculate(
+                resumeText, matched, new ArrayList<>(), "Fresher", yearsOfExp, projectCount,
+                hasMetrics, hasLiveLink, hasDegree, hasTopCollege, cgpa, 0,
+                hasCompetitiveCoding(resumeText), hasCertifications(resumeText),
+                hasEmail, hasPhone, hasLinkedin, hasGithub, hasPortfolio
+        );
+        
         return AtsResponseDto.builder()
-                .atsScore(null)
-                .strengths(List.of())
-                .weaknesses(List.of())
+                .atsScore(scoring.getOverallScore())
+                .strengths(scoring.getTopStrengths())
+                .weaknesses(scoring.getCriticalIssues())
                 .missingKeywords(List.of())
-                .matchedKeywords(List.of())
-                .suggestions(List.of(msg))
-                .bestRole(msg)
+                .matchedKeywords(matched)
+                .suggestions(scoring.getQuickWins())
+                .bestRole("General Software Engineer")
+                .sectionScores(scoring.getCategories())
                 .recruiterFeedback(msg)
                 .minSalary("N/A")
                 .maxSalary("N/A")
                 .salaryExplanation(msg)
-                .industry(msg)
-                .careerDomain(msg)
-                .primaryProfession(msg)
-                .subDomain(msg)
-                .experienceLevel(msg)
+                .industry("Information Technology")
+                .careerDomain("Software Engineering")
+                .primaryProfession("Software Engineer")
+                .subDomain("General Development")
+                .experienceLevel(scoring.getCandidateType())
                 .targetRole(msg)
                 .placementReadiness(Map.of())
                 .criticalSkills(List.of())
@@ -371,6 +438,21 @@ public class GeminiServiceImpl implements GeminiService {
                 .niceToHaveSkills(List.of())
                 .companyMatches(List.of())
                 .improvements(List.of())
+                .scoreBand(scoring.getScoreBand())
+                .candidateType(scoring.getCandidateType())
+                .candidateTypeConfidence(scoring.getCandidateTypeConfidence())
+                .candidateTypeEvidence(scoring.getCandidateTypeEvidence())
+                .confidence(scoring.getConfidence())
+                .parseConfidence(scoring.getParseConfidence())
+                .parseWarnings(scoring.getParseWarnings())
+                .extractedCharacterCount(scoring.getExtractedCharacterCount())
+                .detectedSectionCount(scoring.getDetectedSectionCount())
+                .checks(scoring.getChecks())
+                .skillEvidence(scoring.getSkillEvidence())
+                .weakBullets(scoring.getWeakBullets())
+                .topStrengths(scoring.getTopStrengths())
+                .criticalIssues(scoring.getCriticalIssues())
+                .quickWins(scoring.getQuickWins())
                 .build();
     }
 }

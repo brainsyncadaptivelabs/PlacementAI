@@ -148,7 +148,7 @@ public class ResumeServiceImpl implements ResumeService {
                     .user(user)
                     .createdAt(LocalDateTime.now())
                     .analysisVersion("1.0")
-                    .engineVersion("1.0")
+                    .engineVersion("ATS_V2")
                     .promptVersion("1.0")
                     .kbVersion("1.0")
                     .industry(atsResponse.getIndustry())

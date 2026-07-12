@@ -86,6 +86,21 @@ public class AtsDetailsServiceImpl implements AtsDetailsService {
                         .detailedSuggestions(responseDto.getDetailedSuggestions())
                         .isJobDescriptionComparison(responseDto.getIsJobDescriptionComparison())
                         .jobDescriptionTitle(responseDto.getJobDescriptionTitle())
+                        .scoreBand(responseDto.getScoreBand())
+                        .candidateType(responseDto.getCandidateType())
+                        .candidateTypeConfidence(responseDto.getCandidateTypeConfidence())
+                        .candidateTypeEvidence(responseDto.getCandidateTypeEvidence())
+                        .confidence(responseDto.getConfidence())
+                        .parseConfidence(responseDto.getParseConfidence())
+                        .parseWarnings(responseDto.getParseWarnings())
+                        .extractedCharacterCount(responseDto.getExtractedCharacterCount())
+                        .detectedSectionCount(responseDto.getDetectedSectionCount())
+                        .checks(responseDto.getChecks())
+                        .skillEvidence(responseDto.getSkillEvidence())
+                        .weakBullets(responseDto.getWeakBullets())
+                        .topStrengths(responseDto.getTopStrengths())
+                        .criticalIssues(responseDto.getCriticalIssues())
+                        .quickWins(responseDto.getQuickWins())
                         .build();
             } catch (Exception ex) {
                 log.error("Failed to parse rawJson from database", ex);

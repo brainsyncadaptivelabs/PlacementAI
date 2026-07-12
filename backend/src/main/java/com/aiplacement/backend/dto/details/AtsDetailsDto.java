@@ -56,4 +56,21 @@ public class AtsDetailsDto {
 
     private Boolean isJobDescriptionComparison;
     private String jobDescriptionTitle;
+
+    // V2 Fields
+    private String scoreBand;
+    private String candidateType;
+    private Double candidateTypeConfidence;
+    private List<String> candidateTypeEvidence;
+    private String confidence;
+    private Double parseConfidence;
+    private List<String> parseWarnings;
+    private Integer extractedCharacterCount;
+    private Integer detectedSectionCount;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.AtsCheckDto> checks;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.SkillEvidenceDto> skillEvidence;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.WeakBulletDto> weakBullets;
+    private List<String> topStrengths;
+    private List<String> criticalIssues;
+    private List<String> quickWins;
 }

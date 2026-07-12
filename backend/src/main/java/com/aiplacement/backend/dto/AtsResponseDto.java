@@ -66,6 +66,71 @@ public class AtsResponseDto {
     private Boolean isJobDescriptionComparison;
     private String jobDescriptionTitle;
 
+    // V2 Fields
+    private String scoreBand;
+    private String candidateType;
+    private Double candidateTypeConfidence;
+    private List<String> candidateTypeEvidence;
+    private String confidence;
+    private Double parseConfidence;
+    private List<String> parseWarnings;
+    private Integer extractedCharacterCount;
+    private Integer detectedSectionCount;
+    private List<AtsCheckDto> checks;
+    private List<SkillEvidenceDto> skillEvidence;
+    private List<WeakBulletDto> weakBullets;
+    private List<String> topStrengths;
+    private List<String> criticalIssues;
+    private List<String> quickWins;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AtsCheckDto {
+        private String checkId;
+        private String category;
+        private String title;
+        private String description;
+        private Integer maxPoints;
+        private Integer earnedPoints;
+        private String severity;
+        private String status;
+        private String evidence;
+        private String recommendation;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SkillEvidenceDto {
+        private String skill;
+        private Boolean listedInSkills;
+        private Boolean foundInProjects;
+        private Boolean foundInExperience;
+        private Boolean foundInInternships;
+        private Integer evidenceCount;
+        private List<String> evidenceSnippets;
+        private String credibilityStatus;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class WeakBulletDto {
+        private String originalBullet;
+        private List<String> problems;
+        private String whyItIsWeak;
+        private String improvementStrategy;
+        private String rewriteSuggestion;
+    }
+
+
     @Getter
     @Setter
     @NoArgsConstructor

@@ -47,6 +47,46 @@ interface AtsAnalysisData {
   salaryExplanation?: string;
   isJobDescriptionComparison?: boolean;
   jobDescriptionTitle?: string;
+
+  // V2 Fields
+  scoreBand?: string;
+  candidateType?: string;
+  candidateTypeConfidence?: number;
+  candidateTypeEvidence?: string[];
+  confidence?: string;
+  parseConfidence?: number;
+  parseWarnings?: string[];
+  extractedCharacterCount?: number;
+  detectedSectionCount?: number;
+  checks?: Array<{
+    checkId: string;
+    category: string;
+    title: string;
+    description: string;
+    maxPoints: number;
+    earnedPoints: number;
+    severity: string;
+    status: string;
+    evidence: string;
+    recommendation: string;
+  }>;
+  skillEvidence?: Array<{
+    skill: string;
+    listedInSkills: boolean;
+    foundInProjects: boolean;
+    foundInExperience: boolean;
+    foundInInternships: boolean;
+    evidenceCount: number;
+    evidenceSnippets: string[];
+    credibilityStatus: string;
+  }>;
+  weakBullets?: Array<{
+    originalBullet: string;
+    problems: string[];
+    whyItIsWeak: string;
+    improvementStrategy: string;
+    rewriteSuggestion: string;
+  }>;
 }
 
 function buildScoringEngine(analysis: AtsAnalysisData) {
@@ -574,6 +614,120 @@ export default function AtsAnalysisDashboard() {
               </div>
             </CardContent>
           </Card>
+          {/* Skill Evidence Gaps Graph */}
+          {analysis.skillEvidence && analysis.skillEvidence.length > 0 && (
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader>
+                <CardTitle className="text-base font-black">🔍 Skill Evidence Graph</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 border-t">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-900 text-[10px] uppercase font-bold text-muted-foreground tracking-wider border-b border-border">
+                      <tr>
+                        <th className="py-3 px-4">Skill</th>
+                        <th className="py-3 px-4">Listed</th>
+                        <th className="py-3 px-4">In Projects</th>
+                        <th className="py-3 px-4">In Experience</th>
+                        <th className="py-3 px-4">In Internships</th>
+                        <th className="py-3 px-4 text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border text-xs">
+                      {analysis.skillEvidence.map((sk, i) => (
+                        <tr key={i} className="hover:bg-muted/30">
+                          <td className="py-3 px-4 font-bold text-foreground">{sk.skill}</td>
+                          <td className="py-3 px-4">{sk.listedInSkills ? "✅" : "❌"}</td>
+                          <td className="py-3 px-4">{sk.foundInProjects ? "✅" : "❌"}</td>
+                          <td className="py-3 px-4">{sk.foundInExperience ? "✅" : "❌"}</td>
+                          <td className="py-3 px-4">{sk.foundInInternships ? "✅" : "❌"}</td>
+                          <td className="py-3 px-4 text-center">
+                            <Badge className={cn("text-[10px] font-bold border-none",
+                              sk.credibilityStatus === "STRONG_EVIDENCE" ? "bg-emerald-100 text-emerald-800" :
+                              sk.credibilityStatus === "PARTIAL_EVIDENCE" ? "bg-blue-100 text-blue-800" :
+                              "bg-amber-100 text-amber-800"
+                            )}>
+                              {sk.credibilityStatus.replace("_", " ")}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Weak Bullet Analysis */}
+          {analysis.weakBullets && analysis.weakBullets.length > 0 && (
+            <Card className="border-none shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-base font-black">✍️ Bullet Point Intelligence</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {analysis.weakBullets.map((wb, i) => (
+                  <div key={i} className="p-4 rounded-xl border border-border bg-slate-50 dark:bg-slate-900 space-y-2">
+                    <div className="text-xs font-medium text-slate-500 italic">Original Bullet:</div>
+                    <div className="text-xs text-foreground font-semibold">"{wb.originalBullet}"</div>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {wb.problems.map((p, j) => (
+                        <Badge key={j} variant="destructive" className="text-[10px] px-2 py-0.5">{p}</Badge>
+                      ))}
+                    </div>
+                    <div className="text-xs pt-1">
+                      <span className="font-bold text-emerald-600">Suggested Rewrite:</span>{" "}
+                      <span className="text-foreground">"{wb.rewriteSuggestion}"</span>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Detailed ATS Checks */}
+          {analysis.checks && analysis.checks.length > 0 && (
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader>
+                <CardTitle className="text-base font-black">📋 Detailed ATS Checks</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 border-t">
+                <div className="divide-y divide-border">
+                  {analysis.checks.map((ch, i) => (
+                    <div key={i} className="p-4 hover:bg-muted/10 flex justify-between items-start gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-foreground">{ch.title}</h4>
+                          <Badge className={cn("text-[9px] font-bold uppercase",
+                            ch.status === "PASS" ? "bg-green-100 text-green-800" :
+                            ch.status === "FAIL" ? "bg-red-100 text-red-800" :
+                            "bg-amber-100 text-amber-800"
+                          )}>
+                            {ch.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">{ch.description}</p>
+                        {ch.evidence && (
+                          <p className="text-[10px] font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 p-1 rounded">
+                            Evidence: {ch.evidence}
+                          </p>
+                        )}
+                        {ch.status !== "PASS" && ch.recommendation && (
+                          <p className="text-xs font-semibold text-primary">
+                            Recommendation: {ch.recommendation}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-sm font-bold text-foreground">{ch.earnedPoints}</span>
+                        <span className="text-xs text-muted-foreground"> / {ch.maxPoints} pts</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         </div>
       </div>
