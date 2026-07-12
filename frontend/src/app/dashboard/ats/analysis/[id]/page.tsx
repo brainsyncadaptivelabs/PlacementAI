@@ -577,8 +577,9 @@ export default function AtsAnalysisFromHistoryPage() {
                 
                 // Filter weak bullets for experience/projects/summary sections
                 const sectionBullets = analysis.weakBullets?.filter(wb => {
-                  const lowerSec = selectedSection.toLowerCase();
-                  const lowerOrig = wb.originalBullet.toLowerCase();
+                  if (!wb || !wb.originalBullet) return false;
+                  const lowerSec = (selectedSection || "").toLowerCase();
+                  const lowerOrig = (wb.originalBullet || "").toLowerCase();
                   if (lowerSec.startsWith("proj")) {
                     return lowerOrig.includes("project") || lowerOrig.includes("built") || lowerOrig.includes("developed") || lowerOrig.includes("designed");
                   }
@@ -619,7 +620,7 @@ export default function AtsAnalysisFromHistoryPage() {
                         </Card>
 
                         {/* Strengths */}
-                        {secDetails.strengths && secDetails.strengths.length > 0 && (
+                        {Array.isArray(secDetails.strengths) && secDetails.strengths.length > 0 && (
                           <Card className="border-none shadow-sm">
                             <CardHeader className="pb-2"><span className="text-xs font-bold text-green-700 uppercase">Strengths</span></CardHeader>
                             <CardContent>
@@ -636,7 +637,7 @@ export default function AtsAnalysisFromHistoryPage() {
                       {/* Right Column: Improvements & Checks */}
                       <div className="space-y-6">
                         {/* Improvements */}
-                        {secDetails.improvements && secDetails.improvements.length > 0 && (
+                        {Array.isArray(secDetails.improvements) && secDetails.improvements.length > 0 && (
                           <Card className="border-none shadow-sm">
                             <CardHeader className="pb-2"><span className="text-xs font-bold text-amber-700 uppercase">Improvements Required</span></CardHeader>
                             <CardContent>
