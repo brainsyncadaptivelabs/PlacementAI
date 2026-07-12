@@ -18,23 +18,34 @@ public class PlacementContextBuilder {
     private final ActivityScoreService activityScoreService;
     private final JDMatchingService jdMatchingService;
 
-    public PlacementContext buildContext(User user) {
-        int atsScore = atsIntelligenceService.calculateAtsScore(user);
-        int codingScore = codingIntelligenceService.calculateCodingScore(user);
-        int interviewScore = interviewIntelligenceService.calculateInterviewScore(user);
-        int communicationScore = communicationService.calculateCommunicationScore(user);
-        int learningProgress = learningIntelligenceService.calculateLearningProgress(user);
-        int activityScore = activityScoreService.calculateActivityScore(user);
-        int jdMatchScore = jdMatchingService.calculateJDMatch(user);
+    private final com.aiplacement.backend.repository.ResumeBuilderRepository resumeBuilderRepository;
+    private final com.aiplacement.backend.repository.ResumeRepository resumeRepository;
+    private final com.aiplacement.backend.repository.UserRepository userRepository;
+    private final com.aiplacement.backend.repository.interview.MockInterviewRepository mockInterviewRepository;
 
-        String selectedTemplate = user.getResumeBuilders() != null ?
-                user.getResumeBuilders().stream()
+    public PlacementContext buildContext(User user) {
+        Long userId = user.getId();
+        int atsScore = atsIntelligenceService.calculateAtsScore(userId);
+        int codingScore = codingIntelligenceService.calculateCodingScore(userId, user.getLeetcodeUrl(), user.getGithubUrl());
+        int interviewScore = interviewIntelligenceService.calculateInterviewScore(userId);
+        int communicationScore = communicationService.calculateCommunicationScore(userId);
+        int learningProgress = learningIntelligenceService.calculateLearningProgress(userId);
+        int activityScore = activityScoreService.calculateActivityScore(userId);
+        int jdMatchScore = jdMatchingService.calculateJDMatch(userId, user.getSkills());
+
+        java.util.List<com.aiplacement.backend.entity.ResumeBuilder> resumeBuilders = resumeBuilderRepository.findByUserId(userId);
+        java.util.List<com.aiplacement.backend.entity.Resume> resumes = resumeRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        com.aiplacement.backend.entity.UserStats userStats = userRepository.findUserStatsByUserId(userId).orElse(null);
+        java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviews = mockInterviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
+
+        String selectedTemplate = !resumeBuilders.isEmpty() ?
+                resumeBuilders.stream()
                         .map(rb -> rb.getTemplateName())
                         .findFirst()
                         .orElse("Modern") : "Modern";
 
-        String targetRole = user.getResumes() != null ?
-                user.getResumes().stream()
+        String targetRole = !resumes.isEmpty() ?
+                resumes.stream()
                         .map(r -> r.getAnalyzedRole())
                         .filter(role -> role != null && !role.isEmpty())
                         .findFirst()
@@ -42,10 +53,10 @@ public class PlacementContextBuilder {
 
         return PlacementContext.builder()
                 .user(user)
-                .userStats(user.getUserStats())
-                .resumes(user.getResumes())
-                .resumeBuilders(user.getResumeBuilders())
-                .mockInterviews(user.getMockInterviews())
+                .userStats(userStats)
+                .resumes(resumes)
+                .resumeBuilders(resumeBuilders)
+                .mockInterviews(mockInterviews)
                 .aptitudeData(user.getAptitudeData())
                 .atsScore(atsScore)
                 .jdMatchScore(jdMatchScore)

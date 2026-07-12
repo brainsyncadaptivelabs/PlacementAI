@@ -45,15 +45,15 @@ public class PlacementReadinessService {
     @Cacheable(value = "placement_readiness", key = "#user.email")
     @Transactional
     public PlacementIntelligenceDto getIntelligence(User user) {
-        
-        int atsScore = atsIntelligenceService.calculateAtsScore(user);
-        int jdMatch = jdMatchingService.calculateJDMatch(user);
-        int codingScore = codingIntelligenceService.calculateCodingScore(user);
-        int interviewScore = interviewIntelligenceService.calculateInterviewScore(user);
-        int communicationScore = communicationService.calculateCommunicationScore(user);
-        int resumeQuality = resumeIntelligenceService.calculateResumeQuality(user);
-        int learningProgress = learningIntelligenceService.calculateLearningProgress(user);
-        int activityScore = activityScoreService.calculateActivityScore(user);
+        Long userId = user.getId();
+        int atsScore = atsIntelligenceService.calculateAtsScore(userId);
+        int jdMatch = jdMatchingService.calculateJDMatch(userId, user.getSkills());
+        int codingScore = codingIntelligenceService.calculateCodingScore(userId, user.getLeetcodeUrl(), user.getGithubUrl());
+        int interviewScore = interviewIntelligenceService.calculateInterviewScore(userId);
+        int communicationScore = communicationService.calculateCommunicationScore(userId);
+        int resumeQuality = resumeIntelligenceService.calculateResumeQuality(userId);
+        int learningProgress = learningIntelligenceService.calculateLearningProgress(userId);
+        int activityScore = activityScoreService.calculateActivityScore(userId);
 
         // Deterministic engine
         int overallPlacementReadiness = hiringProbabilityService.calculateOverallReadiness(

@@ -1,6 +1,5 @@
 package com.aiplacement.backend.service.shared;
 
-import com.aiplacement.backend.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -8,15 +7,13 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AtsIntelligenceService {
     
-    public int calculateAtsScore(User user) {
-        if (user.getAtsAnalyses() == null || user.getAtsAnalyses().isEmpty()) {
+    private final com.aiplacement.backend.repository.AtsAnalysisRepository atsAnalysisRepository;
+
+    public int calculateAtsScore(Long userId) {
+        if (userId == null) {
             return 0;
         }
-        // Take average ATS score across all analyses, guard nulls
-        double avg = user.getAtsAnalyses().stream()
-                .mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0)
-                .average()
-                .orElse(0.0);
-        return (int) Math.round(avg);
+        Double avg = atsAnalysisRepository.findAverageAtsScoreByUserId(userId);
+        return avg != null ? (int) Math.round(avg) : 0;
     }
 }

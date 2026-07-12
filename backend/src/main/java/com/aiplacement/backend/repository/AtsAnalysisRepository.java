@@ -14,11 +14,18 @@ public interface AtsAnalysisRepository
             User user
     );
 
+    List<AtsAnalysis> findByUserIdOrderByCreatedAtDesc(Long userId);
+
     Optional<AtsAnalysis> findByIdAndUser(
             Long id,
             User user
     );
+
+    Optional<AtsAnalysis> findByIdAndUserId(Long id, Long userId);
+
     Long countByUser(User user);
+
+    Long countByUserId(Long userId);
 
     @org.springframework.data.jpa.repository.Query(
             "SELECT AVG(a.atsScore) FROM AtsAnalysis a WHERE a.user = :user"
@@ -28,10 +35,24 @@ public interface AtsAnalysisRepository
     );
 
     @org.springframework.data.jpa.repository.Query(
+            "SELECT AVG(a.atsScore) FROM AtsAnalysis a WHERE a.user.id = :userId"
+    )
+    Double findAverageAtsScoreByUserId(
+            @org.springframework.data.repository.query.Param("userId") Long userId
+    );
+
+    @org.springframework.data.jpa.repository.Query(
             "SELECT MAX(a.atsScore) FROM AtsAnalysis a WHERE a.user = :user"
     )
     Integer findHighestAtsScoreByUser(
             User user
+    );
+
+    @org.springframework.data.jpa.repository.Query(
+            "SELECT MAX(a.atsScore) FROM AtsAnalysis a WHERE a.user.id = :userId"
+    )
+    Integer findHighestAtsScoreByUserId(
+            @org.springframework.data.repository.query.Param("userId") Long userId
     );
 
     @org.springframework.data.jpa.repository.Query("SELECT AVG(a.atsScore) FROM AtsAnalysis a")

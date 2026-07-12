@@ -26,11 +26,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 
     @Query("SELECT u FROM User u WHERE " +
-            "(:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.collegeName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-            "AND (:college IS NULL OR u.collegeName = :college) " +
-            "AND (:branch IS NULL OR u.branch = :branch) " +
-            "AND (:plan IS NULL OR u.plan = :plan) " +
-            "AND (:status IS NULL OR u.accountStatus = :status)")
+            "(:search IS NULL OR :search = '' OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.collegeName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND (:college IS NULL OR :college = '' OR u.collegeName = :college) " +
+            "AND (:branch IS NULL OR :branch = '' OR u.branch = :branch) " +
+            "AND (:plan IS NULL OR :plan = '' OR u.plan = :plan) " +
+            "AND (:status IS NULL OR :status = '' OR u.accountStatus = :status)")
     org.springframework.data.domain.Page<User> searchUsers(
             @Param("search") String search,
             @Param("college") String college,
@@ -39,6 +39,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("status") String status,
             org.springframework.data.domain.Pageable pageable
     );
+
+    @Query("SELECT u.userStats FROM User u WHERE u.id = :userId")
+    Optional<com.aiplacement.backend.entity.UserStats> findUserStatsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT COUNT(log) FROM User u JOIN u.activityLogs log WHERE u.id = :userId")
+    long countActivityLogsByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT log FROM User u JOIN u.activityLogs log WHERE u.id = :userId")
+    java.util.List<com.aiplacement.backend.entity.UserActivityLog> findActivityLogsByUserId(@Param("userId") Long userId);
 
     @Query("SELECT DISTINCT u.collegeName FROM User u WHERE u.collegeName IS NOT NULL")
     java.util.List<String> findDistinctColleges();

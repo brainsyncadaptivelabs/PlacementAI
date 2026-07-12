@@ -9,6 +9,11 @@ import java.util.List;
 @Repository
 public interface MockInterviewRepository extends JpaRepository<MockInterview, Long> {
     List<MockInterview> findByUserOrderByCreatedAtDesc(User user);
+    List<MockInterview> findByUserIdOrderByCreatedAtDesc(Long userId);
+    long countByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT AVG(mi.feedback.totalScore) FROM MockInterview mi WHERE mi.user.id = :userId AND mi.feedback IS NOT NULL")
+    Double getAverageScoreByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 
     @org.springframework.data.jpa.repository.Query("SELECT AVG(mi.feedback.totalScore) FROM MockInterview mi WHERE mi.feedback IS NOT NULL")
     Double getGlobalAverageScore();

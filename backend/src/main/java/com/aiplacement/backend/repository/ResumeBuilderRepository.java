@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface ResumeBuilderRepository extends JpaRepository<ResumeBuilder, Long> {
     List<ResumeBuilder> findByUser(User user);
+    List<ResumeBuilder> findByUserId(Long userId);
 }

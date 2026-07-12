@@ -10,5 +10,7 @@ import java.util.List;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
     List<Event> findByUserOrderByCreatedAtDesc(User user);
+    List<Event> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<Event> findTop5ByUserOrderByCreatedAtDesc(User user);
+    List<Event> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
 }

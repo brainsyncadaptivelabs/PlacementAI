@@ -144,10 +144,12 @@ public class UserController {
         Integer highestMockScoreVal = mockScoreCount > 0 ? highestMockScore : null;
         
         int codingSolved = 0;
-        if (user.getUserStats() != null) {
-            codingSolved = user.getUserStats().getQuestionsEasy() 
-                         + user.getUserStats().getQuestionsMedium() 
-                         + user.getUserStats().getQuestionsHard();
+        java.util.Optional<com.aiplacement.backend.entity.UserStats> statsOpt = userRepository.findUserStatsByUserId(user.getId());
+        if (statsOpt.isPresent()) {
+            com.aiplacement.backend.entity.UserStats stats = statsOpt.get();
+            codingSolved = stats.getQuestionsEasy() 
+                         + stats.getQuestionsMedium() 
+                         + stats.getQuestionsHard();
         }
         
         // Use PlacementReadinessService as single source of truth for readiness.

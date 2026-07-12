@@ -178,7 +178,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     public ProfileDashboardStatsDto getDashboardStats() {
         User user = getCurrentUser();
-        UserStats stats = user.getUserStats();
+        UserStats stats = userRepository.findUserStatsByUserId(user.getId()).orElse(null);
         
         // If stats is null (for older users before migration), create default
         if (stats == null) {
@@ -198,10 +198,12 @@ public class ProfileServiceImpl implements ProfileService {
             stats.setQuestionsMedium(6);
             stats.setQuestionsHard(0);
             stats.setResumeVerified(true);
+            user.setUserStats(stats);
             userRepository.save(user);
         }
 
-        java.util.List<ProfileDashboardStatsDto.ActivityLogDto> heatmapData = user.getActivityLogs() != null ? user.getActivityLogs().stream()
+        java.util.List<com.aiplacement.backend.entity.UserActivityLog> activityLogs = userRepository.findActivityLogsByUserId(user.getId());
+        java.util.List<ProfileDashboardStatsDto.ActivityLogDto> heatmapData = activityLogs != null ? activityLogs.stream()
             .map(log -> ProfileDashboardStatsDto.ActivityLogDto.builder()
                 .date(log.getActivityDate().toString())
                 .durationMinutes(log.getDurationMinutes())

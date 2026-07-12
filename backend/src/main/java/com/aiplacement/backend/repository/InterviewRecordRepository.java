@@ -10,5 +10,7 @@ import java.util.List;
 @Repository
 public interface InterviewRecordRepository extends JpaRepository<InterviewRecord, Long> {
     Long countByUser(User user);
+    Long countByUserId(Long userId);
     List<InterviewRecord> findByUserOrderByInterviewDateDesc(User user);
+    List<InterviewRecord> findByUserIdOrderByInterviewDateDesc(Long userId);
 }

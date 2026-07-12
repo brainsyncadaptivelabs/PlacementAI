@@ -230,18 +230,17 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             m.put("plan", u.getPlan() != null ? u.getPlan() : "FREE");
             m.put("creditsRemaining", u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 100);
             m.put("creditsUsed", u.getCreditsUsed() != null ? u.getCreditsUsed() : 0);
-            m.put("totalResumes", u.getResumes().size());
-            m.put("totalInterviews", u.getMockInterviews().size());
+            Long totalResumes = resumeRepository.countByUserId(u.getId());
+            long totalInterviews = mockInterviewRepository.countByUserId(u.getId());
+            m.put("totalResumes", totalResumes != null ? totalResumes : 0L);
+            m.put("totalInterviews", totalInterviews);
             m.put("accountStatus", u.getAccountStatus() != null ? u.getAccountStatus() : "ACTIVE");
 
             // Calculate averages
-            double atsAvg = u.getAtsAnalyses().stream()
-                    .mapToInt(a -> a.getAtsScore() != null ? a.getAtsScore() : 0)
-                    .average().orElse(0.0);
-            double intAvg = u.getMockInterviews().stream()
-                    .filter(i -> i.getFeedback() != null && i.getFeedback().getTotalScore() != null)
-                    .mapToInt(i -> i.getFeedback().getTotalScore())
-                    .average().orElse(0.0);
+            Double atsAvgVal = atsAnalysisRepository.findAverageAtsScoreByUserId(u.getId());
+            double atsAvg = atsAvgVal != null ? atsAvgVal : 0.0;
+            Double intAvgVal = mockInterviewRepository.getAverageScoreByUserId(u.getId());
+            double intAvg = intAvgVal != null ? intAvgVal : 0.0;
 
             m.put("avgAtsScore", Math.round(atsAvg * 10.0) / 10.0);
             m.put("avgInterviewScore", Math.round(intAvg * 10.0) / 10.0);
@@ -287,7 +286,8 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         details.put("accountStatus", u.getAccountStatus() != null ? u.getAccountStatus() : "ACTIVE");
 
         // Resumes Upload List
-        List<Map<String, Object>> resumes = u.getResumes().stream().map(r -> {
+        java.util.List<com.aiplacement.backend.entity.Resume> resumesList = resumeRepository.findByUserIdOrderByCreatedAtDesc(u.getId());
+        List<Map<String, Object>> resumes = resumesList.stream().map(r -> {
             Map<String, Object> rm = new HashMap<>();
             rm.put("id", r.getId());
             rm.put("fileName", r.getFileName());
@@ -299,7 +299,8 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         details.put("resumes", resumes);
 
         // Mock Interviews List
-        List<Map<String, Object>> interviews = u.getMockInterviews().stream().map(i -> {
+        java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviewsList = mockInterviewRepository.findByUserIdOrderByCreatedAtDesc(u.getId());
+        List<Map<String, Object>> interviews = mockInterviewsList.stream().map(i -> {
             Map<String, Object> im = new HashMap<>();
             im.put("id", i.getId());
             im.put("role", i.getRole());
@@ -314,14 +315,14 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         // Activity timeline
         List<Map<String, Object>> timeline = new ArrayList<>();
-        u.getResumes().forEach(r -> {
+        resumesList.forEach(r -> {
             Map<String, Object> t = new HashMap<>();
             t.put("event", "Resume Uploaded: " + r.getFileName());
             t.put("timestamp", r.getCreatedAt());
             t.put("type", "RESUME");
             timeline.add(t);
         });
-        u.getMockInterviews().forEach(i -> {
+        mockInterviewsList.forEach(i -> {
             Map<String, Object> t = new HashMap<>();
             t.put("event", "Mock Interview Started for " + i.getRole() + " (" + i.getCompany() + ")");
             t.put("timestamp", i.getCreatedAt());
