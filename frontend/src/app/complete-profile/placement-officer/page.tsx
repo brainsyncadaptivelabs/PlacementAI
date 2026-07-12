@@ -10,9 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Loader2, X } from "lucide-react";
 import api from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
+import { useUser } from "@/hooks/use-user";
 
 export default function CompletePlacementOfficerProfile() {
   const router = useRouter();
+  const { mutate } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
@@ -29,6 +31,7 @@ export default function CompletePlacementOfficerProfile() {
 
     try {
       await api.post("/profile/placement-officer", formData);
+      await mutate();
       router.push("/placement-officer");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));

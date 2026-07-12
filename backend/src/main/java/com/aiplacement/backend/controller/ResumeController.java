@@ -44,16 +44,14 @@ public class ResumeController {
     }
 
     @PostMapping("/upload")
-
     public ResponseEntity<AtsResponseDto> uploadResume(
-
-            @RequestParam("file")
-            MultipartFile file
-
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "jobDescription", required = false) String jobDescription
     ) {
-        log.info("Resume upload and ATS analysis requested: {}", file.getOriginalFilename());
+        log.info("Resume upload and ATS analysis requested: {}, with JD present: {}", 
+                file.getOriginalFilename(), jobDescription != null);
         AtsResponseDto response =
-                resumeService.uploadResume(file);
+                resumeService.uploadResume(file, jobDescription);
 
         return ResponseEntity.ok(response);
     }

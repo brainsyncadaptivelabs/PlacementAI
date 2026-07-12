@@ -205,6 +205,18 @@ export default function SuperAdminPortal() {
       } else if (tab === "audit-logs") {
         const res = await api.get("/admin/audit-logs");
         setAuditLogs(res.data.content || []);
+      } else if (tab === "analytics") {
+        const healthRes = await api.get("/admin/system-health");
+        setSystemHealthData(healthRes.data);
+        setTelemetryLogs({
+          generationLatency: healthRes.data.generationLatency || 0,
+          validationLatency: healthRes.data.validationLatency || 0,
+          catSelectionLatency: healthRes.data.catSelectionLatency || 0,
+          irtComputationTime: healthRes.data.irtComputationTime || 0,
+          submissionLatency: healthRes.data.submissionLatency || 0,
+          dbLatency: healthRes.data.dbLatency || 0,
+          cacheHitRatio: healthRes.data.cacheHitRatio || 0
+        });
       }
     } catch (err) {
       console.error("Failed to load tab data", err);
@@ -1118,7 +1130,19 @@ export default function SuperAdminPortal() {
           </div>
         );
 
-      case "analytics":
+    case "analytics":
+        const registered = dashboardData?.funnelRegistered || 0;
+        const aptitudeCleared = dashboardData?.funnelAptitudeCleared || 0;
+        const shortlisted = dashboardData?.funnelShortlisted || 0;
+        const placed = dashboardData?.funnelPlaced || 0;
+
+        const funnelSteps = [
+          { step: "1. Registered Candidates", val: 100, count: registered },
+          { step: "2. Aptitude Cleared", val: registered > 0 ? Math.round((aptitudeCleared / registered) * 100) : 0, count: aptitudeCleared },
+          { step: "3. Shortlisted for Interviews", val: registered > 0 ? Math.round((shortlisted / registered) * 100) : 0, count: shortlisted },
+          { step: "4. Placed successfully", val: registered > 0 ? Math.round((placed / registered) * 100) : 0, count: placed }
+        ];
+
         return (
           <div className="space-y-6">
             
@@ -1126,7 +1150,7 @@ export default function SuperAdminPortal() {
             <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h3 className="text-base font-extrabold text-slate-850 flex items-center gap-2">
+                  <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
                     <Activity className="w-5 h-5 text-indigo-600" />
                     SRE Operations Telemetry & LATENCY Metrics
                   </h3>
@@ -1166,36 +1190,8 @@ export default function SuperAdminPortal() {
                   <AlertOctagon className="w-4.5 h-4.5 text-rose-600" />
                   Self-Healing QA Quarantine & Drift logs
                 </h3>
-                
-                <div className="overflow-x-auto text-xs">
-                  <table className="w-full text-left">
-                    <thead className="bg-slate-50 text-[9px] font-black uppercase text-slate-500 border-b">
-                      <tr>
-                        <th className="py-2">Template Target</th>
-                        <th className="py-2">Fail Reason</th>
-                        <th className="py-2 text-right">Drift Index</th>
-                        <th className="py-2 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 text-slate-800 font-bold">
-                      {[
-                        { topic: "LCM combined work rates", reason: "Formula verification mismatch (3%)", drift: "+0.22 ELO", status: "QUARANTINED" },
-                        { topic: "Direct indirect relative speeds", reason: "Option uniqueness duplicate value (12)", drift: "-0.15 ELO", status: "Needs Review" },
-                        { topic: "Independent conditional Probability", reason: "Explanation relevance mismatch (2%)", drift: "+0.05 ELO", status: "QUARANTINED" }
-                      ].map((item, idx) => (
-                        <tr key={idx}>
-                          <td className="py-2.5">{item.topic}</td>
-                          <td className="py-2.5 text-slate-500 font-semibold">{item.reason}</td>
-                          <td className="py-2.5 text-right text-rose-600">{item.drift}</td>
-                          <td className="py-2.5 text-right">
-                            <span className="px-2 py-0.5 rounded text-[8px] bg-rose-50 text-rose-700 border border-rose-150">
-                              {item.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                <div className="text-xs text-muted-foreground text-center py-8">
+                  No Data Available
                 </div>
               </Card>
 
@@ -1204,24 +1200,8 @@ export default function SuperAdminPortal() {
                 <h3 className="text-sm font-black text-slate-800 uppercase tracking-wider">
                   Template Health distribution
                 </h3>
-                <div className="space-y-3.5 text-xs font-bold text-slate-800">
-                  <div className="flex justify-between items-center">
-                    <span>Excellent (Active)</span>
-                    <span className="text-emerald-700">84 templates</span>
-                  </div>
-                  <Progress value={85} className="h-1 bg-slate-100" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span>Good (Calibrated)</span>
-                    <span className="text-blue-500">12 templates</span>
-                  </div>
-                  <Progress value={12} className="h-1 bg-slate-100" />
-                  
-                  <div className="flex justify-between items-center">
-                    <span>Needs Review</span>
-                    <span className="text-amber-500">4 templates</span>
-                  </div>
-                  <Progress value={4} className="h-1 bg-slate-100" />
+                <div className="text-xs text-muted-foreground text-center py-8">
+                  No Data Available
                 </div>
               </Card>
             </div>
@@ -1235,21 +1215,19 @@ export default function SuperAdminPortal() {
                   Department Placement Readiness Index
                 </h3>
                 
-                <div className="space-y-4 text-xs font-semibold text-slate-650">
-                  {[
-                    { dept: "Computer Science Engineering", val: 88 },
-                    { dept: "Electronics & Communication", val: 76 },
-                    { dept: "Information Technology", val: 82 },
-                    { dept: "Mechanical Engineering", val: 54 }
-                  ].map(item => (
-                    <div key={item.dept} className="space-y-1">
+                <div className="space-y-4 text-xs font-semibold text-slate-600">
+                  {dashboardData?.branchReadiness?.map((item: any) => (
+                    <div key={item.branch} className="space-y-1">
                       <div className="flex justify-between">
-                        <span>{item.dept}</span>
-                        <span className="font-bold text-slate-900">{item.val}% readiness</span>
+                        <span>{item.branch}</span>
+                        <span className="font-bold text-slate-900">{item.readiness}% readiness</span>
                       </div>
-                      <Progress value={item.val} className="h-1 bg-slate-100" />
+                      <Progress value={item.readiness} className="h-1 bg-slate-100" />
                     </div>
                   ))}
+                  {(!dashboardData?.branchReadiness || dashboardData.branchReadiness.length === 0) && (
+                    <p className="text-xs text-muted-foreground text-center py-4">No Data Available</p>
+                  )}
                 </div>
               </Card>
 
@@ -1259,13 +1237,8 @@ export default function SuperAdminPortal() {
                   Recruiter Candidate Funnel splits
                 </h3>
 
-                <div className="space-y-4 text-xs font-semibold text-slate-650">
-                  {[
-                    { step: "1. Registered Candidates", val: 100, count: 1200 },
-                    { step: "2. Aptitude Cleared", val: 42, count: 504 },
-                    { step: "3. Shortlisted for Interviews", val: 18, count: 216 },
-                    { step: "4. Placed successfully", val: 6, count: 72 }
-                  ].map(item => (
+                <div className="space-y-4 text-xs font-semibold text-slate-600">
+                  {funnelSteps.map(item => (
                     <div key={item.step} className="space-y-1">
                       <div className="flex justify-between">
                         <span>{item.step}</span>

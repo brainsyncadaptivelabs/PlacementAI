@@ -7,16 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import {
-  ArrowLeft, Download, Briefcase, DollarSign, Sparkles, Loader2,
-  ShieldAlert, ListTodo, UserCheck, ThumbsUp, ThumbsDown,
-  AlertCircle, TrendingUp, Target, BarChart3, Zap, Info,
-  CheckCircle2, XCircle, MinusCircle,
+  ArrowLeft, Download, DollarSign, Sparkles, Loader2,
+  AlertCircle, TrendingUp, UserCheck, ThumbsUp, ThumbsDown,
+  CheckCircle2, XCircle, Info
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Radar, RadarChart, PolarGrid,
-  PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, Tooltip, Cell,
+  PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer
 } from "recharts";
 
 interface AtsAnalysisData {
@@ -31,187 +29,32 @@ interface AtsAnalysisData {
   sectionScores?: Record<string, number>;
   recruiterFeedback?: string;
   recommendedRoles?: string[];
+  
+  industry?: string;
+  careerDomain?: string;
+  primaryProfession?: string;
+  subDomain?: string;
+  experienceLevel?: string;
+  targetRole?: string;
+  placementReadiness?: Record<string, number>;
+  criticalSkills?: string[];
+  importantSkills?: string[];
+  niceToHaveSkills?: string[];
+  companyMatches?: Array<{ name: string; score: number; reason: string }>;
+  improvements?: Array<{ action: string; boost: number; note: string }>;
+  minSalary?: string;
+  maxSalary?: string;
+  salaryExplanation?: string;
+  isJobDescriptionComparison?: boolean;
+  jobDescriptionTitle?: string;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-background border border-border p-3 rounded-lg shadow-sm text-xs">
-        <p className="font-bold mb-2 text-foreground">{label}</p>
-        <div className="space-y-1">
-          {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2">
-              <div 
-                className="w-2.5 h-2.5 rounded-sm" 
-                style={{ backgroundColor: entry.name === "you" ? "var(--primary)" : "var(--muted-foreground)" }} 
-              />
-              <span className="text-foreground">
-                {entry.name === "you" ? "Your Score" : "Top Candidates"}: <span className="font-bold">{entry.value}%</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-  return null;
-};
-
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SCORING ENGINE  (pure, deterministic – every value derived from resume text)
-// ─────────────────────────────────────────────────────────────────────────────
 function buildScoringEngine(analysis: AtsAnalysisData) {
-  const text = analysis.extractedText || "";
-  const score = Math.min(95, Math.max(30, analysis.atsScore || 60));
+  const score = analysis.atsScore ?? null;
 
-  // ── Contact Signals ────────────────────────────────────────────────────────
-  const hasGithub = /github\.com/i.test(text);
-  const hasLinkedin = /linkedin\.com/i.test(text);
-  const hasEmail = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
-  const hasPhone = /(\+?\d{1,3}[-\s]?)?\d{10}/.test(text);
-  const hasPortfolio = /portfolio|netlify\.app|vercel\.app|github\.io/i.test(text);
-
-  // ── Experience Signals ─────────────────────────────────────────────────────
-  const yearsMatch = text.match(/(\d+)\+?\s*years?\s+(?:of\s+)?(?:experience|exp)/i);
-  const yearsOfExp = yearsMatch ? parseInt(yearsMatch[1]) : 0;
-  const hasInternship = /intern(?:ship)?|trainee|apprentice/i.test(text);
-  const hasCorporate = /engineer|developer|analyst|architect|lead|senior|junior/i.test(text);
-  const expLevel = yearsOfExp >= 5 ? "senior" : yearsOfExp >= 2 ? "mid" : yearsOfExp >= 1 ? "junior" : hasInternship ? "intern" : "fresher";
-
-  // ── Project Signals ────────────────────────────────────────────────────────
-  const projectKeywords = text.match(/project|built|developed|implemented|designed|created|engineered|deployed/gi) || [];
-  const projectCount = Math.max(0, Math.min(6, Math.floor(projectKeywords.length / 3)));
-  const hasMetrics = /%|reduced|improved|increased|optimized|decreased|saved|achieved|boosted/i.test(text);
-  const hasLiveLink = /https?:\/\/|netlify|vercel|heroku|aws\.amazon|render\.com/i.test(text);
-
-  // ── Skills Signals ─────────────────────────────────────────────────────────
-  const allTechSkills = [
-    "react", "angular", "vue", "next.js", "node", "express", "spring", "spring boot",
-    "java", "python", "c++", "c#", "golang", "rust", "kotlin", "swift",
-    "aws", "gcp", "azure", "docker", "kubernetes", "terraform", "jenkins", "ci/cd",
-    "sql", "mysql", "postgresql", "mongodb", "redis", "elasticsearch", "kafka",
-    "git", "github", "gitlab", "jira", "agile", "scrum", "rest", "graphql",
-    "typescript", "javascript", "html", "css", "tailwind", "sass",
-    "machine learning", "deep learning", "tensorflow", "pytorch", "pandas", "numpy",
-    "microservices", "system design", "linux", "bash", "firebase", "supabase",
-  ];
-  const matchedSkills = allTechSkills.filter(s => new RegExp("\\b" + s.replace(/[.+]/g, "\\$&") + "\\b", "i").test(text));
-
-  const cloudSkills = ["aws", "gcp", "azure", "docker", "kubernetes", "terraform"].filter(s => new RegExp("\\b" + s + "\\b", "i").test(text));
-  const dbSkills = ["sql", "mysql", "postgresql", "mongodb", "redis", "elasticsearch"].filter(s => new RegExp("\\b" + s + "\\b", "i").test(text));
-  const devOpsSkills = ["docker", "kubernetes", "jenkins", "ci/cd", "terraform", "github"].filter(s => new RegExp("\\b" + s + "\\b", "i").test(text));
-
-  // ── Education Signals ──────────────────────────────────────────────────────
-  const hasDegree = /b\.?tech|m\.?tech|b\.?sc|m\.?sc|bachelor|master|b\.?e\.|m\.?e\.|phd|diploma/i.test(text);
-  const hasCGPA = /cgpa|gpa|\d+\.\d+\s*\/\s*10|\d+\.\d+\s*\/\s*4/i.test(text);
-  const hasTopCollege = /iit|nit|bits|vit|manipal|sjce|rvce|anna university|pune university/i.test(text);
-  const cgpaMatch = text.match(/(\d+\.\d+)\s*\/\s*10/);
-  const cgpaVal = cgpaMatch ? parseFloat(cgpaMatch[1]) : null;
-
-  // ── Achievements ───────────────────────────────────────────────────────────
-  const achievementCount = (text.match(/certified|certification|award|winner|rank\s*\d|hackathon|competitive|leetcode|codeforces|topcoder|open.?source|publication|paper/gi) || []).length;
-  const hasCompetitiveCoding = /leetcode|codeforces|hackerrank|topcoder|codechef/i.test(text);
-  const hasCertification = /certified|aws certified|google certified|microsoft certified|coursera|udemy|oracle certified/i.test(text);
-
-  // ── Document Quality ───────────────────────────────────────────────────────
-  const wordCount = text.split(/\s+/).filter(Boolean).length;
-  const isOptimalLength = wordCount >= 300 && wordCount <= 800;
-
-  // ── Keyword Data from Backend ──────────────────────────────────────────────
-  const matchedKwCount = analysis.matchedKeywords?.length || 0;
-  const missingKwCount = analysis.missingKeywords?.length || 0;
-  const totalKwCount = Math.max(1, matchedKwCount + missingKwCount);
-
-  // ── CATEGORY SCORES (fully independent, capped at 95) ─────────────────────
-  const keywordScore = Math.min(92, Math.max(20,
-    Math.round((matchedKwCount / totalKwCount) * 100 * 0.85 + 10)
-  ));
-
-  const formattingScore = Math.min(93, Math.max(40,
-    60
-    + (hasEmail ? 8 : 0)
-    + (hasPhone ? 6 : 0)
-    + (hasLinkedin ? 8 : 0)
-    + (hasGithub ? 7 : 0)
-    + (hasPortfolio ? 5 : 0)
-    + (isOptimalLength ? 5 : wordCount < 200 ? -15 : -5)
-  ));
-
-  const grammarScore = Math.min(94, Math.max(50,
-    72
-    + (isOptimalLength ? 8 : 0)
-    + (hasDegree ? 5 : 0)
-    + (hasCGPA ? 4 : 0)
-    + (hasLinkedin ? 5 : 0)
-  ));
-
-  const experienceScore = Math.min(90, (() => {
-    if (yearsOfExp >= 5) return 88;
-    if (yearsOfExp >= 3) return 80;
-    if (yearsOfExp >= 1) return 70;
-    if (hasInternship) return 58;
-    return 40;
-  })() + (hasMetrics ? 5 : 0));
-
-  const projectScore = Math.min(90, Math.max(30,
-    35
-    + projectCount * 10
-    + (hasMetrics ? 8 : 0)
-    + (hasLiveLink ? 7 : 0)
-    + (hasGithub ? 5 : 0)
-  ));
-
-  const educationScore = (() => {
-    if (!hasDegree) return 45;
-    let base = 72;
-    if (hasTopCollege) base += 15;
-    if (hasCGPA) {
-      if (cgpaVal && cgpaVal >= 9.0) base += 12;
-      else if (cgpaVal && cgpaVal >= 8.0) base += 8;
-      else if (cgpaVal && cgpaVal >= 7.0) base += 4;
-      else base += 2;
-    }
-    return Math.min(95, base);
-  })();
-
-  const skillScore = Math.min(92, Math.max(25,
-    30 + matchedSkills.length * 3.5
-    + (cloudSkills.length > 0 ? cloudSkills.length * 2 : 0)
-    + (devOpsSkills.length > 0 ? devOpsSkills.length * 1.5 : 0)
-  ));
-
-  const achievementScore = Math.min(90, Math.max(30,
-    30
-    + achievementCount * 8
-    + (hasCompetitiveCoding ? 10 : 0)
-    + (hasCertification ? 8 : 0)
-    + (hasMetrics ? 5 : 0)
-  ));
-
-  const contactScore = Math.min(100,
-    (hasEmail ? 25 : 0)
-    + (hasPhone ? 25 : 0)
-    + (hasLinkedin ? 25 : 0)
-    + (hasGithub ? 25 : 0)
-  );
-
-  // ── RADAR DATA ─────────────────────────────────────────────────────────────
-  const breakdown: Record<string, number> = {
-    "Keywords": keywordScore,
-    "Formatting": formattingScore,
-    "Grammar": grammarScore,
-    "Experience": experienceScore,
-    "Projects": projectScore,
-    "Education": educationScore,
-    "Skills": Math.round(skillScore),
-    "Achievements": achievementScore,
-    "Contact": contactScore,
-  };
-  const radarData = Object.entries(breakdown).map(([subject, value]) => ({ subject, value, fullMark: 100 }));
-
-  // ── GRADE ──────────────────────────────────────────────────────────────────
-  const getGrade = (s: number) => {
+  // Evaluation grade
+  const getGrade = (s: number | null) => {
+    if (s === null) return { grade: "N/A", verdict: "Insufficient info", style: "text-slate-600 bg-slate-50 border-slate-200" };
     if (s >= 89) return { grade: "A+", verdict: "Exceptional", style: "text-emerald-700 bg-emerald-50 border-emerald-200" };
     if (s >= 79) return { grade: "A", verdict: "Strong", style: "text-green-600 bg-green-50 border-green-200" };
     if (s >= 66) return { grade: "B+", verdict: "Good", style: "text-blue-600 bg-blue-50 border-blue-200" };
@@ -220,191 +63,76 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
   };
   const evaluation = getGrade(score);
 
-  // ── PLACEMENT READINESS (6 segments, each weighted differently) ────────────
-  const readiness = {
-    overall: Math.min(92, Math.round(score * 0.45 + skillScore * 0.30 + projectScore * 0.25)),
-    service: Math.min(96, Math.round(score * 0.50 + skillScore * 0.25 + educationScore * 0.25 + 5)),
-    startup: Math.min(90, Math.round(projectScore * 0.40 + skillScore * 0.35 + score * 0.25 - 2)),
-    midProduct: Math.min(86, Math.round(score * 0.35 + skillScore * 0.35 + projectScore * 0.30 - 6)),
-    tier1: Math.min(80, Math.round(score * 0.30 + skillScore * 0.30 + achievementScore * 0.20 + projectScore * 0.20 - 12)),
-    faang: Math.min(74, Math.round(score * 0.25 + skillScore * 0.25 + achievementScore * 0.30 + projectScore * 0.20 - 20)),
-  };
+  // Radar Data
+  const breakdown: Record<string, number> = analysis.sectionScores || {};
+  const radarData = Object.entries(breakdown).map(([subject, value]) => ({ subject, value, fullMark: 100 }));
 
-  // ── COMPANY COMPATIBILITY ──────────────────────────────────────────────────
-  const companiesList = [
-    {
-      name: "TCS",
-      score: Math.min(97, Math.round(educationScore * 0.30 + skillScore * 0.30 + score * 0.40 + 8)),
-      reason: hasDegree
-        ? "Strong academic profile and core tech stack align well with TCS delivery pipelines."
-        : "Missing formal degree may affect TCS eligibility criteria.",
-    },
-    {
-      name: "Infosys",
-      score: Math.min(95, Math.round(educationScore * 0.30 + skillScore * 0.35 + score * 0.35 + 5)),
-      reason: hasCGPA
-        ? "Good CGPA and foundational engineering skills meet Infosys hiring benchmarks."
-        : "Consider adding CGPA for stronger Infosys filtering.",
-    },
-    {
-      name: "Accenture",
-      score: Math.min(94, Math.round(score * 0.40 + skillScore * 0.30 + educationScore * 0.30 + 4)),
-      reason: hasLinkedin
-        ? "Professional LinkedIn presence and delivery-focused skills align with Accenture profiles."
-        : "Adding LinkedIn and project delivery keywords would improve Accenture ATS pass rate.",
-    },
-    {
-      name: "Capgemini",
-      score: Math.min(93, Math.round(score * 0.40 + skillScore * 0.30 + formattingScore * 0.30 + 2)),
-      reason: "Resume structure and stack coverage match Capgemini consulting developer requirements.",
-    },
-    {
-      name: "Deloitte",
-      score: Math.min(90, Math.round(score * 0.40 + achievementScore * 0.25 + skillScore * 0.35 - 2)),
-      reason: hasMetrics
-        ? "Quantified impact statements strengthen your Deloitte technology advisory fit."
-        : "Adding measurable business outcomes would significantly boost Deloitte compatibility.",
-    },
-    {
-      name: "IBM",
-      score: Math.min(88, Math.round(score * 0.35 + skillScore * 0.35 + cloudSkills.length * 3 + 2)),
-      reason: cloudSkills.length > 0
-        ? `Cloud skills (${cloudSkills.slice(0, 2).join(", ")}) improve IBM hybrid cloud readiness.`
-        : "IBM favors cloud-native experience. Adding AWS, Azure, or GCP would improve match.",
-    },
-    {
-      name: "Oracle",
-      score: Math.min(86, Math.round(score * 0.35 + dbSkills.length * 5 + skillScore * 0.30 - 2)),
-      reason: dbSkills.length > 1
-        ? `Database skills (${dbSkills.slice(0, 2).join(", ")}) align with Oracle product suite.`
-        : "Oracle heavily weighs SQL and database performance skills. Strengthen this area.",
-    },
-    {
-      name: "Amazon",
-      score: Math.min(82, Math.round(score * 0.30 + projectScore * 0.30 + skillScore * 0.25 + devOpsSkills.length * 2 - 5)),
-      reason: hasMetrics
-        ? "Metric-backed achievements improve fit for Amazon's bar-raiser culture."
-        : "Amazon expects quantified scale metrics (requests/sec, latency, cost reduction). Add these.",
-    },
-    {
-      name: "Microsoft",
-      score: Math.min(80, Math.round(score * 0.30 + skillScore * 0.30 + achievementScore * 0.25 + projectScore * 0.15 - 8)),
-      reason: hasCompetitiveCoding
-        ? "Competitive programming background is valued at Microsoft. Strengthen system design exposure."
-        : "Microsoft expects strong problem-solving track record. Add LeetCode or competitive programming.",
-    },
-    {
-      name: "Google",
-      score: Math.min(76, Math.round(score * 0.25 + achievementScore * 0.30 + skillScore * 0.25 + projectScore * 0.20 - 18)),
-      reason: achievementScore >= 70
-        ? "Good achievement profile but Google expects exceptional DSA skills and system design depth."
-        : "Google expects top-tier DSA, system design, and measurable engineering impact at scale.",
-    },
-  ].sort((a, b) => b.score - a.score);
+  // Placement Readiness
+  const readiness = analysis.placementReadiness || {};
 
-  // ── RECRUITER ASSESSMENT ───────────────────────────────────────────────────
-  const atsParsability = Math.min(98, Math.round(80 + contactScore * 0.12 + (hasDegree ? 5 : 0) + (isOptimalLength ? 3 : 0)));
-  const visualQuality = parseFloat(Math.min(9.8, (7.0 + (hasLinkedin ? 0.5 : 0) + (hasGithub ? 0.4 : 0) + (isOptimalLength ? 0.4 : 0) + (hasPortfolio ? 0.3 : 0))).toFixed(1));
-  const readabilityScore = Math.min(95, 65 + (wordCount > 250 ? 10 : 0) + (hasDegree ? 5 : 0) + (hasGithub ? 5 : 0) + (hasLinkedin ? 5 : 0) + (isOptimalLength ? 5 : 0));
-  const professionalismScore = Math.min(95, 62 + (hasLinkedin ? 12 : 0) + (hasCGPA ? 5 : 0) + (achievementCount > 0 ? 10 : 0) + (hasPortfolio ? 6 : 0));
+  // Company Compatibility
+  const companiesList = analysis.companyMatches || [];
 
-  const recruiterVerdict =
+  // Recruiter Assessment
+  const formattingVal = breakdown["Formatting"] || 75;
+  const contactVal = breakdown["Contact"] || 80;
+  const grammarVal = breakdown["Grammar"] || 80;
+  
+  const atsParsability = Math.min(98, Math.round(contactVal * 0.5 + formattingVal * 0.5));
+  const visualQuality = parseFloat(Math.min(9.8, formattingVal / 10).toFixed(1));
+  const readabilityScore = grammarVal;
+  const professionalismScore = Math.min(95, Math.round((score || 70) * 0.8 + 10));
+
+  const recruiterVerdict = score === null ? "Insufficient Information" :
     score >= 89 ? "Strong Shortlist" :
       score >= 79 ? "Likely Interview" :
         score >= 65 ? "Borderline" :
           score >= 50 ? "Needs Improvement" : "Reject";
 
-  const verdictStyle =
+  const verdictStyle = score === null ? "bg-slate-100 text-slate-800" :
     score >= 89 ? "bg-emerald-100 text-emerald-800" :
       score >= 79 ? "bg-blue-100 text-blue-800" :
         score >= 65 ? "bg-amber-100 text-amber-800" :
           score >= 50 ? "bg-orange-100 text-orange-800" : "bg-red-100 text-red-800";
 
-  // ── SALARY PREDICTION (3-tier, conservative) ──────────────────────────────
-  const getSalary = () => {
-    if (score >= 89) return { current: "10–14 LPA", potential: "14–20 LPA", stretch: "20–28 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount}+ projects, ${yearsOfExp > 0 ? yearsOfExp + "+ yrs exp" : "fresher/intern profile"}` };
-    if (score >= 79) return { current: "7–10 LPA", potential: "10–14 LPA", stretch: "14–18 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount}+ projects, ${yearsOfExp > 0 ? yearsOfExp + "+ yrs exp" : "fresher/intern profile"}` };
-    if (score >= 65) return { current: "5–7 LPA", potential: "7–10 LPA", stretch: "10–13 LPA", basis: `${matchedSkills.length} matched skills, ${projectCount} projects, ${expLevel} level profile` };
-    if (score >= 50) return { current: "3.5–5 LPA", potential: "5–7 LPA", stretch: "7–9 LPA", basis: `${matchedSkills.length} matched skills, limited project depth` };
-    return { current: "2–3.5 LPA", potential: "3.5–5 LPA", stretch: "5–7 LPA", basis: "Entry-level profile with foundational skills" };
+  // Salary Prediction
+  const salary = {
+    current: analysis.minSalary || "N/A",
+    potential: analysis.maxSalary || "N/A",
+    stretch: analysis.maxSalary || "N/A",
+    basis: analysis.salaryExplanation || "N/A",
   };
-  const salary = getSalary();
 
-  // ── RECRUITER FUNNEL ──────────────────────────────────────────────────────
-  const funnelScreening = Math.min(92, Math.round(score * 0.88 + 5));
-  const funnelTechnical = Math.min(80, Math.round(score * 0.72 + skillScore * 0.10));
-  const funnelManager = Math.min(70, Math.round(score * 0.55 + projectScore * 0.12));
-  const funnelOffer = Math.min(score - 15, Math.round(score * 0.42 + achievementScore * 0.10 - 5));
-
-  const funnel = [
-    { stage: "Resume Screening", prob: funnelScreening, color: "#3b82f6" },
-    { stage: "Technical Round", prob: Math.max(20, funnelTechnical), color: "#8b5cf6" },
-    { stage: "Manager Round", prob: Math.max(15, funnelManager), color: "#f59e0b" },
-    { stage: "Offer Probability", prob: Math.max(10, Math.min(funnelOffer, score - 15)), color: "#10b981" },
+  // Recruiter Funnel
+  const funnel = score === null ? [] : [
+    { stage: "Resume Screening", prob: Math.min(95, Math.round(score * 0.9 + 5)), color: "#3b82f6" },
+    { stage: "Technical Round", prob: Math.min(90, Math.round(score * 0.8)), color: "#8b5cf6" },
+    { stage: "Manager Round", prob: Math.min(85, Math.round(score * 0.7)), color: "#f59e0b" },
+    { stage: "Offer Probability", prob: Math.min(80, Math.round(score * 0.6)), color: "#10b981" },
   ];
 
-  // ── TOP CANDIDATE BENCHMARK ────────────────────────────────────────────────
-  const topBenchmarks = [
+  // Benchmarks
+  const topBenchmarks = score === null ? [] : [
     { metric: "ATS Score", you: score, top: 91 },
-    { metric: "Skills", you: Math.round(skillScore), top: 93 },
-    { metric: "Projects", you: projectScore, top: 92 },
-    { metric: "Experience", you: experienceScore, top: 89 },
-    { metric: "Education", you: educationScore, top: 90 },
-    { metric: "Achievements", you: achievementScore, top: 87 },
+    { metric: "Skills", you: breakdown["Skills"] || 70, top: 93 },
+    { metric: "Projects", you: breakdown["Projects"] || 65, top: 92 },
+    { metric: "Experience", you: breakdown["Experience"] || 60, top: 89 },
+    { metric: "Education", you: breakdown["Education"] || 75, top: 90 },
   ];
 
-  // ── MISSING SKILLS (3 tiers) ───────────────────────────────────────────────
-  const criticalMissing = (analysis.missingKeywords || []).slice(0, 3);
-  const importantMissing = (analysis.missingKeywords || []).slice(3, 7);
-  const niceToHaveMissing = (analysis.missingKeywords || []).slice(7, 12);
+  // Missing Skills
+  const criticalMissing = analysis.criticalSkills || [];
+  const importantMissing = analysis.importantSkills || [];
+  const niceToHaveMissing = analysis.niceToHaveSkills || [];
 
-  // Fill defaults if backend returns nothing
-  const defaultCritical = ["Docker", "Kubernetes", "CI/CD"].filter(k => !new RegExp("\\b" + k + "\\b", "i").test(text));
-  const defaultImportant = ["Redis", "Kafka", "Terraform", "System Design"].filter(k => !new RegExp("\\b" + k + "\\b", "i").test(text));
-  const defaultNice = ["GraphQL", "Prometheus", "ELK Stack"].filter(k => !new RegExp("\\b" + k + "\\b", "i").test(text));
+  // Improvements
+  const improvements = analysis.improvements || [];
 
-  // ── IMPROVEMENT IMPACT ─────────────────────────────────────────────────────
-  const improvements = [
-    { action: "Add GitHub Portfolio", boost: hasGithub ? 0 : 2, note: "Verified code samples increase recruiter confidence." },
-    { action: "Add LinkedIn URL", boost: hasLinkedin ? 0 : 1, note: "Professional presence expected by most parsers." },
-    { action: `Add ${(criticalMissing[0] || defaultCritical[0] || "Docker")}`, boost: 3, note: "Critical missing skill impacting keyword match score." },
-    { action: `Add ${(criticalMissing[1] || defaultCritical[1] || "Kubernetes")}`, boost: 2, note: "Commonly required in modern engineering JDs." },
-    { action: "Quantify Project Metrics", boost: hasMetrics ? 0 : 5, note: "e.g. 'Improved query time by 40%'. Highest single improvement." },
-    { action: "Add Live Project Link", boost: hasLiveLink ? 0 : 3, note: "Demonstrates working, deployable projects." },
-    { action: "Include Certifications", boost: hasCertification ? 0 : 2, note: "AWS / Google Cloud certs add significant credibility." },
-    { action: "Expand Skills Section", boost: matchedSkills.length < 10 ? 4 : 1, note: "Resume currently has " + matchedSkills.length + " identified tech skills." },
-  ].filter(i => i.boost > 0).sort((a, b) => b.boost - a.boost).slice(0, 6);
+  // AI Confidence
+  const aiConfidence = score === null ? 0 : 90;
 
-  // ── AI CONFIDENCE ──────────────────────────────────────────────────────────
-  const confidenceFactors = [
-    hasDegree, hasEmail, hasPhone, projectCount > 0, matchedSkills.length > 4,
-    yearsOfExp > 0 || hasInternship, hasGithub || hasLinkedin, achievementCount > 0,
-    wordCount > 300,
-  ].filter(Boolean).length;
-  const aiConfidence = Math.min(95, Math.round(45 + confidenceFactors * 5.5 + (wordCount > 400 ? 5 : 0)));
-
-  // ── FINAL AI VERDICT ───────────────────────────────────────────────────────
-  const strengths = [];
-  const weaknesses = [];
-  if (matchedSkills.length >= 8) strengths.push("strong technical depth across " + matchedSkills.length + " validated skills");
-  if (projectCount >= 3) strengths.push(projectCount + " projects demonstrating practical experience");
-  if (hasMetrics) strengths.push("quantified impact metrics present — high recruiter signal");
-  if (hasDegree && hasTopCollege) strengths.push("strong educational pedigree from a reputed institution");
-  if (hasCertification) strengths.push("industry certifications add credibility");
-  if (cloudSkills.length > 0) strengths.push("cloud/DevOps skills (" + cloudSkills.join(", ") + ") are in high demand");
-  if (!hasGithub) weaknesses.push("no GitHub link — recruiters cannot verify coding ability");
-  if (!hasLinkedin) weaknesses.push("LinkedIn URL missing — reduces professional credibility");
-  if (!hasMetrics) weaknesses.push("no quantified achievements — adds to resume ambiguity");
-  if (cloudSkills.length === 0) weaknesses.push("no cloud or DevOps skills detected");
-  if (projectCount < 2) weaknesses.push("too few projects for a competitive profile");
-  if (achievementCount === 0) weaknesses.push("no competitive programming, certifications, or awards listed");
-
-  const verdict = `Your resume scores ${score}/100 (Grade ${evaluation.grade} — ${evaluation.verdict}). ` +
-    (strengths.length > 0 ? `Key strengths include: ${strengths.slice(0, 3).join("; ")}. ` : "") +
-    (weaknesses.length > 0 ? `Priority gaps: ${weaknesses.slice(0, 3).join("; ")}. ` : "") +
-    `Most suitable companies: ${companiesList.slice(0, 4).map(c => c.name).join(", ")}. ` +
-    `Estimated hiring competitiveness: ${recruiterVerdict}. ` +
-    `Immediate next steps: ${improvements.slice(0, 2).map(i => i.action).join(", ")}.`;
+  // Verdict text
+  const verdict = analysis.recruiterFeedback || "Resume evaluation completed.";
 
   return {
     score, breakdown, radarData, evaluation,
@@ -413,29 +141,26 @@ function buildScoringEngine(analysis: AtsAnalysisData) {
     recruiterVerdict, verdictStyle,
     salary, funnel,
     topBenchmarks,
-    criticalMissing: criticalMissing.length > 0 ? criticalMissing : defaultCritical,
-    importantMissing: importantMissing.length > 0 ? importantMissing : defaultImportant,
-    niceToHaveMissing: niceToHaveMissing.length > 0 ? niceToHaveMissing : defaultNice,
+    criticalMissing,
+    importantMissing,
+    niceToHaveMissing,
     improvements,
     aiConfidence,
     verdict,
-    matchedKwCount, missingKwCount,
-    matchedKeywords: analysis.matchedKeywords?.length ? analysis.matchedKeywords : ["Java", "Spring Boot", "SQL", "REST API", "Git", "JavaScript", "HTML", "CSS"],
-    missingKeywords: analysis.missingKeywords?.length ? analysis.missingKeywords : ["Docker", "Kubernetes", "AWS", "CI/CD", "Redis", "Kafka", "Terraform"],
-    expLevel, yearsOfExp, hasGithub, hasLinkedin, matchedSkills, projectCount,
+    matchedKwCount: analysis.matchedKeywords?.length || 0,
+    missingKwCount: analysis.missingKeywords?.length || 0,
+    matchedKeywords: analysis.matchedKeywords || [],
+    missingKeywords: analysis.missingKeywords || [],
+    expLevel: analysis.experienceLevel || "Fresher",
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
 export default function AtsAnalysisDashboard() {
   const router = useRouter();
   const [analysis, setAnalysis] = useState<AtsAnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Try sessionStorage first (set by the ATS page button), then fall back to localStorage
     const sources = [
       () => sessionStorage.getItem("ats-analysis"),
       () => localStorage.getItem("latest_ats_analysis"),
@@ -478,6 +203,27 @@ export default function AtsAnalysisDashboard() {
 
   const s = buildScoringEngine(analysis);
 
+  const isInsufficient = s.score === null || 
+                         analysis.bestRole === "Insufficient information" || 
+                         analysis.suggestions?.[0] === "Insufficient information";
+
+  if (isInsufficient) {
+    return (
+      <div className="container py-20 max-w-lg mx-auto text-center space-y-6">
+        <Card className="border border-dashed p-8 flex flex-col items-center shadow-sm">
+          <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
+          <h2 className="text-xl font-bold">Insufficient Information</h2>
+          <p className="text-muted-foreground text-sm mt-2 mb-6">
+            The uploaded file does not contain sufficient information to perform an ATS intelligence analysis. Please upload a comprehensive resume containing details about your skills, projects, and experience.
+          </p>
+          <Button onClick={() => router.push("/dashboard/ats")} className="w-full font-bold">
+            Upload &amp; Analyze Another Resume
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-8 print:p-0 print:max-w-full">
 
@@ -519,7 +265,7 @@ export default function AtsAnalysisDashboard() {
                   <circle cx="72" cy="72" r="60"
                     stroke="var(--primary)" strokeWidth="10" fill="transparent"
                     strokeDasharray={2 * Math.PI * 60}
-                    strokeDashoffset={2 * Math.PI * 60 * (1 - s.score / 100)}
+                    strokeDashoffset={2 * Math.PI * 60 * (1 - (s.score || 0) / 100)}
                     strokeLinecap="round"
                     className="transition-all duration-1000 ease-out"
                   />
@@ -544,16 +290,18 @@ export default function AtsAnalysisDashboard() {
               <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">Category Performance</CardTitle>
             </CardHeader>
             <CardContent className="space-y-5">
-              <div className="h-[190px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={s.radarData}>
-                    <PolarGrid stroke="var(--foreground)" strokeOpacity={0.4} strokeWidth={2} />
-                    <PolarAngleAxis dataKey="subject" stroke="var(--foreground)" fontWeight={600} fontSize={10} tickLine={false} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                    <Radar name="You" dataKey="value" stroke="var(--primary)" strokeWidth={2.5} fill="var(--primary)" fillOpacity={0.3} />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
+              {s.radarData.length > 0 && (
+                <div className="h-[190px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="75%" data={s.radarData}>
+                      <PolarGrid stroke="var(--foreground)" strokeOpacity={0.4} strokeWidth={2} />
+                      <PolarAngleAxis dataKey="subject" stroke="var(--foreground)" fontWeight={600} fontSize={10} tickLine={false} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                      <Radar name="You" dataKey="value" stroke="var(--primary)" strokeWidth={2.5} fill="var(--primary)" fillOpacity={0.3} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
               <div className="space-y-3">
                 {Object.entries(s.breakdown).map(([name, val]) => (
                   <div key={name} className="space-y-1">
@@ -576,22 +324,18 @@ export default function AtsAnalysisDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {[
-                { label: "Overall", value: s.readiness.overall },
-                { label: "Service Companies", value: s.readiness.service },
-                { label: "Startups", value: s.readiness.startup },
-                { label: "Mid-size Product", value: s.readiness.midProduct },
-                { label: "Tier-1 Product", value: s.readiness.tier1 },
-                { label: "FAANG Readiness", value: s.readiness.faang },
-              ].map((item, i) => (
+              {Object.entries(s.readiness).map(([label, value], i) => (
                 <div key={i} className="space-y-1">
                   <div className="flex justify-between text-[11px] font-bold text-muted-foreground uppercase">
-                    <span>{item.label}</span>
-                    <span className={cn(item.value >= 80 ? "text-green-600" : item.value >= 65 ? "text-blue-600" : "text-amber-600")}>{item.value}%</span>
+                    <span>{label}</span>
+                    <span className={cn(value >= 80 ? "text-green-600" : value >= 65 ? "text-blue-600" : "text-amber-600")}>{value}%</span>
                   </div>
-                  <Progress value={item.value} className="h-1.5" />
+                  <Progress value={value} className="h-1.5" />
                 </div>
               ))}
+              {Object.keys(s.readiness).length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-4">No readiness metrics computed</p>
+              )}
             </CardContent>
           </Card>
 
@@ -632,11 +376,10 @@ export default function AtsAnalysisDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-3 gap-3 pt-1">
+              <div className="grid grid-cols-2 gap-3 pt-1">
                 {[
-                  { label: "Current", value: s.salary.current, color: "text-foreground" },
-                  { label: "Potential", value: s.salary.potential, color: "text-blue-600 dark:text-blue-400" },
-                  { label: "Stretch", value: s.salary.stretch, color: "text-emerald-600 dark:text-emerald-400" },
+                  { label: "Minimum LPA", value: s.salary.current, color: "text-foreground" },
+                  { label: "Maximum LPA", value: s.salary.potential, color: "text-emerald-600 dark:text-emerald-400" },
                 ].map((tier, i) => (
                   <div key={i} className="text-center p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/10">
                     <span className="text-[10px] text-muted-foreground uppercase font-extrabold block">{tier.label}</span>
@@ -662,7 +405,7 @@ export default function AtsAnalysisDashboard() {
                 <div className="text-3xl font-black text-primary">{s.aiConfidence}%</div>
                 <div className="flex-1 space-y-1">
                   <Progress value={s.aiConfidence} className="h-2" />
-                  <p className="text-[10px] text-muted-foreground">Based on {Object.values(s.breakdown).filter(v => v > 50).length}/9 data-rich resume sections</p>
+                  <p className="text-[10px] text-muted-foreground">Based on data-rich resume section signals.</p>
                 </div>
               </div>
             </CardContent>
@@ -678,182 +421,69 @@ export default function AtsAnalysisDashboard() {
             <CardContent className="p-4 flex flex-wrap gap-2">
               <Button size="sm" onClick={() => router.push("/dashboard/resume-builder")} className="bg-primary hover:bg-primary/90 text-white font-bold">Open Resume Builder</Button>
               <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/ats")}>Run ATS Again</Button>
-              <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/jd-match")}>JD Matching</Button>
-              <Button size="sm" variant="outline" onClick={() => router.push("/mock-interview")}>Mock Interview</Button>
             </CardContent>
           </Card>
 
-          {/* Recruiter Funnel */}
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-black flex items-center gap-2">
-                <Target className="w-5 h-5 text-primary" /> Recruiter Probability Funnel
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {s.funnel.map((stage, i) => (
-                <div key={i} className="space-y-1.5">
-                  <div className="flex justify-between text-sm font-semibold">
-                    <span>{stage.stage}</span>
-                    <span style={{ color: stage.color }} className="font-black">{stage.prob}%</span>
-                  </div>
-                  <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${stage.prob}%`, backgroundColor: stage.color }}
-                    />
-                  </div>
-                </div>
-              ))}
-              <p className="text-xs text-muted-foreground pt-1 italic">
-                Offer probability is always below ATS score — reflects real-world hiring conversion rates.
-              </p>
-            </CardContent>
-          </Card>
+          {/* Career Info */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2"><span className="text-xs uppercase font-bold text-muted-foreground">Detected Profile</span></CardHeader>
+              <CardContent>
+                <div className="text-lg font-black text-foreground">{analysis.careerDomain || "General Profession"}</div>
+                <div className="text-xs text-muted-foreground mt-1">Industry: {analysis.industry || "N/A"}</div>
+              </CardContent>
+            </Card>
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2"><span className="text-xs uppercase font-bold text-muted-foreground">Experience Track</span></CardHeader>
+              <CardContent>
+                <div className="text-lg font-black text-foreground">{analysis.experienceLevel || "Fresher"}</div>
+                <div className="text-xs text-muted-foreground mt-1">Target: {analysis.targetRole || "N/A"}</div>
+              </CardContent>
+            </Card>
+          </div>
 
-          {/* Benchmark vs Top Candidates */}
+          {/* Missing Skills Grid (Tiered) */}
           <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-black flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" /> Benchmark vs Top Candidates
-              </CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-black">🎯 Dynamic Skill Gap Analysis</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="h-[220px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={s.topBenchmarks} barCategoryGap="25%">
-                    <XAxis dataKey="metric" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                    <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
-                    <Tooltip 
-                      content={<CustomTooltip />}
-                      cursor={{ fill: 'var(--muted)' }}
-                    />
-                    <Bar dataKey="you" name="you" radius={[4, 4, 0, 0]}>
-                      {s.topBenchmarks.map((_, i) => <Cell key={i} fill="var(--primary)" fillOpacity={0.8} />)}
-                    </Bar>
-                    <Bar dataKey="top" name="top" radius={[4, 4, 0, 0]}>
-                      {s.topBenchmarks.map((_, i) => <Cell key={i} className="fill-slate-200 dark:fill-slate-700" />)}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-2 text-center">Blue = You &nbsp;|&nbsp; Grey = Top 10% Candidates</p>
-            </CardContent>
-          </Card>
-
-          {/* Keywords Analysis */}
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-black">🏷 Keyword Diagnostics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-green-700 uppercase block tracking-wider">✔ Matched Keywords ({s.matchedKwCount})</span>
-                <div className="flex flex-wrap gap-2">
-                  {s.matchedKeywords.map((kw, i) => (
-                    <Badge key={i} className="bg-green-50 text-green-800 border border-green-200 font-semibold px-2.5 py-1 hover:bg-green-50">{kw}</Badge>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <span className="text-[11px] font-bold text-red-700 uppercase block tracking-wider">✖ Missing Keywords ({s.missingKwCount})</span>
-                <div className="flex flex-wrap gap-2">
-                  {s.missingKeywords.map((kw, i) => (
-                    <Badge key={i} className="bg-red-50 text-red-800 border border-red-200 font-semibold px-2.5 py-1 hover:bg-red-50">{kw}</Badge>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Missing Skills — 3 Tiers */}
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-black flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-rose-600" /> Missing Skills Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="pt-2 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Critical */}
-                <div className="p-3.5 rounded-xl bg-red-50/70 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <XCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
-                    <span className="text-[11px] font-black text-red-700 dark:text-red-400 uppercase tracking-wider">Critical</span>
-                  </div>
-                  <p className="text-[10px] text-red-600 dark:text-red-400/80 mb-2">Significantly lowers ATS score</p>
-                  <div className="space-y-1.5">
-                    {s.criticalMissing.map((kw, i) => (
-                      <Badge key={i} className="bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800/50 font-bold text-xs block text-center">{kw}</Badge>
+                <div className="p-4 rounded-xl border border-red-200/60 bg-red-500/5 space-y-2">
+                  <span className="text-xs font-black text-red-600 uppercase block">Critical Skills</span>
+                  <ul className="text-xs text-muted-foreground space-y-1.5">
+                    {s.criticalMissing.map((skill, i) => (
+                      <li key={i} className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-red-400 shrink-0" />{skill}</li>
                     ))}
-                  </div>
+                    {s.criticalMissing.length === 0 && <li className="text-[10px] italic">No critical gaps identified</li>}
+                  </ul>
                 </div>
-                {/* Important */}
-                <div className="p-3.5 rounded-xl bg-orange-50/70 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30 space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <MinusCircle className="w-4 h-4 text-orange-600 dark:text-orange-500" />
-                    <span className="text-[11px] font-black text-orange-700 dark:text-orange-400 uppercase tracking-wider">Important</span>
-                  </div>
-                  <p className="text-[10px] text-orange-600 dark:text-orange-400/80 mb-2">Moderately impacts job fit</p>
-                  <div className="space-y-1.5">
-                    {s.importantMissing.map((kw, i) => (
-                      <Badge key={i} className="bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800/50 font-bold text-xs block text-center">{kw}</Badge>
+                <div className="p-4 rounded-xl border border-amber-200/60 bg-amber-500/5 space-y-2">
+                  <span className="text-xs font-black text-amber-600 uppercase block">Important Skills</span>
+                  <ul className="text-xs text-muted-foreground space-y-1.5">
+                    {s.importantMissing.map((skill, i) => (
+                      <li key={i} className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-amber-400 shrink-0" />{skill}</li>
                     ))}
-                  </div>
+                    {s.importantMissing.length === 0 && <li className="text-[10px] italic">No important gaps identified</li>}
+                  </ul>
                 </div>
-                {/* Nice to Have */}
-                <div className="p-3.5 rounded-xl bg-blue-50/70 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 space-y-2">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-500" />
-                    <span className="text-[11px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wider">Nice to Have</span>
-                  </div>
-                  <p className="text-[10px] text-blue-600 dark:text-blue-400/80 mb-2">Differentiates from peers</p>
-                  <div className="space-y-1.5">
-                    {s.niceToHaveMissing.map((kw, i) => (
-                      <Badge key={i} className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50 font-bold text-xs block text-center">{kw}</Badge>
+                <div className="p-4 rounded-xl border border-blue-200/60 bg-blue-500/5 space-y-2">
+                  <span className="text-xs font-black text-blue-600 uppercase block">Nice-to-Have Skills</span>
+                  <ul className="text-xs text-muted-foreground space-y-1.5">
+                    {s.niceToHaveMissing.map((skill, i) => (
+                      <li key={i} className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-400 shrink-0" />{skill}</li>
                     ))}
-                  </div>
+                    {s.niceToHaveMissing.length === 0 && <li className="text-[10px] italic">No nice-to-have gaps identified</li>}
+                  </ul>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Improvement Impact */}
-          <Card className="border-none shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-base font-black flex items-center gap-2">
-                <Zap className="w-5 h-5 text-primary" /> Improvement Impact Roadmap
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {s.improvements.map((imp, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                  <div className="flex-shrink-0 w-14 text-center">
-                    <span className="text-lg font-black text-primary">+{imp.boost}%</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-foreground">{imp.action}</p>
-                    <p className="text-xs text-muted-foreground">{imp.note}</p>
-                  </div>
-                  <Badge className={cn("text-[9px] font-bold border-none",
-                    imp.boost >= 4 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400" :
-                      imp.boost >= 2 ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400" :
-                        "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
-                  )}>
-                    {imp.boost >= 4 ? "High" : imp.boost >= 2 ? "Medium" : "Low"} Impact
-                  </Badge>
-                </div>
-              ))}
-              <p className="text-xs text-muted-foreground italic pt-1">
-                Cumulative estimated improvement: +{s.improvements.reduce((sum, i) => sum + i.boost, 0)}% ATS score
-              </p>
             </CardContent>
           </Card>
 
           {/* Company Compatibility */}
           <Card className="border-none shadow-sm overflow-hidden">
             <CardHeader>
-              <CardTitle className="text-base font-black">🏢 Company Compatibility</CardTitle>
+              <CardTitle className="text-base font-black">🏢 Company Compatibility Matches</CardTitle>
             </CardHeader>
             <CardContent className="p-0 border-t">
               <div className="overflow-x-auto">
@@ -879,6 +509,11 @@ export default function AtsAnalysisDashboard() {
                         <td className="py-3 px-4 text-muted-foreground leading-normal">{comp.reason}</td>
                       </tr>
                     ))}
+                    {s.companiesList.length === 0 && (
+                      <tr>
+                        <td colSpan={3} className="py-4 text-center text-muted-foreground">No matches calculated.</td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -898,24 +533,44 @@ export default function AtsAnalysisDashboard() {
                 <div className="space-y-2">
                   <span className="text-[10px] font-black text-green-700 uppercase flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> Strengths</span>
                   <ul className="space-y-1 text-xs text-muted-foreground list-none">
-                    {(analysis.strengths?.length ? analysis.strengths : ["Technical stack breadth", "Project implementation", "Educational background"]).slice(0, 4).map((s2, i) => (
+                    {analysis.strengths?.map((s2, i) => (
                       <li key={i} className="flex gap-2"><CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />{s2}</li>
                     ))}
+                    {(!analysis.strengths || analysis.strengths.length === 0) && <li className="text-[10px] italic">No explicit strengths listed</li>}
                   </ul>
                 </div>
                 <div className="space-y-2">
                   <span className="text-[10px] font-black text-red-700 uppercase flex items-center gap-1"><ThumbsDown className="w-3 h-3" /> Priority Gaps</span>
                   <ul className="space-y-1 text-xs text-muted-foreground list-none">
-                    {(analysis.weaknesses?.length ? analysis.weaknesses : ["Cloud/DevOps exposure", "Quantified metrics", "Competitive coding"]).slice(0, 4).map((w, i) => (
+                    {analysis.weaknesses?.map((w, i) => (
                       <li key={i} className="flex gap-2"><XCircle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />{w}</li>
                     ))}
+                    {(!analysis.weaknesses || analysis.weaknesses.length === 0) && <li className="text-[10px] italic">No explicit gaps listed</li>}
                   </ul>
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2 pt-2 border-t">
-                <Button size="sm" onClick={() => router.push("/dashboard/ats")} className="bg-primary text-white font-bold">Reanalyze Resume</Button>
-                <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/resume-builder")}>Improve Resume</Button>
-                <Button size="sm" variant="outline" onClick={() => router.push("/dashboard/jd-match")}>JD Match Engine</Button>
+            </CardContent>
+          </Card>
+
+          {/* Improvement Roadmap */}
+          <Card className="border-none shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-black">🚀 Improvement Roadmap</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                {s.improvements.map((imp, i) => (
+                  <div key={i} className="p-3 rounded-lg border border-border bg-slate-50 dark:bg-slate-900 flex justify-between items-start gap-4">
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-bold text-foreground">{imp.action}</h4>
+                      <p className="text-[10px] text-muted-foreground">{imp.note}</p>
+                    </div>
+                    <Badge className="bg-green-100 text-green-800 border-none shrink-0 font-bold">+{imp.boost} Score</Badge>
+                  </div>
+                ))}
+                {s.improvements.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-4">No improvements suggested.</p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -29,11 +29,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "(:search IS NULL OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(u.collegeName) LIKE LOWER(CONCAT('%', :search, '%'))) " +
             "AND (:college IS NULL OR u.collegeName = :college) " +
             "AND (:branch IS NULL OR u.branch = :branch) " +
+            "AND (:plan IS NULL OR u.plan = :plan) " +
             "AND (:status IS NULL OR u.accountStatus = :status)")
     org.springframework.data.domain.Page<User> searchUsers(
             @Param("search") String search,
             @Param("college") String college,
             @Param("branch") String branch,
+            @Param("plan") String plan,
             @Param("status") String status,
             org.springframework.data.domain.Pageable pageable
     );
@@ -83,4 +85,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = 'STUDENT' AND u.readinessScore >= :score")
     long countReadyStudents(@Param("score") int score);
+
+    long countByPlan(String plan);
+
+    @Query("SELECT u.branch, AVG(u.readinessScore) FROM User u WHERE u.branch IS NOT NULL AND u.role = 'STUDENT' GROUP BY u.branch")
+    List<Object[]> getBranchReadinessStats();
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.aptitudeData IS NOT NULL")
+    long countByAptitudeDataIsNotNull();
 }

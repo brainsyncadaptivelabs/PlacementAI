@@ -29,4 +29,7 @@ public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> 
 
     @Query("SELECT AVG(a.latencyMs) FROM ApiUsageLog a")
     Double getAverageLatency();
+
+    @Query("SELECT COALESCE(AVG(a.latencyMs), 0.0) FROM ApiUsageLog a WHERE a.featureUsed = :feature")
+    Double getAverageLatencyByFeature(@Param("feature") String feature);
 }

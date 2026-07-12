@@ -32,4 +32,28 @@ public class AtsDetailsDto {
     private String extractedText;
 
     private LocalDateTime createdAt;
+
+    // Premium dynamic properties matching AtsResponseDto
+    private String industry;
+    private String careerDomain;
+    private String primaryProfession;
+    private String subDomain;
+    
+    private Double careerDomainConfidence;
+    private Double experienceLevelConfidence;
+    private Double primaryProfessionConfidence;
+    private Double industryConfidence;
+
+    private String experienceLevel;
+    private String targetRole;
+    private java.util.Map<String, Integer> placementReadiness;
+    private List<String> criticalSkills;
+    private List<String> importantSkills;
+    private List<String> niceToHaveSkills;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.CompanyMatchDto> companyMatches;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.ImprovementDto> improvements;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.AtsSuggestionDto> detailedSuggestions;
+
+    private Boolean isJobDescriptionComparison;
+    private String jobDescriptionTitle;
 }

@@ -46,4 +46,10 @@ public interface MockInterviewRepository extends JpaRepository<MockInterview, Lo
            "(:college IS NULL OR :college = '' OR LOWER(mi.user.collegeName) = LOWER(:college)) AND " +
            "(:branch IS NULL OR :branch = '' OR LOWER(mi.user.branch) = LOWER(:branch))")
     List<MockInterview> findInterviewsByCollegeAndBranch(@org.springframework.data.repository.query.Param("college") String college, @org.springframework.data.repository.query.Param("branch") String branch);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT mi.user.id) FROM MockInterview mi")
+    long countDistinctUsers();
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(DISTINCT mi.user.id) FROM MockInterview mi WHERE mi.feedback IS NOT NULL AND mi.feedback.totalScore >= :score")
+    long countDistinctUsersWithScoreGreaterThanEqual(@org.springframework.data.repository.query.Param("score") int score);
 }

@@ -9,6 +9,7 @@ import com.aiplacement.backend.repository.AtsAnalysisRepository;
 import com.aiplacement.backend.repository.ResumeRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.service.storage.StorageService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,10 +36,17 @@ public class ResumeServiceImpl implements ResumeService {
     private final StorageService storageService;
     private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
     private final org.springframework.cache.CacheManager cacheManager;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public AtsResponseDto uploadResume(MultipartFile file) {
+        return uploadResume(file, null);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AtsResponseDto uploadResume(MultipartFile file, String jobDescription) {
         placementMetrics.incrementResumeUploads();
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("Uploaded file is empty.");
@@ -71,8 +80,8 @@ public class ResumeServiceImpl implements ResumeService {
             String extractedText = pdfService.extractText(tempFile, originalFilename);
             log.info("Document text extracted successfully, character length: {}", extractedText.length());
 
-            String storageUrl = storageService.uploadFile(file);
-            log.info("Resume uploaded to Supabase Storage successfully");
+            String resumeHash = getSha256Hash(extractedText);
+            log.info("Computed SHA-256 hash for resume: {}", resumeHash);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
@@ -81,6 +90,24 @@ public class ResumeServiceImpl implements ResumeService {
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             log.info("Authenticated user found: {}", email);
+
+            // SHA-256 Cache Hit Check
+            java.util.List<AtsAnalysis> existingAnalyses = atsAnalysisRepository.findByUserOrderByCreatedAtDesc(user);
+            for (AtsAnalysis a : existingAnalyses) {
+                if (resumeHash.equals(a.getResumeHash()) && a.getRawJson() != null) {
+                    log.info("Resume cache hit (SHA-256 hash match). Returning cached analysis.");
+                    try {
+                        AtsResponseDto atsResponse = objectMapper.readValue(a.getRawJson(), AtsResponseDto.class);
+                        atsResponse.setExtractedText(extractedText);
+                        return atsResponse;
+                    } catch (Exception ex) {
+                        log.warn("Failed to parse cached rawJson. Continuing with normal analysis.", ex);
+                    }
+                }
+            }
+
+            String storageUrl = storageService.uploadFile(file);
+            log.info("Resume uploaded to Supabase Storage successfully");
 
             Resume resume = Resume.builder()
                     .fileName(fileName)
@@ -95,9 +122,18 @@ public class ResumeServiceImpl implements ResumeService {
 
             log.info("Sending resume to AI provider for ATS analysis");
             placementMetrics.incrementAtsScans();
-            AtsResponseDto atsResponse = geminiService.analyzeResume(extractedText);
+            
+            // Execute semantic parsing and calculation pipeline
+            AtsResponseDto atsResponse = geminiService.analyzeResume(extractedText, jobDescription);
             atsResponse.setExtractedText(extractedText);
             log.info("ATS analysis completed successfully");
+
+            String rawJsonString = null;
+            try {
+                rawJsonString = objectMapper.writeValueAsString(atsResponse);
+            } catch (Exception ex) {
+                log.error("Failed to serialize AtsResponseDto to rawJson", ex);
+            }
 
             AtsAnalysis atsAnalysis = AtsAnalysis.builder()
                     .atsScore(atsResponse.getAtsScore())
@@ -111,14 +147,25 @@ public class ResumeServiceImpl implements ResumeService {
                     .resume(resume)
                     .user(user)
                     .createdAt(LocalDateTime.now())
+                    .analysisVersion("1.0")
+                    .engineVersion("1.0")
+                    .promptVersion("1.0")
+                    .kbVersion("1.0")
+                    .industry(atsResponse.getIndustry())
+                    .careerDomain(atsResponse.getCareerDomain())
+                    .profession(atsResponse.getPrimaryProfession())
+                    .experienceLevel(atsResponse.getExperienceLevel())
+                    .overallReadiness(atsResponse.getPlacementReadiness() != null ? atsResponse.getPlacementReadiness().getOrDefault("Overall", atsResponse.getAtsScore()) : null)
+                    .targetRole(atsResponse.getTargetRole())
+                    .rawJson(rawJsonString)
+                    .resumeHash(resumeHash)
                     .build();
 
             // Enforce maximum history limit of 10 ATS reports
-            java.util.List<AtsAnalysis> userAnalyses = atsAnalysisRepository.findByUserOrderByCreatedAtDesc(user);
-            if (userAnalyses.size() >= 10) {
-                log.info("User has {} analyses, enforcing limit of 10", userAnalyses.size());
-                for (int i = 9; i < userAnalyses.size(); i++) {
-                    AtsAnalysis oldest = userAnalyses.get(i);
+            if (existingAnalyses.size() >= 10) {
+                log.info("User has {} analyses, enforcing limit of 10", existingAnalyses.size());
+                for (int i = 9; i < existingAnalyses.size(); i++) {
+                    AtsAnalysis oldest = existingAnalyses.get(i);
                     log.info("Deleting oldest ATS analysis report ID: {}", oldest.getId());
                     if (oldest.getResume() != null) {
                         String filePath = oldest.getResume().getFilePath();
@@ -140,7 +187,6 @@ public class ResumeServiceImpl implements ResumeService {
             }
 
             atsAnalysisRepository.save(atsAnalysis);
-
             log.info("ATS analysis saved to database");
 
             // Evict user intelligence cache on resume upload
@@ -190,7 +236,7 @@ public class ResumeServiceImpl implements ResumeService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return resumeRepository.findFirstByUserOrderByCreatedAtDesc(user)
-                .map(resume -> resume.getExtractedText())
+                .map(Resume::getExtractedText)
                 .orElse("");
     }
 
@@ -246,6 +292,16 @@ public class ResumeServiceImpl implements ResumeService {
                     .build();
         }
 
+        if (analysis.getRawJson() != null) {
+            try {
+                AtsResponseDto responseDto = objectMapper.readValue(analysis.getRawJson(), AtsResponseDto.class);
+                responseDto.setExtractedText(analysis.getExtractedText());
+                return responseDto;
+            } catch (Exception ex) {
+                log.warn("Failed to parse rawJson from database", ex);
+            }
+        }
+
         return AtsResponseDto.builder()
                 .atsScore(analysis.getAtsScore())
                 .strengths(analysis.getStrengths())
@@ -257,5 +313,21 @@ public class ResumeServiceImpl implements ResumeService {
                 .extractedText(analysis.getExtractedText())
                 .build();
     }
-}
 
+    private String getSha256Hash(String text) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (Exception e) {
+            log.error("Failed to compute SHA-256 hash", e);
+            return UUID.randomUUID().toString();
+        }
+    }
+}

@@ -5,4 +5,5 @@ import com.aiplacement.backend.dto.AtsResponseDto;
 public interface GeminiService {
 
     AtsResponseDto analyzeResume(String resumeText);
+    AtsResponseDto analyzeResume(String resumeText, String jobDescription);
 }

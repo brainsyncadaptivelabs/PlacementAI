@@ -1,11 +1,14 @@
 package com.aiplacement.backend.service.details;
 
+import com.aiplacement.backend.dto.AtsResponseDto;
 import com.aiplacement.backend.dto.details.AtsDetailsDto;
 import com.aiplacement.backend.entity.AtsAnalysis;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.AtsAnalysisRepository;
 import com.aiplacement.backend.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -16,13 +19,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-
-public class AtsDetailsServiceImpl
-        implements AtsDetailsService {
+@Slf4j
+public class AtsDetailsServiceImpl implements AtsDetailsService {
 
     private final AtsAnalysisRepository atsAnalysisRepository;
-
     private final UserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     @Transactional(readOnly = true)
@@ -50,6 +52,45 @@ public class AtsDetailsServiceImpl
                                         "ATS report not found for id: " + id
                                 )
                         );
+
+        if (analysis.getRawJson() != null) {
+            try {
+                AtsResponseDto responseDto = objectMapper.readValue(analysis.getRawJson(), AtsResponseDto.class);
+                return AtsDetailsDto.builder()
+                        .id(analysis.getId())
+                        .atsScore(responseDto.getAtsScore())
+                        .strengths(safe(responseDto.getStrengths()))
+                        .weaknesses(safe(responseDto.getWeaknesses()))
+                        .missingKeywords(safe(responseDto.getMissingKeywords()))
+                        .matchedKeywords(safe(responseDto.getMatchedKeywords()))
+                        .suggestions(safe(responseDto.getSuggestions()))
+                        .bestRole(responseDto.getBestRole())
+                        .extractedText(analysis.getExtractedText() != null ? analysis.getExtractedText() : "")
+                        .createdAt(analysis.getCreatedAt())
+                        .industry(responseDto.getIndustry())
+                        .careerDomain(responseDto.getCareerDomain())
+                        .primaryProfession(responseDto.getPrimaryProfession())
+                        .subDomain(responseDto.getSubDomain())
+                        .careerDomainConfidence(responseDto.getCareerDomainConfidence())
+                        .experienceLevelConfidence(responseDto.getExperienceLevelConfidence())
+                        .primaryProfessionConfidence(responseDto.getPrimaryProfessionConfidence())
+                        .industryConfidence(responseDto.getIndustryConfidence())
+                        .experienceLevel(responseDto.getExperienceLevel())
+                        .targetRole(responseDto.getTargetRole())
+                        .placementReadiness(responseDto.getPlacementReadiness())
+                        .criticalSkills(responseDto.getCriticalSkills())
+                        .importantSkills(responseDto.getImportantSkills())
+                        .niceToHaveSkills(responseDto.getNiceToHaveSkills())
+                        .companyMatches(responseDto.getCompanyMatches())
+                        .improvements(responseDto.getImprovements())
+                        .detailedSuggestions(responseDto.getDetailedSuggestions())
+                        .isJobDescriptionComparison(responseDto.getIsJobDescriptionComparison())
+                        .jobDescriptionTitle(responseDto.getJobDescriptionTitle())
+                        .build();
+            } catch (Exception ex) {
+                log.error("Failed to parse rawJson from database", ex);
+            }
+        }
 
         return AtsDetailsDto.builder()
                 .id(analysis.getId())
@@ -93,10 +134,8 @@ public class AtsDetailsServiceImpl
         atsAnalysisRepository.delete(analysis);
     }
 
-    /** Null-safe wrapper — returns empty list instead of null for @ElementCollection fields */
     private static List<String> safe(List<String> list) {
         if (list != null) {
-            list.size(); // Force load lazy collection proxy within transaction
             return list;
         }
         return Collections.emptyList();

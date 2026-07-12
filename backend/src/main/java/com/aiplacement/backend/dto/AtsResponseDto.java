@@ -44,6 +44,50 @@ public class AtsResponseDto {
 
     private List<AtsSuggestionDto> detailedSuggestions;
 
+    private String industry;
+    private String careerDomain;
+    private String primaryProfession;
+    private String subDomain;
+    
+    private Double careerDomainConfidence;
+    private Double experienceLevelConfidence;
+    private Double primaryProfessionConfidence;
+    private Double industryConfidence;
+
+    private String experienceLevel;
+    private String targetRole;
+    private Map<String, Integer> placementReadiness;
+    private List<String> criticalSkills;
+    private List<String> importantSkills;
+    private List<String> niceToHaveSkills;
+    private List<CompanyMatchDto> companyMatches;
+    private List<ImprovementDto> improvements;
+
+    private Boolean isJobDescriptionComparison;
+    private String jobDescriptionTitle;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class CompanyMatchDto {
+        private String name;
+        private Integer score;
+        private String reason;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ImprovementDto {
+        private String action;
+        private Integer boost;
+        private String note;
+    }
+
     @Getter
     @Setter
     @NoArgsConstructor

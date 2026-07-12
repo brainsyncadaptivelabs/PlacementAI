@@ -56,6 +56,40 @@ public class AtsAnalysis {
     @Column(columnDefinition = "TEXT")
     private String extractedText;
 
+    @Column(name = "analysis_version")
+    private String analysisVersion;
+
+    @Column(name = "engine_version")
+    private String engineVersion;
+
+    @Column(name = "prompt_version")
+    private String promptVersion;
+
+    @Column(name = "kb_version")
+    private String kbVersion;
+
+    private String industry;
+
+    @Column(name = "career_domain")
+    private String careerDomain;
+
+    private String profession;
+
+    @Column(name = "experience_level")
+    private String experienceLevel;
+
+    @Column(name = "overall_readiness")
+    private Integer overallReadiness;
+
+    @Column(name = "target_role")
+    private String targetRole;
+
+    @Column(name = "raw_json", columnDefinition = "TEXT")
+    private String rawJson;
+
+    @Column(name = "resume_hash")
+    private String resumeHash;
+
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "resume_id")
     private Resume resume;

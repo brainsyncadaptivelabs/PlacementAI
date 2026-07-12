@@ -15,7 +15,7 @@ import { useUser } from "@/hooks/use-user";
 import { getDashboardRouteForRole } from "@/lib/auth-routes";
 
 export default function CompleteProfilePage() {
-  const { user, loading: userLoading } = useUser();
+  const { user, loading: userLoading, mutate } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -43,6 +43,7 @@ export default function CompleteProfilePage() {
     
     try {
       await api.post("/profile/complete", formData);
+      await mutate();
       setSuccess("Profile completed successfully! Redirecting...");
       
       setTimeout(() => {
