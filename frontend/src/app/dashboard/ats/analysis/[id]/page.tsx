@@ -88,6 +88,14 @@ interface AtsAnalysisData {
     improvementStrategy: string;
     rewriteSuggestion: string;
   }>;
+  atsSectionScores?: Array<{
+    section: string;
+    score: number;
+    status: string;
+    explanation: string;
+    strengths: string[];
+    improvements: string[];
+  }>;
 }
 
 function buildScoringEngine(analysis: AtsAnalysisData) {
@@ -204,6 +212,7 @@ export default function AtsAnalysisFromHistoryPage() {
   const [analysis, setAnalysis] = useState<AtsAnalysisData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<"not_found" | "server_error" | null>(null);
+  const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -404,6 +413,78 @@ export default function AtsAnalysisFromHistoryPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Section-Wise Resume Score Card (V2) */}
+          {analysis.atsSectionScores && analysis.atsSectionScores.length > 0 && (
+            <Card className="border-none shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  📋 Section-Wise Resume Score
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-[11px] text-muted-foreground">Click any section to see strengths and improvements.</p>
+                <div className="divide-y divide-border">
+                  {analysis.atsSectionScores.map((sec) => {
+                    const isExpanded = expandedSection === sec.section;
+                    return (
+                      <div key={sec.section} className="py-3 first:pt-0 last:pb-0 space-y-2">
+                        <button
+                          onClick={() => setExpandedSection(isExpanded ? null : sec.section)}
+                          className="w-full flex justify-between items-center text-left hover:text-primary transition-colors focus:outline-none"
+                        >
+                          <div className="flex flex-col">
+                            <span className="text-xs font-bold text-foreground uppercase tracking-wide">{sec.section}</span>
+                            <span className={cn("text-[9px] font-black uppercase px-1.5 py-0.5 rounded w-max mt-1 border-none",
+                              sec.status === "STRONG" ? "bg-emerald-100 text-emerald-800" :
+                              sec.status === "GOOD" ? "bg-blue-100 text-blue-800" :
+                              "bg-amber-100 text-amber-800"
+                            )}>
+                              {sec.status}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-black text-foreground">{sec.score}</span>
+                            <span className="text-[10px] text-muted-foreground">/100</span>
+                          </div>
+                        </button>
+                        
+                        <Progress value={sec.score} className="h-1.5" />
+
+                        {isExpanded && (
+                          <div className="bg-slate-50 dark:bg-slate-900/60 p-3 rounded-lg border border-border text-xs space-y-2.5 animate-fadeIn">
+                            <p className="font-semibold text-foreground leading-normal">{sec.explanation}</p>
+                            
+                            {sec.strengths && sec.strengths.length > 0 && (
+                              <div className="space-y-1">
+                                <span className="text-[9px] font-bold text-green-700 uppercase tracking-widest block">Strengths</span>
+                                <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+                                  {sec.strengths.map((str, idx) => (
+                                    <li key={idx}>{str}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {sec.improvements && sec.improvements.length > 0 && (
+                              <div className="space-y-1">
+                                <span className="text-[9px] font-bold text-amber-700 uppercase tracking-widest block">Improvements</span>
+                                <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+                                  {sec.improvements.map((imp, idx) => (
+                                    <li key={idx}>{imp}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Recruiter Assessment */}
           <Card className="border-none shadow-sm">

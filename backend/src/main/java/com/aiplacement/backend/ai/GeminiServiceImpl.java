@@ -218,11 +218,19 @@ public class GeminiServiceImpl implements GeminiService {
                     criticalSkills, missingKeywords, extractedSkills
             );
 
+            // Calculate V2 section scores deterministically
+            List<AtsResponseDto.AtsSectionScoreDto> atsSectionScores = AtsSectionScoringEngine.calculate(
+                    resumeText, matchedKeywords, scoring.getCandidateType(), yearsOfExp, projectsCount,
+                    hasMetrics, hasLiveLink, hasDegree, cgpa, !profile.getRecommendedCertifications().isEmpty(),
+                    hasEmail, hasPhone, hasLinkedin, hasGithub
+            );
+
             // 9. Build and return the final DTO
             return AtsResponseDto.builder()
                     .atsScore(scoring.getOverallScore())
                     .strengths(scoring.getTopStrengths().isEmpty() ? strengths : scoring.getTopStrengths())
                     .weaknesses(scoring.getCriticalIssues().isEmpty() ? weaknesses : scoring.getCriticalIssues())
+                    .atsSectionScores(atsSectionScores)
                     .missingKeywords(missingKeywords)
                     .matchedKeywords(matchedKeywords)
                     .suggestions(scoring.getQuickWins().isEmpty() ? suggestions : scoring.getQuickWins())
@@ -413,10 +421,17 @@ public class GeminiServiceImpl implements GeminiService {
                 hasEmail, hasPhone, hasLinkedin, hasGithub, hasPortfolio
         );
         
+        List<AtsResponseDto.AtsSectionScoreDto> atsSectionScores = AtsSectionScoringEngine.calculate(
+                resumeText, matched, scoring.getCandidateType(), yearsOfExp, projectCount,
+                hasMetrics, hasLiveLink, hasDegree, cgpa, hasCertifications(resumeText),
+                hasEmail, hasPhone, hasLinkedin, hasGithub
+        );
+
         return AtsResponseDto.builder()
                 .atsScore(scoring.getOverallScore())
                 .strengths(scoring.getTopStrengths())
                 .weaknesses(scoring.getCriticalIssues())
+                .atsSectionScores(atsSectionScores)
                 .missingKeywords(List.of())
                 .matchedKeywords(matched)
                 .suggestions(scoring.getQuickWins())

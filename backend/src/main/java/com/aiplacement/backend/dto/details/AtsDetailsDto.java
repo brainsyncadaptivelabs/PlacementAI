@@ -73,4 +73,5 @@ public class AtsDetailsDto {
     private List<String> topStrengths;
     private List<String> criticalIssues;
     private List<String> quickWins;
+    private List<com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto> atsSectionScores;
 }

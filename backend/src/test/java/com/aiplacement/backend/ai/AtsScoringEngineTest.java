@@ -189,4 +189,66 @@ public class AtsScoringEngineTest {
         // 4. final score remains between 0 and 100
         assertThat(strong.getOverallScore()).isBetween(0, 100);
     }
+
+    @Test
+    public void testSectionScoringEngineAndFairness() {
+        // Test STUDENT without experience
+        java.util.List<com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto> studentResult = 
+            com.aiplacement.backend.ai.intelligence.AtsSectionScoringEngine.calculate(
+                "EDUCATION\nB.Tech CSE 2026\nCGPA: 8.5\nSKILLS\nJava, SQL\nPROJECTS\nE-Commerce API: Spring Boot project.",
+                Arrays.asList("Java", "SQL"), "STUDENT", 0, 1, false, false, true, 8.5, false,
+                true, true, false, false
+            );
+        
+        // Find experience and projects section scores
+        com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto experienceSection = studentResult.stream()
+                .filter(s -> "Experience".equals(s.getSection())).findFirst().orElse(null);
+        com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto projectsSection = studentResult.stream()
+                .filter(s -> "Projects".equals(s.getSection())).findFirst().orElse(null);
+        com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto educationSection = studentResult.stream()
+                .filter(s -> "Education".equals(s.getSection())).findFirst().orElse(null);
+        com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto summarySection = studentResult.stream()
+                .filter(s -> "Summary".equals(s.getSection())).findFirst().orElse(null);
+        com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto contactSection = studentResult.stream()
+                .filter(s -> "Contact & Profile".equals(s.getSection())).findFirst().orElse(null);
+
+        assertThat(experienceSection).isNotNull();
+        // Experience should be fair for students/freshers (base 65)
+        assertThat(experienceSection.getScore()).isGreaterThanOrEqualTo(65);
+
+        // Test STUDENT with strong projects
+        java.util.List<com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto> strongProjectsResult = 
+            com.aiplacement.backend.ai.intelligence.AtsSectionScoringEngine.calculate(
+                "EDUCATION\nB.Tech CSE 2026\nCGPA: 8.5\nSKILLS\nJava, SQL\nPROJECTS\nProject A: Built with Spring Boot. github.com/user/a\nProject B: API project. Live at app.com",
+                Arrays.asList("Java", "SQL"), "STUDENT", 0, 2, true, true, true, 8.5, false,
+                true, true, true, true
+            );
+        com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto strongProjectsSection = strongProjectsResult.stream()
+                .filter(s -> "Projects".equals(s.getSection())).findFirst().orElse(null);
+        assertThat(strongProjectsSection).isNotNull();
+        assertThat(strongProjectsSection.getScore()).isGreaterThanOrEqualTo(90); // Multi-projects + link + metrics + tech details
+
+        // Test CGPA + Degree + Graduation Year
+        assertThat(educationSection).isNotNull();
+        assertThat(educationSection.getScore()).isGreaterThanOrEqualTo(80); // has degree, cgpa, and passing year detected
+
+        // Test Resume without summary
+        assertThat(summarySection).isNotNull();
+        assertThat(summarySection.getScore()).isEqualTo(0); // missing summary section entirely
+
+        // Test contact profile link score
+        assertThat(contactSection).isNotNull();
+        assertThat(contactSection.getScore()).isEqualTo(50); // has email & phone but no linkedin or github
+
+        // Test identical resume section score determinism
+        java.util.List<com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto> studentResult2 = 
+            com.aiplacement.backend.ai.intelligence.AtsSectionScoringEngine.calculate(
+                "EDUCATION\nB.Tech CSE 2026\nCGPA: 8.5\nSKILLS\nJava, SQL\nPROJECTS\nE-Commerce API: Spring Boot project.",
+                Arrays.asList("Java", "SQL"), "STUDENT", 0, 1, false, false, true, 8.5, false,
+                true, true, false, false
+            );
+        for (int i = 0; i < studentResult.size(); i++) {
+            assertThat(studentResult.get(i).getScore()).isEqualTo(studentResult2.get(i).getScore());
+        }
+    }
 }

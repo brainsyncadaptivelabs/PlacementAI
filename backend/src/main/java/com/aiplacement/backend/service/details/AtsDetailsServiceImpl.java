@@ -101,6 +101,7 @@ public class AtsDetailsServiceImpl implements AtsDetailsService {
                         .topStrengths(responseDto.getTopStrengths())
                         .criticalIssues(responseDto.getCriticalIssues())
                         .quickWins(responseDto.getQuickWins())
+                        .atsSectionScores(responseDto.getAtsSectionScores())
                         .build();
             } catch (Exception ex) {
                 log.error("Failed to parse rawJson from database", ex);

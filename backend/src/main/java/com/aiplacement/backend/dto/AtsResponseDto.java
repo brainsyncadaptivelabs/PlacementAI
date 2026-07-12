@@ -84,6 +84,7 @@ public class AtsResponseDto {
     private List<String> topStrengths;
     private List<String> criticalIssues;
     private List<String> quickWins;
+    private List<AtsSectionScoreDto> atsSectionScores;
 
     @Getter
     @Setter
@@ -165,5 +166,19 @@ public class AtsResponseDto {
         private String impact;
         private String difficulty;
         private String estimatedImprovement;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AtsSectionScoreDto {
+        private String section;
+        private Integer score;
+        private String status;
+        private String explanation;
+        private List<String> strengths;
+        private List<String> improvements;
     }
 }

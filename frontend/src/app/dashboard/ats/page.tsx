@@ -264,29 +264,6 @@ export default function ResumeATSPage() {
                   </div>
                 )}
 
-                <div className="space-y-4">
-                   <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">Key Suggestions</h4>
-                   {analysisResult.suggestions?.map((suggestion: string, index: number) => (
-                     <div key={index} className="flex gap-3 bg-muted p-3 rounded-lg border border-border">
-                        <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                        <p className="text-sm text-foreground">{suggestion}</p>
-                     </div>
-                   ))}
-                   {(!analysisResult.suggestions || analysisResult.suggestions.length === 0) && (
-                     <div className="flex gap-3 bg-muted p-3 rounded-lg border border-border">
-                        <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                        <p className="text-sm text-muted-foreground">No specific suggestions found. Try adding more details to your resume.</p>
-                     </div>
-                   )}
-                </div>
-
-                {analysisResult.bestRole && (
-                   <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
-                      <p className="text-xs font-bold text-primary uppercase tracking-widest mb-1">Recommended Role</p>
-                      <p className="font-bold text-foreground">{analysisResult.bestRole}</p>
-                   </div>
-                )}
-
                 <Button 
                   onClick={() => {
                     console.log("View Full Analysis clicked");
