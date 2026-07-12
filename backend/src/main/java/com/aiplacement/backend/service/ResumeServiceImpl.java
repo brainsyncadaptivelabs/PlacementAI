@@ -99,6 +99,7 @@ public class ResumeServiceImpl implements ResumeService {
                     try {
                         AtsResponseDto atsResponse = objectMapper.readValue(a.getRawJson(), AtsResponseDto.class);
                         atsResponse.setExtractedText(extractedText);
+                        atsResponse.setId(a.getId());
                         return atsResponse;
                     } catch (Exception ex) {
                         log.warn("Failed to parse cached rawJson. Continuing with normal analysis.", ex);
@@ -187,7 +188,8 @@ public class ResumeServiceImpl implements ResumeService {
             }
 
             atsAnalysisRepository.save(atsAnalysis);
-            log.info("ATS analysis saved to database");
+            atsResponse.setId(atsAnalysis.getId());
+            log.info("ATS analysis saved to database with ID: {}", atsAnalysis.getId());
 
             // Evict user intelligence cache on resume upload
             try {

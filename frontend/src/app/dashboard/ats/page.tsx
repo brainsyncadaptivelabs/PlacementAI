@@ -8,11 +8,22 @@ import { Upload, FileText, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from
 import { Progress } from "@/components/ui/progress";
 import api from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
+import { cn } from "@/lib/utils";
 
 type AnalysisResult = {
+  id?: number;
   atsScore?: number;
   suggestions?: string[];
   bestRole?: string;
+};
+
+type AtsHistoryItem = {
+  id: number;
+  bestRole: string;
+  atsScore: number;
+  resumeName: string;
+  grade: string;
+  createdAt: string;
 };
 
 export default function ResumeATSPage() {
@@ -24,6 +35,26 @@ export default function ResumeATSPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const atsScore = analysisResult?.atsScore ?? 0;
 
+  // History State
+  const [historyList, setHistoryList] = useState<AtsHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(false);
+
+  const fetchHistory = async () => {
+    setHistoryLoading(true);
+    setHistoryError(false);
+    try {
+      const response = await api.get("/ats/history");
+      const sorted = [...response.data].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      setHistoryList(sorted);
+    } catch (err) {
+      console.error("Failed to fetch ATS history:", err);
+      setHistoryError(true);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem("latest_ats_analysis");
     if (saved) {
@@ -34,6 +65,7 @@ export default function ResumeATSPage() {
         console.error("Failed to parse cached ATS analysis:", e);
       }
     }
+    fetchHistory();
   }, []);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,12 +88,47 @@ export default function ResumeATSPage() {
       setAnalysisResult(response.data);
       localStorage.setItem("latest_ats_analysis", JSON.stringify(response.data));
       setIsAnalyzed(true);
+      fetchHistory();
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to analyze resume"));
     } finally {
       setIsUploading(false);
     }
   };
+
+  // Calculate session history details
+  const totalSize = historyList.length;
+  const startIndex = Math.max(0, totalSize - 5);
+  const displayedSessions = historyList.slice(startIndex).map((item, index) => {
+    const realSessionNum = startIndex + index + 1;
+    return {
+      ...item,
+      sessionNum: `S${realSessionNum}`,
+      realNum: realSessionNum
+    };
+  });
+
+  const currentAnalysisId = analysisResult?.id;
+  const currentSessionIndex = displayedSessions.findIndex(item => item.id === currentAnalysisId);
+  const emphasizedId = currentSessionIndex !== -1 
+    ? currentAnalysisId 
+    : (displayedSessions.length > 0 ? displayedSessions[displayedSessions.length - 1].id : null);
+
+  let scoreDeltaText = "";
+  if (displayedSessions.length > 1) {
+    const firstScore = displayedSessions[0].atsScore;
+    const latestScore = displayedSessions[displayedSessions.length - 1].atsScore;
+    const diff = latestScore - firstScore;
+    if (diff > 0) {
+      scoreDeltaText = `↑ ATS score increased by ${diff} points`;
+    } else if (diff < 0) {
+      scoreDeltaText = `↓ ATS score decreased by ${Math.abs(diff)} points`;
+    } else {
+      scoreDeltaText = `ATS score remained unchanged`;
+    }
+  } else if (displayedSessions.length === 1) {
+    scoreDeltaText = "First ATS analysis";
+  }
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-8">
@@ -130,6 +197,73 @@ export default function ResumeATSPage() {
                    <p className="text-sm text-muted-foreground italic">Target a score of 85+ for best results with major companies.</p>
                 </div>
 
+                {/* Session Progression (V2) */}
+                {displayedSessions.length > 0 && (
+                  <div className="space-y-4 py-4 border-y border-border my-4">
+                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest block">Session Progress</span>
+                    {historyLoading ? (
+                      <div className="h-16 flex items-center justify-center">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      </div>
+                    ) : historyError ? (
+                      <p className="text-xs text-muted-foreground">Progress history unavailable</p>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="relative flex justify-between items-center px-4 pt-4">
+                          {/* Connecting Line */}
+                          <div className="absolute left-8 right-8 top-1.5 h-[2px] bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0" />
+                          
+                          {displayedSessions.map((session) => {
+                            const isCurrent = session.id === emphasizedId;
+                            // Assertion validation check (Task 13)
+                            if (isCurrent && session.id === currentAnalysisId) {
+                              console.assert(session.atsScore === atsScore, `Mismatch: Current score badge (${atsScore}) != current session score (${session.atsScore})`);
+                            }
+
+                            return (
+                              <div key={session.id} className="relative flex flex-col items-center z-10">
+                                {/* Dot */}
+                                <div 
+                                  className={cn(
+                                    "w-3 h-3 rounded-full border-2 transition-all",
+                                    isCurrent 
+                                      ? "bg-primary border-primary ring-4 ring-primary/25 scale-125" 
+                                      : "bg-background border-slate-300 dark:border-slate-700"
+                                  )}
+                                />
+                                
+                                {/* Score */}
+                                <span className={cn("text-xs font-black mt-1.5", isCurrent ? "text-primary font-black" : "text-muted-foreground")}>
+                                  {session.atsScore}
+                                </span>
+                                
+                                {/* Session ID */}
+                                <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                                  {session.sessionNum}
+                                </span>
+
+                                {/* Current Indicator */}
+                                {isCurrent && (
+                                  <span className="absolute -bottom-4 text-[8px] font-extrabold uppercase text-primary tracking-widest whitespace-nowrap">
+                                    Current
+                                  </span>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                        
+                        {/* Delta progression change description */}
+                        {scoreDeltaText && (
+                          <div className="pt-2 text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
+                            <span>{scoreDeltaText}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div className="space-y-4">
                    <h4 className="font-semibold text-sm text-foreground uppercase tracking-wider">Key Suggestions</h4>
                    {analysisResult.suggestions?.map((suggestion: string, index: number) => (
@@ -160,7 +294,11 @@ export default function ResumeATSPage() {
                     if (analysisResult) {
                       sessionStorage.setItem("ats-analysis", JSON.stringify(analysisResult));
                     }
-                    router.push("/dashboard/ats/analysis");
+                    if (currentAnalysisId) {
+                      router.push(`/dashboard/ats/analysis/${currentAnalysisId}`);
+                    } else {
+                      router.push("/dashboard/ats/analysis");
+                    }
                   }} 
                   className="w-full py-6 group bg-slate-900 hover:bg-slate-800"
                 >

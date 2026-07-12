@@ -12,6 +12,8 @@ import java.util.Map;
 @Builder
 public class AtsResponseDto {
 
+    private Long id;
+
     private Integer atsScore;
 
     private List<String> strengths;
