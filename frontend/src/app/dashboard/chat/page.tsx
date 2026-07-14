@@ -466,12 +466,33 @@ const normalizeMarkdown = (text: string): string => {
   if (!text) return "";
   let result = text.replace(/\r\n/g, "\n");
   result = result.replace(/\\n/g, "\n");
+
+  // 1. Remove redundant labels & internal artifacts
+  const redundantPrefixes = [
+    /^(?:Answer|Data|Information|Explanation|Output|Reasoning|Assistant):\s*\n?/gim,
+    /^(?:Answer|Data|Information|Explanation|Output|Reasoning|Assistant):\s*/gim
+  ];
+  redundantPrefixes.forEach(regex => {
+    result = result.replace(regex, "");
+  });
+
+  // 2. Remove duplicate headings/title patterns
+  result = result.replace(/^(#+)\s*(?:Answer|Data|Information|Explanation|Output|Reasoning|Assistant)\s*$/gim, "");
+
+  // 3. Automatically format resources section prefix
+  result = result.replace(/^(###?\s*)?(Additional\s+Resources|Resources)\s*$/gim, "📚 Additional Resources");
+
+  // 4. Normalize bullet styles
+  result = result.replace(/^[ \t]*•[ \t]*/gm, "- ");
+  result = result.replace(/^[ \t]*-[ \t]*/gm, "• ");
+
+  // 5. Spacing fixes for headings and blocks
   result = result.replace(/\*{4,}/g, "**");
   result = result.replace(/\*\*\*\*\*/g, "** **");
   result = result.replace(/^(#{1,3})([A-Za-z0-9])/gm, "$1 $2");
-  result = result.replace(/^[ \t]*•[ \t]*/gm, "- ");
   result = result.replace(/\n{3,}/g, "\n\n");
-  return result;
+
+  return result.trim();
 };
 
 // JSON parsing and text content extractor helper (ChatGPT style: hides JSON completely)
@@ -627,11 +648,14 @@ const MessageItem = memo(({
   const report = getReportDetails(cleanText);
 
   // Render markdown parser
-  const renderMarkdown = (textStr: string) => (
-    <SafeMarkdownBoundary fallbackText={textStr}>
-      <ChatMarkdown content={textStr + (isLoading ? " ▋" : "")} />
-    </SafeMarkdownBoundary>
-  );
+  const renderMarkdown = (textStr: string) => {
+    const formattedText = normalizeMarkdown(textStr);
+    return (
+      <SafeMarkdownBoundary fallbackText={formattedText}>
+        <ChatMarkdown content={formattedText + (isLoading ? " ▋" : "")} />
+      </SafeMarkdownBoundary>
+    );
+  };
 
   return (
     <div className={`w-full flex ${isAi ? 'justify-start' : 'justify-end'} mb-6 last:mb-0 animate-message group/msg relative`}>

@@ -126,6 +126,36 @@ export const ChatMarkdown = memo(({ content }: ChatMarkdownProps) => {
             return <td className="px-4 py-3 border-t border-border font-medium text-muted-foreground">{children}</td>;
           },
           blockquote({ children }) {
+            const childText = React.Children.toArray(children)
+              .map(c => (typeof c === 'string' ? c : (c as any).props?.children || ""))
+              .join("")
+              .trim();
+
+            const isNote = childText.toUpperCase().startsWith("NOTE:");
+            const isTip = childText.toUpperCase().startsWith("TIP:");
+            const isWarning = childText.toUpperCase().startsWith("WARNING:");
+
+            if (isNote || isTip || isWarning) {
+              let label = "Note";
+              let bgClass = "bg-blue-50/60 dark:bg-blue-950/10 border-blue-200 dark:border-blue-900/30 text-blue-800 dark:text-blue-200";
+              if (isTip) {
+                label = "Tip";
+                bgClass = "bg-green-50/60 dark:bg-green-950/10 border-green-200 dark:border-green-900/30 text-green-800 dark:text-green-200";
+              } else if (isWarning) {
+                label = "Warning";
+                bgClass = "bg-amber-50/60 dark:bg-amber-950/10 border-amber-200 dark:border-amber-900/30 text-amber-800 dark:text-amber-200";
+              }
+
+              const cleanContent = childText.substring(childText.indexOf(":") + 1).trim();
+
+              return (
+                <div className={`p-4 rounded-xl border my-3 text-sm leading-relaxed ${bgClass}`}>
+                  <strong className="block font-bold mb-1 uppercase tracking-wider text-xs">{label}</strong>
+                  {cleanContent}
+                </div>
+              );
+            }
+
             return <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-2">{children}</blockquote>;
           }
         }}
