@@ -53,6 +53,7 @@ spring:
       idle-timeout: 30000
       max-lifetime: 600000
       initialization-fail-timeout: 0
+      transaction-isolation: TRANSACTION_READ_COMMITTED
 
   # ── Flyway ───────────────────────────────────────────────
   flyway:

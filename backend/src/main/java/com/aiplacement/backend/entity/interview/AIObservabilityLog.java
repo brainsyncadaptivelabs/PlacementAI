@@ -25,6 +25,7 @@ public class AIObservabilityLog {
     private String modelVersion;
     private String providerName;
     private Double temperature;
+    @Column(name = "top_p")
     private Double topP;
     private Integer maxTokens;
     private Long latencyMs;
