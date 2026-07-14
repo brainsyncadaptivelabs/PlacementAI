@@ -97,7 +97,10 @@ export function ConversationSidebar({
         </button>
 
         {/* Search Input */}
-        <div className="relative" style={{ width: "calc(100% - 32px)", marginLeft: "16px", marginRight: "16px", height: "44px" }}>
+        <div 
+          className="relative transition-all duration-200 border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/10" 
+          style={{ width: "calc(100% - 32px)", marginLeft: "16px", marginRight: "16px", height: "44px", borderRadius: "12px" }}
+        >
           <Search 
             className="absolute text-muted-foreground shrink-0" 
             style={{ left: "14px", top: "50%", transform: "translateY(-50%)", width: "17px", height: "17px", zIndex: 2 }} 
@@ -107,13 +110,19 @@ export function ConversationSidebar({
             placeholder="Search chats..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 focus:outline-none"
+            className="w-full chat-search-input text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
             style={{ 
               height: "100%", 
-              borderRadius: "12px", 
+              width: "100%",
               paddingLeft: "42px", 
               paddingRight: "14px",
-              boxShadow: "none"
+              background: "transparent",
+              backgroundColor: "transparent",
+              border: "none",
+              borderWidth: "0px",
+              borderRadius: "0px",
+              boxShadow: "none",
+              outline: "none"
             }}
           />
         </div>

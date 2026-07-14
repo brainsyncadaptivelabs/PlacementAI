@@ -142,7 +142,7 @@
 }
 
 /* Input style reset */
-input:not(.oauth-btn), select, textarea, [data-slot=input] {
+input:not(.oauth-btn):not(.chat-search-input):not(.chat-prompt-input), select, textarea:not(.chat-prompt-input), [data-slot=input] {
   background-color: var(--bg-elevated) !important;
   background: var(--bg-elevated) !important;
   color: var(--text-primary) !important;
@@ -154,10 +154,10 @@ input:not(.oauth-btn), select, textarea, [data-slot=input] {
   box-shadow: none !important;
   font-size: 14px !important;
 }
-input:not(.oauth-btn):hover, select:hover, textarea:hover, [data-slot=input]:hover {
+input:not(.oauth-btn):not(.chat-search-input):not(.chat-prompt-input):hover, select:hover, textarea:not(.chat-prompt-input):hover, [data-slot=input]:hover {
   background-color: var(--bg-hover) !important;
 }
-input:not(.oauth-btn):focus, select:focus, textarea:focus, [data-slot=input]:focus {
+input:not(.oauth-btn):not(.chat-search-input):not(.chat-prompt-input):focus, select:focus, textarea:not(.chat-prompt-input):focus, [data-slot=input]:focus {
   background-color: var(--bg-hover) !important;
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 2px var(--border-focus) !important;

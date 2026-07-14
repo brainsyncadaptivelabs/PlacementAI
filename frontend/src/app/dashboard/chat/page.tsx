@@ -1454,7 +1454,17 @@ export default function ChatPage() {
                     }}
                     onPaste={handlePaste}
                     placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-                    className="flex-1 bg-transparent border-0 outline-none ring-0 focus:ring-0 focus:outline-none p-1 text-sm text-foreground placeholder:text-slate-500 min-w-0"
+                    className="flex-1 chat-prompt-input text-sm text-foreground placeholder:text-slate-500 min-w-0 focus:outline-none"
+                    style={{
+                      background: "transparent",
+                      backgroundColor: "transparent",
+                      border: "none",
+                      borderWidth: "0px",
+                      borderRadius: "0px",
+                      boxShadow: "none",
+                      outline: "none",
+                      height: "auto"
+                    }}
                     maxLength={2000}
                     disabled={isLoading}
                   />
