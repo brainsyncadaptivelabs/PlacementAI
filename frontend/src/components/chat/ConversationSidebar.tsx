@@ -97,14 +97,24 @@ export function ConversationSidebar({
         </button>
 
         {/* Search Input */}
-        <div className="relative flex items-center bg-secondary/60 border border-border/50 rounded-xl px-3 py-1 h-10">
-          <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
+        <div className="relative" style={{ width: "calc(100% - 32px)", marginLeft: "16px", marginRight: "16px", height: "44px" }}>
+          <Search 
+            className="absolute text-muted-foreground shrink-0" 
+            style={{ left: "14px", top: "50%", transform: "translateY(-50%)", width: "17px", height: "17px", zIndex: 2 }} 
+          />
           <input
             type="text"
             placeholder="Search chats..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-transparent border-0 outline-none text-xs text-slate-200 placeholder:text-muted-foreground/60"
+            className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs text-foreground placeholder:text-muted-foreground/60 transition-colors focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 focus:outline-none"
+            style={{ 
+              height: "100%", 
+              borderRadius: "12px", 
+              paddingLeft: "42px", 
+              paddingRight: "14px",
+              boxShadow: "none"
+            }}
           />
         </div>
       </div>

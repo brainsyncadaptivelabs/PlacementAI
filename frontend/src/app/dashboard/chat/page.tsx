@@ -1417,7 +1417,10 @@ export default function ChatPage() {
                   </div>
                 )}
 
-                <div className="relative flex items-center bg-secondary/60 border border-border rounded-xl px-4 py-2 min-h-[52px] max-h-[160px] shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50 gap-3">
+                <div 
+                  className="relative flex items-center bg-white dark:bg-card border border-[#dbe3ef] transition-all px-4 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50 gap-3"
+                  style={{ height: "58px", minHeight: "58px", maxHeight: "58px", borderRadius: "18px", width: "100%" }}
+                >
                   <input 
                     type="file" 
                     ref={fileInputRef} 
@@ -1431,32 +1434,33 @@ export default function ChatPage() {
                   />
                   <button 
                     onClick={() => fileInputRef.current?.click()}
-                    className="p-1.5 rounded-xl text-muted-foreground/70 hover:text-indigo-600 hover:bg-indigo-50 transition-all shrink-0 cursor-pointer"
+                    className="p-1 rounded-lg text-muted-foreground/70 hover:text-indigo-650 hover:bg-indigo-50 transition-all shrink-0 cursor-pointer flex items-center justify-center"
+                    style={{ width: "36px", height: "36px" }}
                     title="Attach files"
                   >
-                    <Paperclip className="w-4.5 h-4.5" />
+                    <Paperclip className="w-[18px] h-[18px]" />
                   </button>
 
-                  <textarea 
-                    ref={textareaRef}
+                  <input 
+                    type="text"
+                    ref={textareaRef as any}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
+                      if (e.key === 'Enter') {
                         e.preventDefault();
                         handleSend();
                       }
                     }}
                     onPaste={handlePaste}
                     placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-                    className="flex-1 bg-transparent border-0 outline-none ring-0 focus:ring-0 focus:outline-none p-1 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[28px] max-h-[140px] leading-relaxed"
-                    rows={1}
+                    className="flex-1 bg-transparent border-0 outline-none ring-0 focus:ring-0 focus:outline-none p-1 text-sm text-foreground placeholder:text-slate-500 min-w-0"
                     maxLength={2000}
                     disabled={isLoading}
                   />
 
                   {/* Character Counter */}
-                  <span className="text-[10px] text-muted-foreground/50 font-bold shrink-0 select-none">
+                  <span className="text-xs text-muted-foreground font-bold shrink-0 select-none whitespace-nowrap hidden sm:inline">
                     {input.length}/2000
                   </span>
 
@@ -1465,7 +1469,7 @@ export default function ChatPage() {
                       onClick={handleStop}
                       className="h-8 px-3.5 rounded-lg flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-sm shrink-0 transition-all cursor-pointer font-bold text-xs"
                     >
-                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       Stop
                     </button>
                   ) : (
@@ -1474,14 +1478,14 @@ export default function ChatPage() {
                       disabled={(!input.trim() && uploadedAttachments.length === 0) || isLoading}
                       whileHover={input.trim() ? { scale: 1.05 } : {}}
                       whileTap={input.trim() ? { scale: 0.95 } : {}}
-                      className={`h-8 px-3.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs ${
+                      className={`h-8 px-3.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs whitespace-nowrap ${
                         (input.trim() || uploadedAttachments.length > 0) && !isLoading 
-                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm' 
+                        ? 'bg-indigo-650 hover:bg-indigo-750 text-white shadow-sm' 
                         : 'bg-transparent text-slate-400'
                       }`}
                     >
+                      <span>Send</span>
                       <Send className="w-3.5 h-3.5" />
-                      Send
                     </motion.button>
                   )}
                 </div>
