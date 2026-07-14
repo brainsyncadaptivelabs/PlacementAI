@@ -4,6 +4,7 @@ import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -127,6 +128,7 @@ public class AptitudeController {
     }
 
     @GetMapping("/enterprise/bulk-reports")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN')")
     public ResponseEntity<List<Map<String, Object>>> getBulkReports() {
         List<User> users = userRepository.findAll();
         List<Map<String, Object>> reports = new ArrayList<>();
@@ -142,6 +144,7 @@ public class AptitudeController {
     }
 
     @PostMapping("/enterprise/schedule")
+    @PreAuthorize("hasAnyRole('RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN')")
     public ResponseEntity<Map<String, Object>> scheduleDrive(@RequestBody Map<String, Object> payload) {
         String campaignName = (String) payload.get("campaignName");
         String scheduledDate = (String) payload.get("scheduledDate");

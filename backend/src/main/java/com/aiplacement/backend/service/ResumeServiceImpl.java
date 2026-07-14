@@ -69,7 +69,11 @@ public class ResumeServiceImpl implements ResumeService {
                 log.info("Temp directory created");
             }
 
-            String fileName = UUID.randomUUID() + "_" + originalFilename;
+            String cleanFilename = new File(originalFilename).getName()
+                    .replace("..", "")
+                    .replace("/", "")
+                    .replace("\\", "");
+            String fileName = UUID.randomUUID() + "_" + cleanFilename;
             String tempFilePath = uploadDir + fileName;
             tempFile = new File(tempFilePath);
 

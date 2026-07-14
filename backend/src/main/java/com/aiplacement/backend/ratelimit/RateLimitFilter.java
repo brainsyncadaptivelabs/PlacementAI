@@ -62,6 +62,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (uri.startsWith("/api/v1/mock-interview/") || uri.startsWith("/api/mock-interview/")) {
             limitConfig = properties.getMockInterview();
             limitType = "mock-interview";
+        } else if (uri.equals("/api/v1/coding/execute") || uri.equals("/api/coding/execute")) {
+            limitConfig = properties.getCoding();
+            limitType = "coding";
+        } else if (uri.startsWith("/api/v1/jd/") || uri.startsWith("/api/jd/")) {
+            limitConfig = properties.getJdMatch();
+            limitType = "jd-match";
         }
 
         // 2. Perform check if endpoint matches rate limit rules

@@ -529,8 +529,17 @@ public class MockInterviewServiceImpl implements MockInterviewService {
     @Override
     @Transactional(readOnly = true)
     public MockInterviewDto getInterviewById(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         MockInterview interview = mockInterviewRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Interview not found"));
+
+        if (!interview.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized access to this interview record");
+        }
+
         return mapToDto(interview);
     }
 

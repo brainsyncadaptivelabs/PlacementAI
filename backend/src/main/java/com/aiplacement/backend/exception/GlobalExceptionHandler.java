@@ -1,5 +1,6 @@
 package com.aiplacement.backend.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
-
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
@@ -68,11 +69,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
-        ex.printStackTrace(); // Log for debugging
-        String message = ex.getMessage();
+        log.error("[SYSTEM_ERROR] Unhandled runtime exception: ", ex);
 
         ApiErrorResponse error = ApiErrorResponse.builder()
-                .message(message)
+                .message("An unexpected error occurred. Please try again or contact support.")
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -82,9 +82,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleException(Exception ex) {
-        ex.printStackTrace();
+        log.error("[SYSTEM_ERROR] Unhandled exception: ", ex);
         ApiErrorResponse error = ApiErrorResponse.builder()
-                .message(ex.getMessage() != null ? ex.getMessage() : "Internal server error")
+                .message("An unexpected error occurred. Please try again or contact support.")
                 .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .timestamp(LocalDateTime.now())
                 .build();

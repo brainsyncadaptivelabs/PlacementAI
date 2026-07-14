@@ -17,6 +17,8 @@ public class RateLimitProperties {
     private LimitConfig resumeUpload = new LimitConfig(10, 3600);    // 10 per hour
     private LimitConfig ats = new LimitConfig(20, 3600);             // 20 per hour
     private LimitConfig mockInterview = new LimitConfig(15, 3600);   // 15 per hour
+    private LimitConfig coding = new LimitConfig(30, 60);            // 30 per minute
+    private LimitConfig jdMatch = new LimitConfig(30, 3600);         // 30 per hour
 
     @Getter
     @Setter
