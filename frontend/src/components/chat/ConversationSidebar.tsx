@@ -48,7 +48,9 @@ export function ConversationSidebar({
     const now = Date.now();
     const dayMs = 24 * 60 * 60 * 1000;
 
-    list.forEach(c => {
+    const sortedList = [...list].sort((a, b) => b.updatedAt - a.updatedAt);
+
+    sortedList.forEach(c => {
       if (c.archived) return;
       if (c.pinned) {
         groups.Pinned.push(c);
