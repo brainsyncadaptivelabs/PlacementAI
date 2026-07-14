@@ -2,10 +2,12 @@ package com.aiplacement.backend.service.interview.refactored;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 @Component
+@Lazy
 public class MockAIProvider implements AIProvider {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

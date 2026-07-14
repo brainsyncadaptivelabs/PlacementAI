@@ -3,11 +3,13 @@ package com.aiplacement.backend.service.interview.refactored;
 import com.aiplacement.backend.ai.client.AIClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 @Component
 @RequiredArgsConstructor
+@Lazy
 public class AzureOpenAIProvider implements AIProvider {
 
     private final AIClient aiClient;

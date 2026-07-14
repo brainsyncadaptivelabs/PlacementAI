@@ -17,11 +17,11 @@ public class BackendApplication {
 
     public static void main(String[] args) {
         loadEnv();
-        detectAndSetProfile();
+        detectAndSetProfile(args);
         SpringApplication.run(BackendApplication.class, args);
     }
 
-    private static void detectAndSetProfile() {
+    private static void detectAndSetProfile(String[] args) {
         com.sun.management.OperatingSystemMXBean osBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         long totalMemory = osBean.getTotalMemorySize();
         long totalMemoryGB = totalMemory / (1024 * 1024 * 1024);
@@ -36,7 +36,19 @@ public class BackendApplication {
             profile = "prod";
         }
 
-        if (System.getProperty("spring.profiles.active") == null) {
+        boolean hasActiveProfileArg = false;
+        if (args != null) {
+            for (String arg : args) {
+                if (arg.startsWith("--spring.profiles.active=")) {
+                    hasActiveProfileArg = true;
+                    break;
+                }
+            }
+        }
+
+        if (System.getProperty("spring.profiles.active") == null 
+                && System.getenv("SPRING_PROFILES_ACTIVE") == null 
+                && !hasActiveProfileArg) {
             System.setProperty("spring.profiles.active", profile);
         }
         

@@ -52,6 +52,7 @@ spring:
       connection-timeout: 5000
       idle-timeout: 30000
       max-lifetime: 600000
+      initialization-fail-timeout: 0
 
   # ── Flyway ───────────────────────────────────────────────
   flyway:
@@ -176,10 +177,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,prometheus
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
   health:
     redis:
       enabled: false
