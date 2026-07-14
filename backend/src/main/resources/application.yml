@@ -189,6 +189,8 @@ management:
       enabled: false
     mail:
       enabled: false
+    diskspace:
+      enabled: false
 
 # ── Web Push (VAPID) ─────────────────────────────────────────
 vapid:
