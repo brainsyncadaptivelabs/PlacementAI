@@ -28,7 +28,6 @@ export default function LandingPage() {
           <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#product">Product</Link>
           <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#how-it-works">How It Works</Link>
           <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/about">For Colleges</Link>
-          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/about#pricing">Pricing</Link>
           <div className="h-6 w-px bg-slate-200 mx-2" />
           <Link href="/auth">
             <Button variant="ghost" className="font-bold text-foreground">Login</Button>
@@ -62,14 +61,11 @@ export default function LandingPage() {
                     PlacementAI analyzes your resume, skills, interview readiness, and career gaps to build a personalized path toward becoming placement-ready.
                   </p>
                 </div>
-                <div className="flex flex-col items-start gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/auth">
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-7 text-lg font-bold shadow-xl shadow-primary/30 group w-fit">
-                      Start for Free <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-7 text-lg font-bold shadow-xl shadow-primary/30 group">
+                      Analyze My Placement Readiness <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
-                  </Link>
-                  <Link href="#how-it-works" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary hover:underline hover:underline-offset-4 transition-colors gap-1.5 ml-4 mt-1 group">
-                    See How It Works <span className="group-hover:translate-y-0.5 transition-transform">↓</span>
                   </Link>
                 </div>
               </div>
@@ -314,9 +310,9 @@ export default function LandingPage() {
 
         {/* SECTION 7 — FINAL CTA */}
         <section className="w-full py-24 px-4 bg-muted/30 border-t border-border">
-           <Card className="max-w-4xl mx-auto border-none shadow-2xl bg-gradient-to-r from-primary to-secondary text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-card/10 rounded-full blur-3xl -mr-32 -mt-32" />
-              <CardContent className="p-12 md:p-16 text-center space-y-8 relative z-10">
+           <div className="max-w-4xl mx-auto rounded-3xl shadow-2xl bg-gradient-to-r from-primary to-secondary text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+              <div className="p-12 md:p-16 text-center space-y-8 relative z-10">
                  <h2 className="text-3xl md:text-4xl font-black font-heading leading-tight text-white select-text">
                    Stop guessing what to prepare next.
                  </h2>
@@ -335,8 +331,8 @@ export default function LandingPage() {
                        </Button>
                     </Link>
                  </div>
-              </CardContent>
-           </Card>
+              </div>
+           </div>
         </section>
       </main>
 
