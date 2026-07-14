@@ -15,6 +15,7 @@ import {
   Star,
   Sparkles
 } from "lucide-react";
+import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function LandingPage() {
   return (
@@ -314,52 +315,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-muted py-20 px-4 lg:px-8 border-t border-border">
-        <div className="container mx-auto">
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
-              <div className="col-span-1 md:col-span-1 space-y-6">
-                 <Link className="flex items-center gap-2" href="/">
-                    <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">A</div>
-                    <span className="font-heading font-black text-xl tracking-tight">AI Placement</span>
-                 </Link>
-                 <p className="text-sm text-muted-foreground font-medium leading-relaxed">The only AI-powered companion designed specifically to help students bridge the skill gap and land their dream offers.</p>
-                 <div className="flex gap-4">
-                    {[1,2,3].map(i => <div key={i} className="w-8 h-8 rounded-full bg-slate-200" />)}
-                 </div>
-              </div>
-              <div className="space-y-6">
-                 <h4 className="font-black text-xs uppercase tracking-[0.2em] text-foreground">Product</h4>
-                 <ul className="space-y-4">
-                    {["ATS Analysis", "AI Mock Interviews", "Personalized Roadmaps", "Career Chatbot"].map(i => (
-                       <li key={i}><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors font-semibold">{i}</Link></li>
-                    ))}
-                 </ul>
-              </div>
-              <div className="space-y-6">
-                 <h4 className="font-black text-xs uppercase tracking-[0.2em] text-foreground">Company</h4>
-                 <ul className="space-y-4">
-                    {["About Us", "Our Mission", "Success Stories", "Blog"].map(i => (
-                       <li key={i}><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors font-semibold">{i}</Link></li>
-                    ))}
-                 </ul>
-              </div>
-              <div className="space-y-6">
-                 <h4 className="font-black text-xs uppercase tracking-[0.2em] text-foreground">Legal</h4>
-                 <ul className="space-y-4">
-                    {["Privacy Policy", "Terms of Service", "Cookie Policy"].map(i => (
-                       <li key={i}><Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors font-semibold">{i}</Link></li>
-                    ))}
-                 </ul>
-              </div>
-           </div>
-           <div className="mt-20 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">© 2026 AI Placement Copilot. Built with ❤️ for students.</p>
-              <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">
-                 <ShieldCheck className="w-4 h-4 text-green-500" /> Secure & Encrypted
-              </div>
-           </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </div>
   );
 }
