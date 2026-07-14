@@ -54,6 +54,11 @@ public class CandidateEvaluationController {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
 
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
+
         Optional<InterviewEvaluation> evalOpt = evaluationRepository.findByMockInterview(interview);
         if (evalOpt.isEmpty()) {
             // Trigger on-demand evaluation if not yet generated
@@ -75,6 +80,11 @@ public class CandidateEvaluationController {
     public ResponseEntity<?> getCompetencyDetail(@PathVariable Long interviewId, @PathVariable String competencyName) {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
 
         Optional<InterviewEvaluation> evalOpt = evaluationRepository.findByMockInterview(interview);
         if (evalOpt.isEmpty()) return ResponseEntity.ok(Map.of("message", "Evaluation not yet available"));
@@ -119,6 +129,11 @@ public class CandidateEvaluationController {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
 
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
+
         Optional<InterviewEvaluation> evalOpt = evaluationRepository.findByMockInterview(interview);
         if (evalOpt.isEmpty()) return ResponseEntity.ok(Map.of("message", "No evaluation found"));
 
@@ -148,6 +163,11 @@ public class CandidateEvaluationController {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
 
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
+
         Optional<InterviewEvaluation> evalOpt = evaluationRepository.findByMockInterview(interview);
         if (evalOpt.isEmpty()) return ResponseEntity.ok(Collections.emptyList());
 
@@ -175,6 +195,11 @@ public class CandidateEvaluationController {
     public ResponseEntity<?> getRecommendations(@PathVariable Long interviewId) {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
 
         Optional<InterviewEvaluation> evalOpt = evaluationRepository.findByMockInterview(interview);
         if (evalOpt.isEmpty()) return ResponseEntity.ok(Collections.emptyList());
@@ -216,6 +241,11 @@ public class CandidateEvaluationController {
     public ResponseEntity<?> getAuditLog(@PathVariable Long interviewId) {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
 
         Optional<InterviewEvaluation> evalOpt = evaluationRepository.findByMockInterview(interview);
         if (evalOpt.isEmpty()) return ResponseEntity.ok(Collections.emptyList());
@@ -356,6 +386,11 @@ public class CandidateEvaluationController {
     public ResponseEntity<?> getSystemDesignEvaluation(@PathVariable Long interviewId) {
         MockInterview interview = mockInterviewRepository.findById(interviewId).orElse(null);
         if (interview == null) return ResponseEntity.notFound().build();
+
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!interview.getUser().getEmail().equalsIgnoreCase(email)) {
+            return ResponseEntity.status(403).body("Access Denied: You do not own this interview.");
+        }
 
         var diagram = systemDesignDiagramRepository.findFirstByMockInterviewOrderByLastSavedAtDesc(interview).orElse(null);
         if (diagram == null) {
