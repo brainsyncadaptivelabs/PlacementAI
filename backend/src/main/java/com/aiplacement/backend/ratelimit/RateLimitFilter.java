@@ -78,7 +78,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             } else {
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getName())) {
-                    key = auth.getName();
+                    key = auth.getName().trim().toLowerCase().replaceAll("\\s+", "");
                 } else {
                     key = getClientIp(request); // fallback to IP for unauthenticated users
                 }

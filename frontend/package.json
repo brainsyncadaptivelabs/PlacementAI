@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "security:bundle-scan": "npx tsx scripts/security-bundle-scan.ts"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.82",
