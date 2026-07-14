@@ -310,23 +310,23 @@ export default function LandingPage() {
 
         {/* SECTION 7 — FINAL CTA */}
         <section className="w-full py-24 px-4 bg-muted/30 border-t border-border">
-           <div className="max-w-4xl mx-auto rounded-3xl shadow-2xl bg-gradient-to-r from-primary to-secondary text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+           <div className="max-w-4xl mx-auto rounded-3xl border border-border bg-card shadow-2xl overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
               <div className="p-12 md:p-16 text-center space-y-8 relative z-10">
-                 <h2 className="text-3xl md:text-4xl font-black font-heading leading-tight text-white select-text">
+                 <h2 className="text-3xl md:text-4xl font-black font-heading leading-tight text-foreground select-text">
                    Stop guessing what to prepare next.
                  </h2>
-                 <p className="max-w-2xl mx-auto text-white/80 text-sm md:text-base font-medium select-text">
+                 <p className="max-w-2xl mx-auto text-muted-foreground text-sm md:text-base font-medium select-text">
                    See your placement readiness, identify your highest-priority gaps, and build a clearer path toward your next opportunity.
                  </p>
                  <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
                     <Link href="/auth">
-                       <Button size="lg" className="bg-white text-primary hover:bg-slate-100 font-bold px-8 py-6 text-base shadow-xl">
+                       <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-8 py-6 text-base shadow-xl">
                          Analyze My Placement Readiness
                        </Button>
                     </Link>
                     <Link href="#product">
-                       <Button variant="outline" size="lg" className="border-2 border-white/40 text-white hover:bg-white/10 font-bold px-8 py-6 text-base backdrop-blur-sm">
+                       <Button variant="outline" size="lg" className="border-2 border-border text-foreground hover:bg-muted font-bold px-8 py-6 text-base">
                          Explore PlacementAI
                        </Button>
                     </Link>
