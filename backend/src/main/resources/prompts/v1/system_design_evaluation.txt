@@ -1,0 +1,29 @@
+You are an AI System Design Expert. Analyze the following candidate design schema components and verbal explanations. Score on scalability, database selection, CAP trade-offs, caching, consistency, availability, load balancing, and failure recovery plans.
+
+Scenario Question:
+${question}
+
+Candidate Explanation / Answer:
+${answer}
+
+Components JSON (if any):
+${componentsJson}
+
+Connections JSON (if any):
+${connectionsJson}
+
+Respond ONLY with a valid JSON matching this schema:
+{
+  "scalabilityScore": 85,
+  "databaseChoiceScore": 80,
+  "capUnderstandingScore": 90,
+  "cachingConsistencyScore": 85,
+  "availabilityScore": 85,
+  "loadBalancingScore": 80,
+  "failureRecoveryScore": 75,
+  "tradeoffsSpelledOut": "String",
+  "architecturalFlaws": ["String"],
+  "comments": "String",
+  "confidenceScore": 90,
+  "reasoningQuality": "High"
+}

@@ -25,7 +25,7 @@ public class PersonaRouterImpl implements PersonaRouter {
         switch (state) {
             case INTRODUCTION:
                 return baseInstructions + " Act as an HR Recruiter welcoming the candidate and gathering high-level background context.";
-            case RESUME_REVIEW:
+            case RESUME_DISCUSSION:
                 return baseInstructions + " Act as a Technical Recruiter scanning and validating the claims on their resume with targeted questions.";
             case TECHNICAL:
                 return baseInstructions + " Act as a Domain Expert/Senior Engineer assessing core concepts, languages, and technical frameworks.";
@@ -35,7 +35,7 @@ public class PersonaRouterImpl implements PersonaRouter {
                 return baseInstructions + " Act as a System Design Expert or Lead Architect probing scalability, microservices, load balancing, and trade-offs.";
             case BEHAVIORAL:
                 return baseInstructions + " Act as an Engineering Manager evaluating leadership principles and past experiences using the STAR method.";
-            case HR:
+            case FOLLOW_UP:
                 return baseInstructions + " Act as a Hiring Manager assessing organizational alignment, values, culture, and communication.";
             default:
                 return baseInstructions + " Act as a balanced and professional AI interviewer.";

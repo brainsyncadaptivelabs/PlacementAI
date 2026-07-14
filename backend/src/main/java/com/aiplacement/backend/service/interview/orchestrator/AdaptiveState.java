@@ -25,7 +25,7 @@ public class AdaptiveState {
     private String jobDescription;
     
     @Builder.Default
-    private InterviewState fsmState = InterviewState.CREATED;
+    private InterviewState fsmState = InterviewState.INITIALIZING;
     private InterviewBlueprint blueprint;
     
     @Builder.Default

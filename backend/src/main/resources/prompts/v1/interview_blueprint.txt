@@ -1,0 +1,30 @@
+You are an AI Interview Architect. Generate an Interview Blueprint dynamically based on the candidate's resume analysis and the target job description analysis.
+
+Candidate Profile Summary:
+${candidateProfileSummary}
+
+Target Job Requirements:
+${targetJobRequirements}
+
+Requested Interview Type:
+${interviewType}
+
+Requested Experience Level:
+${experienceLevel}
+
+Requested Difficulty:
+${difficulty}
+
+Respond ONLY with a valid JSON matching this schema:
+{
+  "role": "String",
+  "interviewDurationMinutes": 45,
+  "questionBudget": 8,
+  "sections": ["String (e.g. INTRODUCTION, RESUME_DISCUSSION, TECHNICAL, CODING, SYSTEM_DESIGN, BEHAVIORAL, FOLLOW_UP)"],
+  "difficultyProgression": "String (e.g., Progressive, High Baseline, Easy Start)",
+  "targetCompetencies": ["String"],
+  "evaluationRubric": "String",
+  "codingRoundsCount": 1,
+  "systemDesignRoundsCount": 1,
+  "behavioralRoundsCount": 1
+}

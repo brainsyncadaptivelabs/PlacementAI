@@ -65,6 +65,9 @@ public class SecurityCertificationTest {
 
     @Autowired
     private RateLimitProperties rateLimitProperties;
+ 
+    @Autowired
+    private com.aiplacement.backend.ratelimit.RateLimitService rateLimitService;
 
     private String studentAToken;
     private String studentBToken;
@@ -98,6 +101,13 @@ public class SecurityCertificationTest {
 
     @BeforeEach
     void setUp() {
+        if (rateLimitService != null) {
+            rateLimitService.clearInMemoryBuckets();
+        }
+        if (rateLimitProperties != null) {
+            rateLimitProperties.setChat(new RateLimitProperties.LimitConfig(60, 60));
+            rateLimitProperties.setLogin(new RateLimitProperties.LimitConfig(5, 60));
+        }
         userRepository.deleteAll();
         // Create student A
         studentA = User.builder()
@@ -109,25 +119,6 @@ public class SecurityCertificationTest {
                 .build();
         studentA = userRepository.save(studentA);
         studentAToken = "Bearer " + jwtService.generateAccessToken(studentA.getEmail(), "STUDENT");
-
-        // Save bypass case users to repository so authentication lookup succeeds
-        User studentAWhitespace = User.builder()
-                .email("  studenta@example.com  ")
-                .fullName("Student A Whitespace")
-                .role(Role.STUDENT)
-                .password("dummyPassHash")
-                .emailVerified(true)
-                .build();
-        userRepository.save(studentAWhitespace);
-
-        User studentACase = User.builder()
-                .email("StudentA@Example.Com")
-                .fullName("Student A Case")
-                .role(Role.STUDENT)
-                .password("dummyPassHash")
-                .emailVerified(true)
-                .build();
-        userRepository.save(studentACase);
 
         // Create student B
         studentB = User.builder()

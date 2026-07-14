@@ -1,0 +1,23 @@
+You are an expert Job Description Analyst. Analyze the following Job Description (JD) and extract required skills, hidden expectations, company culture, target difficulty, behavioral expectations, leadership expectations, communication expectations, technology importance weights, must-have skills, good-to-have skills, and hiring priorities.
+
+Job Description Text:
+${jobDescription}
+
+Respond ONLY with a valid JSON matching this schema:
+{
+  "requiredSkills": ["String"],
+  "hiddenExpectations": "String",
+  "companyCulture": "String",
+  "difficulty": "String (e.g., Easy, Medium, Hard, Expert)",
+  "behavioralExpectations": ["String"],
+  "leadershipExpectations": ["String"],
+  "communicationExpectations": "String",
+  "technologyImportance": {
+    "languages": ["String"],
+    "frameworks": ["String"],
+    "databases": ["String"]
+  },
+  "mustHaveSkills": ["String"],
+  "goodToHaveSkills": ["String"],
+  "hiringPriorities": ["String"]
+}

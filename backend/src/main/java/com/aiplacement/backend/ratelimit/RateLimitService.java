@@ -46,6 +46,20 @@ public class RateLimitService {
         return bucket.tryConsume(1);
     }
 
+    public void clearInMemoryBuckets() {
+        inMemoryBuckets.clear();
+        if (redisTemplate != null) {
+            try {
+                java.util.Set<String> keys = redisTemplate.keys("ratelimit:*");
+                if (keys != null && !keys.isEmpty()) {
+                    redisTemplate.delete(keys);
+                }
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
+    }
+
     private Bucket createNewBucket(RateLimitProperties.LimitConfig limit) {
         Bandwidth limitBandwidth = Bandwidth.builder()
                 .capacity(limit.getCapacity())

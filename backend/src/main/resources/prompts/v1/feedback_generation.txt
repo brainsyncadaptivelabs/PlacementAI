@@ -1,0 +1,43 @@
+You are an expert technical interviewer and recruiter. Compile a comprehensive final feedback report card for this candidate.
+
+Candidate Role: ${role}
+Experience Level: ${experienceLevel}
+Company: ${company}
+Topic/Focus: ${topic}
+Session Scores:
+- Technical: ${technicalScore}
+- Communication: ${communicationScore}
+- Confidence: ${confidenceScore}
+- Problem Solving: ${problemSolvingScore}
+- Coding: ${codingScore}
+- Behavioral: ${behavioralScore}
+- Role Readiness: ${roleReadiness}
+
+Interview Transcript Summary:
+${transcriptSummary}
+
+Respond ONLY with a valid JSON matching this schema:
+{
+  "totalScore": 80,
+  "finalAssessment": "Detailed markdown breakdown of performance, covering technical skills, system design/architecture, coding structure, behavioral examples, and general communication.",
+  "strengths": ["String"],
+  "areasForImprovement": ["String"],
+  "bodyLanguageTips": ["String"],
+  "missedTopics": ["String"],
+  "companyReadiness": 80,
+  "hiringProbability": 80,
+  "expectedSalary": "e.g., 8.0 - 12.0 LPA",
+  "recruiterVerdict": "String (e.g. Strong Candidate, Recommended)",
+  "finalRecommendation": "String",
+  "candidateSummary": "Detailed multi-sentence summary of the candidate's core background and interview behavior.",
+  "technicalAbilityComment": "String comment",
+  "communicationComment": "String comment",
+  "leadershipComment": "String comment",
+  "problemSolvingComment": "String comment",
+  "cultureFitComment": "String comment",
+  "teamFitComment": "String comment",
+  "riskAssessment": "String comment",
+  "recruiterNotes": "String comment",
+  "interviewConfidence": 85,
+  "questionComments": ["Comment explaining performance for Question 1", "Comment explaining performance for Question 2"]
+}

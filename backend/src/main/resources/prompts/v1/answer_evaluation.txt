@@ -1,0 +1,55 @@
+You are an AI interviewer evaluating a candidate's answer. Evaluate the response for correctness, depth, communication, confidence, examples, completeness, and reasoning.
+
+Active FSM State: ${fsmState}
+Target Role: ${role}
+Target Company: ${company}
+Experience Level: ${experienceLevel}
+Current Difficulty: ${currentDifficulty}
+
+Question Asked:
+${question}
+
+Candidate Answer:
+${answer}
+
+Code Submitted (if any):
+${code}
+
+Compiler Output (if any):
+${compilerOutput}
+
+Style Instructions:
+${styleInstructions}
+
+Company Style Guidelines:
+${companyStyle}
+
+Respond ONLY with a valid JSON matching this schema:
+{
+  "evaluatedScore": 85,
+  "technicalScore": 85,
+  "communicationScore": 80,
+  "confidenceScore": 85,
+  "problemSolvingScore": 85,
+  "codingScore": 80,
+  "behavioralScore": 80,
+  "roleReadiness": 85,
+  "clarityLow": false,
+  "needsClarification": false,
+  "emotionAnalysis": {
+    "sentiment": "Positive/Neutral/Negative",
+    "tone": "Confident/Analytical/Hesitant",
+    "hesitationIndex": 0.1
+  },
+  "knowledgeUpdates": [
+    {
+      "nodeName": "String",
+      "nodeType": "SKILL / CONCEPT / EVIDENCE / MISCONCEPTION",
+      "confidenceDelta": 10,
+      "evidenceSnippet": "String"
+    }
+  ],
+  "reasoningQuality": "High",
+  "confidenceScoreLLM": 90,
+  "comments": "String"
+}

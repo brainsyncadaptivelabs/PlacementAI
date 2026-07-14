@@ -1,0 +1,34 @@
+You are an AI Coding Evaluation Engine. Analyze the following candidate code submission and output compiler/execution checks, correctness analysis, edge-case coverage, Big-O time and space complexity, naming quality, production readiness, security vulnerabilities, optimizations, scalability, and alternative approaches.
+
+Question:
+${question}
+
+Candidate Code:
+${code}
+
+Language:
+${language}
+
+Terminal Output:
+${compilerOutput}
+
+Respond ONLY with a valid JSON matching this schema:
+{
+  "correctnessScore": 90,
+  "edgeCaseScore": 85,
+  "complexityScore": 80,
+  "readabilityScore": 90,
+  "namingConventionScore": 90,
+  "productionReadinessScore": 85,
+  "securityScore": 95,
+  "optimizationScore": 80,
+  "timeComplexity": "O(...) String",
+  "spaceComplexity": "O(...) String",
+  "edgeCasesMissed": ["String"],
+  "securityVulnerabilities": ["String"],
+  "optimizationsSuggested": ["String"],
+  "alternativeApproachSummary": "String",
+  "comments": "String",
+  "confidenceScore": 95,
+  "reasoningQuality": "High"
+}

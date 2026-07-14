@@ -1,6 +1,5 @@
 package com.aiplacement.backend.service.interview;
 
-import com.aiplacement.backend.ai.client.AIClient;
 import com.aiplacement.backend.dto.interview.*;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.interview.InterviewQuestion;
@@ -9,12 +8,12 @@ import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.ResumeRepository;
 import com.aiplacement.backend.repository.interview.MockInterviewRepository;
-import com.aiplacement.backend.service.interview.engine.*;
-import com.aiplacement.backend.service.interview.memory.*;
 import com.aiplacement.backend.service.interview.orchestrator.InterviewBlueprint;
 import com.aiplacement.backend.service.interview.orchestrator.InterviewOrchestratorImpl;
 import com.aiplacement.backend.service.interview.orchestrator.InterviewState;
 import com.aiplacement.backend.service.interview.orchestrator.AdaptiveState;
+import com.aiplacement.backend.service.interview.refactored.*;
+import com.aiplacement.backend.service.interview.engine.InterviewPersistenceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,8 +39,6 @@ import static org.mockito.Mockito.*;
 public class InterviewOrchestratorTest {
 
     @Mock
-    private AIClient aiClient;
-    @Mock
     private UserRepository userRepository;
     @Mock
     private ResumeRepository resumeRepository;
@@ -48,23 +46,29 @@ public class InterviewOrchestratorTest {
     private MockInterviewRepository mockInterviewRepository;
 
     @Mock
-    private QuestionGenerationEngine questionGenerationEngine;
+    private ResumeIntelligenceService resumeIntelligenceService;
     @Mock
-    private AnswerEvaluationEngine answerEvaluationEngine;
+    private JobDescriptionIntelligenceService jobDescriptionIntelligenceService;
     @Mock
-    private InterviewMemoryService interviewMemoryService;
+    private InterviewBlueprintService interviewBlueprintService;
     @Mock
-    private AdaptiveDifficultyEngine adaptiveDifficultyEngine;
+    private ConversationMemoryService conversationMemoryService;
     @Mock
-    private PersonaRouter personaRouter;
+    private AdaptiveQuestionService adaptiveQuestionService;
+    @Mock
+    private InterviewEvaluationService interviewEvaluationService;
+    @Mock
+    private ReportGenerationService reportGenerationService;
     @Mock
     private InterviewPersistenceService interviewPersistenceService;
     @Mock
-    private InterviewReportService interviewReportService;
+    private ContextBuilderService contextBuilderService;
     @Mock
-    private KnowledgePersistenceService knowledgePersistenceService;
+    private InterviewStateMachine stateMachine;
     @Mock
-    private MemoryRetrievalService memoryRetrievalService;
+    private DifficultyEngine difficultyEngine;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private InterviewOrchestratorImpl orchestrator;
@@ -103,8 +107,19 @@ public class InterviewOrchestratorTest {
         when(userRepository.findByEmail("candidate@example.com")).thenReturn(Optional.of(testUser));
         when(resumeRepository.findFirstByUserOrderByCreatedAtDesc(testUser)).thenReturn(Optional.empty());
 
-        when(interviewMemoryService.getPreviousHistoryContext(testUser)).thenReturn("No previous history");
-        when(questionGenerationEngine.generateQuestion(any(), any(), any(), any()))
+        InterviewBlueprint blueprint = InterviewBlueprint.builder()
+                .role("Senior Software Architect")
+                .company("NVIDIA")
+                .durationMinutes(45)
+                .sections(Arrays.asList("INTRODUCTION", "TECHNICAL"))
+                .questionBudget(5)
+                .build();
+
+        when(interviewBlueprintService.generateBlueprint(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(blueprint);
+        when(contextBuilderService.buildHistoryContext(any(), any())).thenReturn("No previous history");
+        when(conversationMemoryService.getKnowledgeGraphState(any())).thenReturn("{}");
+        when(adaptiveQuestionService.generateQuestion(any(), any(), any(), any(), any(), any()))
                 .thenReturn("[Technical Interviewer] Describe Redis clusters.");
 
         AdaptiveStartResponseDto response = orchestrator.startAdaptiveInterview(startRequest);
@@ -153,10 +168,11 @@ public class InterviewOrchestratorTest {
         mockInterview.setCurrentStateJson(objectMapper.writeValueAsString(state));
 
         when(mockInterviewRepository.findById(100L)).thenReturn(Optional.of(mockInterview));
-        when(answerEvaluationEngine.evaluateAnswer(any(), anyString(), any(), anyString(), anyString()))
+        when(interviewEvaluationService.evaluateAnswer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(objectMapper.readTree("{\"evaluatedScore\": 85, \"technicalScore\": 85}"));
-        when(personaRouter.routeToPersona(any(), anyString())).thenReturn("[Technical Interviewer] Details");
-        when(questionGenerationEngine.generateQuestion(any(), any(), any(), any()))
+        when(contextBuilderService.buildHistoryContext(any(), any())).thenReturn("No previous history");
+        when(conversationMemoryService.getKnowledgeGraphState(any())).thenReturn("{}");
+        when(adaptiveQuestionService.generateQuestion(any(), any(), any(), any(), any(), any()))
                 .thenReturn("[Technical Interviewer] Next Question");
 
         AdaptiveAnswerRequestDto answerRequest = AdaptiveAnswerRequestDto.builder()
@@ -169,7 +185,7 @@ public class InterviewOrchestratorTest {
         assertNotNull(response);
         assertFalse(response.isFinished());
         assertEquals("[Technical Interviewer] Next Question", response.getNextQuestion());
-        verify(adaptiveDifficultyEngine, times(1)).adjustDifficulty(any(), eq(85));
+        verify(difficultyEngine, times(1)).adjustDifficulty(any(), eq(85), anyDouble(), anyDouble());
         verify(interviewPersistenceService, times(1)).saveInterviewState(any(), any());
     }
 
@@ -186,7 +202,11 @@ public class InterviewOrchestratorTest {
                 .currentQuestionIndex(4)
                 .user(testUser)
                 .questions(new ArrayList<>(Arrays.asList(
-                        InterviewQuestion.builder().questionText("Q1").score(0).build()
+                        InterviewQuestion.builder().questionText("Q1").score(0).build(),
+                        InterviewQuestion.builder().questionText("Q2").score(0).build(),
+                        InterviewQuestion.builder().questionText("Q3").score(0).build(),
+                        InterviewQuestion.builder().questionText("Q4").score(0).build(),
+                        InterviewQuestion.builder().questionText("Q5").score(0).build()
                 )))
                 .build();
 
@@ -212,7 +232,7 @@ public class InterviewOrchestratorTest {
         mockInterview.setCurrentStateJson(objectMapper.writeValueAsString(state));
 
         when(mockInterviewRepository.findById(100L)).thenReturn(Optional.of(mockInterview));
-        when(answerEvaluationEngine.evaluateAnswer(any(), anyString(), any(), anyString(), anyString()))
+        when(interviewEvaluationService.evaluateAnswer(any(), any(), any(), any(), any(), any()))
                 .thenReturn(objectMapper.readTree("{\"evaluatedScore\": 90, \"technicalScore\": 90}"));
 
         AdaptiveAnswerRequestDto answerRequest = AdaptiveAnswerRequestDto.builder()
@@ -224,6 +244,6 @@ public class InterviewOrchestratorTest {
 
         assertNotNull(response);
         assertTrue(response.isFinished());
-        verify(interviewReportService, times(1)).compileAndSaveReport(any(), any());
+        verify(reportGenerationService, times(1)).compileReportAsync(any(), any());
     }
 }

@@ -1,16 +1,20 @@
 package com.aiplacement.backend.service.interview.orchestrator;
 
 public enum InterviewState {
-    CREATED,
-    PREPARING,
+    INITIALIZING,
+    RESUME_ANALYSIS,
+    JD_ANALYSIS,
+    INTERVIEW_BLUEPRINT,
     INTRODUCTION,
-    RESUME_REVIEW,
+    RESUME_DISCUSSION,
     TECHNICAL,
     CODING,
     SYSTEM_DESIGN,
     BEHAVIORAL,
-    HR,
-    FINAL_REVIEW,
+    FOLLOW_UP,
+    FINAL_EVALUATION,
     REPORT_GENERATION,
-    COMPLETED
+    COMPLETED,
+    CANCELLED,
+    FAILED
 }
