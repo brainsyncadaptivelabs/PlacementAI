@@ -216,6 +216,9 @@ public class AtsScoringEngineTest {
         // Experience should be fair for students/freshers (base 65)
         assertThat(experienceSection.getScore()).isGreaterThanOrEqualTo(65);
 
+        assertThat(projectsSection).isNotNull();
+        assertThat(projectsSection.getScore()).isEqualTo(55);
+
         // Test STUDENT with strong projects
         java.util.List<com.aiplacement.backend.dto.AtsResponseDto.AtsSectionScoreDto> strongProjectsResult = 
             com.aiplacement.backend.ai.intelligence.AtsSectionScoringEngine.calculate(
@@ -295,6 +298,11 @@ public class AtsScoringEngineTest {
         );
 
         // Assert Project Invariants
+        assertThat(sectionHeadersOnly.getOverallScore()).isBetween(0, 100);
+        assertThat(contactAndHeaders.getOverallScore()).isBetween(0, 100);
+        assertThat(skillsOnly.getOverallScore()).isBetween(0, 100);
+        assertThat(sectionHeadersOnly.getOverallScore()).isLessThanOrEqualTo(contactAndHeaders.getOverallScore());
+
         assertThat(shallowProject.getOverallScore()).isLessThan(moderateProject.getOverallScore());
         assertThat(moderateProject.getOverallScore()).isLessThan(deepProject.getOverallScore());
 

@@ -831,10 +831,8 @@ public class AtsScoringEngine {
 
                 // Check problems
                 List<String> problems = new ArrayList<>();
-                boolean weakVerb = false;
                 for (String wv : WEAK_VERBS) {
                     if (bulletText.toLowerCase().contains(wv)) {
-                        weakVerb = true;
                         problems.add("Uses weak passive phrase: '" + wv + "'");
                     }
                 }
@@ -844,10 +842,8 @@ public class AtsScoringEngine {
                     problems.add("Lacks numerical metric/quantification");
                 }
                 
-                boolean hasFirst = false;
                 for (String fp : FIRST_PERSON) {
                     if (bulletText.toLowerCase().matches(".*\\b" + fp + "\\b.*")) {
-                        hasFirst = true;
                         problems.add("Uses first-person pronoun: '" + fp + "'");
                     }
                 }

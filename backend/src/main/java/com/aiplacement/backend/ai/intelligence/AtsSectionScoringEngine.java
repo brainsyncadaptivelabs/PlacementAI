@@ -42,14 +42,12 @@ public class AtsSectionScoringEngine {
                              lowerText.contains("profile") || lowerText.contains("professional summary");
         
         int score = 0;
-        String status = "FAIL";
         String explanation = "Professional Summary section was not detected in the resume.";
         List<String> strengths = new ArrayList<>();
         List<String> improvements = new ArrayList<>();
 
         if (hasSummary) {
             score = 75;
-            status = "GOOD";
             explanation = "Professional Summary section is present and clear.";
             strengths.add("Summary section is explicitly defined.");
             
