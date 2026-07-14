@@ -13,7 +13,7 @@ export default function PlacementAILogo({ size = 40, className = "" }: Placement
       style={{ width: size, height: size }}
     >
       <Image
-        src="/placementai-logo.png"
+        src="/placementai-brand-symbol-v2.png"
         alt="PlacementAI"
         fill
         sizes={`${size}px`}

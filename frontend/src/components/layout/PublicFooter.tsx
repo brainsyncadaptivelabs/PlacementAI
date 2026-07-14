@@ -128,16 +128,7 @@ export function PublicFooter() {
         </div>
         <div className="mt-20 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">
-            © 2026 PlacementAI. Built with ❤️ for students by{" "}
-            <a
-              href="https://brainsyncadaptivelabs.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors underline decoration-dotted"
-            >
-              BrainSync Adaptive Labs
-            </a>
-            .
+            © 2026 BrainSync Adaptive Labs. PlacementAI. All rights reserved.
           </p>
           <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">
             <ShieldCheck className="w-4 h-4 text-green-500" /> Privacy & Security
