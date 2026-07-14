@@ -85,19 +85,19 @@ export function ConversationSidebar({
   };
 
   return (
-    <div className="w-[300px] shrink-0 border-r border-border bg-card flex flex-col h-screen overflow-hidden text-card-foreground select-none">
+    <div className="w-[260px] shrink-0 border-r border-border bg-card flex flex-col h-screen overflow-hidden text-card-foreground select-none">
       {/* Header with New Chat */}
       <div className="p-4 flex flex-col gap-3 border-b border-border/40">
         <button
           onClick={onCreate}
-          className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-secondary border border-border hover:bg-secondary/80 text-sm font-bold tracking-tight text-foreground transition-all cursor-pointer shadow-sm active:scale-95"
+          className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-full bg-secondary border border-border hover:bg-secondary/80 text-sm font-bold tracking-tight text-foreground transition-all cursor-pointer shadow-sm active:scale-95 h-11"
         >
           <Plus className="w-4 h-4" />
           <span>New Chat</span>
         </button>
 
         {/* Search Input */}
-        <div className="relative flex items-center bg-secondary/60 border border-border/50 rounded-xl px-3 py-1.5">
+        <div className="relative flex items-center bg-secondary/60 border border-border/50 rounded-xl px-3 py-1 h-10">
           <Search className="w-4 h-4 text-muted-foreground mr-2 shrink-0" />
           <input
             type="text"

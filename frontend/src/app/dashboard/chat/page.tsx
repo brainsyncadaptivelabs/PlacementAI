@@ -477,31 +477,42 @@ const normalizeMarkdown = (text: string): string => {
 // JSON parsing and text content extractor helper (ChatGPT style: hides JSON completely)
 const parseMessageContent = (content: string): { text: string; rawJson: string | null } => {
   if (!content) return { text: "", rawJson: null };
+  let finalResult: { text: string; rawJson: string | null } = { text: content, rawJson: null };
 
   const jsonBlockRegex = /```(?:json|placementai)\s*([\s\S]*?)(?:```|$)/;
   const match = content.match(jsonBlockRegex);
   if (match) {
     const rawJson = match[1].trim();
     const text = content.replace(/```(?:json|placementai)\s*[\s\S]*?(?:```|$)/g, "").trim();
-    return { text, rawJson };
-  }
-
-  const start = content.indexOf("{");
-  const end = content.lastIndexOf("}");
-  if (start !== -1 && end !== -1 && end > start) {
-    const rawJsonCandidate = content.substring(start, end + 1).trim();
-    try {
-      const parsed = JSON.parse(rawJsonCandidate);
-      if (parsed && (parsed.widgets || parsed.widget || parsed.schema)) {
-        const text = (content.substring(0, start) + content.substring(end + 1)).trim();
-        return { text, rawJson: rawJsonCandidate };
+    finalResult = { text, rawJson };
+  } else {
+    const start = content.indexOf("{");
+    const end = content.lastIndexOf("}");
+    if (start !== -1 && end !== -1 && end > start) {
+      const rawJsonCandidate = content.substring(start, end + 1).trim();
+      try {
+        const parsed = JSON.parse(rawJsonCandidate);
+        if (parsed && (parsed.widgets || parsed.widget || parsed.schema)) {
+          const text = (content.substring(0, start) + content.substring(end + 1)).trim();
+          finalResult = { text, rawJson: rawJsonCandidate };
+        }
+      } catch (e) {
+        // Fallback
       }
-    } catch (e) {
-      // Fallback
     }
   }
 
-  return { text: content, rawJson: null };
+  // Sanitize internal JSON/Widget explanations that may leak
+  if (finalResult.text) {
+    // Remove "JSON Block Explanation" headings and the standard widget paragraphs explaining the JSON
+    finalResult.text = finalResult.text
+      .replace(/###?\s*JSON Block Explanation[\s\S]*?$/i, "")
+      .replace(/The JSON block provided earlier is a widget[\s\S]*?$/i, "")
+      .replace(/This JSON block defines[\s\S]*?$/i, "")
+      .trim();
+  }
+
+  return finalResult;
 };
 
 // Premium Code Block Component
@@ -624,7 +635,7 @@ const MessageItem = memo(({
 
   return (
     <div className={`w-full flex ${isAi ? 'justify-start' : 'justify-end'} mb-6 last:mb-0 animate-message group/msg relative`}>
-      <div className={`w-full max-w-[1000px] flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
+      <div className={`w-full max-w-[96%] flex gap-4 ${isAi ? 'flex-row' : 'flex-row-reverse'}`}>
         
         {/* Sparkles Avatar outside on the left (AI only) */}
         {isAi ? (
@@ -633,10 +644,11 @@ const MessageItem = memo(({
           </div>
         ) : null}
 
-        <div className={`flex flex-col ${isAi ? 'items-start flex-1 min-w-0' : 'items-end max-w-[75%]'}`}>
+        <div className={`flex flex-col ${isAi ? 'items-start flex-1 min-w-0' : 'items-end max-w-[85%]'}`}>
           {isAi ? (
             /* Assistant Bubble Card */
-            <div className="bg-card border border-border/85 shadow-sm rounded-3xl px-6 py-5 w-full text-left relative flex flex-col gap-3">
+            /* Assistant Clean Response Area (No document card feel) */
+            <div className="bg-transparent border-none shadow-none rounded-none w-full text-left relative flex flex-col gap-3">
               
               {/* If structured widget data is detected, render WidgetRenderer */}
               {rawJson && (rawJson.includes("widget") || rawJson.includes("schema")) && (
@@ -702,39 +714,34 @@ const MessageItem = memo(({
                 ) : null
               )}
 
-              {/* Timestamp at bottom left */}
-              <div className="text-[10px] font-bold text-muted-foreground/50 mt-1 select-none">
-                {msg.time}
-              </div>
-
-              {/* Action buttons inside Card bubble bottom right */}
+              {/* Compact Inline Message Actions at the bottom */}
               {isAi && msg.content && !isLoading && (
-                <div className="absolute bottom-4 right-4 flex items-center gap-1.5 bg-card/90 backdrop-blur-sm border border-border/80 px-2.5 py-1.5 rounded-xl shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity duration-200 select-none">
+                <div className="flex items-center gap-3 text-muted-foreground/60 text-[10px] mt-1 select-none font-bold">
+                  <span>{msg.time}</span>
+                  <span>•</span>
                   <button 
                     onClick={handleCopy}
-                    className={`p-1.5 rounded-lg transition-all flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider ${
-                      copied ? 'text-green-500 bg-green-500/10' : 'text-muted-foreground/70 hover:text-primary hover:bg-muted'
-                    }`}
+                    className={`hover:text-primary transition-colors flex items-center gap-1 cursor-pointer`}
                   >
-                    {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    Copy
+                    {copied ? "Copied" : "Copy"}
                   </button>
                   {onRegenerate && (
-                    <button 
-                      onClick={() => onRegenerate(msg.content)}
-                      className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      Regenerate
-                    </button>
+                    <>
+                      <span>•</span>
+                      <button 
+                        onClick={() => onRegenerate(msg.content)}
+                        className="hover:text-primary transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        Regenerate
+                      </button>
+                    </>
                   )}
-                  <div className="w-px h-3 bg-border mx-0.5" />
+                  <span>•</span>
                   <button 
                     onClick={handleShare}
-                    className="p-1.5 rounded-lg text-muted-foreground/70 hover:text-primary hover:bg-muted transition-all"
-                    title="Copy link"
+                    className="hover:text-primary transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    <Share className="w-3.5 h-3.5" />
+                    Share
                   </button>
                 </div>
               )}
@@ -906,9 +913,9 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = '40px';
+      textareaRef.current.style.height = '28px';
       if (input) {
-        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 220)}px`;
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
       }
     }
   }, [input]);
@@ -1317,10 +1324,10 @@ export default function ChatPage() {
             <main 
               ref={scrollAreaRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto overflow-x-hidden selection:bg-primary/10 flex flex-col bg-slate-50/10"
+              className="flex-1 overflow-y-auto overflow-x-hidden selection:bg-primary/10 flex flex-col bg-background"
             >
               {isEmpty ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto max-w-[1000px] mx-auto w-full space-y-8 select-none">
+                <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto max-w-[96%] mx-auto w-full space-y-8 select-none">
                   <div className="flex flex-col items-center justify-center text-center mt-12 space-y-4">
                     <div className="w-14 h-14 rounded-2xl bg-indigo-50/80 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shadow-sm">
                       <Sparkles className="w-6 h-6 animate-pulse text-indigo-600" />
@@ -1352,7 +1359,7 @@ export default function ChatPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex-1 px-4 py-6 w-full max-w-[1200px] mx-auto text-left">
+                <div className="flex-1 px-4 py-6 w-full max-w-[96%] mx-auto text-left">
                   {messages.map((msg, index) => {
                     return (
                       <MessageItem 
@@ -1376,7 +1383,7 @@ export default function ChatPage() {
                   {/* Pulsing loading reasoning status chips */}
                   {isLoading && (
                     <div className="w-full flex justify-center mb-6">
-                      <div className="w-full max-w-[1200px] px-6">
+                      <div className="w-full max-w-[96%] px-6">
                         <ReasoningStatus loadingPhase={loadingPhase} />
                       </div>
                     </div>
@@ -1386,8 +1393,8 @@ export default function ChatPage() {
             </main>
 
             {/* ChatGPT-Style Centered Input Area */}
-            <div className="w-full shrink-0 py-4 pb-6 relative z-10 select-none bg-background">
-              <div className="max-w-[860px] mx-auto px-6 relative">
+            <div className="w-full shrink-0 py-3 pb-4 relative z-10 select-none bg-background">
+              <div className="max-w-[96%] mx-auto px-6 relative">
                 
                 {/* Upload attachment pre-views */}
                 {(uploadedAttachments.length > 0 || Object.keys(uploadingFiles).length > 0) && (
@@ -1410,7 +1417,26 @@ export default function ChatPage() {
                   </div>
                 )}
 
-                <div className="relative flex flex-col bg-secondary/60 border border-border rounded-3xl transition-all p-3 min-h-[80px] shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50">
+                <div className="relative flex items-center bg-secondary/60 border border-border rounded-xl px-4 py-2 min-h-[52px] max-h-[160px] shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50 gap-3">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    multiple
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        handleFileUpload(e.target.files);
+                      }
+                    }} 
+                  />
+                  <button 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-1.5 rounded-xl text-muted-foreground/70 hover:text-indigo-600 hover:bg-indigo-50 transition-all shrink-0 cursor-pointer"
+                    title="Attach files"
+                  >
+                    <Paperclip className="w-4.5 h-4.5" />
+                  </button>
+
                   <textarea 
                     ref={textareaRef}
                     value={input}
@@ -1423,67 +1449,44 @@ export default function ChatPage() {
                     }}
                     onPaste={handlePaste}
                     placeholder="Ask anything about placements, resumes, interviews, coding or careers..." 
-                    className="w-full bg-transparent border-none border-0 outline-none ring-0 shadow-none focus:border-none focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none p-2 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[50px] leading-relaxed animate-none"
+                    className="flex-1 bg-transparent border-0 outline-none ring-0 focus:ring-0 focus:outline-none p-1 text-sm text-foreground placeholder:text-slate-500 resize-none min-h-[28px] max-h-[140px] leading-relaxed"
                     rows={1}
                     maxLength={2000}
                     disabled={isLoading}
                   />
-                  
-                  <div className="flex items-center justify-between border-t border-border/40 pt-2.5 mt-2">
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        className="hidden" 
-                        multiple
-                        onChange={(e) => {
-                          if (e.target.files) {
-                            handleFileUpload(e.target.files);
-                          }
-                        }} 
-                      />
-                      <button 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-650 hover:bg-indigo-50 transition-all shrink-0 cursor-pointer"
-                        title="Attach files"
-                      >
-                        <Paperclip className="w-4.5 h-4.5" />
-                      </button>
 
-                      {/* Character Counter */}
-                      <span className="text-[10px] text-muted-foreground/50 font-bold ml-1">
-                        {input.length} / 2000
-                      </span>
-                    </div>
+                  {/* Character Counter */}
+                  <span className="text-[10px] text-muted-foreground/50 font-bold shrink-0 select-none">
+                    {input.length}/2000
+                  </span>
 
-                    {isLoading ? (
-                      <button 
-                        onClick={handleStop}
-                        className="h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-sm shrink-0 transition-all cursor-pointer font-bold text-xs"
-                      >
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        Stop
-                      </button>
-                    ) : (
-                      <motion.button 
-                        onClick={() => handleSend()}
-                        disabled={(!input.trim() && uploadedAttachments.length === 0) || isLoading}
-                        whileHover={input.trim() ? { scale: 1.05 } : {}}
-                        whileTap={input.trim() ? { scale: 0.95 } : {}}
-                        className={`h-9 px-4.5 rounded-xl flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs ${
-                          (input.trim() || uploadedAttachments.length > 0) && !isLoading 
-                          ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm' 
-                          : 'bg-transparent text-slate-400'
-                        }`}
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        Send
-                      </motion.button>
-                    )}
-                  </div>
+                  {isLoading ? (
+                    <button 
+                      onClick={handleStop}
+                      className="h-8 px-3.5 rounded-lg flex items-center justify-center gap-1.5 bg-rose-600 hover:bg-rose-700 text-white shadow-sm shrink-0 transition-all cursor-pointer font-bold text-xs"
+                    >
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Stop
+                    </button>
+                  ) : (
+                    <motion.button 
+                      onClick={() => handleSend()}
+                      disabled={(!input.trim() && uploadedAttachments.length === 0) || isLoading}
+                      whileHover={input.trim() ? { scale: 1.05 } : {}}
+                      whileTap={input.trim() ? { scale: 0.95 } : {}}
+                      className={`h-8 px-3.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs ${
+                        (input.trim() || uploadedAttachments.length > 0) && !isLoading 
+                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm' 
+                        : 'bg-transparent text-slate-400'
+                      }`}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      Send
+                    </motion.button>
+                  )}
                 </div>
                 
-                <div className="text-[10px] text-muted-foreground/60 text-center mt-2.5">
+                <div className="text-[10px] text-muted-foreground/60 text-center mt-1.5">
                   PlacementAI can make mistakes. Consider checking important information.
                 </div>
               </div>
