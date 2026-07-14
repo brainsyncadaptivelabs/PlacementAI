@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ShieldCheck, Globe } from "lucide-react";
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
 
 export function PublicFooter() {
   return (
@@ -10,7 +11,7 @@ export function PublicFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-16">
           <div className="col-span-1 md:col-span-1 space-y-6">
             <Link className="flex items-center gap-2" href="/">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">A</div>
+              <PlacementAILogo size={32} />
               <span className="font-heading font-black text-xl tracking-tight">AI Placement</span>
             </Link>
             <p className="text-sm text-muted-foreground font-medium leading-relaxed">

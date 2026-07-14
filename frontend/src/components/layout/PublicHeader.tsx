@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
 
 export function PublicHeader() {
   return (
     <header className="px-4 lg:px-8 h-20 flex items-center border-b border-border sticky top-0 bg-card/90 backdrop-blur-md z-50">
       <Link className="flex items-center justify-center gap-2" href="/">
-        <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/20">A</div>
+        <PlacementAILogo size={40} />
         <span className="font-heading font-bold text-2xl tracking-tight hidden sm:inline-block">
           AI Placement <span className="text-primary font-black italic">Copilot</span>
         </span>
@@ -18,9 +19,6 @@ export function PublicHeader() {
         </Link>
         <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/#how-it-works">
           How It Works
-        </Link>
-        <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/#pricing">
-          Pricing
         </Link>
         <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/about">
           About Us

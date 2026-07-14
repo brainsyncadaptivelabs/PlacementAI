@@ -11,6 +11,7 @@ import api from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState(1);
@@ -161,7 +162,7 @@ export default function ForgotPasswordPage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8 relative z-10">
         <Link className="inline-flex items-center gap-2" href="/">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">A</div>
+          <PlacementAILogo size={40} />
           <span className="font-heading font-bold text-2xl tracking-tight">AI Placement <span className="text-primary">Copilot</span></span>
         </Link>
       </div>

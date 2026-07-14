@@ -5,6 +5,8 @@ import Link from "next/link";
 import { GraduationCap, Building2, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
+
 export default function SelectRolePage() {
   return (
     <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -18,7 +20,7 @@ export default function SelectRolePage() {
         className="text-center max-w-2xl mx-auto mb-12 space-y-4"
       >
         <div className="inline-flex items-center justify-center gap-2 mb-4">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg">A</div>
+          <PlacementAILogo size={40} />
         </div>
         <h1 className="text-4xl md:text-5xl font-black text-foreground font-heading tracking-tight">
           Welcome to <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">AI Placement Copilot</span>

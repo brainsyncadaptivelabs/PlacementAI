@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useUser } from "@/hooks/use-user";
 import { getDashboardRouteForRole } from "@/lib/auth-routes";
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
 
 export default function CompleteProfilePage() {
   const { user, loading: userLoading, mutate } = useUser();
@@ -93,7 +94,7 @@ export default function CompleteProfilePage() {
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center mb-8 relative z-10">
         <div className="inline-flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-xl">A</div>
+          <PlacementAILogo size={40} />
           <span className="font-heading font-bold text-2xl tracking-tight">AI Placement <span className="text-primary">Copilot</span></span>
         </div>
       </div>

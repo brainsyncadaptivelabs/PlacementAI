@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Settings, LogOut, Crown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { roleMenus, studentMenuGroups } from "@/config/menu-config";
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
 
 import {
   Sidebar as ShadcnSidebar,
@@ -75,11 +76,7 @@ export function Sidebar({ role }: SidebarProps) {
           href={(roleMenus[role]?.[0]?.url || "/")} 
           className="h-full w-[90%] flex items-center justify-center gap-3 m-auto p-0 scale-75 origin-center transition-opacity duration-200 hover:opacity-85"
         >
-          <div className={role === "RECRUITER" 
-            ? "w-[54px] h-[54px] bg-gradient-to-br from-orange-400 to-pink-500 rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shrink-0" 
-            : "w-[54px] h-[54px] bg-primary rounded-2xl flex items-center justify-center text-white font-bold shadow-lg shadow-primary/20 shrink-0"}>
-            <span className="text-2xl">A</span>
-          </div>
+          <PlacementAILogo size={40} />
           <span className={`font-heading font-semibold text-[30px] tracking-tighter leading-none whitespace-nowrap ${role === "RECRUITER" ? "text-white dark:text-foreground" : "text-foreground"}`}>
             AI Placement
           </span>

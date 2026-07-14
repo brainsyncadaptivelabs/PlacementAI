@@ -17,6 +17,7 @@ import { useTheme } from "next-themes";
 import { getDashboardRouteForRole } from "@/lib/auth-routes";
 
 import { usePathname } from "next/navigation";
+import PlacementAILogo from "@/components/branding/PlacementAILogo";
 
 const PREDEFINED_SKILLS = [
   "Java",
@@ -1072,9 +1073,7 @@ export default function AuthPage() {
           
           <div className="left-panel-logo-container w-full" style={{ alignItems: 'flex-start' }}>
             <div className="flex gap-3 relative z-10">
-              <div className="logo-box mt-1">
-                <Briefcase className="w-5 h-5" />
-              </div>
+              <PlacementAILogo size={36} className="mt-1" />
               <div className="flex flex-col gap-1.5">
                 <span className="font-bold text-xl tracking-wide text-white">
                   PlacementAI
