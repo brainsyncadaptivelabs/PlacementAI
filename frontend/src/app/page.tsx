@@ -1,36 +1,34 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  FileText, 
-  Mic, 
-  Map, 
-  ArrowRight, 
-  CheckCircle, 
-  Target, 
-  Zap, 
-  MessageSquare, 
+import {
+  FileText,
+  ArrowRight,
+  CheckCircle,
+  Sparkles,
+  Brain,
+  Compass,
+  Activity,
+  Award,
   ShieldCheck,
-  Star,
-  Sparkles
+  TrendingUp
 } from "lucide-react";
 import { PublicFooter } from "@/components/layout/PublicFooter";
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-card">
-      {/* Header */}
+      {/* SECTION 1 — NAVBAR */}
       <header className="px-4 lg:px-8 h-20 flex items-center border-b border-border sticky top-0 bg-card/90 backdrop-blur-md z-50">
         <Link className="flex items-center justify-center gap-2" href="/">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-primary/20">A</div>
           <span className="font-heading font-bold text-2xl tracking-tight hidden sm:inline-block">AI Placement <span className="text-primary font-black italic">Copilot</span></span>
         </Link>
         <nav className="ml-auto hidden md:flex gap-8 items-center">
-          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#features">Features</Link>
+          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#product">Product</Link>
           <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#how-it-works">How It Works</Link>
-          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#pricing">Pricing</Link>
-          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="#about">About Us</Link>
+          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/about">For Colleges</Link>
+          <Link className="text-sm font-bold text-muted-foreground hover:text-primary transition-colors uppercase tracking-widest" href="/about#pricing">Pricing</Link>
           <div className="h-6 w-px bg-slate-200 mx-2" />
           <Link href="/auth">
             <Button variant="ghost" className="font-bold text-foreground">Login</Button>
@@ -47,59 +45,67 @@ export default function LandingPage() {
       </header>
 
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 xl:py-48 px-4 lg:px-8 overflow-hidden relative">
+        {/* SECTION 2 — HERO */}
+        <section className="w-full py-16 md:py-24 lg:py-32 px-4 lg:px-8 overflow-hidden relative">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 rounded-full blur-3xl -z-10" />
           <div className="container mx-auto">
             <div className="flex flex-col lg:flex-row items-center gap-16">
-              <div className="flex flex-col justify-center space-y-10 lg:w-1/2">
+              <div className="flex flex-col justify-center space-y-8 lg:w-1/2">
                 <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest">
-                    <Sparkles className="w-3 h-3" /> Powered by Next-Gen AI
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-black uppercase tracking-widest w-fit">
+                    <Sparkles className="w-3 h-3" /> AI Placement Intelligence for Students
                   </div>
-                  <h1 className="text-5xl font-black tracking-tight sm:text-6xl xl:text-7xl/none font-heading text-foreground leading-tight">
-                    Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">AI-Powered</span> <br />
-                    Career Co-Pilot
+                  <h1 className="text-4xl font-black tracking-tight sm:text-5xl xl:text-6xl font-heading text-foreground leading-tight">
+                    Know exactly what stands between you and your next offer.
                   </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-lg/relaxed xl:text-xl/relaxed font-medium">
-                    AI Mock Interviews, ATS Analysis, Personalized Roadmaps and everything you need to crack top tier placements in 2026.
+                  <p className="max-w-[600px] text-muted-foreground md:text-lg font-medium leading-relaxed">
+                    PlacementAI analyzes your resume, skills, interview readiness, and career gaps to build a personalized path toward becoming placement-ready.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-6">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <Link href="/auth">
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 px-10 py-8 text-xl font-bold shadow-xl shadow-primary/30 group">
-                      Start for Free <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-7 text-lg font-bold shadow-xl shadow-primary/30 group">
+                      Analyze My Placement Readiness <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <Button variant="outline" size="lg" className="px-10 py-8 text-xl font-bold border-2 hover:bg-muted">
-                    See How It Works
-                  </Button>
+                  <Link href="#how-it-works">
+                    <Button variant="outline" size="lg" className="px-8 py-7 text-lg font-bold border-2 hover:bg-muted">
+                      See How It Works
+                    </Button>
+                  </Link>
                 </div>
-
               </div>
+
+              {/* HERO VISUAL: Sleek Placement Readiness Score Dashboard Panel */}
               <div className="lg:w-1/2 w-full relative">
-                <div className="relative aspect-[4/3] rounded-3xl bg-slate-900/5 overflow-hidden border border-border shadow-2xl p-4 group">
-                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                   <div className="h-full w-full bg-card rounded-2xl border border-border shadow-inner flex items-center justify-center relative overflow-hidden">
-                      <div className="absolute top-4 left-4 right-4 h-12 bg-muted rounded-lg border border-border flex items-center px-4 gap-2">
-                         <div className="w-2 h-2 rounded-full bg-red-400" />
-                         <div className="w-2 h-2 rounded-full bg-amber-400" />
-                         <div className="w-2 h-2 rounded-full bg-green-400" />
+                <div className="relative aspect-[4/3] rounded-3xl bg-slate-900/5 overflow-hidden border border-border shadow-2xl p-6">
+                   <div className="h-full w-full bg-card rounded-2xl border border-border shadow-inner p-6 flex flex-col justify-between relative overflow-hidden">
+                      <div className="flex items-center justify-between border-b border-border pb-4">
+                         <div className="flex items-center gap-2">
+                            <span className="font-heading font-black text-sm text-foreground">PLACEMENT INTELLIGENCE PROFILE</span>
+                            <span className="bg-green-100 text-green-700 text-[10px] font-black px-2 py-0.5 rounded-full">ACTIVE</span>
+                         </div>
+                         <div className="text-xs text-muted-foreground font-medium">Updated: Just Now</div>
                       </div>
-                      <div className="space-y-6 w-full max-w-sm px-8">
-                         <div className="space-y-2">
-                            <div className="h-2 w-1/3 bg-muted rounded-full" />
-                            <div className="h-8 w-full bg-muted rounded-lg animate-pulse" />
+
+                      <div className="grid grid-cols-2 gap-6 my-4">
+                         <div className="bg-primary/5 rounded-2xl border border-primary/10 p-4 flex flex-col items-center justify-center gap-2">
+                            <div className="text-3xl font-black text-primary font-heading">85%</div>
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">ATS Compatibility</div>
                          </div>
-                         <div className="grid grid-cols-2 gap-4">
-                            <div className="h-20 bg-primary/5 rounded-xl border border-primary/10 flex flex-col items-center justify-center gap-2">
-                               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-[10px]">78%</div>
-                               <div className="h-1.5 w-12 bg-primary/10 rounded-full" />
-                            </div>
-                            <div className="h-20 bg-muted rounded-xl border border-border" />
+                         <div className="bg-secondary/5 rounded-2xl border border-secondary/10 p-4 flex flex-col items-center justify-center gap-2">
+                            <div className="text-3xl font-black text-secondary font-heading">92%</div>
+                            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">Skill Readiness</div>
                          </div>
-                         <div className="h-32 bg-muted rounded-xl border border-border flex flex-col items-center justify-center text-muted-foreground/50 font-bold text-xs uppercase tracking-widest">
-                            Resume Dashboard Preview
+                      </div>
+
+                      <div className="space-y-3 bg-muted/50 p-4 rounded-xl border border-border">
+                         <div className="flex justify-between items-center text-xs">
+                            <span className="font-bold text-foreground">Next High-Priority Action:</span>
+                            <span className="text-primary font-black uppercase text-[10px] tracking-widest">IMMEDIATE</span>
+                         </div>
+                         <div className="text-xs text-muted-foreground leading-relaxed">
+                           "Add evidence-backed project details for AWS & Docker skills to fill JD alignment gap."
                          </div>
                       </div>
                    </div>
@@ -109,286 +115,273 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section id="features" className="w-full py-24 md:py-32 bg-muted/50">
+        {/* SECTION 3 — STUDENT PROBLEM / VALUE BRIDGE */}
+        <section className="w-full py-16 md:py-24 border-t border-b border-border bg-muted/20">
+          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+            <div className="flex flex-col lg:flex-row gap-12 items-center">
+              <div className="lg:w-1/2 space-y-4">
+                <h2 className="text-3xl md:text-4xl font-black font-heading text-foreground leading-tight">
+                  Most students prepare harder.<br />Few know what they should fix first.
+                </h2>
+                <p className="text-muted-foreground font-medium leading-relaxed">
+                  Resumes, coding, aptitude, interviews, and skills are usually prepared separately. PlacementAI connects these signals and identifies the gaps that matter most for your placement journey.
+                </p>
+              </div>
+              <div className="lg:w-1/2 w-full space-y-4">
+                <div className="flex gap-4 items-start p-4 bg-card rounded-2xl border border-border shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm shrink-0">!</div>
+                  <div>
+                    <h4 className="font-bold text-foreground text-sm">Resume not getting shortlisted</h4>
+                    <p className="text-xs text-muted-foreground">Unclear keyword alignment and structural formatting issues reject candidates instantly.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start p-4 bg-card rounded-2xl border border-border shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm shrink-0">!</div>
+                  <div>
+                    <h4 className="font-bold text-foreground text-sm">Unsure which skills are missing</h4>
+                    <p className="text-xs text-muted-foreground">Studying generic courses without auditing exact skills required by target recruiters.</p>
+                  </div>
+                </div>
+                <div className="flex gap-4 items-start p-4 bg-card rounded-2xl border border-border shadow-sm">
+                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-sm shrink-0">!</div>
+                  <div>
+                    <h4 className="font-bold text-foreground text-sm">Preparing without knowing placement readiness</h4>
+                    <p className="text-xs text-muted-foreground">Facing real interviews without understanding communication confidence and technical gaps.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 4 — CORE PLACEMENT INTELLIGENCE SYSTEM */}
+        <section id="product" className="w-full py-24 bg-card">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-               <h2 className="text-xs font-black text-primary uppercase tracking-[0.3em]">Core Features</h2>
-               <h3 className="text-4xl font-bold font-heading text-foreground">Everything you need in one platform</h3>
-               <p className="text-muted-foreground font-medium">From initial resume drafting to final interview practice, we cover every step of your placement journey.</p>
+               <h2 className="text-xs font-black text-primary uppercase tracking-[0.3em]">System Overview</h2>
+               <h3 className="text-4xl font-black font-heading text-foreground">One unified placement intelligence copilot</h3>
+               <p className="text-muted-foreground font-medium">PlacementAI analyzes all aspects of your career profile to build structural readiness signals.</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <FeatureCard 
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+              <PillarCard
                 icon={<FileText className="w-6 h-6" />}
-                title="ATS Resume Analysis"
-                desc="Upload your resume and get an instant ATS compatibility score. Identify missing keywords and formatting issues that reject 70% of candidates."
-                color="blue"
+                title="Resume Intelligence"
+                desc="Audits your resume compatibility with real corporate applicant tracking systems."
+                labels={["ATS analysis", "Resume evidence quality", "JD compatibility"]}
               />
-              <FeatureCard 
-                icon={<Mic className="w-6 h-6" />}
-                title="AI Mock Interviews"
-                desc="Practice with our role-specific AI interviewer. Get real-time feedback on your technical depth, body language, and communication clarity."
-                color="purple"
+              <PillarCard
+                icon={<Compass className="w-6 h-6" />}
+                title="Skill Intelligence"
+                desc="Detects verification credentials and maps priority learning tracks."
+                labels={["Skill gap detection", "Evidence-backed skills", "Personalized learning roadmap"]}
               />
-              <FeatureCard 
-                icon={<Target className="w-6 h-6" />}
-                title="JD Matching Engine"
-                desc="Paste any job description and see how well your profile matches. Get a tailored list of skills you need to highlight to stand out."
-                color="emerald"
+              <PillarCard
+                icon={<Brain className="w-6 h-6" />}
+                title="Interview Intelligence"
+                desc="Role-specific mock interviews assessing body language and speaking metrics."
+                labels={["AI mock interviews", "Answer analysis", "Communication signals"]}
               />
-              <FeatureCard 
-                icon={<Map className="w-6 h-6" />}
-                title="Personalized Roadmaps"
-                desc="Receive a custom learning path based on your career goals (e.g. SDE-1, Data Analyst). We guide you through what to learn and in what order."
-                color="orange"
-              />
-              <FeatureCard 
-                icon={<Zap className="w-6 h-6" />}
-                title="Skill Gap Analyzer"
-                desc="Visualize your strengths and weaknesses. Our AI detects your career level and recommends certifications to fill critical gaps."
-                color="indigo"
-              />
-              <FeatureCard 
-                icon={<MessageSquare className="w-6 h-6" />}
-                title="Career AI Chatbot"
-                desc="A 24/7 career mentor at your fingertips. Ask questions about salary negotiation, resume tips, or company-specific culture."
-                color="rose"
+              <PillarCard
+                icon={<Activity className="w-6 h-6" />}
+                title="Placement Readiness"
+                desc="Consolidates isolated parameters into a verified, actionable scorecard."
+                labels={["Readiness score", "Priority gaps", "Next best action"]}
               />
             </div>
           </div>
         </section>
 
-        {/* How It Works Section */}
-        <section id="how-it-works" className="w-full py-24 md:py-32">
+        {/* SECTION 5 — HOW PLACEMENTAI WORKS */}
+        <section id="how-it-works" className="w-full py-24 border-t border-b border-border bg-muted/10">
           <div className="container mx-auto px-4 lg:px-8">
             <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-               <h2 className="text-xs font-black text-secondary uppercase tracking-[0.3em]">The Process</h2>
-               <h3 className="text-4xl font-bold font-heading text-foreground">4 Steps to Your Dream Job</h3>
+               <h2 className="text-xs font-black text-secondary uppercase tracking-[0.3em]">The Workflow</h2>
+               <h3 className="text-4xl font-black font-heading text-foreground">Exactly 3 Steps to Success</h3>
             </div>
-            
-            <div className="relative">
-               {/* Desktop Connector Line */}
-               <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-muted -translate-y-1/2 hidden lg:block -z-10" />
-               
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-                  <StepItem 
-                    number="01" 
-                    title="Upload Resume" 
-                    desc="Our AI scans your resume to understand your current experience and skills." 
-                    icon={<FileText className="w-5 h-5" />}
-                  />
-                  <StepItem 
-                    number="02" 
-                    title="Identify Gaps" 
-                    desc="Receive a detailed report on ATS compatibility and missing keywords for your role." 
-                    icon={<Target className="w-5 h-5" />}
-                  />
-                  <StepItem 
-                    number="03" 
-                    title="Practice AI Sessions" 
-                    desc="Fine-tune your skills with unlimited mock interviews and chatbot guidance." 
-                    icon={<Mic className="w-5 h-5" />}
-                  />
-                  <StepItem 
-                    number="04" 
-                    title="Land the Offer" 
-                    desc="Apply with an optimized resume and the confidence to ace any technical round." 
-                    icon={<Star className="w-5 h-5" />}
-                  />
-               </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-6xl mx-auto relative">
+              <StepItem
+                number="01"
+                title="Build Your Placement Profile"
+                desc="Compile your resume, core skills, academics, projects, and target career paths in one dashboard."
+                icon={<FileText className="w-5 h-5" />}
+              />
+              <StepItem
+                number="02"
+                title="PlacementAI Analyzes Your Evidence"
+                desc="Get real-time feedback on ATS score, skill credibility, and communication indicators."
+                icon={<Brain className="w-5 h-5" />}
+              />
+              <StepItem
+                number="03"
+                title="Follow Your Priority Action Plan"
+                desc="Track explainable readiness indicators, resolve priority gaps, and trace progress over time."
+                icon={<Award className="w-5 h-5" />}
+              />
             </div>
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="w-full py-24 md:py-32 bg-slate-900 text-white">
-          <div className="container mx-auto px-4 lg:px-8">
-            <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
-               <h2 className="text-xs font-black text-primary uppercase tracking-[0.3em]">Pricing Plans</h2>
-               <h3 className="text-4xl font-bold font-heading">Choose the right path for you</h3>
-               <p className="text-muted-foreground/70 font-medium">Simple, transparent pricing to help you grow your career.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-               <PricingCard 
-                  title="Free"
-                  price="₹0"
-                  desc="Perfect for getting started"
-                  features={["2 Resume Analyses / mo", "Basic Roadmap", "Community Support", "Basic Chatbot Access"]}
-                  cta="Start for Free"
-               />
-               <PricingCard 
-                  title="Pro"
-                  price="₹100"
-                  desc="Everything you need to succeed"
-                  features={["Unlimited Resumes", "Advanced AI Mock Interviews", "Personalized Roadmaps", "24/7 Priority Chatbot", "JD Matching Engine"]}
-                  cta="Get Pro Now"
-                  highlight={true}
-               />
-               <PricingCard 
-                  title="Team"
-                  price="Contact Sales"
-                  desc="For colleges and bootcamp"
-                  features={["Bulk Resume Analysis", "Recruiter Dashboard", "Custom Skill Tracking", "API Access", "Dedicated Manager"]}
-                  cta="Contact Sales"
-                  showMonthly={false}
-               />
-            </div>
-          </div>
-        </section>
-
-        {/* About Us Section */}
-        <section id="about" className="w-full py-24 md:py-32 border-b border-border">
-          <div className="container mx-auto px-4 lg:px-8">
-             <div className="flex flex-col lg:flex-row gap-16 items-center">
-                <div className="lg:w-1/2 space-y-8">
-                   <div className="space-y-4">
-                      <h2 className="text-xs font-black text-primary uppercase tracking-[0.3em]">Our Mission</h2>
-                      <h3 className="text-4xl font-bold font-heading text-foreground leading-tight">Democratizing placement prep for every student.</h3>
-                      <p className="text-muted-foreground font-medium text-lg leading-relaxed">
-                        At AI Placement Copilot, we believe every student deserves a fair shot at their dream career, regardless of their background. 
-                        Our team of engineers and students built this platform to bridge the widening gap between traditional education and industry expectations.
-                      </p>
-                      <p className="text-muted-foreground font-medium leading-relaxed">
-                        We leverage cutting-edge Large Language Models and data science to provide the kind of mentorship that was previously only available to a select few.
-                      </p>
+        {/* SECTION 6 — PLACEMENT READINESS / TRUST OUTCOME */}
+        <section className="w-full py-24 bg-card">
+          <div className="container mx-auto px-4 lg:px-8 max-w-5xl">
+            <div className="flex flex-col lg:flex-row gap-16 items-center">
+              <div className="lg:w-1/2 space-y-8">
+                <div className="space-y-4">
+                  <h2 className="text-xs font-black text-primary uppercase tracking-[0.3em]">Measurable Outcome</h2>
+                  <h3 className="text-4xl font-black font-heading text-foreground leading-tight">Your placement preparation should be measurable.</h3>
+                  <p className="text-muted-foreground font-medium leading-relaxed">
+                    PlacementAI turns disconnected preparation activity into explainable readiness signals and prioritized actions.
+                  </p>
+                </div>
+                <div className="space-y-4 border-t border-border pt-6">
+                   <div className="flex items-center gap-3">
+                      <ShieldCheck className="w-5 h-5 text-primary shrink-0" />
+                      <span className="text-sm font-bold text-foreground">Evidence-based analysis</span>
                    </div>
-                   <div className="grid grid-cols-2 gap-8">
-                      <div className="space-y-2">
-                         <h4 className="text-3xl font-black text-primary font-heading">98%</h4>
-                         <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">Success Rate</p>
-                      </div>
-                      <div className="space-y-2">
-                         <h4 className="text-3xl font-black text-primary font-heading">50k+</h4>
-                         <p className="text-xs font-bold text-muted-foreground/70 uppercase tracking-widest">Resumes Analyzed</p>
-                      </div>
+                   <div className="flex items-center gap-3">
+                      <Brain className="w-5 h-5 text-primary shrink-0" />
+                      <span className="text-sm font-bold text-foreground">Explainable AI insights</span>
+                   </div>
+                   <div className="flex items-center gap-3">
+                      <TrendingUp className="w-5 h-5 text-primary shrink-0" />
+                      <span className="text-sm font-bold text-foreground">Progress tracked over time</span>
+                   </div>
+                   <div className="flex items-center gap-3">
+                      <Award className="w-5 h-5 text-primary shrink-0" />
+                      <span className="text-sm font-bold text-foreground">Built specifically for placement preparation</span>
                    </div>
                 </div>
-                <div className="lg:w-1/2 w-full grid grid-cols-2 gap-4">
-                   <div className="space-y-4 pt-8">
-                      <div className="h-64 bg-muted rounded-3xl overflow-hidden relative group">
-                         <Image 
-                            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=400" 
-                            fill 
-                            sizes="(max-width: 768px) 100vw, 400px"
-                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
-                            alt="team" 
-                         />
-                      </div>
-                      <div className="h-48 bg-primary rounded-3xl flex items-center justify-center p-8 text-white font-bold text-center leading-tight">
-                         Innovation is at our core.
-                      </div>
-                   </div>
-                   <div className="space-y-4">
-                      <div className="h-48 bg-secondary rounded-3xl flex items-center justify-center p-8 text-white font-bold text-center leading-tight">
-                         Built by students for students with love ❤️
-                      </div>
-                      <div className="h-64 bg-muted rounded-3xl overflow-hidden relative group">
-                         <Image 
-                            src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=400" 
-                            fill 
-                            sizes="(max-width: 768px) 100vw, 400px"
-                            className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
-                            alt="team" 
-                         />
-                      </div>
-                   </div>
-                </div>
-             </div>
+              </div>
+
+              {/* Trust Panel Mock Data Card */}
+              <div className="lg:w-1/2 w-full">
+                 <Card className="p-6 border border-border shadow-xl bg-card">
+                    <CardContent className="space-y-6 p-0">
+                       <div className="font-heading font-black text-sm text-foreground border-b border-border pb-3 uppercase">Placement Readiness Metrics (Sample Profile)</div>
+                       <div className="space-y-4">
+                          <div className="space-y-2">
+                             <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                                <span>Resume Readiness</span>
+                                <span>85/100</span>
+                             </div>
+                             <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{ width: "85%" }} />
+                             </div>
+                          </div>
+                          <div className="space-y-2">
+                             <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                                <span>Skill Evidence</span>
+                                <span>78/100</span>
+                             </div>
+                             <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{ width: "78%" }} />
+                             </div>
+                          </div>
+                          <div className="space-y-2">
+                             <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                                <span>Interview Readiness</span>
+                                <span>90/100</span>
+                             </div>
+                             <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{ width: "90%" }} />
+                             </div>
+                          </div>
+                          <div className="space-y-2">
+                             <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                                <span>Technical Preparation</span>
+                                <span>82/100</span>
+                             </div>
+                             <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{ width: "82%" }} />
+                             </div>
+                          </div>
+                          <div className="space-y-2">
+                             <div className="flex justify-between text-xs font-bold text-muted-foreground">
+                                <span>Career Alignment</span>
+                                <span>95/100</span>
+                             </div>
+                             <div className="w-full bg-muted h-2 rounded-full overflow-hidden">
+                                <div className="bg-primary h-full rounded-full" style={{ width: "95%" }} />
+                             </div>
+                          </div>
+                       </div>
+                    </CardContent>
+                 </Card>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="w-full py-24 px-4">
-           <Card className="max-w-5xl mx-auto border-none shadow-2xl bg-gradient-to-r from-primary to-secondary text-white overflow-hidden relative">
+        {/* SECTION 7 — FINAL CTA */}
+        <section className="w-full py-24 px-4 bg-muted/30 border-t border-border">
+           <Card className="max-w-4xl mx-auto border-none shadow-2xl bg-gradient-to-r from-primary to-secondary text-white overflow-hidden relative">
               <div className="absolute top-0 right-0 w-64 h-64 bg-card/10 rounded-full blur-3xl -mr-32 -mt-32" />
-              <CardContent className="p-12 md:p-20 text-center space-y-10 relative z-10">
-                 <h2 className="text-4xl md:text-5xl font-black font-heading leading-tight">Ready to transform your career <br className="hidden md:block" /> with AI?</h2>
-                 <div className="flex flex-col sm:flex-row justify-center gap-6">
+              <CardContent className="p-12 md:p-16 text-center space-y-8 relative z-10">
+                 <h2 className="text-3xl md:text-4xl font-black font-heading leading-tight text-white select-text">
+                   Stop guessing what to prepare next.
+                 </h2>
+                 <p className="max-w-2xl mx-auto text-white/80 text-sm md:text-base font-medium select-text">
+                   See your placement readiness, identify your highest-priority gaps, and build a clearer path toward your next opportunity.
+                 </p>
+                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
                     <Link href="/auth">
-                       <Button size="lg" className="bg-card text-primary hover:bg-muted font-black px-12 py-8 text-xl shadow-xl">Get Started Now</Button>
+                       <Button size="lg" className="bg-white text-primary hover:bg-slate-100 font-bold px-8 py-6 text-base shadow-xl">
+                         Analyze My Placement Readiness
+                       </Button>
                     </Link>
-                    <Button variant="outline" size="lg" className="border-2 border-white/40 text-white hover:bg-card/10 font-black px-12 py-8 text-xl backdrop-blur-sm">View Demo</Button>
+                    <Link href="#product">
+                       <Button variant="outline" size="lg" className="border-2 border-white/40 text-white hover:bg-white/10 font-bold px-8 py-6 text-base backdrop-blur-sm">
+                         Explore PlacementAI
+                       </Button>
+                    </Link>
                  </div>
               </CardContent>
            </Card>
         </section>
       </main>
 
+      {/* SECTION 8 — FOOTER */}
       <PublicFooter />
     </div>
   );
 }
 
-function FeatureCard({ icon, title, desc, color }: { icon: React.ReactNode, title: string, desc: string, color: string }) {
-   const colors: Record<string, string> = {
-      blue: "bg-blue-50 text-blue-600 border-blue-100 group-hover:bg-blue-600 group-hover:text-white",
-      purple: "bg-purple-50 text-purple-600 border-purple-100 group-hover:bg-purple-600 group-hover:text-white",
-      emerald: "bg-emerald-50 text-emerald-600 border-emerald-100 group-hover:bg-emerald-600 group-hover:text-white",
-      orange: "bg-orange-50 text-orange-600 border-orange-100 group-hover:bg-orange-600 group-hover:text-white",
-      indigo: "bg-indigo-50 text-indigo-600 border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white",
-      rose: "bg-rose-50 text-rose-600 border-rose-100 group-hover:bg-rose-600 group-hover:text-white",
-   };
-   
+function PillarCard({ icon, title, desc, labels }: { icon: React.ReactNode, title: string, desc: string, labels: string[] }) {
    return (
-      <Card className="border-none shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 bg-card group p-4 overflow-hidden relative">
-         <CardContent className="pt-8 pb-8 space-y-6 relative z-10">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 ${colors[color]}`}>
+      <Card className="border border-border shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 bg-card p-6">
+         <CardContent className="space-y-4 p-0">
+            <div className="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
                {icon}
             </div>
-            <div className="space-y-3">
+            <div className="space-y-2">
                <h3 className="font-black text-xl font-heading text-foreground">{title}</h3>
                <p className="text-muted-foreground text-sm leading-relaxed font-medium">{desc}</p>
             </div>
-            <Link href="/auth" className="inline-flex items-center text-sm font-black text-primary uppercase tracking-widest group-hover:underline">
-               Learn More <ArrowRight className="w-3 h-3 ml-2" />
-            </Link>
+            <div className="flex flex-wrap gap-2 pt-2">
+               {labels.map(l => (
+                  <span key={l} className="bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">{l}</span>
+               ))}
+            </div>
          </CardContent>
-         <div className="absolute -right-8 -bottom-8 w-32 h-32 bg-muted rounded-full group-hover:scale-[3] transition-transform duration-700 -z-0" />
       </Card>
    );
 }
 
 function StepItem({ number, title, desc, icon }: { number: string, title: string, desc: string, icon: React.ReactNode }) {
    return (
-      <div className="space-y-6 text-center lg:text-left group relative">
-         <div className="flex flex-col lg:flex-row items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-card border-2 border-border shadow-sm flex items-center justify-center font-black text-foreground group-hover:border-primary group-hover:text-primary transition-all relative z-10">
+      <div className="space-y-4 group">
+         <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-card border-2 border-border shadow-sm flex items-center justify-center font-black text-foreground group-hover:border-primary group-hover:text-primary transition-all relative z-10">
                {icon}
             </div>
-            <span className="text-4xl font-black text-slate-100 font-heading tracking-tighter group-hover:text-primary/10 transition-colors">{number}</span>
+            <span className="text-3xl font-black text-muted-foreground/30 font-heading tracking-tighter group-hover:text-primary/20 transition-colors">{number}</span>
          </div>
          <div className="space-y-2">
-            <h4 className="font-black text-xl text-foreground">{title}</h4>
-            <p className="text-muted-foreground text-sm font-medium leading-relaxed">{desc}</p>
+            <h4 className="font-black text-lg text-foreground">{title}</h4>
+            <p className="text-muted-foreground text-xs font-medium leading-relaxed">{desc}</p>
          </div>
       </div>
-   );
-}
-
-function PricingCard({ title, price, desc, features, cta, highlight, showMonthly = true }: { title: string, price: string, desc: string, features: string[], cta: string, highlight?: boolean, showMonthly?: boolean }) {
-   return (
-      <Card className={`p-8 border-none shadow-xl flex flex-col space-y-8 relative overflow-hidden ${highlight ? 'bg-primary ring-4 ring-primary/20 scale-105 z-10' : 'bg-slate-800'}`}>
-         {highlight && <div className="absolute top-4 right-4 bg-card/20 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-[0.2em]">Popular</div>}
-         <div className="space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-[0.3em] opacity-60">{title}</h4>
-            <div className="flex items-baseline gap-1">
-               <span className={`${price.length > 8 ? 'text-3xl' : 'text-5xl'} font-black`}>{price}</span>
-               {showMonthly && <span className="text-sm font-bold opacity-60">/month</span>}
-            </div>
-            <p className="text-sm font-medium opacity-80">{desc}</p>
-         </div>
-         <div className="flex-1 space-y-4">
-            {features.map(f => (
-               <div key={f} className="flex gap-3 text-sm font-bold">
-                  <CheckCircle className={`w-5 h-5 shrink-0 ${highlight ? 'text-white' : 'text-primary'}`} />
-                  <span className="opacity-90">{f}</span>
-               </div>
-            ))}
-         </div>
-         <Button className={`w-full py-8 text-lg font-black shadow-lg ${highlight ? 'bg-card text-primary hover:bg-muted' : 'bg-primary hover:bg-primary/90'}`}>
-            {cta}
-         </Button>
-      </Card>
    );
 }
