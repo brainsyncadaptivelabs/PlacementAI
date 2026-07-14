@@ -62,16 +62,14 @@ export default function LandingPage() {
                     PlacementAI analyzes your resume, skills, interview readiness, and career gaps to build a personalized path toward becoming placement-ready.
                   </p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col items-start gap-4">
                   <Link href="/auth">
-                    <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-7 text-lg font-bold shadow-xl shadow-primary/30 group">
-                      Analyze My Placement Readiness <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                    <Button size="lg" className="bg-primary hover:bg-primary/90 px-8 py-7 text-lg font-bold shadow-xl shadow-primary/30 group w-fit">
+                      Start for Free <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <Link href="#how-it-works">
-                    <Button variant="outline" size="lg" className="px-8 py-7 text-lg font-bold border-2 hover:bg-muted">
-                      See How It Works
-                    </Button>
+                  <Link href="#how-it-works" className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-primary hover:underline hover:underline-offset-4 transition-colors gap-1.5 ml-4 mt-1 group">
+                    See How It Works <span className="group-hover:translate-y-0.5 transition-transform">↓</span>
                   </Link>
                 </div>
               </div>
