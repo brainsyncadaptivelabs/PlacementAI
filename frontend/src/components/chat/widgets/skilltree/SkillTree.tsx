@@ -82,7 +82,7 @@ export const SkillTree = memo(({ data }: { data: { title?: string; skills: Skill
     e.stopPropagation();
     const updated = skills.map(s => {
       if (s.id === id) {
-        const nextStatus = s.status === "completed" ? "in_progress" : s.status === "in_progress" ? "locked" : "completed";
+        const nextStatus: "completed" | "in_progress" | "locked" = s.status === "completed" ? "in_progress" : s.status === "in_progress" ? "locked" : "completed";
         logWidgetAnalytics({
           widgetType: "skilltree",
           action: "toggle_status",

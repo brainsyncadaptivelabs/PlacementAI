@@ -1,5 +1,18 @@
 import type { NextConfig } from "next";
 
+const cspHeader = `
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  img-src 'self' blob: data: https://images.unsplash.com https://i.pravatar.cc https://glyvbdltoxjpwlzsbcyx.supabase.co;
+  font-src 'self' https://fonts.gstatic.com;
+  connect-src 'self' https://glyvbdltoxjpwlzsbcyx.supabase.co https://api.placementai.in https://api.elevenlabs.io https://accounts.google.com http://localhost:8080 http://localhost:3000 ws://localhost:3000;
+  frame-src 'self' https://accounts.google.com;
+  frame-ancestors 'none';
+  base-uri 'self';
+  form-action 'self';
+`;
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   compress: true,
@@ -32,9 +45,37 @@ const nextConfig: NextConfig = {
       "shadcn"
     ],
   },
-  // Turbopack is default in Next.js 16
   turbopack: {
     root: process.cwd(),
+  },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: cspHeader.replace(/\s{2,}/g, ' ').trim(),
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+        ],
+      },
+    ];
   },
 };
 

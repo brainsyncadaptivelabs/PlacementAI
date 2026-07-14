@@ -80,15 +80,23 @@ public class ResumeBuilderServiceImpl implements ResumeBuilderService {
 
     @Override
     public ResumeBuilderRequestDto getResumeById(Long id) {
+        User user = getAuthenticatedUser();
         ResumeBuilder resume = resumeBuilderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Resume not found"));
+                .orElseThrow(() -> new com.aiplacement.backend.exception.ResourceNotFoundException("Resume not found"));
+        if (!resume.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized access to this resume builder resource");
+        }
         return mapToDto(resume);
     }
 
     @Override
     public ResumeBuilderResponseDto updateResume(Long resumeId, ResumeBuilderRequestDto request) {
+        User user = getAuthenticatedUser();
         ResumeBuilder resume = resumeBuilderRepository.findById(resumeId)
-                .orElseThrow(() -> new RuntimeException("Resume not found"));
+                .orElseThrow(() -> new com.aiplacement.backend.exception.ResourceNotFoundException("Resume not found"));
+        if (!resume.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized to update this resume builder resource");
+        }
 
         resume.setTitle(request.getTitle());
         resume.setTemplateName(request.getTemplateName());
@@ -114,8 +122,12 @@ public class ResumeBuilderServiceImpl implements ResumeBuilderService {
 
     @Override
     public void deleteResume(Long resumeId) {
+        User user = getAuthenticatedUser();
         ResumeBuilder resume = resumeBuilderRepository.findById(resumeId)
-                .orElseThrow(() -> new RuntimeException("Resume not found"));
+                .orElseThrow(() -> new com.aiplacement.backend.exception.ResourceNotFoundException("Resume not found"));
+        if (!resume.getUser().getId().equals(user.getId())) {
+            throw new SecurityException("Unauthorized to delete this resume builder resource");
+        }
 
         resumeBuilderRepository.delete(resume);
     }

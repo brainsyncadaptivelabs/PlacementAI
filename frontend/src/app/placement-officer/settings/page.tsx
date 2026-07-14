@@ -426,7 +426,7 @@ export default function PlacementOfficerSettingsPage() {
               { label: "My Profile", icon: User },
               { label: "Change Password", icon: Key },
               { label: "Download My Data", icon: Download },
-            ].map((item, i) => (
+            ].map((item: any, i) => (
               <Button
                 key={i}
                 variant="secondary"

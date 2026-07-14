@@ -91,6 +91,28 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler({SecurityException.class, org.springframework.security.access.AccessDeniedException.class})
+    public ResponseEntity<ApiErrorResponse> handleSecurityException(Exception ex) {
+        log.warn("[SECURITY] Authorization failure: {}", ex.getMessage());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message("Access denied. You do not have permission to access this resource.")
+                .status(HttpStatus.FORBIDDEN.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSizeExceeded(org.springframework.web.multipart.MaxUploadSizeExceededException ex) {
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message("File size limit exceeded. Maximum upload size is 10MB.")
+                .status(HttpStatus.PAYLOAD_TOO_LARGE.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     @ExceptionHandler(
             org.springframework.web.bind.MethodArgumentNotValidException.class
     )

@@ -34,7 +34,6 @@ export enum TemplateSubCategory {
   ZENSAR = "Zensar",
   HCL = "HCL",
   DELOITTE = "Deloitte",
-  EXECUTIVE = "Executive",
   EY = "EY"
 }
 

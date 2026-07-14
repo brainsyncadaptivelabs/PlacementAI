@@ -113,7 +113,7 @@ public class ChatConversationManager {
 
         if (!conversation.getUser().getEmail().equalsIgnoreCase(email)) {
             log.error("Tenant isolation breach attempt: user {} requested conversation ID {}", email, id);
-            throw new AIException("Access Denied: You do not own this conversation.");
+            throw new SecurityException("Access Denied: You do not own this conversation.");
         }
         return conversation;
     }

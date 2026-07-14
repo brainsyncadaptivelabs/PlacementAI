@@ -554,7 +554,7 @@ public class MockInterviewServiceImpl implements MockInterviewService {
                 .orElseThrow(() -> new RuntimeException("Interview not found"));
 
         if (!interview.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Unauthorized to delete this interview record");
+            throw new SecurityException("Unauthorized to delete this interview record");
         }
 
         mockInterviewRepository.delete(interview);

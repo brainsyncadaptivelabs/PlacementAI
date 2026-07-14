@@ -144,7 +144,7 @@ public class AtsDetailsServiceImpl implements AtsDetailsService {
                 atsAnalysisRepository
                         .findByIdAndUser(id, user)
                         .orElseThrow(
-                                () -> new RuntimeException("ATS report not found")
+                                () -> new com.aiplacement.backend.exception.ResourceNotFoundException("ATS report not found")
                         );
 
         atsAnalysisRepository.delete(analysis);

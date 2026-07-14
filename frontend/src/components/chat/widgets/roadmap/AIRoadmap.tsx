@@ -53,7 +53,7 @@ export const AIRoadmap = memo(({ data }: { data: { title?: string; nodes: Roadma
     e.stopPropagation();
     const updated = nodes.map(node => {
       if (node.id === id) {
-        const nextStatus = node.status === "completed" ? "in_progress" : "completed";
+        const nextStatus: "completed" | "in_progress" | "locked" = node.status === "completed" ? "in_progress" : "completed";
         logWidgetAnalytics({
           widgetType: "roadmap",
           action: "toggle_status",
