@@ -17,9 +17,9 @@ export function useConversationManager() {
         id: c.id.toString(),
         title: c.title,
         summary: c.summary,
-        pinned: c.pinned || false,
-        starred: false,
-        archived: c.archived || false,
+        pinned: c.pinned || c.isPinned || false,
+        starred: c.starred || c.isStarred || false,
+        archived: c.archived || c.isArchived || false,
         messages: [],
         createdAt: new Date(c.createdAt).getTime(),
         updatedAt: new Date(c.updatedAt).getTime(),
@@ -84,9 +84,9 @@ export function useConversationManager() {
       const newC: Conversation = {
         id: res.data.id.toString(),
         title: res.data.title,
-        pinned: res.data.pinned || false,
-        starred: false,
-        archived: res.data.archived || false,
+        pinned: res.data.pinned || res.data.isPinned || false,
+        starred: res.data.starred || res.data.isStarred || false,
+        archived: res.data.archived || res.data.isArchived || false,
         messages: [],
         createdAt: new Date(res.data.createdAt).getTime(),
         updatedAt: new Date(res.data.updatedAt).getTime(),
@@ -121,26 +121,64 @@ export function useConversationManager() {
 
   // 5. Toggle Pin
   const togglePin = useCallback(async (id: string) => {
+    // Optimistic UI update
+    setConversations(prev => {
+      const next = prev.map(c => c.id === id ? { ...c, pinned: !c.pinned, updatedAt: Date.now() } : c);
+      // Sort pinned chats first, then by updatedAt desc
+      return next.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return b.updatedAt - a.updatedAt;
+      });
+    });
     try {
       await api.put(`/chat/conversations/${id}/pin`);
-      setConversations(prev => prev.map(c => c.id === id ? { ...c, pinned: !c.pinned } : c));
     } catch (err) {
       console.error("Failed to toggle pin", err);
+      // Rollback on failure
+      const res = await api.get("/chat/conversations");
+      setConversations(res.data.map((c: any) => ({
+        id: c.id.toString(),
+        title: c.title,
+        pinned: c.pinned || false,
+        starred: c.starred || false,
+        archived: c.archived || false,
+        messages: [],
+        createdAt: new Date(c.createdAt).getTime(),
+        updatedAt: new Date(c.updatedAt).getTime()
+      })).sort((a: any, b: any) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return b.updatedAt - a.updatedAt;
+      }));
     }
   }, []);
 
   // 6. Rename Conversation
   const renameChat = useCallback(async (id: string, newTitle: string) => {
+    if (!newTitle.trim()) return;
+    const oldTitle = conversations.find(c => c.id === id)?.title;
+    // Optimistic rename
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, title: newTitle } : c));
     try {
       await api.put(`/chat/conversations/${id}?title=${encodeURIComponent(newTitle)}`);
-      setConversations(prev => prev.map(c => c.id === id ? { ...c, title: newTitle } : c));
     } catch (err) {
       console.error("Failed to rename conversation", err);
+      // Rollback
+      if (oldTitle) {
+        setConversations(prev => prev.map(c => c.id === id ? { ...c, title: oldTitle } : c));
+      }
     }
-  }, []);
+  }, [conversations]);
 
-  const toggleStar = useCallback((id: string) => {
+  const toggleStar = useCallback(async (id: string) => {
     setConversations(prev => prev.map(c => c.id === id ? { ...c, starred: !c.starred } : c));
+    try {
+      await api.put(`/chat/conversations/${id}/star`);
+    } catch (err) {
+      console.error("Failed to toggle star", err);
+      setConversations(prev => prev.map(c => c.id === id ? { ...c, starred: !c.starred } : c));
+    }
   }, []);
 
   const toggleArchive = useCallback(async (id: string) => {
@@ -153,14 +191,29 @@ export function useConversationManager() {
   }, []);
 
   const duplicateChat = useCallback(async (id: string) => {
-    const target = conversations.find(c => c.id === id);
-    if (target) {
-      const newC = await createNewChat(target.title + " (Copy)");
-      if (newC) {
-        // Just duplicate locally
-      }
+    try {
+      const res = await api.post(`/chat/conversations/${id}/duplicate`);
+      const newC: Conversation = {
+        id: res.data.id.toString(),
+        title: res.data.title,
+        pinned: res.data.pinned || false,
+        starred: res.data.starred || false,
+        archived: res.data.archived || false,
+        messages: [],
+        createdAt: new Date(res.data.createdAt).getTime(),
+        updatedAt: new Date(res.data.updatedAt).getTime(),
+        lastMessageAt: new Date(res.data.updatedAt).getTime()
+      };
+      setConversations(prev => [newC, ...prev].sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return b.updatedAt - a.updatedAt;
+      }));
+      setActiveConversationId(newC.id);
+    } catch (err) {
+      console.error("Failed to duplicate conversation", err);
     }
-  }, [conversations, createNewChat]);
+  }, []);
 
   // Sync active message updates
   const updateMessages = useCallback((id: string, updater: Message[] | ((prev: Message[]) => Message[])) => {

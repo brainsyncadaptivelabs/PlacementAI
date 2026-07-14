@@ -30,6 +30,7 @@ public class ChatConversation {
     private String summary;
 
     private boolean isPinned;
+    private boolean isStarred;
     private boolean isArchived;
 
     private int messageCount;

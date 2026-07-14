@@ -158,11 +158,15 @@ export function ConversationSidebar({
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
                           onBlur={() => handleSaveRename(c.id)}
+                          onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => {
+                            e.stopPropagation();
                             if (e.key === "Enter") handleSaveRename(c.id);
+                            if (e.key === "Escape") setEditingId(null);
                           }}
                           autoFocus
                           className="w-full bg-transparent border-b border-indigo-500 outline-none text-xs text-foreground py-0.5"
+                          maxLength={100}
                         />
                       ) : (
                         <div className="text-xs font-semibold truncate">{c.title}</div>
@@ -175,6 +179,7 @@ export function ConversationSidebar({
                         <button
                           onClick={(e) => { e.stopPropagation(); onTogglePin(c.id); }}
                           title={c.pinned ? "Unpin" : "Pin"}
+                          aria-label={c.pinned ? "Unpin chat" : "Pin chat"}
                           className={`p-1 rounded hover:bg-secondary/80 hover:text-foreground transition-colors cursor-pointer ${c.pinned ? 'text-indigo-400' : 'text-muted-foreground/60'}`}
                         >
                           <Pin className="w-3.5 h-3.5" />
@@ -182,6 +187,7 @@ export function ConversationSidebar({
                         <button
                           onClick={(e) => { e.stopPropagation(); onToggleStar(c.id); }}
                           title={c.starred ? "Unstar" : "Star"}
+                          aria-label={c.starred ? "Unstar chat" : "Star chat"}
                           className={`p-1 rounded hover:bg-secondary/80 hover:text-foreground transition-colors cursor-pointer ${c.starred ? 'text-amber-400' : 'text-muted-foreground/60'}`}
                         >
                           <Star className="w-3.5 h-3.5" />
@@ -189,20 +195,29 @@ export function ConversationSidebar({
                         <button
                           onClick={(e) => handleStartRename(c, e)}
                           title="Rename"
+                          aria-label="Rename chat"
                           className="p-1 rounded hover:bg-secondary/80 hover:text-foreground transition-colors text-muted-foreground/60 cursor-pointer"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={(e) => { e.stopPropagation(); onDuplicate(c.id); }}
-                          title="Duplicate"
+                          title="Duplicate chat"
+                          aria-label="Duplicate chat"
                           className="p-1 rounded hover:bg-secondary/80 hover:text-foreground transition-colors text-muted-foreground/60 cursor-pointer"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); onDelete(c.id); }}
-                          title="Delete"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const ok = window.confirm("Delete chat?\n\nThis conversation will be permanently deleted. This action cannot be undone.");
+                            if (ok) {
+                              onDelete(c.id);
+                            }
+                          }}
+                          title="Delete chat"
+                          aria-label="Delete chat"
                           className="p-1 rounded hover:bg-secondary/80 hover:text-red-500 transition-colors text-muted-foreground/60 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

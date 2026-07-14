@@ -34,6 +34,7 @@ public class ChatConversationManager {
                 .user(u)
                 .title(title != null && !title.isEmpty() ? title : "New Conversation")
                 .isPinned(false)
+                .isStarred(false)
                 .isArchived(false)
                 .messageCount(0)
                 .estimatedTokenUsage(0)
@@ -72,10 +73,81 @@ public class ChatConversationManager {
     }
 
     @Transactional(readOnly = false)
+    public ChatConversation toggleStar(String email, Long id) {
+        ChatConversation conversation = getValidatedConversation(email, id);
+        conversation.setStarred(!conversation.isStarred());
+        return chatConversationRepository.save(conversation);
+    }
+
+    @Transactional(readOnly = false)
     public ChatConversation toggleArchive(String email, Long id) {
         ChatConversation conversation = getValidatedConversation(email, id);
         conversation.setArchived(!conversation.isArchived());
         return chatConversationRepository.save(conversation);
+    }
+
+    @Transactional(readOnly = false)
+    public ChatConversation duplicateConversation(String email, Long id) {
+        ChatConversation original = getValidatedConversation(email, id);
+        
+        // Find next suffix copy number
+        String baseTitle = original.getTitle();
+        if (baseTitle == null) {
+            baseTitle = "New Conversation";
+        }
+        
+        // Strip existing copies pattern if it matches '(Copy)' or '(Copy X)'
+        String finalBase = baseTitle;
+        if (baseTitle.contains(" (Copy")) {
+            int idx = baseTitle.lastIndexOf(" (Copy");
+            finalBase = baseTitle.substring(0, idx).trim();
+        }
+        
+        // Count existing conversations matching prefix
+        List<ChatConversation> userChats = chatConversationRepository.findByUserOrderByIsPinnedDescUpdatedAtDesc(original.getUser());
+        int count = 0;
+        for (ChatConversation chat : userChats) {
+            String title = chat.getTitle();
+            if (title != null && title.startsWith(finalBase)) {
+                count++;
+            }
+        }
+        
+        String newTitle = finalBase + " (Copy)";
+        if (count > 1) {
+            newTitle = finalBase + " (Copy " + count + ")";
+        }
+
+        ChatConversation copy = ChatConversation.builder()
+                .user(original.getUser())
+                .title(newTitle)
+                .isPinned(false)
+                .isStarred(false)
+                .isArchived(false)
+                .messageCount(0)
+                .estimatedTokenUsage(0)
+                .estimatedCost(0.0)
+                .build();
+        
+        ChatConversation savedCopy = chatConversationRepository.save(copy);
+        
+        // Duplicate all messages
+        List<ChatMessage> originalMessages = chatMessageRepository.findByConversationOrderByCreatedAtAsc(original);
+        for (ChatMessage originalMsg : originalMessages) {
+            ChatMessage messageCopy = ChatMessage.builder()
+                    .conversation(savedCopy)
+                    .sender(originalMsg.getSender())
+                    .content(originalMsg.getContent())
+                    .modelUsed(originalMsg.getModelUsed())
+                    .attachmentsJson(originalMsg.getAttachmentsJson())
+                    .isPinned(false)
+                    .isEdited(false)
+                    .build();
+            chatMessageRepository.save(messageCopy);
+        }
+        
+        savedCopy.setMessageCount(originalMessages.size());
+        return chatConversationRepository.save(savedCopy);
     }
 
     public List<ChatMessage> getHistory(String email, Long conversationId) {

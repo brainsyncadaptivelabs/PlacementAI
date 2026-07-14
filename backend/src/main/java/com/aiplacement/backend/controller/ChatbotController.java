@@ -44,8 +44,14 @@ public class ChatbotController {
 
     @PutMapping("/conversations/{id}")
     public ResponseEntity<ChatConversation> renameConversation(@PathVariable Long id, @RequestParam String title) {
+        if (title == null || title.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (title.trim().length() > 100) {
+            title = title.substring(0, 100);
+        }
         String email = getAuthenticatedEmail();
-        return ResponseEntity.ok(chatConversationManager.renameConversation(email, id, title));
+        return ResponseEntity.ok(chatConversationManager.renameConversation(email, id, title.trim()));
     }
 
     @DeleteMapping("/conversations/{id}")
@@ -65,6 +71,18 @@ public class ChatbotController {
     public ResponseEntity<ChatConversation> togglePin(@PathVariable Long id) {
         String email = getAuthenticatedEmail();
         return ResponseEntity.ok(chatConversationManager.togglePin(email, id));
+    }
+
+    @PutMapping("/conversations/{id}/star")
+    public ResponseEntity<ChatConversation> toggleStar(@PathVariable Long id) {
+        String email = getAuthenticatedEmail();
+        return ResponseEntity.ok(chatConversationManager.toggleStar(email, id));
+    }
+
+    @PostMapping("/conversations/{id}/duplicate")
+    public ResponseEntity<ChatConversation> duplicateConversation(@PathVariable Long id) {
+        String email = getAuthenticatedEmail();
+        return ResponseEntity.ok(chatConversationManager.duplicateConversation(email, id));
     }
 
     @PutMapping("/conversations/{id}/archive")
