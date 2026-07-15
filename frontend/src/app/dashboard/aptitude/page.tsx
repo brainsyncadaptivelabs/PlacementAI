@@ -1,22 +1,22 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { 
-  Brain, 
-  Award, 
-  BookOpen, 
-  Clock, 
-  AlertTriangle, 
-  ArrowRight, 
-  CheckCircle2, 
-  XCircle, 
-  BarChart3, 
-  TrendingUp, 
-  Compass, 
-  Sparkles, 
-  ChevronRight, 
+import {
+  Brain,
+  Award,
+  BookOpen,
+  Clock,
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  XCircle,
+  BarChart3,
+  TrendingUp,
+  Compass,
+  Sparkles,
+  ChevronRight,
   ChevronDown,
-  Zap, 
+  Zap,
   Calendar,
   RotateCcw,
   BookMarked,
@@ -36,14 +36,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/api";
-import { 
-  generateQuestion, 
-  validateMCQ, 
-  generateFingerprint, 
-  Question, 
+import {
+  generateQuestion,
+  validateMCQ,
+  generateFingerprint,
+  Question,
   generateTest,
   calculateIIF,
-  selectCATQuestion 
+  selectCATQuestion
 } from "@/lib/aptitude/QuestionEngine";
 import { exportToCsv, exportToExcel } from "@/lib/chat/ExportUtils";
 
@@ -62,7 +62,7 @@ interface TestAttempt {
   correctAnswersCount: number;
   cheatingFlags?: string[];
   responseTimes?: Record<string, number>;
-  
+
   // Enterprise Versioning
   versionId?: string;
   templateVersion?: string;
@@ -139,8 +139,8 @@ const DEFAULT_ATTEMPTS: TestAttempt[] = [
 ];
 
 const COMPANIES = [
-  "General Pattern", "TCS", "Infosys", "Accenture", "Cognizant", "Wipro", 
-  "Capgemini", "Deloitte", "EY", "PwC", "Amazon", "Microsoft", "Google", 
+  "General Pattern", "TCS", "Infosys", "Accenture", "Cognizant", "Wipro",
+  "Capgemini", "Deloitte", "EY", "PwC", "Amazon", "Microsoft", "Google",
   "Oracle", "Zoho", "Adobe"
 ];
 
@@ -158,11 +158,11 @@ const CATEGORIES = [
     name: "Quantitative Aptitude",
     icon: "🧮",
     topics: [
-      "Number System", "Percentage", "Profit & Loss", "Time & Work", 
-      "Time, Speed & Distance", "Simple & Compound Interest", "Ratio & Proportion", 
-      "Partnership", "Mixture & Allegation", "Average", "Ages", "Pipes & Cisterns", 
-      "Boats & Streams", "Probability", "Permutation & Combination", 
-      "Data Interpretation", "Simplification", "Quadratic Equations", 
+      "Number System", "Percentage", "Profit & Loss", "Time & Work",
+      "Time, Speed & Distance", "Simple & Compound Interest", "Ratio & Proportion",
+      "Partnership", "Mixture & Allegation", "Average", "Ages", "Pipes & Cisterns",
+      "Boats & Streams", "Probability", "Permutation & Combination",
+      "Data Interpretation", "Simplification", "Quadratic Equations",
       "Geometry", "Mensuration", "Algebra", "Trigonometry", "Logarithms"
     ]
   },
@@ -170,9 +170,9 @@ const CATEGORIES = [
     name: "Logical Reasoning",
     icon: "🧠",
     topics: [
-      "Blood Relations", "Seating Arrangement", "Direction Sense", "Coding-Decoding", 
-      "Syllogisms", "Puzzle", "Input Output", "Statement & Conclusion", 
-      "Cause & Effect", "Calendar", "Clock", "Ranking", "Alphabet Series", 
+      "Blood Relations", "Seating Arrangement", "Direction Sense", "Coding-Decoding",
+      "Syllogisms", "Puzzle", "Input Output", "Statement & Conclusion",
+      "Cause & Effect", "Calendar", "Clock", "Ranking", "Alphabet Series",
       "Number Series", "Analogy", "Odd One Out", "Cubes & Dice"
     ]
   },
@@ -180,9 +180,9 @@ const CATEGORIES = [
     name: "Verbal Ability",
     icon: "📖",
     topics: [
-      "Synonyms", "Antonyms", "Idioms", "One Word Substitution", 
-      "Sentence Correction", "Fill in the Blanks", "Cloze Test", 
-      "Reading Comprehension", "Para Jumbles", "Error Spotting", 
+      "Synonyms", "Antonyms", "Idioms", "One Word Substitution",
+      "Sentence Correction", "Fill in the Blanks", "Cloze Test",
+      "Reading Comprehension", "Para Jumbles", "Error Spotting",
       "Active Passive", "Direct Indirect Speech", "Vocabulary Builder"
     ]
   },
@@ -190,8 +190,8 @@ const CATEGORIES = [
     name: "English",
     icon: "🇬🇧",
     topics: [
-      "Grammar", "Tenses", "Articles", "Prepositions", "Conjunctions", 
-      "Subject Verb Agreement", "Voice", "Narration", "Punctuation", 
+      "Grammar", "Tenses", "Articles", "Prepositions", "Conjunctions",
+      "Subject Verb Agreement", "Voice", "Narration", "Punctuation",
       "Sentence Improvement", "Reading Skills", "Vocabulary"
     ]
   }
@@ -199,11 +199,12 @@ const CATEGORIES = [
 
 export default function AptitudePage() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "practice" | "history" | "company">("dashboard");
-  
+
   // Storage variables
   const [attempts, setAttempts] = useState<TestAttempt[]>([]);
   const [eloRatings, setEloRatings] = useState<Record<string, number>>({});
   const [spacedRepetition, setSpacedRepetition] = useState<SpacedRepetitionItem[]>([]);
+  const [seenQuestions, setSeenQuestions] = useState<Record<string, any>>({});
   const [gamification, setGamification] = useState<GamificationState>({
     xp: 0,
     level: 1,
@@ -223,7 +224,7 @@ export default function AptitudePage() {
   const [quizTimeRemaining, setQuizTimeRemaining] = useState<number>(0);
   const [showQuizResultsSummary, setShowQuizResultsSummary] = useState<boolean>(false);
   const [activeQuizAttempt, setActiveQuizAttempt] = useState<TestAttempt | null>(null);
-  
+
   // Anti-cheating security
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
   const [hiddenFullQuestions, setHiddenFullQuestions] = useState<Question[]>([]);
@@ -330,6 +331,7 @@ export default function AptitudePage() {
           if (parsed.attempts) setAttempts(parsed.attempts);
           if (parsed.elo) setEloRatings(parsed.elo);
           if (parsed.repetition) setSpacedRepetition(parsed.repetition);
+          if (parsed.seenQuestions) setSeenQuestions(parsed.seenQuestions);
           if (parsed.gamification) setGamification(parsed.gamification);
           if (parsed.roadmap) setRoadmap(parsed.roadmap);
           if (parsed.studyPlan) setStudyPlan(parsed.studyPlan);
@@ -346,6 +348,7 @@ export default function AptitudePage() {
           if (parsed.attempts) setAttempts(parsed.attempts);
           if (parsed.elo) setEloRatings(parsed.elo);
           if (parsed.repetition) setSpacedRepetition(parsed.repetition);
+          if (parsed.seenQuestions) setSeenQuestions(parsed.seenQuestions);
           if (parsed.gamification) setGamification(parsed.gamification);
           if (parsed.roadmap) setRoadmap(parsed.roadmap);
           if (parsed.studyPlan) setStudyPlan(parsed.studyPlan);
@@ -389,9 +392,18 @@ export default function AptitudePage() {
     setTabSwitchesCount(0);
     setCheatingFlags([]);
     setResponseTimes({});
-    
+
     let list: Question[] = [];
-    
+    const excluded: string[] = [];
+    if (selectedMode !== "revision" && selectedMode !== "adaptive") {
+      const cooldownMs = 7 * 24 * 60 * 60 * 1000; // 7 days repeat cooldown
+      Object.entries(seenQuestions).forEach(([fp, detail]: [string, any]) => {
+        if (detail && detail.lastSeenTime && (Date.now() - detail.lastSeenTime) < cooldownMs) {
+          excluded.push(fp);
+        }
+      });
+    }
+
     if (selectedMode === "adaptive") {
       const avgElo = Object.values(eloRatings).length > 0
         ? Object.values(eloRatings).reduce((a, b) => a + b, 0) / Object.values(eloRatings).length
@@ -399,9 +411,9 @@ export default function AptitudePage() {
       const initialTheta = (avgElo - 1200) / 200;
       setThetaAbility(initialTheta);
 
-      const pool = generateTest(35, selectedCategory, selectedTopic, selectedCompany);
+      const pool = generateTest(35, selectedCategory, selectedTopic, selectedCompany, excluded);
       setCatCandidatePool(pool);
-      
+
       const firstQ = selectCATQuestion(pool, initialTheta, exposureRegistry);
       list = [firstQ];
     } else if (selectedMode === "revision") {
@@ -415,7 +427,7 @@ export default function AptitudePage() {
         .sort((a, b) => a[1] - b[1])
         .slice(0, 3)
         .map(entry => entry[0]);
-      
+
       const fingerprints = new Set<string>();
       for (let i = 0; i < questionCount; i++) {
         const topicName = weakTopicsList[i % weakTopicsList.length];
@@ -427,7 +439,7 @@ export default function AptitudePage() {
           const candidate = generateQuestion(categoryName, topicName, selectedCompany, "Easy");
           if (validateMCQ(candidate)) {
             const fp = generateFingerprint(candidate);
-            if (!fingerprints.has(fp)) {
+            if (!fingerprints.has(fp) && !excluded.includes(fp)) {
               list.push(candidate);
               fingerprints.add(fp);
               found = true;
@@ -440,7 +452,7 @@ export default function AptitudePage() {
         }
       }
     } else {
-      list = generateTest(questionCount, selectedCategory, selectedTopic, selectedCompany);
+      list = generateTest(questionCount, selectedCategory, selectedTopic, selectedCompany, excluded);
     }
 
     setHiddenFullQuestions(list);
@@ -466,9 +478,9 @@ export default function AptitudePage() {
     setShowQuizResultsSummary(false);
     setQuizStartTime(Date.now());
     lastQuestionStartTime.current = Date.now();
-    
-    let multiplier = 60; 
-    if (selectedMode === "timed") multiplier = 30; 
+
+    let multiplier = 60;
+    if (selectedMode === "timed") multiplier = 30;
     setQuizTimeRemaining(questionCount * multiplier);
   };
 
@@ -483,7 +495,7 @@ export default function AptitudePage() {
       ...prev,
       [questionId]: timeSpent
     }));
-    
+
     if (timeSpent < 3) {
       setCheatingFlags(f => {
         if (!f.includes("Timing Anomaly (Rapid response)")) {
@@ -495,7 +507,7 @@ export default function AptitudePage() {
 
     if (selectedMode === "adaptive" && currentQuestionIdx + 1 < questionCount) {
       const isCorrect = option === hiddenFullQuestions[currentQuestionIdx].answer;
-      
+
       const q = hiddenFullQuestions[currentQuestionIdx];
       const a = q.a || 1.2;
       const b = q.b || 0;
@@ -503,7 +515,7 @@ export default function AptitudePage() {
 
       const expTerm = Math.exp(-a * (thetaAbility - b));
       const p = c + (1 - c) / (1 + expTerm);
-      
+
       let nextTheta = thetaAbility;
       if (isCorrect) {
         nextTheta += 0.4 * (1 - p);
@@ -521,10 +533,10 @@ export default function AptitudePage() {
       setCatCandidatePool(remainingPool);
 
       const nextQ = selectCATQuestion(remainingPool, nextTheta, nextExposure);
-      
+
       const nextQuestionsList = [...quizQuestions, nextQ];
       setQuizQuestions(nextQuestionsList);
-      
+
       const nextHiddenList = [...hiddenFullQuestions, nextQ];
       setHiddenFullQuestions(nextHiddenList);
     }
@@ -533,7 +545,7 @@ export default function AptitudePage() {
   const handleFinishQuiz = async () => {
     setIsQuizActive(false);
     const duration = Math.round((Date.now() - quizStartTime) / 1000);
-    
+
     let correctCount = 0;
     const weakList: string[] = [];
     const strongList: string[] = [];
@@ -541,12 +553,21 @@ export default function AptitudePage() {
     const nextRepetition = [...spacedRepetition];
     let evaluatedList = [...hiddenFullQuestions];
 
+    let serverAptitudeData: string | null = null;
     if (assessmentId) {
       try {
-        const res = await api.post(`/aptitude/assessment/${assessmentId}/submit`, { answers: userAnswers });
+        const res = await api.post(`/aptitude/assessment/${assessmentId}/submit`, {
+          answers: userAnswers,
+          testName: `${selectedCategory === "any" ? "Mixed" : selectedCategory} (${selectedMode})`,
+          companyPattern: selectedCompany,
+          timeTaken: duration
+        });
         if (res.data && res.data.questions) {
           evaluatedList = res.data.questions;
           correctCount = res.data.correctCount;
+          if (res.data.aptitudeData) {
+            serverAptitudeData = res.data.aptitudeData;
+          }
         }
       } catch (err) {
         console.error("Secure backend evaluation failed, executing offline logic", err);
@@ -562,13 +583,65 @@ export default function AptitudePage() {
       });
     }
 
+    if (serverAptitudeData) {
+      try {
+        const parsed = JSON.parse(serverAptitudeData);
+        if (parsed.attempts) setAttempts(parsed.attempts);
+        if (parsed.elo) setEloRatings(parsed.elo);
+        if (parsed.repetition) setSpacedRepetition(parsed.repetition);
+        if (parsed.seenQuestions) setSeenQuestions(parsed.seenQuestions);
+        if (parsed.gamification) setGamification(parsed.gamification);
+
+        // Compute roadmap from server elo
+        const sorted = Object.entries(parsed.elo || {})
+          .sort((a: any, b: any) => a[1] - b[1])
+          .map(entry => entry[0]);
+        const nextRoadmap = {
+          weeks: [
+            { weekNum: 1, topics: sorted.slice(0, 3), completed: false },
+            { weekNum: 2, topics: sorted.slice(3, 6), completed: false },
+            { weekNum: 3, topics: sorted.slice(6, 9), completed: false }
+          ]
+        };
+        setRoadmap(nextRoadmap);
+
+        const scorePct = Math.round((correctCount / evaluatedList.length) * 100);
+        const accuracyPct = Math.round((correctCount / (Object.keys(userAnswers).length || 1)) * 100);
+        const calculatedPercentile = Math.min(99, Math.round(scorePct * 0.95 + 10));
+
+        const attempt = parsed.attempts[0] || {
+          id: `attempt-${Date.now()}`,
+          date: new Date().toISOString().split("T")[0],
+          testName: `${selectedCategory === "any" ? "Mixed" : selectedCategory} (${selectedMode})`,
+          companyPattern: selectedCompany,
+          score: scorePct,
+          accuracy: Math.min(100, accuracyPct),
+          timeTaken: duration,
+          percentile: calculatedPercentile,
+          weakTopics: [],
+          strongTopics: [],
+          totalQuestions: evaluatedList.length,
+          correctAnswersCount: correctCount
+        };
+
+        // Sync local storage as well
+        localStorage.setItem("placementai_aptitude_data_v4", serverAptitudeData);
+
+        setActiveQuizAttempt(attempt);
+        setShowQuizResultsSummary(true);
+        return;
+      } catch (e) {
+        console.error("Failed to parse backend-returned aptitudeData, falling back to client calculations", e);
+      }
+    }
+
     evaluatedList.forEach((q: any) => {
       const isCorrect = userAnswers[q.id] === q.answer;
       if (isCorrect) {
         if (!strongList.includes(q.topic)) strongList.push(q.topic);
       } else {
         if (!weakList.includes(q.topic)) weakList.push(q.topic);
-        
+
         const exists = nextRepetition.some(item => generateFingerprint(item.question) === generateFingerprint(q));
         if (!exists) {
           nextRepetition.push({
@@ -619,11 +692,11 @@ export default function AptitudePage() {
     setSpacedRepetition(nextRepetition);
 
     let addedXp = correctCount * 15 + (evaluatedList.length - correctCount) * 5;
-    if (scorePct >= 80) addedXp += 50; 
+    if (scorePct >= 80) addedXp += 50;
 
     const nextXp = gamification.xp + addedXp;
     const nextLevel = Math.floor(nextXp / 100) + 1;
-    
+
     const today = new Date().toISOString().split("T")[0];
     let nextStreak = gamification.streak;
     if (gamification.lastActiveDate) {
@@ -685,7 +758,7 @@ export default function AptitudePage() {
     }
     const overallScore = Math.round(attempts.reduce((sum, a) => sum + a.score, 0) / attempts.length);
     const avgAccuracy = Math.round(attempts.reduce((sum, a) => sum + a.accuracy, 0) / attempts.length);
-    
+
     let totalQuestions = 0;
     let totalSeconds = 0;
     attempts.forEach(a => {
@@ -854,7 +927,7 @@ export default function AptitudePage() {
 
   return (
     <div className="flex-1 h-screen overflow-y-auto bg-background p-8 text-foreground relative select-text">
-      
+
       {/* Top Banner Navigation */}
       <div className="flex justify-between items-center mb-8 border-b border-border/40 pb-5 select-none">
         <div className="flex items-center gap-3">
@@ -900,11 +973,11 @@ export default function AptitudePage() {
       {/* ACTIVE QUIZ DISPLAY */}
       {isQuizActive && quizQuestions.length > 0 && (
         <div className="max-w-3xl mx-auto my-6 animate-in fade-in duration-300">
-          <Card 
+          <Card
             onCopy={(e) => e.preventDefault()}
             className="border border-border shadow-xl rounded-3xl overflow-hidden bg-card"
           >
-            
+
             {/* Header info */}
             <CardHeader className="bg-muted/50 border-b border-border/40 px-6 py-4.5 flex flex-row items-center justify-between select-none">
               <div className="flex items-center gap-2">
@@ -930,7 +1003,7 @@ export default function AptitudePage() {
             </CardHeader>
 
             <CardContent className="p-8 space-y-6">
-              
+
               {/* Question Index Progress */}
               <div className="space-y-1.5 select-none">
                 <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
@@ -951,20 +1024,20 @@ export default function AptitudePage() {
                   const label = String.fromCharCode(65 + idx); // A, B, C, D
                   const qId = quizQuestions[currentQuestionIdx].id;
                   const isSelected = userAnswers[qId] === opt;
-                  
+
                   return (
                     <button
                       key={opt}
                       onClick={() => handleSelectOption(qId, opt)}
                       className={`flex items-center gap-3.5 p-4 rounded-2xl border text-left text-xs font-bold tracking-tight transition-all cursor-pointer hover:scale-101 ${
-                        isSelected 
-                        ? "bg-indigo-55 border-indigo-500 text-foreground shadow-sm shadow-indigo-500/5" 
+                        isSelected
+                        ? "bg-indigo-55 border-indigo-500 text-foreground shadow-sm shadow-indigo-500/5"
                         : "bg-card border-border hover:bg-muted/50 text-foreground"
                       }`}
                     >
                       <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold border shrink-0 ${
-                        isSelected 
-                        ? "bg-indigo-650 border-indigo-650 text-white" 
+                        isSelected
+                        ? "bg-indigo-650 border-indigo-650 text-white"
                         : "bg-muted border-border text-muted-foreground"
                       }`}>
                         {label}
@@ -1011,7 +1084,7 @@ export default function AptitudePage() {
       {/* QUIZ RESULTS DETAILED SUMMARY */}
       {showQuizResultsSummary && activeQuizAttempt && (
         <div className="max-w-4xl mx-auto space-y-6">
-          
+
           {/* Anti-cheating security status header banner */}
           {activeQuizAttempt.cheatingFlags && activeQuizAttempt.cheatingFlags.length > 0 && (
             <Card className="border border-rose-500/20 bg-rose-500/100/10 p-4 rounded-2xl flex items-center gap-3 text-xs text-rose-800 dark:text-rose-200 font-bold select-none">
@@ -1057,7 +1130,7 @@ export default function AptitudePage() {
                 </Button>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 select-none">
               <div className="p-4 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
                 <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px]">Weakest Subject</span>
@@ -1080,13 +1153,13 @@ export default function AptitudePage() {
             </div>
 
             <p className="text-xs text-muted-foreground leading-relaxed font-semibold">
-              Based on your results, prioritize LCM methods in <strong>{activeQuizAttempt.weakTopics[0] || "your studies"}</strong>. 
+              Based on your results, prioritize LCM methods in <strong>{activeQuizAttempt.weakTopics[0] || "your studies"}</strong>.
               We have scheduled incorrect answers into your Spaced Repetition Review Hub to check retention in 24 hours.
             </p>
           </Card>
 
           <Card className="border border-border shadow-xl rounded-3xl overflow-hidden bg-card">
-            
+
             {/* Header splash */}
             <CardHeader className="bg-muted/50 border-b border-border/60 p-6 flex flex-row items-center justify-between select-none">
               <div>
@@ -1106,7 +1179,7 @@ export default function AptitudePage() {
             </CardHeader>
 
             <CardContent className="p-8 space-y-8 select-text">
-              
+
               {/* Metric widgets */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 select-none">
                 <div className="bg-muted/50 border border-border/80 p-4.5 rounded-2xl text-center space-y-1">
@@ -1138,7 +1211,7 @@ export default function AptitudePage() {
                   {hiddenFullQuestions.map((q, idx) => {
                     const chosen = userAnswers[q.id];
                     const isCorrect = chosen === q.answer;
-                    
+
                     let classification = "Concept Understanding";
                     if (!isCorrect && activeQuizAttempt.timeTaken > 450) {
                       classification = "Time Management Issue";
@@ -1185,7 +1258,7 @@ export default function AptitudePage() {
                         <div className="bg-muted/50 p-4 rounded-xl border border-border text-xs space-y-2 select-text">
                           <span className="font-bold text-foreground block uppercase tracking-wider text-[9px] select-none">Method Explanation:</span>
                           <p className="text-muted-foreground leading-relaxed font-medium">{q.explanation}</p>
-                          
+
                           {q.formula && (
                             <div className="pt-1.5 border-t border-border/60 mt-1.5">
                               <span className="font-bold text-indigo-700 dark:text-indigo-300 select-none">Formula:</span> <code className="bg-indigo-500/100/10 px-1.5 py-0.5 rounded border text-indigo-900 dark:text-indigo-100 font-mono">{q.formula}</code>
@@ -1215,10 +1288,10 @@ export default function AptitudePage() {
       {/* DASHBOARD TAB VIEW */}
       {!isQuizActive && !showQuizResultsSummary && activeTab === "dashboard" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
-          
+
           {/* Main Dashboard Panel */}
           <div className="lg:col-span-2 space-y-6">
-            
+
             {/* Gamification Profile Header */}
             <Card className="border border-border p-6 rounded-3xl bg-gradient-to-br from-indigo-500/10 via-card to-card shadow-sm flex flex-row items-center justify-between gap-6 select-none">
               <div className="flex items-center gap-4">
@@ -1256,7 +1329,7 @@ export default function AptitudePage() {
 
             {/* Scorecard grids */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 select-none">
-              
+
               {/* Overall Score */}
               <Card className="border border-border p-6 rounded-3xl flex flex-col justify-between space-y-4 shadow-sm bg-card">
                 <div className="flex justify-between items-center">
@@ -1320,12 +1393,12 @@ export default function AptitudePage() {
                 <Award className="w-4.5 h-4.5 text-indigo-650" />
                 Topic Mastery Heatmap (ELOs)
               </h3>
-              
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {Object.entries(eloRatings).slice(0, 12).map(([topic, rating]) => {
                   let badgeColor = "bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/20";
                   let tierName = "Bronze";
-                  
+
                   if (rating > 1350) {
                     badgeColor = "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 border-emerald-500/20";
                     tierName = "Platinum";
@@ -1336,7 +1409,7 @@ export default function AptitudePage() {
                     badgeColor = "bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20";
                     tierName = "Silver";
                   }
-                  
+
                   return (
                     <div key={topic} className="p-3.5 bg-secondary/30 border border-border/50 rounded-2xl flex flex-col justify-between items-center text-center gap-2 hover:shadow-inner transition-all duration-300">
                       <span className="text-[10px] font-bold text-muted-foreground truncate w-full">{topic}</span>
@@ -1368,11 +1441,11 @@ export default function AptitudePage() {
                   <text x="185" y="103" fontSize="8" fontWeight="bold" textAnchor="start" fill="#64748b">LOGICAL</text>
                   <text x="100" y="193" fontSize="8" fontWeight="bold" textAnchor="middle" fill="#64748b">VERBAL</text>
                   <text x="15" y="103" fontSize="8" fontWeight="bold" textAnchor="end" fill="#64748b">ENGLISH</text>
-                  <polygon 
-                    points="100,45 155,100 100,160 35,100" 
-                    fill="rgba(79, 70, 229, 0.25)" 
-                    stroke="rgb(79, 70, 229)" 
-                    strokeWidth="2.5" 
+                  <polygon
+                    points="100,45 155,100 100,160 35,100"
+                    fill="rgba(79, 70, 229, 0.25)"
+                    stroke="rgb(79, 70, 229)"
+                    strokeWidth="2.5"
                   />
                 </svg>
               </div>
@@ -1381,7 +1454,7 @@ export default function AptitudePage() {
 
           {/* AI recommendations side column */}
           <div className="space-y-6">
-            
+
             {/* Predicted placement readiness */}
             <Card className="border border-border rounded-3xl p-5 space-y-4 shadow-sm bg-card select-none">
               <h3 className="font-extrabold text-sm uppercase tracking-wider text-foreground flex items-center gap-1.5">
@@ -1415,7 +1488,7 @@ export default function AptitudePage() {
                 <Calendar className="w-4.5 h-4.5 text-indigo-650" />
                 Weekly Study Goals
               </h3>
-              
+
               <div className="text-xs space-y-3 font-semibold text-muted-foreground select-text">
                 <div className="flex justify-between border-b pb-2">
                   <span>Study Allocation:</span>
@@ -1451,7 +1524,7 @@ export default function AptitudePage() {
                 onClick={() => {
                   const targetTopic = recommendations[0]?.action;
                   const targetCategory = CATEGORIES.find(c => c.topics.includes(targetTopic))?.name || "any";
-                  
+
                   setSelectedCategory(targetCategory);
                   setSelectedTopic(targetTopic || "any");
                   setSelectedCompany("General Pattern");
@@ -1480,7 +1553,7 @@ export default function AptitudePage() {
 
             </CardHeader>
             <CardContent className="p-8 space-y-8">
-              
+
               {/* Assessment Modes Grid */}
               <div className="space-y-3">
                 <label className="text-xs font-black text-foreground uppercase tracking-wider">Assessment Mode</label>
@@ -1493,8 +1566,8 @@ export default function AptitudePage() {
                         key={mode.id}
                         onClick={() => setSelectedMode(mode.id)}
                         className={`p-4 rounded-2xl border text-left flex gap-3 cursor-pointer transition-all ${
-                          isSel 
-                          ? "bg-indigo-55 border-indigo-650 text-foreground shadow-sm" 
+                          isSel
+                          ? "bg-indigo-55 border-indigo-650 text-foreground shadow-sm"
                           : "bg-card border-border hover:bg-muted/50 text-foreground"
                         }`}
                       >
@@ -1514,12 +1587,12 @@ export default function AptitudePage() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                
+
                 {/* Company Select */}
                 <div className="space-y-2">
                   <label className="text-xs font-black text-foreground uppercase tracking-wider">Company Target Pattern</label>
                   <div className="relative">
-                    <select 
+                    <select
                       value={selectedCompany}
                       onChange={(e) => setSelectedCompany(e.target.value)}
                       className="w-full appearance-none bg-muted/50 border border-border rounded-2xl p-3.5 pr-10 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-600 cursor-pointer"
@@ -1536,11 +1609,11 @@ export default function AptitudePage() {
                 <div className="space-y-2">
                   <label className="text-xs font-black text-foreground uppercase tracking-wider">Category Focus</label>
                   <div className="relative">
-                    <select 
+                    <select
                       value={selectedCategory}
                       onChange={(e) => {
                         setSelectedCategory(e.target.value);
-                        setSelectedTopic("any"); 
+                        setSelectedTopic("any");
                       }}
                       className="w-full appearance-none bg-muted/50 border border-border rounded-2xl p-3.5 pr-10 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650 cursor-pointer"
                     >
@@ -1557,7 +1630,7 @@ export default function AptitudePage() {
                 <div className="space-y-2">
                   <label className="text-xs font-black text-foreground uppercase tracking-wider">Topic Focus</label>
                   <div className="relative">
-                    <select 
+                    <select
                       value={selectedTopic}
                       onChange={(e) => setSelectedTopic(e.target.value)}
                       className="w-full appearance-none bg-muted/50 border border-border rounded-2xl p-3.5 pr-10 text-xs font-bold text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-650 cursor-pointer"

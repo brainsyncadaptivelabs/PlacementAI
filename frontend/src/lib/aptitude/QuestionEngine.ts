@@ -1372,7 +1372,7 @@ export function generateQuestion(category: string, topic: string, company = "Gen
 }
 
 // Generate a complete Mock Exam/Test set (balanced template/concept coverage)
-export function generateTest(length: number, category: string, topic: string, company = "General Pattern"): Question[] {
+export function generateTest(length: number, category: string, topic: string, company = "General Pattern", excludedFingerprints: string[] = []): Question[] {
   const list: Question[] = [];
   const fingerprints = new Set<string>();
   const topicCounts: Record<string, number> = {};
@@ -1416,7 +1416,7 @@ export function generateTest(length: number, category: string, topic: string, co
       
       // 2. Semantic and structural uniqueness check
       const fp = generateFingerprint(candidate);
-      if (fingerprints.has(fp)) {
+      if (fingerprints.has(fp) || excludedFingerprints.includes(fp)) {
         continue;
       }
       
