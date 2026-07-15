@@ -2,6 +2,7 @@ package com.aiplacement.backend.controller.user;
 
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
+import com.aiplacement.backend.placementintelligence.aptitude.*;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,23 +12,29 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class AptitudeControllerTest {
 
     private UserRepository userRepository;
+    private AptitudeSessionService sessionService;
+    private AptitudeCatEngine catEngine;
     private AptitudeController controller;
     private User user;
 
     @BeforeEach
     void setUp() {
         userRepository = Mockito.mock(UserRepository.class);
-        controller = new AptitudeController(userRepository);
+        sessionService = Mockito.mock(AptitudeSessionService.class);
+        catEngine = new AptitudeCatEngine();
+        controller = new AptitudeController(userRepository, sessionService, catEngine);
+
         user = new User();
         user.setEmail("student@company.com");
         user.setFullName("Student Candidate");
@@ -41,94 +48,86 @@ public class AptitudeControllerTest {
     }
 
     @Test
-    void testGenerateFingerprint() {
-        Map<String, Object> question = new HashMap<>();
-        question.put("text", "Amit has twenty books from Google.");
-        question.put("category", "Quantitative Aptitude");
-        question.put("topic", "Percentage");
-
-        String fp = AptitudeController.generateFingerprint(question);
-        assertEquals("Quantitative Aptitude-Percentage-namehasnumitemsfromcompany", fp);
-    }
-
-    @Test
-    void testFingerprintDeterminism() {
-        Map<String, Object> q1 = new HashMap<>();
-        q1.put("text", "Amit has twenty books from Google.");
-        q1.put("category", "Quantitative Aptitude");
-        q1.put("topic", "Percentage");
-
-        Map<String, Object> q2 = new HashMap<>();
-        q2.put("text", "Amit has twenty books from Google.");
-        q2.put("category", "Quantitative Aptitude");
-        q2.put("topic", "Percentage");
-
-        assertEquals(AptitudeController.generateFingerprint(q1), AptitudeController.generateFingerprint(q2));
-    }
-
-    @Test
-    void testSecurityOwnerIsolation() {
-        // Mock a user check
+    void testClientDtoDoesNotContainCorrectAnswerOrPrivateParams() {
         when(userRepository.findByEmail("student@company.com")).thenReturn(Optional.of(user));
-        
-        // Mock another user
-        User otherUser = new User();
-        otherUser.setEmail("forger@company.com");
-        otherUser.setAptitudeData("{\"gamification\":{\"xp\":5000}}");
-        when(userRepository.findByEmail("forger@company.com")).thenReturn(Optional.of(otherUser));
 
-        // Authenticated user calls getAptitudeData
-        ResponseEntity<Map<String, Object>> response = controller.getAptitudeData();
+        Map<String, Object> payload = Map.of(
+            "length", 5,
+            "category", "Quantitative Aptitude",
+            "topic", "Percentage",
+            "mode", "practice"
+        );
+
+        ResponseEntity<Map<String, Object>> response = controller.registerAssessment(payload);
         assertEquals(200, response.getStatusCode().value());
-        assertTrue(response.getBody().get("data").toString().contains("{}"));
+
+        List<Map<String, Object>> questions = (List<Map<String, Object>>) response.getBody().get("questions");
+        assertNotNull(questions);
+        assertFalse(questions.isEmpty());
+
+        for (Map<String, Object> q : questions) {
+            assertFalse(q.containsKey("answer"));
+            assertFalse(q.containsKey("explanation"));
+            assertFalse(q.containsKey("formula"));
+            assertFalse(q.containsKey("shortcut"));
+            assertFalse(q.containsKey("a"));
+            assertFalse(q.containsKey("b"));
+            assertFalse(q.containsKey("c"));
+        }
     }
 
     @Test
-    void testClientPayloadTamperingIgnored() throws Exception {
-        when(userRepository.findByEmail("student@company.com")).thenReturn(Optional.of(user));
+    void testUserAIsolateFromUserBSession() {
+        String sessionId = "session-123";
+        // Mock getSession throwing SecurityException for cross-user
+        doThrow(new SecurityException("Access denied")).when(sessionService).getSession(sessionId, "student@company.com");
 
-        // Initialize user data with backend stats
-        user.setAptitudeData("{\"attempts\":[],\"elo\":{},\"gamification\":{\"xp\":100,\"level\":2,\"streak\":2,\"lastActiveDate\":\"2026-07-14\",\"badges\":[]}}");
-
-        // Client attempts to sync fabricated stats
-        Map<String, String> payload = Map.of("data", "{\"attempts\":[],\"elo\":{},\"gamification\":{\"xp\":999999,\"level\":99,\"streak\":99},\"studyPlan\":{\"weeklyHours\":10}}");
-        controller.saveAptitudeData(payload);
-
-        // Verify ELO and gamification are preserved from serverData
-        JSONObject updated = new JSONObject(user.getAptitudeData());
-        JSONObject gamification = updated.getJSONObject("gamification");
-        assertEquals(100, gamification.getInt("xp"));
-        assertEquals(2, gamification.getInt("level"));
-        assertEquals(2, gamification.getInt("streak"));
-        assertEquals(10, updated.getJSONObject("studyPlan").getInt("weeklyHours"));
+        assertThrows(SecurityException.class, () -> {
+            controller.submitAssessment(sessionId, Map.of());
+        });
     }
 
     @Test
-    void testXpAndLevelProgression() {
+    void testIdempotentSubmissionReplays() throws Exception {
         when(userRepository.findByEmail("student@company.com")).thenReturn(Optional.of(user));
+
+        String sessionId = "session-123";
+        Map<String, Object> mockSession = new HashMap<>();
+        mockSession.put("email", "student@company.com");
+        mockSession.put("submitted", false);
 
         List<Map<String, Object>> questions = new ArrayList<>();
         Map<String, Object> q = new HashMap<>();
         q.put("id", "q-1");
-        q.put("category", "Quantitative Aptitude");
         q.put("topic", "Percentage");
         q.put("difficulty", "Medium");
-        q.put("text", "Text question");
         q.put("answer", "A");
         questions.add(q);
+        mockSession.put("questions", questions);
 
-        // Register session
-        controller.registerAssessment(Map.of("questions", questions));
+        when(sessionService.getSession(sessionId, "student@company.com")).thenReturn(mockSession);
 
-        // Submit
-        String sessionKey = AptitudeController.class.getDeclaredFields()[1].getName(); // activeAssessments
-        // Since we registered, we check submission directly.
-        // We simulate submission of correct answers
-        Map<String, Object> submitPayload = new HashMap<>();
-        submitPayload.put("answers", Map.of("q-1", "A"));
+        // First submission
+        ResponseEntity<Map<String, Object>> res1 = controller.submitAssessment(sessionId, Map.of("answers", Map.of("q-1", "A")));
+        assertEquals(200, res1.getStatusCode().value());
 
-        // Grab first registered assessment session key
-        // Wait, activeAssessments is private static final Map<String, ActiveSession> activeAssessments
-        // Let's find the registered UUID. We can mock active session directly since we registered it.
+        // Mark mock session as submitted for subsequent calls
+        mockSession.put("submitted", true);
+
+        // Replay submission should be rejected
+        ResponseEntity<Map<String, Object>> res2 = controller.submitAssessment(sessionId, Map.of("answers", Map.of("q-1", "A")));
+        assertEquals(400, res2.getStatusCode().value());
+        assertTrue(res2.getBody().get("error").toString().contains("already been submitted"));
+    }
+
+    @Test
+    void testCatSelectionAndThetaUpdates() {
+        Question q = Question.builder().id("q-1").a(1.2).b(0.0).c(0.25).build();
+        double startTheta = 0.0;
+        double nextThetaCorrect = catEngine.updateTheta(startTheta, q, true);
+        double nextThetaIncorrect = catEngine.updateTheta(startTheta, q, false);
+
+        assertTrue(nextThetaCorrect > startTheta);
+        assertTrue(nextThetaIncorrect < startTheta);
     }
 }

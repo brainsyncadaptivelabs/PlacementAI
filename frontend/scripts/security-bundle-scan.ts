@@ -6,7 +6,14 @@ const FORBIDDEN_MARKERS = [
   'ATS_WEIGHTS',
   'PLACEMENT_READINESS_FORMULA',
   'SYSTEM_PROMPT_TEMPLATE',
-  'ATS_CALIBRATION_COEFFICIENTS'
+  'ATS_CALIBRATION_COEFFICIENTS',
+  'AptitudeQuestionEngine',
+  'quantTemplates',
+  'logicalTemplates',
+  'verbalTemplates',
+  'englishTemplates',
+  'selectCATQuestion',
+  'calculateIIF'
 ];
 
 function scanDirectory(dir: string, fileList: string[] = []): string[] {

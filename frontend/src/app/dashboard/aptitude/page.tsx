@@ -37,13 +37,8 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/api";
 import {
-  generateQuestion,
-  validateMCQ,
   generateFingerprint,
-  Question,
-  generateTest,
-  calculateIIF,
-  selectCATQuestion
+  Question
 } from "@/lib/aptitude/QuestionEngine";
 import { exportToCsv, exportToExcel } from "@/lib/chat/ExportUtils";
 
@@ -393,7 +388,6 @@ export default function AptitudePage() {
     setCheatingFlags([]);
     setResponseTimes({});
 
-    let list: Question[] = [];
     const excluded: string[] = [];
     if (selectedMode !== "revision" && selectedMode !== "adaptive") {
       const cooldownMs = 7 * 24 * 60 * 60 * 1000; // 7 days repeat cooldown
@@ -404,72 +398,23 @@ export default function AptitudePage() {
       });
     }
 
-    if (selectedMode === "adaptive") {
-      const avgElo = Object.values(eloRatings).length > 0
-        ? Object.values(eloRatings).reduce((a, b) => a + b, 0) / Object.values(eloRatings).length
-        : 1200;
-      const initialTheta = (avgElo - 1200) / 200;
-      setThetaAbility(initialTheta);
-
-      const pool = generateTest(35, selectedCategory, selectedTopic, selectedCompany, excluded);
-      setCatCandidatePool(pool);
-
-      const firstQ = selectCATQuestion(pool, initialTheta, exposureRegistry);
-      list = [firstQ];
-    } else if (selectedMode === "revision") {
-      if (spacedRepetition.length === 0) {
-        alert("No revision cards scheduled yet. Completing practice tests will schedule them.");
-        return;
-      }
-      list = spacedRepetition.map(item => item.question).slice(0, questionCount);
-    } else if (selectedMode === "weak") {
-      const weakTopicsList = Object.entries(eloRatings)
-        .sort((a, b) => a[1] - b[1])
-        .slice(0, 3)
-        .map(entry => entry[0]);
-
-      const fingerprints = new Set<string>();
-      for (let i = 0; i < questionCount; i++) {
-        const topicName = weakTopicsList[i % weakTopicsList.length];
-        const categoryName = CATEGORIES.find(c => c.topics.includes(topicName))?.name || "Quantitative Aptitude";
-        let attemptsCount = 0;
-        let found = false;
-        while (attemptsCount < 50) {
-          attemptsCount++;
-          const candidate = generateQuestion(categoryName, topicName, selectedCompany, "Easy");
-          if (validateMCQ(candidate)) {
-            const fp = generateFingerprint(candidate);
-            if (!fingerprints.has(fp) && !excluded.includes(fp)) {
-              list.push(candidate);
-              fingerprints.add(fp);
-              found = true;
-              break;
-            }
-          }
-        }
-        if (!found) {
-          list.push(generateQuestion(categoryName, topicName, selectedCompany, "Easy"));
-        }
-      }
-    } else {
-      list = generateTest(questionCount, selectedCategory, selectedTopic, selectedCompany, excluded);
-    }
-
-    setHiddenFullQuestions(list);
-
     try {
-      const res = await api.post("/aptitude/assessment", { questions: list });
+      const res = await api.post("/aptitude/assessment", {
+        length: questionCount,
+        category: selectedCategory,
+        topic: selectedTopic,
+        company: selectedCompany,
+        mode: selectedMode,
+        excluded: excluded
+      });
       if (res.data && res.data.assessmentId) {
         setAssessmentId(res.data.assessmentId);
         setQuizQuestions(res.data.questions);
-      } else {
-        setAssessmentId(null);
-        setQuizQuestions(list);
       }
     } catch (err) {
-      console.warn("Secure backend initialization failed, running locally", err);
-      setAssessmentId(null);
-      setQuizQuestions(list);
+      console.error("Secure backend initialization failed", err);
+      alert("Failed to start assessment session.");
+      return;
     }
 
     setUserAnswers({});
@@ -506,39 +451,18 @@ export default function AptitudePage() {
     }
 
     if (selectedMode === "adaptive" && currentQuestionIdx + 1 < questionCount) {
-      const isCorrect = option === hiddenFullQuestions[currentQuestionIdx].answer;
-
-      const q = hiddenFullQuestions[currentQuestionIdx];
-      const a = q.a || 1.2;
-      const b = q.b || 0;
-      const c = q.c || 0.25;
-
-      const expTerm = Math.exp(-a * (thetaAbility - b));
-      const p = c + (1 - c) / (1 + expTerm);
-
-      let nextTheta = thetaAbility;
-      if (isCorrect) {
-        nextTheta += 0.4 * (1 - p);
-      } else {
-        nextTheta -= 0.4 * p;
+      if (assessmentId) {
+        api.post(`/aptitude/assessment/${assessmentId}/next`, {
+          lastQuestionId: questionId,
+          selectedOption: option
+        }).then(res => {
+          if (res.data) {
+            setQuizQuestions(prev => [...prev, res.data]);
+          }
+        }).catch(err => {
+          console.error("Failed to fetch next adaptive question from backend", err);
+        });
       }
-      nextTheta = Math.max(-3.0, Math.min(3.0, nextTheta));
-      setThetaAbility(nextTheta);
-
-      const nextExposure = { ...exposureRegistry };
-      nextExposure[q.topic] = (nextExposure[q.topic] || 0) + 1;
-      setExposureRegistry(nextExposure);
-
-      const remainingPool = catCandidatePool.filter(item => item.id !== q.id);
-      setCatCandidatePool(remainingPool);
-
-      const nextQ = selectCATQuestion(remainingPool, nextTheta, nextExposure);
-
-      const nextQuestionsList = [...quizQuestions, nextQ];
-      setQuizQuestions(nextQuestionsList);
-
-      const nextHiddenList = [...hiddenFullQuestions, nextQ];
-      setHiddenFullQuestions(nextHiddenList);
     }
   };
 
@@ -754,7 +678,7 @@ export default function AptitudePage() {
   // predicted placement readiness indices
   const getAnalytics = () => {
     if (attempts.length === 0) {
-      return { overallScore: 0, avgAccuracy: 0, avgTimePerQuestion: 0, topicScores: {}, weakTopics: [], strongTopics: [] };
+      return { overallScore: 0, avgAccuracy: 0, avgTimePerQuestion: 0, topicScores: {} as Record<string, number>, weakTopics: [] as string[], strongTopics: [] as string[], insufficient: true };
     }
     const overallScore = Math.round(attempts.reduce((sum, a) => sum + a.score, 0) / attempts.length);
     const avgAccuracy = Math.round(attempts.reduce((sum, a) => sum + a.accuracy, 0) / attempts.length);
@@ -783,22 +707,34 @@ export default function AptitudePage() {
       .slice(0, 3)
       .map(entry => entry[0]);
 
-    return { overallScore, avgAccuracy, avgTimePerQuestion, topicScores, weakTopics, strongTopics };
+    return { overallScore, avgAccuracy, avgTimePerQuestion, topicScores, weakTopics, strongTopics, insufficient: attempts.length < 3 };
   };
 
   const analytics = getAnalytics();
 
   const getPlacementReadiness = () => {
+    if (attempts.length < 3) {
+      return {
+        tcs: "INSUFFICIENT_DATA",
+        infosys: "INSUFFICIENT_DATA",
+        cognizant: "INSUFFICIENT_DATA",
+        google: "INSUFFICIENT_DATA",
+        amazon: "INSUFFICIENT_DATA",
+        deloitte: "INSUFFICIENT_DATA",
+        microsoft: "INSUFFICIENT_DATA",
+        ey: "INSUFFICIENT_DATA"
+      };
+    }
     const avgScore = analytics.overallScore;
     return {
-      tcs: Math.min(100, Math.round(avgScore * 1.05)),
-      infosys: Math.min(100, Math.round(avgScore * 0.98)),
-      cognizant: Math.min(100, Math.round(avgScore * 1.02)),
-      google: Math.min(100, Math.round(avgScore * 0.55 + 10)),
-      amazon: Math.min(100, Math.round(avgScore * 0.65 + 8)),
-      deloitte: Math.min(100, Math.round(avgScore * 1.08)),
-      microsoft: Math.min(100, Math.round(avgScore * 0.68 + 5)),
-      ey: Math.min(100, Math.round(avgScore * 1.03))
+      tcs: Math.min(100, Math.round(avgScore * 1.05)).toString(),
+      infosys: Math.min(100, Math.round(avgScore * 0.98)).toString(),
+      cognizant: Math.min(100, Math.round(avgScore * 1.02)).toString(),
+      google: Math.min(100, Math.round(avgScore * 0.55 + 10)).toString(),
+      amazon: Math.min(100, Math.round(avgScore * 0.65 + 8)).toString(),
+      deloitte: Math.min(100, Math.round(avgScore * 1.08)).toString(),
+      microsoft: Math.min(100, Math.round(avgScore * 0.68 + 5)).toString(),
+      ey: Math.min(100, Math.round(avgScore * 1.03)).toString()
     };
   };
 
@@ -1474,9 +1410,9 @@ export default function AptitudePage() {
                   <div key={comp.name} className="space-y-1">
                     <div className="flex justify-between text-xs font-semibold">
                       <span>{comp.name}</span>
-                      <span>{comp.val}%</span>
+                      <span>{comp.val === "INSUFFICIENT_DATA" ? "Insufficient Data" : `${comp.val}%`}</span>
                     </div>
-                    <Progress value={comp.val} className="h-1 bg-muted" />
+                    <Progress value={comp.val === "INSUFFICIENT_DATA" ? 0 : Number(comp.val)} className="h-1 bg-muted" />
                   </div>
                 ))}
               </div>
@@ -1703,9 +1639,9 @@ export default function AptitudePage() {
                   <div key={comp.name} className="p-4 bg-muted/50 border border-border/50 rounded-2xl space-y-3">
                     <div className="flex justify-between items-center text-xs font-bold">
                       <span className="text-foreground">{comp.name}</span>
-                      <span className="text-indigo-650">{comp.val}% Readiness</span>
+                      <span className="text-indigo-650">{comp.val === "INSUFFICIENT_DATA" ? "Insufficient Data" : `${comp.val}% Readiness`}</span>
                     </div>
-                    <Progress value={comp.val} className="h-2 bg-secondary" />
+                    <Progress value={comp.val === "INSUFFICIENT_DATA" ? 0 : Number(comp.val)} className="h-2 bg-secondary" />
                     <div className="flex justify-between text-[10px] text-muted-foreground font-semibold uppercase">
                       <span>Suggested Study Plan: {comp.hours} hours practice</span>
                       <span>ELO Target: 1300+</span>

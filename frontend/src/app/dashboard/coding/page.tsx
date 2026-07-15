@@ -123,6 +123,7 @@ export default function CodingPracticePage() {
   
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const textareaRefCallback = (node: HTMLTextAreaElement | null) => {
     if (node) {
@@ -340,6 +341,7 @@ export default function CodingPracticePage() {
                     <div className="mt-2 flex items-center gap-2 border-t border-border/25 pt-2 shrink-0">
                       <span className="text-zinc-500 font-semibold text-xs select-none">STDIN:</span>
                       <Input 
+                        ref={inputRef}
                         value={inputVal}
                         onChange={(e) => setInputVal(e.target.value)}
                         className="flex-grow h-7 bg-transparent border-none text-foreground focus-visible:ring-0 p-0 rounded-none shadow-none font-mono text-xs"
