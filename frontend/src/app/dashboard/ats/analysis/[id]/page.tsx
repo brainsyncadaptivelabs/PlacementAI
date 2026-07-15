@@ -312,7 +312,7 @@ export default function AtsAnalysisFromHistoryPage() {
   // Upgrade path: If user testing shows they miss content, add a CSS-only scroll shadow (background-attachment: local) rather than JS buttons.
   
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-background text-foreground print:h-auto print:overflow-visible">
+    <div className="flex flex-col min-h-[calc(100vh-64px)] bg-background text-foreground">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-3 border-b shrink-0 print:hidden">
         <div className="flex items-center gap-3">
@@ -432,11 +432,11 @@ export default function AtsAnalysisFromHistoryPage() {
       </div>
 
       {/* Tab Workspaces */}
-      <div className="flex-1 overflow-hidden p-6 print:overflow-visible print:p-0">
+      <div className="flex-1 p-6 print:p-0">
         
         {/* OVERVIEW TAB */}
         {activeTab === "OVERVIEW" && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-y-auto pr-2 pb-6 print:grid-cols-3 print:overflow-visible">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6 print:grid-cols-3">
             {/* Left large column: Section Performance */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="border-none shadow-sm">
@@ -544,9 +544,9 @@ export default function AtsAnalysisFromHistoryPage() {
 
         {/* SECTION ANALYSIS TAB */}
         {activeTab === "SECTION ANALYSIS" && (
-          <div className="flex h-full border rounded-xl overflow-hidden bg-card border-border shadow-sm">
+          <div className="flex flex-col md:flex-row border rounded-xl bg-card border-border shadow-sm min-h-[600px]">
             {/* Sidebar Inside Workspace */}
-            <div className="w-64 border-r bg-slate-50/50 dark:bg-slate-900/30 overflow-y-auto shrink-0 flex flex-col divide-y divide-border/60">
+            <div className="w-full md:w-64 border-b md:border-b-0 md:border-r bg-slate-50/50 dark:bg-slate-900/30 shrink-0 flex flex-col divide-y divide-border/60">
               <span className="p-4 text-[10px] uppercase font-bold text-muted-foreground tracking-wider block shrink-0 bg-slate-100/50 dark:bg-slate-900/60">Resume Sections</span>
               <div className="p-2 space-y-1">
                 {["Summary", "Education", "Skills", "Projects", "Experience", "Certifications", "Contact & Profile"].map((secName) => {
@@ -573,7 +573,7 @@ export default function AtsAnalysisFromHistoryPage() {
             </div>
 
             {/* Selected Section Details Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 p-6 space-y-6">
               {(() => {
                 const secDetails = analysis.atsSectionScores?.find(s => (s.section || "").toLowerCase().startsWith((selectedSection || "").toLowerCase().split(" ")[0]));
                 if (!secDetails) {
@@ -691,7 +691,7 @@ export default function AtsAnalysisFromHistoryPage() {
 
         {/* SKILL INTELLIGENCE TAB */}
         {activeTab === "SKILL INTELLIGENCE" && (
-          <div className="flex flex-col h-full space-y-6">
+          <div className="flex flex-col space-y-6">
             {/* Top: Skill Gap Summary */}
             <Card className="border-none shadow-sm shrink-0">
               <CardHeader className="pb-2">
@@ -731,7 +731,7 @@ export default function AtsAnalysisFromHistoryPage() {
             </Card>
 
             {/* Bottom: Skill Evidence Matrix with internal scroll and filters */}
-            <Card className="flex-1 flex flex-col overflow-hidden border-none shadow-sm">
+            <Card className="flex-1 flex flex-col border-none shadow-sm">
               <CardHeader className="pb-2 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
                 <CardTitle className="text-sm font-black uppercase tracking-wider text-foreground">🔍 Skill Evidence Graph</CardTitle>
                 <div className="flex flex-wrap gap-2 w-full md:w-auto">
@@ -757,7 +757,7 @@ export default function AtsAnalysisFromHistoryPage() {
                   </select>
                 </div>
               </CardHeader>
-              <CardContent className="flex-1 overflow-y-auto p-0 border-t">
+              <CardContent className="flex-1 p-0 border-t">
                 {(() => {
                   const filteredSkills = analysis.skillEvidence?.filter(sk => {
                     const skillName = sk.skill || "";
@@ -767,7 +767,7 @@ export default function AtsAnalysisFromHistoryPage() {
                   }) || [];
 
                   return (
-                    <div className="h-full overflow-y-auto">
+                    <div>
                       <table className="w-full text-left text-sm relative border-collapse">
                         <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0 text-[9px] uppercase font-bold text-muted-foreground tracking-wider border-b border-border z-10">
                           <tr>
