@@ -241,25 +241,25 @@ export default function MockInterviewLandingPage() {
   return (
     <PageShell>
       {/* Navigation Header / Back Button bar */}
-      <div className="flex items-center gap-3 mb-6 select-none border-b border-white/5 pb-4">
+      <div className="flex items-center gap-3 mb-6 select-none border-b border-border/40 pb-4">
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={handleBack}
-          className="flex items-center gap-1.5 text-muted-foreground hover:text-white pl-2 pr-3 py-1.5 h-8 rounded-lg transition-colors border border-white/5 hover:border-white/20 bg-slate-900/60"
+          className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground pl-2 pr-3 py-1.5 h-8 rounded-lg transition-colors border border-transparent hover:bg-muted"
         >
           <ArrowLeft className="h-4 w-4" />
           <span className="text-xs font-semibold">Back</span>
         </Button>
-        <div className="h-4 w-px bg-white/10" />
+        <div className="h-4 w-px bg-border" />
         <div className="flex items-center gap-1 text-[11px] font-black text-muted-foreground uppercase tracking-wider">
           <Link href="/dashboard" className="hover:text-primary transition-colors">Dashboard</Link>
           <span>/</span>
-          <span className="text-white">Mock Interviews</span>
+          <span className="text-foreground">Mock Interviews</span>
           {viewMode === "setup" && (
             <>
               <span>/</span>
-              <span className="text-primary-foreground font-black">Setup (Step {currentStep}/3)</span>
+              <span className="text-primary font-black">Setup (Step {currentStep}/3)</span>
             </>
           )}
         </div>
@@ -267,9 +267,9 @@ export default function MockInterviewLandingPage() {
 
       {viewMode === "landing" ? (
         <>
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 border-b border-white/5 pb-6">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-10 gap-6 border-b border-border/40 pb-6">
             <div>
-              <h1 className="text-4xl font-black tracking-tight text-white flex items-center gap-2">
+              <h1 className="text-4xl font-black tracking-tight text-foreground flex items-center gap-2">
                 AI Mock Interview <Sparkles className="h-6 w-6 text-primary animate-pulse" />
               </h1>
               <p className="text-muted-foreground mt-2 text-md max-w-2xl">
@@ -278,7 +278,7 @@ export default function MockInterviewLandingPage() {
             </div>
             <div className="flex gap-4">
               <Link href="/mock-interview/history">
-                <Button variant="outline" className="flex items-center gap-2 border-white/10 bg-slate-900/50 hover:bg-slate-800 text-white">
+                <Button variant="outline" className="flex items-center gap-2 border-border bg-card hover:bg-muted text-foreground">
                   <History className="h-4 w-4" /> History Catalog
                 </Button>
               </Link>
@@ -291,7 +291,7 @@ export default function MockInterviewLandingPage() {
           {/* Quick Start Modules */}
           <div className="space-y-6 mb-12">
             <div>
-              <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-xl font-black text-foreground uppercase tracking-wider flex items-center gap-2">
                 <Bookmark className="w-5 h-5 text-primary" /> Core Practice Modules
               </h2>
               <p className="text-xs text-muted-foreground mt-1">Select a focused track to practice core skills with customized state trees.</p>
@@ -324,7 +324,7 @@ export default function MockInterviewLandingPage() {
           {/* Company-Specific Prep */}
           <div className="space-y-6 mb-12">
             <div>
-              <h2 className="text-xl font-black text-white uppercase tracking-wider flex items-center gap-2">
+              <h2 className="text-xl font-black text-foreground uppercase tracking-wider flex items-center gap-2">
                 <Layers className="w-5 h-5 text-primary" /> Target Company Practice
               </h2>
               <p className="text-xs text-muted-foreground mt-1">Practice interview formats tailored for top tech and consulting firms.</p>
