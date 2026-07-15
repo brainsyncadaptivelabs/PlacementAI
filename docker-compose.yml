@@ -53,6 +53,7 @@ services:
       NVIDIA_API_KEY: ${NVIDIA_API_KEY}
       NVIDIA_MODEL: ${NVIDIA_MODEL:-meta/llama-3.1-8b-instruct}
       PISTON_API_URL: http://piston:2000/api/v2
+      PISTON_API_WS_URL: ws://piston:2000/api/v2/connect
       SPRING_DATA_REDIS_HOST: redis
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}

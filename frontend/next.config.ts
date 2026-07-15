@@ -6,7 +6,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https://images.unsplash.com https://i.pravatar.cc https://glyvbdltoxjpwlzsbcyx.supabase.co;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://glyvbdltoxjpwlzsbcyx.supabase.co https://api.placementai.in https://api.elevenlabs.io https://accounts.google.com http://localhost:8080 http://localhost:3000 ws://localhost:3000;
+  connect-src 'self' https://glyvbdltoxjpwlzsbcyx.supabase.co https://api.placementai.in https://api.elevenlabs.io https://accounts.google.com http://localhost:8080 http://localhost:3000 ws://localhost:3000 ws://localhost:8080 wss://localhost:8080 wss://api.placementai.in;
   frame-src 'self' https://accounts.google.com;
   frame-ancestors 'none';
   base-uri 'self';
