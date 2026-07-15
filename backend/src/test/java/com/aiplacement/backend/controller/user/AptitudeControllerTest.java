@@ -25,6 +25,7 @@ public class AptitudeControllerTest {
     private UserRepository userRepository;
     private AptitudeSessionService sessionService;
     private AptitudeCatEngine catEngine;
+    private AptitudeQuestionSelector questionSelector;
     private AptitudeController controller;
     private User user;
 
@@ -33,7 +34,10 @@ public class AptitudeControllerTest {
         userRepository = Mockito.mock(UserRepository.class);
         sessionService = Mockito.mock(AptitudeSessionService.class);
         catEngine = new AptitudeCatEngine();
-        controller = new AptitudeController(userRepository, sessionService, catEngine);
+        AptitudeQuestionFamilyRegistry registry = new AptitudeQuestionFamilyRegistry(new ArrayList<>());
+        AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
+        questionSelector = new AptitudeQuestionSelector(registry, fingerprintService, catEngine);
+        controller = new AptitudeController(userRepository, sessionService, catEngine, questionSelector);
 
         user = new User();
         user.setEmail("student@company.com");
@@ -129,5 +133,41 @@ public class AptitudeControllerTest {
 
         assertTrue(nextThetaCorrect > startTheta);
         assertTrue(nextThetaIncorrect < startTheta);
+    }
+
+    @Test
+    void testQuestionFamilyScaleAndDiversity() {
+        AptitudeQuestionFamilyRegistry registry = new AptitudeQuestionFamilyRegistry(new ArrayList<>());
+        AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
+        AptitudeQuestionSelector selector = new AptitudeQuestionSelector(registry, fingerprintService, catEngine);
+
+        int totalQuestions = 0;
+        int sameSessionDuplicates = 0;
+        Map<String, Integer> optionCounts = new HashMap<>();
+        long startTime = System.nanoTime();
+
+        for (int i = 0; i < 100; i++) {
+            List<Question> list = selector.selectQuestions("any", "any", "practice", 15, new ArrayList<>(), new HashMap<>(), new ArrayList<>());
+            totalQuestions += list.size();
+            Set<String> fingerprints = new HashSet<>();
+            for (Question q : list) {
+                String fp = AptitudeController.generateFingerprint(q.toMap());
+                if (fingerprints.contains(fp)) {
+                    sameSessionDuplicates++;
+                }
+                fingerprints.add(fp);
+
+                String ans = q.getAnswer();
+                int idx = q.getOptions().indexOf(ans);
+                String optionLabel = idx == 0 ? "A" : idx == 1 ? "B" : idx == 2 ? "C" : "D";
+                optionCounts.put(optionLabel, optionCounts.getOrDefault(optionLabel, 0) + 1);
+            }
+        }
+        long durationMs = (System.nanoTime() - startTime) / 1_000_000;
+
+        assertEquals(0, sameSessionDuplicates);
+        System.out.println("Stress Test Stats: Total Generated: " + totalQuestions + ", Duplicates: " + sameSessionDuplicates);
+        System.out.println("Option Distributions: " + optionCounts);
+        System.out.println("Average Generation Latency: " + (durationMs / 100.0) + " ms per session");
     }
 }

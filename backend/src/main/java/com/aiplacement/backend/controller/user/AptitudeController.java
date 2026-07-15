@@ -24,6 +24,7 @@ public class AptitudeController {
     private final UserRepository userRepository;
     private final AptitudeSessionService sessionService;
     private final AptitudeCatEngine catEngine;
+    private final AptitudeQuestionSelector questionSelector;
 
     @GetMapping("/data")
     public ResponseEntity<Map<String, Object>> getAptitudeData() {
@@ -127,21 +128,33 @@ public class AptitudeController {
             }
         } else {
             // Practice / Timed / Weak Topic modes
-            Set<String> localFps = new HashSet<>();
-            int budget = 80;
-            while (questions.size() < length && budget > 0) {
-                budget--;
-                String targetTopic = topic;
-                if ("weak".equals(mode)) {
-                    targetTopic = getWeakestTopic(userProfile);
-                }
-                Question q = AptitudeQuestionEngine.generateQuestion(category, targetTopic, company, null);
-                String fp = generateFingerprint(q.toMap());
-                if (!localFps.contains(fp) && !excluded.contains(fp)) {
-                    questions.add(q);
-                    localFps.add(fp);
+            Map<String, Integer> historicalSeen = new HashMap<>();
+            JSONObject seen = userProfile.optJSONObject("seenQuestions");
+            if (seen != null) {
+                Iterator<String> keys = seen.keys();
+                while (keys.hasNext()) {
+                    String fp = keys.next();
+                    JSONObject detail = seen.getJSONObject(fp);
+                    String famId = detail.optString("familyId");
+                    if (!famId.isEmpty()) {
+                        historicalSeen.put(famId, historicalSeen.getOrDefault(famId, 0) + 1);
+                    }
                 }
             }
+
+            List<String> weakTopics = new ArrayList<>();
+            JSONObject elo = userProfile.optJSONObject("elo");
+            if (elo != null) {
+                Iterator<String> keys = elo.keys();
+                while (keys.hasNext()) {
+                    String k = keys.next();
+                    if (elo.getInt(k) < 1100) {
+                        weakTopics.add(k);
+                    }
+                }
+            }
+
+            questions = questionSelector.selectQuestions(category, topic, mode, length, excluded, historicalSeen, weakTopics);
         }
 
         // Cache session securely in Redis (or ConcurrentHashMap fallback)
@@ -389,6 +402,7 @@ public class AptitudeController {
             seenDetail.put("lastResult", isCorrect ? "correct" : "incorrect");
             seenDetail.put("category", q.get("category"));
             seenDetail.put("topic", topic);
+            seenDetail.put("familyId", q.getOrDefault("familyId", "UNKNOWN"));
             seenQuestions.put(fp, seenDetail);
         }
 
