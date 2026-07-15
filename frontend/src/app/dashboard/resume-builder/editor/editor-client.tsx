@@ -1526,13 +1526,13 @@ Risk: <e.g., Low or None>
             )}
           >
             {/* Section tabs */}
-            <div className="p-3 bg-white border-b border-slate-100 shrink-0">
+            <div className="p-3 bg-white border-b border-slate-100 shrink-0 overflow-x-hidden">
               <div className="grid grid-cols-4 gap-1 bg-slate-200/50 p-1.5 rounded-xl">
                 {(["personal", "summary", "skills", "experience", "projects", "education", "certifications", "achievements"] as const).map(section => (
                   <button
                     key={section}
                     onClick={() => setActiveSection(section)}
-                    className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition-all ${
+                    className={`py-2 px-1 text-[9px] md:text-[10px] xl:text-xs font-bold xl:font-black uppercase tracking-tighter xl:tracking-wider rounded-lg transition-all truncate ${
                       activeSection === section 
                         ? "bg-card text-foreground shadow-sm" 
                         : "text-muted-foreground hover:text-foreground"

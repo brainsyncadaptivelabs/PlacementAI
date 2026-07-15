@@ -242,7 +242,7 @@ public class ResumeServiceImpl implements ResumeService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return resumeRepository.findFirstByUserOrderByCreatedAtDesc(user)
-                .map(Resume::getExtractedText)
+                .map(r -> r.getExtractedText())
                 .orElse("");
     }
 

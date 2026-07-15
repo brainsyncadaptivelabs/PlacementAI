@@ -393,7 +393,7 @@ public class AtsScoringEngineTest {
             }
         }
         assertThat(oldHit).isNotNull();
-        assertThat(oldHit.version).isNotEqualTo(currentEngineVersion);
+        assertThat(java.util.Objects.requireNonNull(oldHit).version).isNotEqualTo(currentEngineVersion);
 
         // TEST 2: Same hash, version ATS_V2_1 -> should be reused
         MockAtsAnalysis currentHit = null;
@@ -404,7 +404,7 @@ public class AtsScoringEngineTest {
             }
         }
         assertThat(currentHit).isNotNull();
-        assertThat(currentHit.score).isEqualTo(80);
+        assertThat(java.util.Objects.requireNonNull(currentHit).score).isEqualTo(80);
 
         // TEST 5 & 6: ATS_V2 and ATS_V2_1 coexistence & preference
         MockAtsAnalysis preferredHit = null;
@@ -415,6 +415,6 @@ public class AtsScoringEngineTest {
             }
         }
         assertThat(preferredHit).isNotNull();
-        assertThat(preferredHit.version).isEqualTo("ATS_V2_1");
+        assertThat(java.util.Objects.requireNonNull(preferredHit).version).isEqualTo("ATS_V2_1");
     }
 }

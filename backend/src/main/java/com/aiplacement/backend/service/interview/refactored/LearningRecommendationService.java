@@ -28,7 +28,7 @@ public class LearningRecommendationService {
         // 1. Fetch from repository
         List<CuratedResource> matches = new ArrayList<>();
         if (weaknesses != null && !weaknesses.isEmpty()) {
-            List<String> lowercaseGaps = weaknesses.stream().map(String::toLowerCase).collect(Collectors.toList());
+            List<String> lowercaseGaps = weaknesses.stream().map(w -> w.toLowerCase()).collect(Collectors.toList());
             matches = resourceRepository.findAll().stream()
                     .filter(r -> lowercaseGaps.stream().anyMatch(g -> g.contains(r.getSkillKeyword().toLowerCase()) || r.getSkillKeyword().toLowerCase().contains(g)))
                     .collect(Collectors.toList());

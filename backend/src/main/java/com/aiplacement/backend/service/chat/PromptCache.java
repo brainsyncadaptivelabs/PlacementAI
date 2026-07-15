@@ -1,6 +1,5 @@
 package com.aiplacement.backend.service.chat;
 
-import com.aiplacement.backend.entity.chat.PromptVersion;
 import com.aiplacement.backend.repository.chat.PromptVersionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +16,7 @@ public class PromptCache {
     public String getPrompt(String key) {
         return cache.computeIfAbsent(key, k -> 
             promptVersionRepository.findActiveByPromptKey(k)
-                .map(PromptVersion::getPromptText)
+                .map(pv -> pv.getPromptText())
                 .orElse(getDefaultPrompt(k))
         );
     }
