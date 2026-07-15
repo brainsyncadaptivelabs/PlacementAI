@@ -306,6 +306,11 @@ export default function AtsAnalysisFromHistoryPage() {
     );
   }
 
+  // ponytail: Rejected custom JS scroll buttons for overflow containers (YAGNI).
+  // Native OS scrollbars and touch-swiping handle this out of the box without React state/refs boilerplate.
+  // Ceiling: Users with hidden scrollbars (like default macOS) might lack visual cues that areas are scrollable.
+  // Upgrade path: If user testing shows they miss content, add a CSS-only scroll shadow (background-attachment: local) rather than JS buttons.
+  
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-background text-foreground print:h-auto print:overflow-visible">
       {/* Header */}
