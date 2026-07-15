@@ -157,18 +157,23 @@ function ResumeEditor() {
   useEffect(() => {
     if (!isLeftDragging) return;
 
+    let latestWidth = 0;
+
     const handleMouseMove = (e: MouseEvent) => {
       // For left panel, width is roughly e.clientX minus left offset
       // Since it's in a flex container with p-4 (16px), offset is around 16px.
       const newWidth = e.clientX - 16;
       if (newWidth >= 250 && newWidth <= 800) {
+        latestWidth = newWidth;
         setLeftSidebarWidth(newWidth);
-        localStorage.setItem("placementai_editor_sidebar_width", newWidth.toString());
       }
     };
 
     const handleMouseUp = () => {
       setIsLeftDragging(false);
+      if (latestWidth > 0) {
+        localStorage.setItem("placementai_editor_sidebar_width", latestWidth.toString());
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -1521,7 +1526,8 @@ Risk: <e.g., Low or None>
           <div 
             style={leftExpanded ? { width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${leftSidebarWidth}px` : undefined } : undefined}
             className={cn(
-              "h-full flex flex-col overflow-hidden shrink-0 z-10 bg-white transition-all duration-300",
+              "h-full flex flex-col overflow-hidden shrink-0 z-10 bg-white",
+              !isLeftDragging && "transition-all duration-300",
               leftExpanded ? "w-full md:w-[40%] lg:w-auto opacity-100" : "w-0 opacity-0 pointer-events-none hidden lg:block"
             )}
           >
