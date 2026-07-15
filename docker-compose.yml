@@ -40,9 +40,9 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${PERF_PROFILE:-standard}
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-placementai}
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME:-postgres}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-postgres}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/placementai}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       JWT_SECRET: ${JWT_SECRET}
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
@@ -55,9 +55,10 @@ services:
       VAPID_SUBJECT: ${VAPID_SUBJECT}
       NVIDIA_API_KEY: ${NVIDIA_API_KEY}
       NVIDIA_MODEL: ${NVIDIA_MODEL:-meta/llama-3.1-8b-instruct}
-      JUDGE0_API_URL: http://judge0-server:2358
-      JUDGE0_API_KEY: ""
-      SPRING_DATA_REDIS_HOST: redis
+      JUDGE0_API_URL: ${JUDGE0_API_URL:-http://judge0-server:2358}
+      JUDGE0_API_KEY: "${JUDGE0_API_KEY:-}"
+      SPRING_DATA_REDIS_HOST: ${REDIS_HOST:-redis}
+      SPRING_DATA_REDIS_PORT: ${REDIS_PORT:-6379}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
       MAIL_PORT: ${MAIL_PORT:-587}
@@ -71,10 +72,10 @@ services:
     command: ["./judge0-api"]
     restart: always
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
       - DB_USER=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_NAME=${DB_NAME:-placementai}
@@ -91,31 +92,16 @@ services:
     privileged: true
     restart: always
     environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - DB_HOST=postgres
-      - DB_PORT=5432
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
       - DB_USER=${DB_USERNAME:-postgres}
       - DB_PASSWORD=${DB_PASSWORD:-postgres}
       - DB_NAME=${DB_NAME:-placementai}
     depends_on:
       - postgres
       - redis
-
-  postgres-sandbox:
-    image: postgres:15-alpine
-    container_name: placement-postgres-sandbox
-    restart: always
-    env_file:
-      - .env
-    environment:
-      POSTGRES_USER: ${DB_USERNAME:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-      POSTGRES_DB: placementai_sandbox
-    ports:
-      - "5433:5432"
-    tmpfs:
-      - /var/lib/postgresql/data
 
   frontend:
     build:
