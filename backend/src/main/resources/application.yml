@@ -143,11 +143,11 @@ nvidia:
     retry-attempts: ${NVIDIA_RETRY_ATTEMPTS:3}
     retry-delay-ms: ${NVIDIA_RETRY_DELAY_MS:1000}
 
-# ── Code Execution (Piston) ───────────────────────────────────
-piston:
+# ── Code Execution (Judge0) ───────────────────────────────────
+judge0:
   api:
-    url: ${PISTON_API_URL:https://emkc.org/api/v2/piston}
-    ws-url: ${PISTON_API_WS_URL:ws://localhost:2000/api/v2/connect}
+    url: ${JUDGE0_API_URL:http://localhost:2358}
+    key: ${JUDGE0_API_KEY:}
 
 # ── Chatbot ───────────────────────────────────────────────────
 chatbot:

@@ -29,7 +29,7 @@ PlacementAI is built as a monorepo consisting of a high-performance Spring Boot 
 ## 🛠️ Getting Started
 
 ### 🐳 Running with Docker Compose (Recommended)
-Spins up the database (PostgreSQL), cache (Redis), code runner (Piston), Java backend, and Node frontend using one command:
+Spins up the database (PostgreSQL), cache (Redis), code runner (Judge0 CE), Java backend, and Node frontend using one command:
 
 ```bash
 docker compose up --build

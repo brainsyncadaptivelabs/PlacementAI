@@ -118,7 +118,7 @@ class CodingPhase5Test {
 
     @Test
     void codeExecutionService_routesToCorrectStrategy() {
-        ExecutionStrategy pistonStrategy = new ExecutionStrategy() {
+        ExecutionStrategy generalStrategy = new ExecutionStrategy() {
             @Override public boolean supports(String lang) { return !lang.equals("sql"); }
             @Override public CodeExecutionResponse execute(CodeExecutionRequest r) {
                 return CodeExecutionResponse.builder().language(r.getLanguage()).build();
@@ -131,7 +131,7 @@ class CodingPhase5Test {
             }
         };
 
-        CodeExecutionServiceImpl service = new CodeExecutionServiceImpl(List.of(pistonStrategy, sqlStrategy));
+        CodeExecutionServiceImpl service = new CodeExecutionServiceImpl(List.of(generalStrategy, sqlStrategy));
 
         CodeExecutionRequest pythonReq = CodeExecutionRequest.builder().language("python").build();
         assertThat(service.executeCode(pythonReq).getLanguage()).isEqualTo("python");

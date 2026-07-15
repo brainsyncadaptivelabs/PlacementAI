@@ -30,7 +30,10 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
+      judge0-server:
+        condition: service_started
     extra_hosts:
       - "host.docker.internal:host-gateway"
     env_file:
@@ -52,8 +55,8 @@ services:
       VAPID_SUBJECT: ${VAPID_SUBJECT}
       NVIDIA_API_KEY: ${NVIDIA_API_KEY}
       NVIDIA_MODEL: ${NVIDIA_MODEL:-meta/llama-3.1-8b-instruct}
-      PISTON_API_URL: http://piston:2000/api/v2
-      PISTON_API_WS_URL: ws://piston:2000/api/v2/connect
+      JUDGE0_API_URL: http://judge0-server:2358
+      JUDGE0_API_KEY: ""
       SPRING_DATA_REDIS_HOST: redis
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
@@ -62,22 +65,42 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       JAVA_OPTS: "-Xms${JAVA_XMS:-512m} -Xmx${JAVA_XMX:-1g} -XX:+UseG1GC -XX:+UseStringDeduplication"
 
-  piston:
-    platform: linux/amd64
-    build: ./piston
-    container_name: placement-piston
+  judge0-server:
+    image: judge0/judge0:1.13.0
+    container_name: placement-judge0-server
+    command: ["./judge0-api"]
     restart: always
-    privileged: true
     environment:
-      - PISTON_DISABLE_NETWORKING=false
-      - PISTON_RUN_TIMEOUT=60000
-      - PISTON_COMPILE_TIMEOUT=60000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-placementai}
     ports:
-      - "2000:2000"
-    volumes:
-      - piston-data:/piston
+      - "2358:2358"
     depends_on:
-      - postgres-sandbox
+      - postgres
+      - redis
+
+  judge0-worker:
+    image: judge0/judge0:1.13.0
+    container_name: placement-judge0-worker
+    command: ["./judge0-worker"]
+    privileged: true
+    restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USERNAME:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-placementai}
+    depends_on:
+      - postgres
+      - redis
 
   postgres-sandbox:
     image: postgres:15-alpine
@@ -124,4 +147,3 @@ services:
 
 volumes:
   pg-data:
-  piston-data:

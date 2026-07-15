@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React from "react";
 import { useInterviewStateContext, CallStatus } from "./InterviewContexts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Play } from "lucide-react";
-import { CodingExecutionClient } from "@/lib/coding/CodingExecutionClient";
+import api from "@/lib/api";
 
 export const CodePlayground = () => {
   const {
@@ -19,22 +19,11 @@ export const CodePlayground = () => {
     isExecuting,
     setIsExecuting,
     callStatus,
-    interviewData,
   } = useInterviewStateContext();
 
-  const clientRef = useRef<CodingExecutionClient | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (clientRef.current) {
-        clientRef.current.close();
-      }
-    };
-  }, []);
-
-  const runCode = () => {
+  const runCode = async () => {
     setIsExecuting(true);
-    setTerminalOutput("Connecting to compile engine...\n");
+    setTerminalOutput("Compiling and running code...\n");
 
     const currentConfig: Record<string, { language: string; filename: string }> = {
       javascript: { language: "javascript", filename: "main.js" },
@@ -45,33 +34,40 @@ export const CodePlayground = () => {
     
     const config = currentConfig[activeLang] || { language: "javascript", filename: "main.js" };
 
-    const client = new CodingExecutionClient({
-      interviewId: interviewData?.adaptiveInterviewId,
-      onData: (data, stream) => {
-        setTerminalOutput((prev: string) => prev + data);
-      },
-      onExit: (stage, code, signal) => {
-        setIsExecuting(false);
-        const codeOrSig = code !== null ? code : signal;
-        setTerminalOutput((prev: string) => prev + `\n[Process exited with code ${codeOrSig}]`);
-        client.close();
-      },
-      onError: (err) => {
-        setIsExecuting(false);
-        setTerminalOutput((prev: string) => prev + `\n[Error: ${err}]`);
-        client.close();
-      },
-      onStatusChange: (status) => {
-        if (status === "connected") {
-          client.init(config.language, [{ name: config.filename, content: code }]);
-        } else if (status === "disconnected" || status === "error") {
-          setIsExecuting(false);
-        }
-      }
-    });
+    try {
+      const response = await api.post("/coding/execute", {
+        language: config.language,
+        version: "*",
+        files: [{ name: config.filename, content: code }],
+        stdin: ""
+      });
 
-    clientRef.current = client;
-    client.connect();
+      const data = response.data;
+      let outputStr = "";
+
+      if (data.compile && data.compile.stderr) {
+        outputStr += data.compile.stderr;
+        outputStr += `\n[Compilation failed with code ${data.compile.code ?? 1}]`;
+      } else if (data.run) {
+        if (data.run.stdout) {
+          outputStr += data.run.stdout;
+        }
+        if (data.run.stderr) {
+          outputStr += data.run.stderr;
+        }
+        const exitCode = data.run.code !== undefined && data.run.code !== null ? data.run.code : 0;
+        outputStr += `\n[Process exited with code ${exitCode}]`;
+      } else {
+        outputStr += "Execution finished with no output.";
+      }
+
+      setTerminalOutput(outputStr);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || err.message || "Execution failed";
+      setTerminalOutput(`\n[Error: ${errorMsg}]`);
+    } finally {
+      setIsExecuting(false);
+    }
   };
 
   return (

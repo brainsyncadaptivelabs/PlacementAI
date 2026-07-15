@@ -4,9 +4,9 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Code2, Play, Terminal, Square } from "lucide-react";
+import { Code2, Play, Terminal, Square, Loader2 } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { CodingExecutionClient } from "@/lib/coding/CodingExecutionClient";
+import api from "@/lib/api";
 
 const languageSnippets: Record<string, { language: string, filename: string, code: string }> = {
   javascript: {
@@ -121,9 +121,7 @@ export default function CodingPracticePage() {
   const [inputVal, setInputVal] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   
-  const clientRef = useRef<CodingExecutionClient | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const textareaRefCallback = (node: HTMLTextAreaElement | null) => {
@@ -141,93 +139,55 @@ export default function CodingPracticePage() {
 
   useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    if (isExecuting) {
-      inputRef.current?.focus();
-    }
-  }, [terminalOutput, isExecuting]);
-
-  useEffect(() => {
-    return () => {
-      if (clientRef.current) {
-        clientRef.current.close();
-      }
-    };
-  }, []);
+  }, [terminalOutput]);
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = e.target.value;
     setActiveLang(lang);
     setCode(languageSnippets[lang].code);
     setTerminalOutput([]);
-    if (isExecuting) stopExecution();
   };
 
-  const stopExecution = () => {
-    if (clientRef.current && isExecuting) {
-      clientRef.current.sendSignal("SIGKILL");
-    }
-  };
-
-  const executeCode = () => {
+  const executeCode = async () => {
     setIsExecuting(true);
-    setTerminalOutput([{ text: "Starting execution environment...\n", type: "sys" }]);
+    setTerminalOutput([{ text: "Compiling and running code...\n", type: "sys" }]);
 
     const currentConfig = languageSnippets[activeLang];
+    const runFiles = [{ name: currentConfig.filename, content: code }];
 
-    const client = new CodingExecutionClient({
-      onData: (data, stream) => {
-        setTerminalOutput(prev => [...prev, { text: data, type: stream === "stderr" ? "err" : "out" }]);
-      },
-      onExit: (stage, code, signal) => {
-        setIsExecuting(false);
-        const codeOrSig = code !== null ? code : signal;
-        if (stage === "compile" && code !== 0) {
-          setTerminalOutput(prev => [...prev, { text: `\n[Compilation failed with code ${codeOrSig}]`, type: "sys" }]);
-        } else {
-          setTerminalOutput(prev => [...prev, { text: `\n[Process exited with code ${codeOrSig}]`, type: "sys" }]);
-        }
-        client.close();
-      },
-      onError: (err) => {
-        setIsExecuting(false);
-        setTerminalOutput(prev => [...prev, { text: `\n[Error: ${err}]`, type: "err" }]);
-        client.close();
-      },
-      onStatusChange: (status) => {
-        if (status === "connected") {
-          let runLanguage = currentConfig.language;
-          let runFiles: { name: string; content: string }[] = [{ name: currentConfig.filename, content: code }];
+    try {
+      const response = await api.post("/coding/execute", {
+        language: currentConfig.language,
+        version: "*",
+        files: runFiles,
+        stdin: inputVal
+      });
 
-          if (currentConfig.language === "mysql") {
-            runLanguage = "bash";
-            runFiles = [
-              { 
-                name: "run.sh", 
-                content: `#!/bin/bash\nDB_NAME="sandbox_$(date +%s%N)"\nmysql -h mysql-sandbox -u root -proot -e "CREATE DATABASE $DB_NAME;" 2>/dev/null\nmysql -h mysql-sandbox -u root -proot $DB_NAME < main.sql 2>&1\nEXIT_CODE=$?\nmysql -h mysql-sandbox -u root -proot -e "DROP DATABASE $DB_NAME;" 2>/dev/null\nexit $EXIT_CODE\n`
-              },
-              {
-                name: "main.sql",
-                content: code
-              }
-            ];
-          }
-          client.init(runLanguage, runFiles);
-        } else if (status === "disconnected" || status === "error") {
-          setIsExecuting(false);
+      const data = response.data;
+      const outputs: TerminalLine[] = [];
+
+      if (data.compile && data.compile.stderr) {
+        outputs.push({ text: data.compile.stderr, type: "err" });
+        outputs.push({ text: `\n[Compilation failed with code ${data.compile.code ?? 1}]`, type: "sys" });
+      } else if (data.run) {
+        if (data.run.stdout) {
+          outputs.push({ text: data.run.stdout, type: "out" });
         }
+        if (data.run.stderr) {
+          outputs.push({ text: data.run.stderr, type: "err" });
+        }
+        const exitCode = data.run.code !== undefined && data.run.code !== null ? data.run.code : 0;
+        outputs.push({ text: `\n[Process exited with code ${exitCode}]`, type: "sys" });
+      } else {
+        outputs.push({ text: "Execution finished with no output.", type: "sys" });
       }
-    });
 
-    clientRef.current = client;
-    client.connect();
-  };
-
-  const handleTerminalInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && clientRef.current && isExecuting) {
-      const val = inputVal + '\n';
-      clientRef.current.sendInput(val);
-      setTerminalOutput(prev => [...prev, { text: val, type: "in" }]);
-      setInputVal("");
+      setTerminalOutput(outputs);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.message || err.message || "Execution failed";
+      setTerminalOutput([{ text: `\n[Error: ${errorMsg}]`, type: "err" }]);
+    } finally {
+      setIsExecuting(false);
     }
   };
 
@@ -256,7 +216,6 @@ export default function CodingPracticePage() {
                     setActiveLang(lang.id);
                     setCode(languageSnippets[lang.id].code);
                     setTerminalOutput([]);
-                    if (isExecuting) stopExecution();
                   }}
                   disabled={isExecuting}
                   className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
@@ -286,24 +245,22 @@ export default function CodingPracticePage() {
               
               {/* Editor Controls */}
               <div className="flex items-center gap-3">
-                {isExecuting ? (
-                  <Button 
-                    onClick={stopExecution} 
-                    variant="destructive" 
-                    size="sm" 
-                    className="bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md px-3.5 h-7 text-xs"
-                  >
-                    <Square className="w-3.5 h-3.5 mr-1.5 fill-current" /> Stop
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={executeCode} 
-                    size="sm" 
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md px-4 h-7 text-xs"
-                  >
-                    <Play className="w-3.5 h-3.5 mr-1.5 fill-current" /> Run
-                  </Button>
-                )}
+                <Button 
+                  onClick={executeCode} 
+                  disabled={isExecuting}
+                  size="sm" 
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md px-4 h-7 text-xs flex items-center gap-1.5"
+                >
+                  {isExecuting ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" /> Running
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-3.5 h-3.5 fill-current" /> Run
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
@@ -379,17 +336,14 @@ export default function CodingPracticePage() {
                     ))}
                     <div ref={terminalEndRef} />
                   </div>
-                  {isExecuting && (
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-emerald-400 font-bold">{">"}</span>
+                  {!isExecuting && (
+                    <div className="mt-2 flex items-center gap-2 border-t border-border/25 pt-2 shrink-0">
+                      <span className="text-zinc-500 font-semibold text-xs select-none">STDIN:</span>
                       <Input 
-                        ref={inputRef}
                         value={inputVal}
                         onChange={(e) => setInputVal(e.target.value)}
-                        onKeyDown={handleTerminalInput}
-                        className="flex-1 h-7 bg-transparent border-none text-emerald-400 focus-visible:ring-0 p-0 rounded-none shadow-none font-mono text-sm caret-emerald-400"
-                        placeholder="Type input and press Enter..."
-                        autoFocus
+                        className="flex-grow h-7 bg-transparent border-none text-foreground focus-visible:ring-0 p-0 rounded-none shadow-none font-mono text-xs"
+                        placeholder="Provide custom input (stdin) before running code..."
                       />
                     </div>
                   )}
@@ -420,7 +374,7 @@ export default function CodingPracticePage() {
               </span>
             )}
             <span className="text-border/80">|</span>
-            <span>Execution Engine: Piston v2.0.0</span>
+            <span>Execution Engine: Judge0 CE v1.13.0</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="uppercase">{languages.find(l => l.id === activeLang)?.name || activeLang}</span>

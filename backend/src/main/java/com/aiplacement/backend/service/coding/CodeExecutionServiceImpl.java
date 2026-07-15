@@ -11,8 +11,8 @@ import java.util.List;
 
 /**
  * Provider-agnostic code execution service.
- * Routes to the appropriate ExecutionStrategy (Piston for general languages, H2 for SQL).
- * Replaces direct Piston API calls with strategy dispatch — fully backward compatible.
+ * Routes to the appropriate ExecutionStrategy (Judge0 for general languages, H2 for SQL).
+ * Replaces direct execution engine API calls with strategy dispatch — fully backward compatible.
  */
 @Service
 @RequiredArgsConstructor

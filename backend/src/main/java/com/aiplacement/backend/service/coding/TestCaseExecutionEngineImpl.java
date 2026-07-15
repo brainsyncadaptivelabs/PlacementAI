@@ -102,7 +102,7 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
                         .actualOutput(tc.isHidden() && !testPassed ? "[Hidden]" : actualOutput)
                         .passed(testPassed)
                         .runtimeMs(runtimeMs)
-                        .memoryMb(0L) // Piston doesn't always return memory
+                        .memoryMb(0L) // General execution engine fallback
                         .errorMessage(errorMessage)
                         .executionType(tc.isPerformance() ? "PERFORMANCE" : tc.isBoundary() ? "BOUNDARY" : tc.isHidden() ? "HIDDEN" : "PUBLIC")
                         .verdict(verdict)
