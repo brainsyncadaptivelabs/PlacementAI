@@ -32,7 +32,7 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
                 submission.getId(), submission.getLanguage());
 
         // Resolve execution strategy — extract final copy for lambda
-        final String language = submission.getLanguage();
+        final String language = LanguageNormalizer.normalize(submission.getLanguage());
         ExecutionStrategy strategy = strategies.stream()
                 .filter(s -> s.supports(language))
                 .findFirst()

@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { useInterviewStateContext, CallStatus } from "./InterviewContexts";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, Play } from "lucide-react";
+import { CodingExecutionClient } from "@/lib/coding/CodingExecutionClient";
 
 export const CodePlayground = () => {
   const {
@@ -18,18 +19,22 @@ export const CodePlayground = () => {
     isExecuting,
     setIsExecuting,
     callStatus,
+    interviewData,
   } = useInterviewStateContext();
 
-  const wsRef = useRef<WebSocket | null>(null);
+  const clientRef = useRef<CodingExecutionClient | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (clientRef.current) {
+        clientRef.current.close();
+      }
+    };
+  }, []);
 
   const runCode = () => {
     setIsExecuting(true);
     setTerminalOutput("Connecting to compile engine...\n");
-
-    const wsHost = window.location.hostname;
-    const wsUrl = `ws://${wsHost}:2000/api/v2/connect`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
 
     const currentConfig: Record<string, { language: string; filename: string }> = {
       javascript: { language: "javascript", filename: "main.js" },
@@ -40,40 +45,33 @@ export const CodePlayground = () => {
     
     const config = currentConfig[activeLang] || { language: "javascript", filename: "main.js" };
 
-    ws.onopen = () => {
-      ws.send(
-        JSON.stringify({
-          type: "init",
-          language: config.language,
-          version: "*",
-          files: [{ name: config.filename, content: code }],
-        })
-      );
-    };
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === "data") {
-        setTerminalOutput((prev: string) => prev + msg.data);
-      } else if (msg.type === "exit") {
+    const client = new CodingExecutionClient({
+      interviewId: interviewData?.adaptiveInterviewId,
+      onData: (data, stream) => {
+        setTerminalOutput((prev: string) => prev + data);
+      },
+      onExit: (stage, code, signal) => {
         setIsExecuting(false);
-        setTerminalOutput((prev: string) => prev + `\n[Process exited with code ${msg.code ?? msg.signal}]`);
-        ws.close();
-      } else if (msg.type === "error") {
+        const codeOrSig = code !== null ? code : signal;
+        setTerminalOutput((prev: string) => prev + `\n[Process exited with code ${codeOrSig}]`);
+        client.close();
+      },
+      onError: (err) => {
         setIsExecuting(false);
-        setTerminalOutput((prev: string) => prev + `\n[Error: ${msg.message}]`);
-        ws.close();
+        setTerminalOutput((prev: string) => prev + `\n[Error: ${err}]`);
+        client.close();
+      },
+      onStatusChange: (status) => {
+        if (status === "connected") {
+          client.init(config.language, [{ name: config.filename, content: code }]);
+        } else if (status === "disconnected" || status === "error") {
+          setIsExecuting(false);
+        }
       }
-    };
+    });
 
-    ws.onerror = () => {
-      setIsExecuting(false);
-      setTerminalOutput((prev: string) => prev + "\n[Compiler Connection Error. Ensure Piston is running on port 2000.]");
-    };
-
-    ws.onclose = () => {
-      setIsExecuting(false);
-    };
+    clientRef.current = client;
+    client.connect();
   };
 
   return (

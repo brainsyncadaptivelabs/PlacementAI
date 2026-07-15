@@ -72,7 +72,9 @@ public class SecurityConfig {
 
                                 "/api/v1/voice/**",
 
-                                "/voice-test.html"
+                                "/voice-test.html",
+
+                                "/ws/coding/**"
 
                         ).permitAll()
 

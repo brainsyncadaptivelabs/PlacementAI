@@ -147,6 +147,7 @@ nvidia:
 piston:
   api:
     url: ${PISTON_API_URL:https://emkc.org/api/v2/piston}
+    ws-url: ${PISTON_API_WS_URL:ws://localhost:2000/api/v2/connect}
 
 # ── Chatbot ───────────────────────────────────────────────────
 chatbot:

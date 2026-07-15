@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Code2, Play, Terminal, Square } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { CodingExecutionClient } from "@/lib/coding/CodingExecutionClient";
 
 const languageSnippets: Record<string, { language: string, filename: string, code: string }> = {
   javascript: {
@@ -120,7 +121,7 @@ export default function CodingPracticePage() {
   const [inputVal, setInputVal] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
   
-  const wsRef = useRef<WebSocket | null>(null);
+  const clientRef = useRef<CodingExecutionClient | null>(null);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -145,6 +146,14 @@ export default function CodingPracticePage() {
     }
   }, [terminalOutput, isExecuting]);
 
+  useEffect(() => {
+    return () => {
+      if (clientRef.current) {
+        clientRef.current.close();
+      }
+    };
+  }, []);
+
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const lang = e.target.value;
     setActiveLang(lang);
@@ -154,8 +163,8 @@ export default function CodingPracticePage() {
   };
 
   const stopExecution = () => {
-    if (wsRef.current && isExecuting) {
-      wsRef.current.send(JSON.stringify({ type: "signal", signal: "SIGKILL" }));
+    if (clientRef.current && isExecuting) {
+      clientRef.current.sendSignal("SIGKILL");
     }
   };
 
@@ -164,80 +173,59 @@ export default function CodingPracticePage() {
     setTerminalOutput([{ text: "Starting execution environment...\n", type: "sys" }]);
 
     const currentConfig = languageSnippets[activeLang];
-    
-    const wsHost = window.location.hostname;
-    const wsUrl = `ws://${wsHost}:2000/api/v2/connect`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
 
-    ws.onopen = () => {
-      let runLanguage = currentConfig.language;
-      let runFiles: { name: string, content: string }[] = [{ name: currentConfig.filename, content: code }];
-
-      if (currentConfig.language === "mysql") {
-        runLanguage = "bash";
-        runFiles = [
-          { 
-            name: "run.sh", 
-            content: `#!/bin/bash\nDB_NAME="sandbox_$(date +%s%N)"\nmysql -h mysql-sandbox -u root -proot -e "CREATE DATABASE $DB_NAME;" 2>/dev/null\nmysql -h mysql-sandbox -u root -proot $DB_NAME < main.sql 2>&1\nEXIT_CODE=$?\nmysql -h mysql-sandbox -u root -proot -e "DROP DATABASE $DB_NAME;" 2>/dev/null\nexit $EXIT_CODE\n`
-          },
-          {
-            name: "main.sql",
-            content: code
-          }
-        ];
-      }
-
-      ws.send(JSON.stringify({
-        type: "init",
-        language: runLanguage,
-        version: "*",
-        run_timeout: 60000,
-        files: runFiles
-      }));
-    };
-
-    ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.type === "data") {
-        setTerminalOutput(prev => [...prev, { text: msg.data, type: msg.stream === "stderr" ? "err" : "out" }]);
-      } else if (msg.type === "exit") {
-        if (msg.stage === "compile" && msg.code !== 0) {
-          setIsExecuting(false);
-          setTerminalOutput(prev => [...prev, { text: `\n[Compilation failed with code ${msg.code ?? msg.signal}]`, type: "sys" }]);
-          ws.close();
-        } else if (msg.stage === "run" || !msg.stage) {
-          setIsExecuting(false);
-          setTerminalOutput(prev => [...prev, { text: `\n[Process exited with code ${msg.code ?? msg.signal}]`, type: "sys" }]);
-          ws.close();
-        }
-      } else if (msg.type === "error") {
+    const client = new CodingExecutionClient({
+      onData: (data, stream) => {
+        setTerminalOutput(prev => [...prev, { text: data, type: stream === "stderr" ? "err" : "out" }]);
+      },
+      onExit: (stage, code, signal) => {
         setIsExecuting(false);
-        setTerminalOutput(prev => [...prev, { text: `\n[Error: ${msg.message}]`, type: "err" }]);
-        ws.close();
+        const codeOrSig = code !== null ? code : signal;
+        if (stage === "compile" && code !== 0) {
+          setTerminalOutput(prev => [...prev, { text: `\n[Compilation failed with code ${codeOrSig}]`, type: "sys" }]);
+        } else {
+          setTerminalOutput(prev => [...prev, { text: `\n[Process exited with code ${codeOrSig}]`, type: "sys" }]);
+        }
+        client.close();
+      },
+      onError: (err) => {
+        setIsExecuting(false);
+        setTerminalOutput(prev => [...prev, { text: `\n[Error: ${err}]`, type: "err" }]);
+        client.close();
+      },
+      onStatusChange: (status) => {
+        if (status === "connected") {
+          let runLanguage = currentConfig.language;
+          let runFiles: { name: string; content: string }[] = [{ name: currentConfig.filename, content: code }];
+
+          if (currentConfig.language === "mysql") {
+            runLanguage = "bash";
+            runFiles = [
+              { 
+                name: "run.sh", 
+                content: `#!/bin/bash\nDB_NAME="sandbox_$(date +%s%N)"\nmysql -h mysql-sandbox -u root -proot -e "CREATE DATABASE $DB_NAME;" 2>/dev/null\nmysql -h mysql-sandbox -u root -proot $DB_NAME < main.sql 2>&1\nEXIT_CODE=$?\nmysql -h mysql-sandbox -u root -proot -e "DROP DATABASE $DB_NAME;" 2>/dev/null\nexit $EXIT_CODE\n`
+              },
+              {
+                name: "main.sql",
+                content: code
+              }
+            ];
+          }
+          client.init(runLanguage, runFiles);
+        } else if (status === "disconnected" || status === "error") {
+          setIsExecuting(false);
+        }
       }
-    };
+    });
 
-    ws.onerror = () => {
-      setIsExecuting(false);
-      setTerminalOutput(prev => [...prev, { text: "\n[WebSocket connection failed. Ensure Piston is running on port 2000.]", type: "err" }]);
-    };
-
-    ws.onclose = () => {
-      setIsExecuting(false);
-    };
+    clientRef.current = client;
+    client.connect();
   };
 
   const handleTerminalInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && wsRef.current && isExecuting) {
-      if (wsRef.current.readyState !== WebSocket.OPEN) return;
-      
+    if (e.key === 'Enter' && clientRef.current && isExecuting) {
       const val = inputVal + '\n';
-      wsRef.current.send(JSON.stringify({
-        type: "data",
-        stream: "stdin",
-        data: val
-      }));
+      clientRef.current.sendInput(val);
       setTerminalOutput(prev => [...prev, { text: val, type: "in" }]);
       setInputVal("");
     }

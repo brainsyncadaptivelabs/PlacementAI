@@ -16,6 +16,10 @@ public interface CodingSubmissionRepository extends JpaRepository<CodingSubmissi
     List<CodingSubmission> findByInterviewQuestionOrderBySubmittedAtAsc(InterviewQuestion question);
     Optional<CodingSubmission> findTopByInterviewQuestionOrderBySubmittedAtDesc(InterviewQuestion question);
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT s FROM CodingSubmission s WHERE s.id = :id")
+    Optional<CodingSubmission> findAndLockById(@Param("id") Long id);
+
     @Query("SELECT cs FROM CodingSubmission cs WHERE cs.interviewQuestion.mockInterview = :interview ORDER BY cs.submittedAt DESC")
     List<CodingSubmission> findByMockInterview(@Param("interview") MockInterview interview);
 

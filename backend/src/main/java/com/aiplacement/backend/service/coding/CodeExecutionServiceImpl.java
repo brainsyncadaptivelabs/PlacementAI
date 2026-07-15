@@ -27,7 +27,8 @@ public class CodeExecutionServiceImpl implements CodeExecutionService {
             throw new IllegalArgumentException("Language must be specified");
         }
 
-        String lang = request.getLanguage().toLowerCase();
+        String lang = LanguageNormalizer.normalize(request.getLanguage());
+        request.setLanguage(lang);
         ExecutionStrategy strategy = strategies.stream()
                 .filter(s -> s.supports(lang))
                 .findFirst()
