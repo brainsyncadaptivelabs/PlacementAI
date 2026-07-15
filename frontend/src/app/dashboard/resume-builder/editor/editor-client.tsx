@@ -192,16 +192,21 @@ function ResumeEditor() {
   useEffect(() => {
     if (!isDragging) return;
 
+    let latestWidth = 0;
+
     const handleMouseMove = (e: MouseEvent) => {
       const newWidth = window.innerWidth - e.clientX;
       if (newWidth >= 250 && newWidth <= 600) {
+        latestWidth = newWidth;
         setSidebarWidth(newWidth);
-        localStorage.setItem("placementai_coach_sidebar_width", newWidth.toString());
       }
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
+      if (latestWidth > 0) {
+        localStorage.setItem("placementai_coach_sidebar_width", latestWidth.toString());
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
@@ -2281,7 +2286,8 @@ Risk: <e.g., Low or None>
                   ref={aiPanelRef}
                   style={aiExpanded ? { width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined } : undefined}
                   className={cn(
-                    "fixed right-4 top-24 bottom-4 z-40 flex flex-col overflow-hidden transition-all duration-300 lg:static lg:right-0 lg:top-0 lg:h-full shrink-0 bg-white text-slate-900",
+                    "fixed right-4 top-24 bottom-4 z-40 flex flex-col overflow-hidden lg:static lg:right-0 lg:top-0 lg:h-full shrink-0 bg-white text-slate-900",
+                    !isDragging && "transition-all duration-300",
                     aiExpanded ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none lg:hidden",
                     !aiExpanded && "w-0"
                   )}
