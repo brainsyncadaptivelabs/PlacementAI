@@ -138,7 +138,7 @@ export default function PerfectStudentPortal() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/10 border border-transparent text-primary text-[10px] font-black uppercase tracking-widest">
                <Sparkles className="w-3 h-3" /> Ready for the next leap?
             </div>
-            <h1 className="text-4xl lg:text-5xl font-black font-heading leading-tight">
+            <h1 className="fluid-heading-1 font-black font-heading leading-tight">
                Good morning, <span className="text-primary italic">{userStats.fullName}</span> 👋
             </h1>
             <p className="text-muted-foreground/70 text-lg font-medium leading-relaxed">

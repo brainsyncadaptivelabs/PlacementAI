@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 @import "../styles/theme.css";
 
+/* ponytail: IDE flags @custom-variant and @theme as unknown at-rules. This is a false positive from standard CSS validators against Tailwind v4. Ceiling: VSCode CSS language server updates. Upgrade path: Ignore or use Tailwind IntelliSense. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
@@ -82,11 +83,10 @@ html {
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
   }
-  body {
-    @apply bg-background text-foreground font-sans;
-  }
+  /* ponytail: body styles handled directly in layout.tsx via utility classes */
   .dark body {
     background-attachment: fixed;
     background-image: 
@@ -95,7 +95,8 @@ html {
     background-color: #0B1020;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-semibold;
+    font-family: var(--font-heading);
+    font-weight: 600;
   }
 }
 
