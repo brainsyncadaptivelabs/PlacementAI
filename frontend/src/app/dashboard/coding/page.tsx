@@ -12,32 +12,32 @@ const languageSnippets: Record<string, { language: string, filename: string, cod
   javascript: {
     language: "javascript",
     filename: "main.js",
-    code: ""
+    code: "console.log(\"Hello, World!\");"
   },
   python: {
     language: "python",
     filename: "main.py",
-    code: ""
+    code: "print(\"Hello, World!\")"
   },
   java: {
     language: "java",
     filename: "Main.java",
-    code: ""
+    code: "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}"
   },
   c: {
     language: "c",
     filename: "main.c",
-    code: ""
+    code: "#include <stdio.h>\n\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}"
   },
   "c++": {
     language: "c++",
     filename: "main.cpp",
-    code: ""
+    code: "#include <iostream>\n\nint main() {\n    std::cout << \"Hello, World!\" << std::endl;\n    return 0;\n}"
   },
   r: {
     language: "r",
     filename: "main.r",
-    code: ""
+    code: "cat(\"Hello, World!\\n\")"
   },
   mysql: {
     language: "mysql",
@@ -115,8 +115,8 @@ type TerminalLine = {
 };
 
 export default function CodingPracticePage() {
-  const [activeLang, setActiveLang] = useState<string>("javascript");
-  const [code, setCode] = useState(languageSnippets["javascript"].code);
+  const [activeLang, setActiveLang] = useState<string>("python");
+  const [code, setCode] = useState(languageSnippets["python"].code);
   const [terminalOutput, setTerminalOutput] = useState<TerminalLine[]>([]);
   const [inputVal, setInputVal] = useState("");
   const [isExecuting, setIsExecuting] = useState(false);
