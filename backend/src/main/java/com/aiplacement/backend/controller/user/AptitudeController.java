@@ -29,7 +29,7 @@ public class AptitudeController {
     @GetMapping("/data")
     public ResponseEntity<Map<String, Object>> getAptitudeData() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String data = user.getAptitudeData() != null ? user.getAptitudeData() : "{}";
@@ -39,7 +39,7 @@ public class AptitudeController {
     @PostMapping("/data")
     public ResponseEntity<Map<String, String>> saveAptitudeData(@RequestBody Map<String, String> payload) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         String clientData = payload.get("data");
@@ -73,7 +73,7 @@ public class AptitudeController {
     @SuppressWarnings("unchecked")
     public ResponseEntity<Map<String, Object>> registerAssessment(@RequestBody Map<String, Object> payload) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         int length = 15;
@@ -308,7 +308,7 @@ public class AptitudeController {
             evaluatedQuestions.add(evalQ);
         }
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         updateAptitudeHistoryAndStats(user, evaluatedQuestions, correctCount, qMaps.size(), payload);

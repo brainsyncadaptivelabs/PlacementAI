@@ -53,7 +53,7 @@ public class AptitudeControllerTest {
 
     @Test
     void testClientDtoDoesNotContainCorrectAnswerOrPrivateParams() {
-        when(userRepository.findByEmail("student@company.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
         Map<String, Object> payload = Map.of(
             "length", 5,
@@ -93,7 +93,7 @@ public class AptitudeControllerTest {
 
     @Test
     void testIdempotentSubmissionReplays() throws Exception {
-        when(userRepository.findByEmail("student@company.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
         String sessionId = "session-123";
         Map<String, Object> mockSession = new HashMap<>();
