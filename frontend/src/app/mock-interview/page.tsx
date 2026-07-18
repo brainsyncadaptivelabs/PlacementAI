@@ -241,7 +241,7 @@ export default function MockInterviewLandingPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-[#ebf5ff] via-[#f3f8fe] to-[#f8faff] dark:from-[#091a30] dark:via-[#051121] dark:to-[#030712] transition-colors duration-300">
       <style dangerouslySetInnerHTML={{__html: `
-        body, main, .bg-background, .bg-slate-50, header.topbar {
+        body, main, .bg-background, .bg-slate-50 dark:bg-[#071326], header.topbar {
           background-color: #ebf5ff !important;
           background-image: none !important;
         }
@@ -309,18 +309,18 @@ export default function MockInterviewLandingPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {interviewTypes.map((module) => (
-                <Card key={module.id} className="flex flex-col justify-between border-slate-200 bg-white/95 backdrop-blur hover:border-primary/50 hover:shadow-xl transition-all duration-300 shadow-md">
+                <Card key={module.id} className="flex flex-col justify-between border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur hover:border-primary/50 hover:shadow-xl transition-all duration-300 shadow-md">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <span className="text-3xl">{module.icon}</span>
-                      <Badge className="bg-slate-100 text-slate-700 border-slate-200">{module.level}</Badge>
+                      <Badge className="bg-slate-100 dark:bg-[#0f2142] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800/60">{module.level}</Badge>
                     </div>
-                    <CardTitle className="text-md mt-4 font-bold text-slate-900">{module.name}</CardTitle>
-                    <CardDescription className="line-clamp-2 mt-1 text-xs text-slate-500">{module.description}</CardDescription>
+                    <CardTitle className="text-md mt-4 font-bold text-slate-900 dark:text-slate-100">{module.name}</CardTitle>
+                    <CardDescription className="line-clamp-2 mt-1 text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{module.description}</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-2">
                     <Button 
-                      className="w-full text-xs font-bold bg-slate-100 hover:bg-primary hover:text-white text-slate-700" 
+                      className="w-full text-xs font-bold bg-slate-100 dark:bg-[#0f2142] hover:bg-primary hover:text-white text-slate-700 dark:text-slate-300" 
                       variant="secondary"
                       onClick={() => startModuleInterview(module.name, module.level, module.focusAreas)}
                     >
@@ -342,20 +342,20 @@ export default function MockInterviewLandingPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {companies.map((company) => (
-                <Card key={company.id} className="flex flex-col justify-between border-slate-200 bg-white/95 backdrop-blur hover:border-primary/50 hover:shadow-xl transition-all duration-300 shadow-md">
+                <Card key={company.id} className="flex flex-col justify-between border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur hover:border-primary/50 hover:shadow-xl transition-all duration-300 shadow-md">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
                       <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-md font-bold text-primary">
                         {company.logo}
                       </div>
-                      <Badge className="bg-slate-100 text-slate-700 border-slate-200">{company.level}</Badge>
+                      <Badge className="bg-slate-100 dark:bg-[#0f2142] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800/60">{company.level}</Badge>
                     </div>
-                    <CardTitle className="text-md mt-4 font-bold text-slate-900">{company.name}</CardTitle>
-                    <CardDescription className="line-clamp-2 mt-1 text-xs text-slate-500">{company.description}</CardDescription>
+                    <CardTitle className="text-md mt-4 font-bold text-slate-900 dark:text-slate-100">{company.name}</CardTitle>
+                    <CardDescription className="line-clamp-2 mt-1 text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">{company.description}</CardDescription>
                   </CardHeader>
                   <CardFooter className="pt-2">
                     <Button 
-                      className="w-full text-xs font-bold bg-slate-100 hover:bg-primary hover:text-white text-slate-700" 
+                      className="w-full text-xs font-bold bg-slate-100 dark:bg-[#0f2142] hover:bg-primary hover:text-white text-slate-700 dark:text-slate-300" 
                       variant="secondary"
                       onClick={() => startCompanyInterview(company.name, company.level, company.interviewTypes[0], company.focusAreas)}
                     >
@@ -372,7 +372,7 @@ export default function MockInterviewLandingPage() {
         <div className="max-w-4xl mx-auto space-y-6 animate-fadeIn">
           
           {/* Progress Tracker Bar */}
-          <div className="flex items-center justify-between bg-white/95 p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between bg-white/95 dark:bg-[#0c1831]/95 p-4 rounded-xl border border-slate-200 dark:border-slate-800/60 shadow-sm">
             {[
               { num: 1, title: "Resume" },
               { num: 2, title: "Job Description" },
@@ -383,13 +383,13 @@ export default function MockInterviewLandingPage() {
                   "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold",
                   currentStep === step.num && "bg-primary text-white animate-pulse",
                   currentStep > step.num && "bg-emerald-500 text-white",
-                  currentStep < step.num && "bg-slate-200 text-slate-400"
+                  currentStep < step.num && "bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500"
                 )}>
                   {currentStep > step.num ? <Check className="w-3.5 h-3.5" /> : step.num}
                 </div>
                 <span className={cn(
                   "text-xs font-bold",
-                  currentStep === step.num ? "text-slate-900" : "text-slate-400"
+                  currentStep === step.num ? "text-slate-900 dark:text-slate-100" : "text-slate-400 dark:text-slate-500"
                 )}>
                   {step.title}
                 </span>
@@ -400,19 +400,19 @@ export default function MockInterviewLandingPage() {
 
           {/* STEP 1: RESUME SELECTION & ANALYSIS */}
           {currentStep === 1 && (
-            <Card className="border-slate-200 bg-white/95 backdrop-blur shadow-md p-6">
+            <Card className="border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur shadow-md p-6">
               <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-lg font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <CardTitle className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" /> Select or Upload Resume
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
+                <CardDescription className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   We customize the adaptive mock interview topics primarily around your projects and experiences.
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-0 space-y-6">
                 
                 {/* Drag and Drop File Uploader */}
-                <div className="border-2 border-dashed border-slate-200 hover:border-primary/50 transition-colors p-6 rounded-xl bg-slate-50 text-center relative">
+                <div className="border-2 border-dashed border-slate-200 dark:border-slate-800/60 hover:border-primary/50 transition-colors p-6 rounded-xl bg-slate-50 dark:bg-[#071326] text-center relative">
                   <input
                     type="file"
                     accept=".pdf"
@@ -421,9 +421,9 @@ export default function MockInterviewLandingPage() {
                     disabled={analyzingResume}
                   />
                   <div className="space-y-2">
-                    <Upload className="w-8 h-8 mx-auto text-slate-400 animate-bounce" />
-                    <p className="text-xs text-slate-900 font-bold">Drag and drop your PDF resume here, or click to browse</p>
-                    <p className="text-[10px] text-slate-500">Supported format: PDF only. Max size 10MB.</p>
+                    <Upload className="w-8 h-8 mx-auto text-slate-400 dark:text-slate-500 animate-bounce" />
+                    <p className="text-xs text-slate-900 dark:text-slate-100 font-bold">Drag and drop your PDF resume here, or click to browse</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-500">Supported format: PDF only. Max size 10MB.</p>
                   </div>
                 </div>
 
@@ -431,31 +431,31 @@ export default function MockInterviewLandingPage() {
                   <div className="flex justify-center py-6"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
                 ) : resumes.length > 0 ? (
                   <div className="space-y-3">
-                    <Label className="text-xs font-black text-slate-900 uppercase">Your Uploaded Resumes ({resumes.length})</Label>
+                    <Label className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase">Your Uploaded Resumes ({resumes.length})</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {resumes.map((res) => (
                         <div
                           key={res.id}
                           onClick={() => handleSelectResume(res.id)}
                           className={cn(
-                            "p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between h-24 bg-slate-50 hover:bg-slate-100",
-                            selectedResumeId === res.id ? "border-primary shadow" : "border-slate-200"
+                            "p-3 rounded-lg border cursor-pointer transition-all flex flex-col justify-between h-24 bg-slate-50 dark:bg-[#071326] hover:bg-slate-100 dark:bg-[#0f2142]",
+                            selectedResumeId === res.id ? "border-primary shadow" : "border-slate-200 dark:border-slate-800/60"
                           )}
                         >
                           <div className="flex items-start gap-2">
                             <FileText className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                             <div className="truncate">
-                              <p className="text-xs font-bold text-slate-900 truncate">{res.fileName}</p>
-                              <p className="text-[10px] text-slate-500 flex items-center gap-1 mt-0.5">
+                              <p className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">{res.fileName}</p>
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 dark:text-slate-500 flex items-center gap-1 mt-0.5">
                                 <Calendar className="w-3 h-3" /> {new Date(res.createdAt).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center mt-2 border-t border-slate-200 pt-1.5">
+                          <div className="flex justify-between items-center mt-2 border-t border-slate-200 dark:border-slate-800/60 pt-1.5">
                             <Badge className="bg-emerald-100 text-emerald-800 text-[9px] font-black border-none py-0 px-1.5">
                               ATS: {res.atsScore || 70}
                             </Badge>
-                            <span className="text-[10px] font-bold text-slate-500 truncate max-w-[120px]">
+                            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 dark:text-slate-500 truncate max-w-[120px]">
                               {res.analyzedRole || "Software Engineer"}
                             </span>
                           </div>
@@ -464,20 +464,20 @@ export default function MockInterviewLandingPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-4 text-xs text-slate-500">
+                  <div className="text-center py-4 text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
                     No resumes found. Please upload a PDF resume to configure the personalized flow.
                   </div>
                 )}
 
                 {/* Resume Analysis Summary Showcase */}
                 {analyzingResume ? (
-                  <div className="p-6 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                  <div className="p-6 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 text-center">
                     <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-                    <p className="text-xs text-slate-900 font-bold mt-3">Analyzing resume content using Gemini AI...</p>
+                    <p className="text-xs text-slate-900 dark:text-slate-100 font-bold mt-3">Analyzing resume content using Gemini AI...</p>
                   </div>
                 ) : resumeAnalysis && (
-                  <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <div className="p-5 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 space-y-4">
+                    <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800/60 pb-2">
                       <h4 className="text-xs font-black text-primary uppercase tracking-widest">Resume Analysis Summary</h4>
                       <Badge className="bg-primary/10 text-primary border-none text-[9px] font-black">
                         FIT: {resumeAnalysis.bestRole || role}
@@ -509,7 +509,7 @@ export default function MockInterviewLandingPage() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="px-0 pb-0 pt-4 border-t border-slate-200 flex justify-end">
+              <CardFooter className="px-0 pb-0 pt-4 border-t border-slate-200 dark:border-slate-800/60 flex justify-end">
                 <Button
                   onClick={() => setCurrentStep(2)}
                   disabled={!selectedResumeId || analyzingResume}
@@ -523,21 +523,21 @@ export default function MockInterviewLandingPage() {
 
           {/* STEP 2: JOB DESCRIPTION MATCH */}
           {currentStep === 2 && (
-            <Card className="border-slate-200 bg-white/95 backdrop-blur shadow-md p-6">
+            <Card className="border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur shadow-md p-6">
               <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-lg font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <CardTitle className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                   <Target className="w-5 h-5 text-primary" /> Job Description (Optional)
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
+                <CardDescription className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   Provide the target JD to compare matching vs missing skills, aligning the AI question bank.
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-0 space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="jd" className="text-xs font-bold text-slate-900 uppercase">Pasted Job Description Text</Label>
+                  <Label htmlFor="jd" className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase">Pasted Job Description Text</Label>
                   <textarea
                     id="jd"
-                    className="w-full min-h-[140px] p-3 border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-slate-50 text-slate-900 text-xs resize-none"
+                    className="w-full min-h-[140px] p-3 border border-slate-200 dark:border-slate-800/60 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-slate-50 dark:bg-[#071326] text-slate-900 dark:text-slate-100 text-xs resize-none"
                     placeholder="Paste the target job description requirements here..."
                     value={jobDescription}
                     onChange={(e) => setJobDescription(e.target.value)}
@@ -548,7 +548,7 @@ export default function MockInterviewLandingPage() {
                   onClick={handleJdCompare}
                   disabled={matchingJd || !jobDescription.trim()}
                   variant="outline"
-                  className="w-full border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold"
+                  className="w-full border-slate-200 dark:border-slate-800/60 bg-slate-100 dark:bg-[#0f2142] hover:bg-slate-200 dark:bg-slate-800 text-slate-800 text-xs font-bold"
                 >
                   {matchingJd ? (
                     <>
@@ -561,8 +561,8 @@ export default function MockInterviewLandingPage() {
 
                 {/* JD Comparison scorecard grid */}
                 {jdMatchData && (
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-4 animate-fadeIn">
-                    <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <div className="p-4 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 space-y-4 animate-fadeIn">
+                    <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800/60 pb-2">
                       <span className="text-[10px] font-black text-slate-950 uppercase tracking-widest">Comparison Grid Scorecard</span>
                       <Badge className="bg-emerald-100 text-emerald-800 border-none font-black text-xs py-0.5 px-2">
                         Match Score: {jdMatchData.matchPercentage || 75}%
@@ -570,23 +570,23 @@ export default function MockInterviewLandingPage() {
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div className="p-2.5 bg-white rounded-lg border border-slate-200">
+                      <div className="p-2.5 bg-white rounded-lg border border-slate-200 dark:border-slate-800/60">
                         <p className="text-[9px] font-black text-emerald-600 uppercase mb-1">Matching Skills</p>
                         <div className="flex flex-wrap gap-1">
                           {jdMatchData.matchedSkills?.slice(0, 4).map((s: string, i: number) => (
-                            <Badge key={i} className="bg-slate-100 text-slate-700 border-none text-[8px] py-0 px-1">{s}</Badge>
+                            <Badge key={i} className="bg-slate-100 dark:bg-[#0f2142] text-slate-700 dark:text-slate-300 border-none text-[8px] py-0 px-1">{s}</Badge>
                           ))}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-white rounded-lg border border-slate-200">
+                      <div className="p-2.5 bg-white rounded-lg border border-slate-200 dark:border-slate-800/60">
                         <p className="text-[9px] font-black text-red-600 uppercase mb-1">Missing Skills</p>
                         <div className="flex flex-wrap gap-1">
                           {jdMatchData.missingSkills?.slice(0, 4).map((s: string, i: number) => (
-                            <Badge key={i} className="bg-slate-100 text-slate-700 border-none text-[8px] py-0 px-1">{s}</Badge>
+                            <Badge key={i} className="bg-slate-100 dark:bg-[#0f2142] text-slate-700 dark:text-slate-300 border-none text-[8px] py-0 px-1">{s}</Badge>
                           ))}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-white rounded-lg border border-slate-200">
+                      <div className="p-2.5 bg-white rounded-lg border border-slate-200 dark:border-slate-800/60">
                         <p className="text-[9px] font-black text-primary uppercase mb-1">Priority Interview Topics</p>
                         <div className="flex flex-wrap gap-1">
                           {(jdMatchData.missingSkills || ["System Architecture"]).slice(0, 3).map((s: string, i: number) => (
@@ -598,8 +598,8 @@ export default function MockInterviewLandingPage() {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="px-0 pb-0 pt-4 border-t border-slate-200 flex justify-between">
-                <Button variant="ghost" onClick={() => setCurrentStep(1)} className="text-xs hover:text-slate-900 hover:bg-transparent text-slate-500 pl-0">
+              <CardFooter className="px-0 pb-0 pt-4 border-t border-slate-200 dark:border-slate-800/60 flex justify-between">
+                <Button variant="ghost" onClick={() => setCurrentStep(1)} className="text-xs hover:text-slate-900 dark:text-slate-100 hover:bg-transparent text-slate-500 dark:text-slate-400 dark:text-slate-500 pl-0">
                   <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
                 </Button>
                 <Button
@@ -614,37 +614,37 @@ export default function MockInterviewLandingPage() {
 
           {/* STEP 3: PREPARATION CONFIRMATION */}
           {currentStep === 3 && (
-            <Card className="border-slate-200 bg-white/95 backdrop-blur shadow-md p-6">
+            <Card className="border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur shadow-md p-6">
               <CardHeader className="px-0 pt-0">
-                <CardTitle className="text-lg font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <CardTitle className="text-lg font-black text-slate-900 dark:text-slate-100 uppercase tracking-wider flex items-center gap-2">
                   <ShieldCheck className="w-5 h-5 text-primary" /> Review & Start
                 </CardTitle>
-                <CardDescription className="text-xs text-slate-500">
+                <CardDescription className="text-xs text-slate-500 dark:text-slate-400 dark:text-slate-500">
                   Review your configured practice parameters before launching the session.
                 </CardDescription>
               </CardHeader>
               <CardContent className="px-0 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Job Role Fit</span>
-                    <span className="text-sm font-bold text-slate-900">{role}</span>
+                  <div className="p-3.5 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 space-y-1">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Job Role Fit</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{role}</span>
                   </div>
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Experience Level</span>
-                    <span className="text-sm font-bold text-slate-900">{experienceLevel}</span>
+                  <div className="p-3.5 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 space-y-1">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Experience Level</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{experienceLevel}</span>
                   </div>
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Selected Resume</span>
-                    <span className="text-sm font-bold text-slate-900 truncate block">{selectedResumeName || "Default Resume"}</span>
+                  <div className="p-3.5 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 space-y-1">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Selected Resume</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate block">{selectedResumeName || "Default Resume"}</span>
                   </div>
-                  <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider block">Interview Type</span>
-                    <span className="text-sm font-bold text-slate-900 block">{interviewType} Interview</span>
+                  <div className="p-3.5 bg-slate-50 dark:bg-[#071326] rounded-xl border border-slate-200 dark:border-slate-800/60 space-y-1">
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Interview Type</span>
+                    <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block">{interviewType} Interview</span>
                   </div>
                 </div>
 
                 <div className="p-3.5 bg-primary/5 rounded-xl border border-primary/20 space-y-1 text-center">
-                  <p className="text-xs text-slate-900 font-bold flex items-center justify-center gap-1.5">
+                  <p className="text-xs text-slate-900 dark:text-slate-100 font-bold flex items-center justify-center gap-1.5">
                     <Mic className="w-4 h-4 text-primary animate-pulse" /> Continuous Listening Enabled
                   </p>
                   <p className="text-[10px] text-slate-600">
@@ -652,8 +652,8 @@ export default function MockInterviewLandingPage() {
                   </p>
                 </div>
               </CardContent>
-              <CardFooter className="px-0 pb-0 pt-4 border-t border-slate-200 flex justify-between">
-                <Button variant="ghost" onClick={() => setCurrentStep(2)} className="text-xs hover:text-slate-900 hover:bg-transparent text-slate-500 pl-0">
+              <CardFooter className="px-0 pb-0 pt-4 border-t border-slate-200 dark:border-slate-800/60 flex justify-between">
+                <Button variant="ghost" onClick={() => setCurrentStep(2)} className="text-xs hover:text-slate-900 dark:text-slate-100 hover:bg-transparent text-slate-500 dark:text-slate-400 dark:text-slate-500 pl-0">
                   <ArrowLeft className="w-4 h-4 mr-1.5" /> Back
                 </Button>
                 <Button
