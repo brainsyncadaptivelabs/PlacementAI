@@ -85,7 +85,7 @@ public class JwtAuthenticationFilter
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
-                    User user = userRepository.findByEmail(email).orElse(null);
+                    User user = userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
                     if (user != null) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 email,
@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
                     } else {
-                        com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email).orElse(null);
+                        com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
                         if (admin != null) {
                             UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                     email,
