@@ -386,28 +386,8 @@ export default function SubscriptionBillingPage() {
         </p>
       </div>
 
-      {/* TABS & BILLING TOGGLE CONTAINER */}
+      {/* BILLING TOGGLE CONTAINER */}
       <div className="flex flex-col items-center justify-center gap-6">
-        {/* Role Tabs selector */}
-        <div className="flex bg-muted p-1 rounded-2xl border border-border shadow-sm">
-          {(["student", "recruiter", "officer"] as const).map((tab) => {
-            const label = tab === "student" ? "Student Plans" : tab === "recruiter" ? "Recruiter Plans" : "Placement Officer";
-            const Icon = tab === "student" ? User : tab === "recruiter" ? Building : Landmark;
-            const isActive = activeTab === tab;
-            return (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all ${
-                  isActive ? "bg-card text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
-                {label}
-              </button>
-            );
-          })}
-        </div>
 
         {/* Monthly/Yearly billing switcher */}
         <div className="flex items-center gap-3 bg-card p-2 rounded-xl border border-border shadow-inner">
