@@ -239,7 +239,8 @@ export default function MockInterviewLandingPage() {
   };
 
   return (
-    <PageShell className="bg-gradient-to-br from-blue-50/50 via-background to-blue-50/30 dark:from-blue-950/15 dark:via-background dark:to-blue-950/5 min-h-[90vh] rounded-3xl border border-blue-100/20 shadow-sm">
+    <div className="min-h-screen w-full bg-gradient-to-br from-[#ebf5ff] via-[#f3f8fe] to-[#f8faff] dark:from-[#091a30] dark:via-[#051121] dark:to-[#030712] transition-colors duration-300">
+      <PageShell>
       {/* Navigation Header / Back Button bar */}
       <div className="flex items-center gap-3 mb-6 select-none border-b border-border/40 pb-4">
         <Button 
@@ -664,6 +665,7 @@ export default function MockInterviewLandingPage() {
 
         </div>
       )}
-    </PageShell>
+      </PageShell>
+    </div>
   );
 }
