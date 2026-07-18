@@ -8,16 +8,10 @@ import java.util.*;
 public class AptitudeQuestionSelector {
 
     private final AptitudeQuestionFamilyRegistry registry;
-    private final AptitudeFingerprintService fingerprintService;
-    private final AptitudeCatEngine catEngine;
     private final Random random = new Random();
 
-    public AptitudeQuestionSelector(AptitudeQuestionFamilyRegistry registry,
-                                    AptitudeFingerprintService fingerprintService,
-                                    AptitudeCatEngine catEngine) {
+    public AptitudeQuestionSelector(AptitudeQuestionFamilyRegistry registry) {
         this.registry = registry;
-        this.fingerprintService = fingerprintService;
-        this.catEngine = catEngine;
     }
 
     public List<Question> selectQuestions(

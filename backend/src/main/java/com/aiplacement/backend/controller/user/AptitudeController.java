@@ -243,6 +243,7 @@ public class AptitudeController {
         return ResponseEntity.badRequest().body(Map.of("error", "No available questions in pool"));
     }
 
+    @SuppressWarnings("unchecked")
     private List<Question> convertMapsToQuestions(List<Map<String, Object>> maps) {
         List<Question> list = new ArrayList<>();
         for (Map<String, Object> map : maps) {
@@ -349,23 +350,6 @@ public class AptitudeController {
             count++;
         }
         return count > 0 ? (sum / count - 1200.0) / 200.0 : 0.0;
-    }
-
-    private String getWeakestTopic(JSONObject profile) {
-        JSONObject elo = profile.optJSONObject("elo");
-        if (elo == null || elo.length() == 0) return "Percentage";
-        String weakest = "Percentage";
-        int min = Integer.MAX_VALUE;
-        Iterator<String> keys = elo.keys();
-        while (keys.hasNext()) {
-            String k = keys.next();
-            int val = elo.getInt(k);
-            if (val < min) {
-                min = val;
-                weakest = k;
-            }
-        }
-        return weakest;
     }
 
     private void updateAptitudeHistoryAndStats(User user, List<Map<String, Object>> evaluatedQuestions, int correctCount, int totalCount, Map<String, Object> payload) {

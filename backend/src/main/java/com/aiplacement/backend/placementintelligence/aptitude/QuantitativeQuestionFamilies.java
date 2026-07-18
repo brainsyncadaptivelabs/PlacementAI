@@ -6,7 +6,6 @@ import java.util.*;
 public class QuantitativeQuestionFamilies {
 
     private static final AptitudeDistractorEngine distractorEngine = new AptitudeDistractorEngine();
-    private static final AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
 
     @Component
     public static class PercentageBasic implements AptitudeQuestionFamily {
@@ -21,8 +20,6 @@ public class QuantitativeQuestionFamilies {
             int rate = "Easy".equals(difficulty) ? 10 * (random.nextInt(9) + 1) : 5 * (random.nextInt(19) + 1);
             double answer = (total * rate) / 100.0;
 
-            Map<String, Object> params = Map.of("total", total, "rate", rate);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "PERCENT");
 
             String text = "Calculate " + rate + "% of " + total + ".";
             List<String> options = distractorEngine.generateOptions(answer, "additive", random);
@@ -57,8 +54,6 @@ public class QuantitativeQuestionFamilies {
             int profitPct = "Easy".equals(difficulty) ? 10 : 15;
             double profit = (cp * profitPct) / 100.0;
 
-            Map<String, Object> params = Map.of("cp", cp, "profitPct", profitPct);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "PROFIT");
 
             String text = "An article with cost price ₹" + cp + " is sold at a " + profitPct + "% profit. Find the profit amount.";
             List<String> options = distractorEngine.generateOptions(profit, "additive", random);
@@ -94,8 +89,6 @@ public class QuantitativeQuestionFamilies {
             int t = 2 + random.nextInt(4);
             double si = (p * r * t) / 100.0;
 
-            Map<String, Object> params = Map.of("p", p, "r", r, "t", t);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "INTEREST");
 
             String text = "Find the simple interest on ₹" + p + " at a rate of " + r + "% per annum for " + t + " years.";
             List<String> options = distractorEngine.generateOptions(si, "additive", random);
@@ -130,8 +123,6 @@ public class QuantitativeQuestionFamilies {
             int b = 15 + random.nextInt(15);
             double combined = (double) (a * b) / (a + b);
 
-            Map<String, Object> params = Map.of("a", a, "b", b);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "DAYS");
 
             String text = "If Person A takes " + a + " days and Person B takes " + b + " days to complete a task, how many days will they take working together?";
             List<String> options = distractorEngine.generateOptions(combined, "additive", random);
@@ -166,8 +157,6 @@ public class QuantitativeQuestionFamilies {
             int time = 2 + random.nextInt(7);
             double distance = speed * time;
 
-            Map<String, Object> params = Map.of("speed", speed, "time", time);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "DISTANCE");
 
             String text = "A car traveling at " + speed + " km/h travels for " + time + " hours. What distance does it cover?";
             List<String> options = distractorEngine.generateOptions(distance, "multiply", random);

@@ -1,5 +1,7 @@
 package com.aiplacement.backend.config;
 
+import org.flywaydb.core.Flyway;
+import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,13 +23,25 @@ public class FlywayMigrationStrategyConfig {
 
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
-        return flyway -> {
+        // Do nothing on startup, letting Hibernate create/update the tables first
+        return flyway -> {};
+    }
+
+    @Bean
+    public ApplicationRunner flywayRunner(org.springframework.beans.factory.ObjectProvider<Flyway> flywayProvider) {
+        return args -> {
+            Flyway flyway = flywayProvider.getIfAvailable();
+            if (flyway == null) {
+                System.out.println("[FlywayConfig] Flyway is disabled. Skipping post-startup migration.");
+                return;
+            }
+
             int maxRetries = 15;
             int delayMs = 3000;
             boolean hasHistory = false;
             boolean connected = false;
 
-            System.out.println("[FlywayConfig] Starting database readiness check and migration...");
+            System.out.println("[FlywayConfig] Starting post-startup database readiness check and migration...");
             
             try {
                 for (int i = 1; i <= maxRetries; i++) {

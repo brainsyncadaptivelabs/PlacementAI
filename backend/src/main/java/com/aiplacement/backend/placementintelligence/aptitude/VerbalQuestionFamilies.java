@@ -6,7 +6,6 @@ import java.util.*;
 public class VerbalQuestionFamilies {
 
     private static final AptitudeDistractorEngine distractorEngine = new AptitudeDistractorEngine();
-    private static final AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
 
     @Component
     public static class SynonymContext implements AptitudeQuestionFamily {
@@ -26,8 +25,6 @@ public class VerbalQuestionFamilies {
             int idx = random.nextInt(wordPairs.length);
             String[] row = wordPairs[idx];
 
-            Map<String, Object> params = Map.of("word", row[0]);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "SYNONYM");
 
             String text = "Identify the synonym of the word '" + row[0] + "'.";
             List<String> options = distractorEngine.generateOptionsString(row[1], new String[]{row[2], row[3], row[4]}, random);
@@ -65,8 +62,6 @@ public class VerbalQuestionFamilies {
                 "Each of the students are completed the assignment."
             };
 
-            Map<String, Object> params = Map.of("concept", "subject-verb-agreement");
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "CORRECT_SENTENCE");
 
             String text = "Identify the grammatically correct sentence from the options below.";
             List<String> options = distractorEngine.generateOptionsString(correct, distractors, random);

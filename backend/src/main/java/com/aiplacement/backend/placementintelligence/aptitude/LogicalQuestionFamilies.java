@@ -6,7 +6,6 @@ import java.util.*;
 public class LogicalQuestionFamilies {
 
     private static final AptitudeDistractorEngine distractorEngine = new AptitudeDistractorEngine();
-    private static final AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
 
     @Component
     public static class BloodRelationBasic implements AptitudeQuestionFamily {
@@ -17,12 +16,6 @@ public class LogicalQuestionFamilies {
         public Set<String> supportedDifficulties() { return Set.of("Easy", "Medium", "Hard"); }
 
         public Question generate(Random random, String difficulty) {
-            String[] relations = {"Brother", "Uncle", "Father", "Cousin"};
-            String correct = relations[random.nextInt(relations.length)];
-            
-            Map<String, Object> params = Map.of("relation", correct);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "RELATION");
-
             String text = "Pointing to a photograph, Amit says, 'He is the only son of my father\\'s wife.' How is the man in the photo related to Amit?";
             
             List<String> options = distractorEngine.generateOptionsString("Brother", new String[]{"Uncle", "Father", "Cousin"}, random);
@@ -57,8 +50,7 @@ public class LogicalQuestionFamilies {
             int d2 = 4 * (random.nextInt(4) + 1);
             double hypotenuse = Math.sqrt(d1 * d1 + d2 * d2);
 
-            Map<String, Object> params = Map.of("d1", d1, "d2", d2);
-            String fp = fingerprintService.generateFingerprint(familyId(), params, "DISTANCE");
+
 
             String text = "A person walks " + d1 + " km North, then turns East and walks " + d2 + " km. How far is the person from the starting point?";
             List<String> options = distractorEngine.generateOptions(hypotenuse, "additive", random);

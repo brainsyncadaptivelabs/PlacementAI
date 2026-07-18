@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 public class AptitudeQuestionEngine {
 
     private static final String[] CANDIDATE_NAMES = {"Abhinav", "Bharath", "Likith", "Sree Alekhya", "Ananya", "Rohan", "Sneha", "Kiran", "Divya", "Rahul", "Priya", "Amit"};
-    private static final String[] ITEMS = {"laptop", "phone", "book", "chair", "table", "watch", "pen", "bag", "monitor", "keyboard"};
-    private static final String[] COMPANIES = {"TCS", "Infosys", "Accenture", "Cognizant", "Wipro", "Capgemini", "Deloitte", "EY", "PwC", "Amazon", "Microsoft", "Google", "Oracle", "Zoho", "Adobe"};
     private static final Random random = new Random();
 
     private static String getRandomElement(String[] arr) {
@@ -142,7 +140,6 @@ public class AptitudeQuestionEngine {
 
     private static void buildLogicalQuestion(String topic, Question.QuestionBuilder builder) {
         String name1 = getRandomElement(CANDIDATE_NAMES);
-        String name2 = getRandomElement(CANDIDATE_NAMES);
 
         switch (topic) {
             case "Blood Relations":

@@ -3,7 +3,6 @@ package com.aiplacement.backend.controller.user;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.placementintelligence.aptitude.*;
-import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,9 +12,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,8 +31,7 @@ public class AptitudeControllerTest {
         sessionService = Mockito.mock(AptitudeSessionService.class);
         catEngine = new AptitudeCatEngine();
         AptitudeQuestionFamilyRegistry registry = new AptitudeQuestionFamilyRegistry(new ArrayList<>());
-        AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
-        questionSelector = new AptitudeQuestionSelector(registry, fingerprintService, catEngine);
+        questionSelector = new AptitudeQuestionSelector(registry);
         controller = new AptitudeController(userRepository, sessionService, catEngine, questionSelector);
 
         user = new User();
@@ -52,6 +47,7 @@ public class AptitudeControllerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testClientDtoDoesNotContainCorrectAnswerOrPrivateParams() {
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
@@ -138,8 +134,7 @@ public class AptitudeControllerTest {
     @Test
     void testQuestionFamilyScaleAndDiversity() {
         AptitudeQuestionFamilyRegistry registry = new AptitudeQuestionFamilyRegistry(new ArrayList<>());
-        AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
-        AptitudeQuestionSelector selector = new AptitudeQuestionSelector(registry, fingerprintService, catEngine);
+        AptitudeQuestionSelector selector = new AptitudeQuestionSelector(registry);
 
         int totalQuestions = 0;
         int sameSessionDuplicates = 0;

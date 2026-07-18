@@ -20,7 +20,6 @@ public class AptitudeDynamicFamilyProvider implements AptitudeQuestionFamily {
     private final int variant;
 
     private static final AptitudeDistractorEngine distractorEngine = new AptitudeDistractorEngine();
-    private static final AptitudeFingerprintService fingerprintService = new AptitudeFingerprintService();
 
     // Default constructor for Spring bean autowiring compatibility
     public AptitudeDynamicFamilyProvider() {
@@ -85,8 +84,6 @@ public class AptitudeDynamicFamilyProvider implements AptitudeQuestionFamily {
             formula = "Val = Total * 10 / 100";
         }
 
-        Map<String, Object> params = Map.of("v1", v1, "v2", v2, "variant", variant);
-        String fp = fingerprintService.generateFingerprint(familyId, params, "TARGET");
 
         List<String> options = distractorEngine.generateOptions(answer, "additive", random);
 
