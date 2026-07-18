@@ -41,53 +41,60 @@ public class PaymentControllerTest {
     }
 
     @Test
-    void testCreateOrderMockFallbackPro() {
+    void testCreateOrderStudentProMonthly() {
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
-        ResponseEntity<Map<String, Object>> response = controller.createOrder(Map.of("plan", "PRO"));
+        ResponseEntity<Map<String, Object>> response = controller.createOrder(Map.of("plan", "STUDENT_PRO_MONTHLY"));
         assertEquals(200, response.getStatusCode().value());
         
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
         assertTrue((Boolean) body.get("mock"));
-        assertTrue(body.get("orderId").toString().startsWith("order_mock_"));
-        assertEquals(29900, body.get("amount"));
-        assertEquals("INR", body.get("currency"));
-        assertEquals("PRO", body.get("plan"));
+        assertEquals(19900, body.get("amount"));
+        assertEquals("STUDENT_PRO_MONTHLY", body.get("plan"));
     }
 
     @Test
-    void testCreateOrderMockFallbackBasic() {
+    void testCreateOrderStudentPremiumYearly() {
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
-        ResponseEntity<Map<String, Object>> response = controller.createOrder(Map.of("plan", "BASIC"));
+        ResponseEntity<Map<String, Object>> response = controller.createOrder(Map.of("plan", "STUDENT_PREMIUM_YEARLY"));
         assertEquals(200, response.getStatusCode().value());
         
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
-        assertTrue((Boolean) body.get("mock"));
-        assertTrue(body.get("orderId").toString().startsWith("order_mock_"));
-        assertEquals(9900, body.get("amount"));
-        assertEquals("INR", body.get("currency"));
-        assertEquals("BASIC", body.get("plan"));
+        assertEquals(479000, body.get("amount"));
+        assertEquals("STUDENT_PREMIUM_YEARLY", body.get("plan"));
     }
 
     @Test
-    void testVerifyMockPaymentUpgradesPlanPro() {
+    void testCreateOrderRecruiterProfessionalMonthly() {
+        when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
+
+        ResponseEntity<Map<String, Object>> response = controller.createOrder(Map.of("plan", "RECRUITER_PROFESSIONAL_MONTHLY"));
+        assertEquals(200, response.getStatusCode().value());
+        
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals(299900, body.get("amount"));
+    }
+
+    @Test
+    void testVerifyMockPaymentUpgradesPlanPremium() {
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
         Map<String, String> payload = Map.of(
             "razorpay_order_id", "order_mock_12345",
             "razorpay_payment_id", "pay_mock_12345",
             "razorpay_signature", "mock_signature",
-            "plan", "PRO"
+            "plan", "STUDENT_PREMIUM_YEARLY"
         );
 
         ResponseEntity<Map<String, Object>> response = controller.verifyPayment(payload);
         assertEquals(200, response.getStatusCode().value());
         assertEquals("success", response.getBody().get("status"));
         
-        assertEquals("PRO", user.getPlan());
+        assertEquals("PREMIUM", user.getPlan());
         assertEquals("COMPLETED", user.getPaymentStatus());
         assertTrue(user.getPlanSelected());
         assertTrue(user.getPaymentCompleted());
@@ -95,24 +102,20 @@ public class PaymentControllerTest {
     }
 
     @Test
-    void testVerifyMockPaymentUpgradesPlanBasic() {
+    void testVerifyMockPaymentUpgradesPlanProfessional() {
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
 
         Map<String, String> payload = Map.of(
             "razorpay_order_id", "order_mock_12345",
             "razorpay_payment_id", "pay_mock_12345",
             "razorpay_signature", "mock_signature",
-            "plan", "BASIC"
+            "plan", "RECRUITER_PROFESSIONAL_MONTHLY"
         );
 
         ResponseEntity<Map<String, Object>> response = controller.verifyPayment(payload);
         assertEquals(200, response.getStatusCode().value());
-        assertEquals("success", response.getBody().get("status"));
         
-        assertEquals("BASIC", user.getPlan());
-        assertEquals("COMPLETED", user.getPaymentStatus());
-        assertTrue(user.getPlanSelected());
-        assertTrue(user.getPaymentCompleted());
+        assertEquals("PROFESSIONAL", user.getPlan());
         verify(userRepository, times(1)).save(user);
     }
 

@@ -37,12 +37,49 @@ public class PaymentController {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String requestedPlan = payload.getOrDefault("plan", "PRO");
-        int amountInPaise = 29900; // Rs 299 (PRO)
-        if ("BASIC".equalsIgnoreCase(requestedPlan)) {
-            amountInPaise = 9900; // Rs 99 (BASIC)
-        } else {
-            requestedPlan = "PRO";
+        String requestedPlan = payload.getOrDefault("plan", "STUDENT_PRO_MONTHLY").toUpperCase();
+        int amountInPaise;
+
+        switch (requestedPlan) {
+            case "STUDENT_PRO_MONTHLY":
+                amountInPaise = 19900;
+                break;
+            case "STUDENT_PRO_YEARLY":
+                amountInPaise = 191000;
+                break;
+            case "STUDENT_PREMIUM_MONTHLY":
+                amountInPaise = 49900;
+                break;
+            case "STUDENT_PREMIUM_YEARLY":
+                amountInPaise = 479000;
+                break;
+            case "RECRUITER_STARTER_MONTHLY":
+                amountInPaise = 99900;
+                break;
+            case "RECRUITER_STARTER_YEARLY":
+                amountInPaise = 959000;
+                break;
+            case "RECRUITER_PROFESSIONAL_MONTHLY":
+                amountInPaise = 299900;
+                break;
+            case "RECRUITER_PROFESSIONAL_YEARLY":
+                amountInPaise = 2879000;
+                break;
+            case "OFFICER_BASIC_MONTHLY":
+                amountInPaise = 299900;
+                break;
+            case "OFFICER_BASIC_YEARLY":
+                amountInPaise = 2879000;
+                break;
+            case "OFFICER_PROFESSIONAL_MONTHLY":
+                amountInPaise = 699900;
+                break;
+            case "OFFICER_PROFESSIONAL_YEARLY":
+                amountInPaise = 6719000;
+                break;
+            default:
+                amountInPaise = 19900; // Default fallback
+                requestedPlan = "STUDENT_PRO_MONTHLY";
         }
 
         try {
@@ -91,13 +128,27 @@ public class PaymentController {
         String orderId = payload.get("razorpay_order_id");
         String paymentId = payload.get("razorpay_payment_id");
         String signature = payload.get("razorpay_signature");
-        String plan = payload.getOrDefault("plan", "PRO");
-        if (!"BASIC".equalsIgnoreCase(plan)) {
-            plan = "PRO";
-        }
+        String planParam = payload.getOrDefault("plan", "STUDENT_PRO_MONTHLY").toUpperCase();
 
         if (orderId == null || paymentId == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing order ID or payment ID"));
+        }
+
+        String basePlan = "FREE";
+        if (planParam.contains("PREMIUM")) {
+            basePlan = "PREMIUM";
+        } else if (planParam.contains("STARTER")) {
+            basePlan = "STARTER";
+        } else if (planParam.contains("PROFESSIONAL")) {
+            basePlan = "PROFESSIONAL";
+        } else if (planParam.contains("UNIVERSITY")) {
+            basePlan = "UNIVERSITY";
+        } else if (planParam.contains("ENTERPRISE")) {
+            basePlan = "ENTERPRISE";
+        } else if (planParam.contains("BASIC")) {
+            basePlan = "BASIC";
+        } else if (planParam.contains("PRO")) {
+            basePlan = "PRO";
         }
 
         boolean isVerified = false;
@@ -119,7 +170,7 @@ public class PaymentController {
         }
 
         if (isVerified) {
-            user.setPlan(plan);
+            user.setPlan(basePlan);
             user.setPaymentStatus("COMPLETED");
             user.setPlanSelected(true);
             user.setPaymentCompleted(true);
@@ -127,7 +178,7 @@ public class PaymentController {
 
             return ResponseEntity.ok(Map.of(
                 "status", "success",
-                "message", "Payment verified. User upgraded to " + plan + " plan."
+                "message", "Payment verified. User upgraded to " + basePlan + " plan."
             ));
         }
 
