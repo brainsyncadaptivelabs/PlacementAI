@@ -76,7 +76,13 @@ public class AptitudeController {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        int length = payload.get("length") != null ? (int) payload.get("length") : 15;
+        int length = 15;
+        if (payload.get("length") != null) {
+            Object lenObj = payload.get("length");
+            if (lenObj instanceof Number) {
+                length = ((Number) lenObj).intValue();
+            }
+        }
         String category = (String) payload.get("category");
         String topic = (String) payload.get("topic");
         String company = payload.get("company") != null ? (String) payload.get("company") : "General Pattern";
@@ -97,14 +103,14 @@ public class AptitudeController {
                     JSONObject qObj = item.getJSONObject("question");
 
                     questions.add(Question.builder()
-                        .id(qObj.getString("id"))
-                        .category(qObj.getString("category"))
-                        .topic(qObj.getString("topic"))
-                        .text(qObj.getString("text"))
-                        .options(convertJsonArray(qObj.getJSONArray("options")))
-                        .answer(qObj.getString("answer"))
-                        .difficulty(qObj.getString("difficulty"))
-                        .timeLimit(qObj.getInt("timeLimit"))
+                        .id(qObj.optString("id"))
+                        .category(qObj.optString("category"))
+                        .topic(qObj.optString("topic"))
+                        .text(qObj.optString("text"))
+                        .options(qObj.has("options") ? convertJsonArray(qObj.getJSONArray("options")) : new ArrayList<>())
+                        .answer(qObj.optString("answer"))
+                        .difficulty(qObj.optString("difficulty", "Medium"))
+                        .timeLimit(qObj.optInt("timeLimit", 45))
                         .explanation(qObj.optString("explanation"))
                         .formula(qObj.optString("formula"))
                         .companyLevel(qObj.optString("companyLevel"))
@@ -248,7 +254,7 @@ public class AptitudeController {
                 .options((List<String>) map.get("options"))
                 .answer((String) map.get("answer"))
                 .difficulty((String) map.get("difficulty"))
-                .timeLimit((Integer) map.get("timeLimit"))
+                .timeLimit(map.get("timeLimit") instanceof Number ? ((Number) map.get("timeLimit")).intValue() : 45)
                 .explanation((String) map.get("explanation"))
                 .formula((String) map.get("formula"))
                 .companyLevel((String) map.get("companyLevel"))

@@ -38,7 +38,8 @@ import { Badge } from "@/components/ui/badge";
 import api from "@/lib/api";
 import {
   generateFingerprint,
-  Question
+  Question,
+  generateLocalMockAssessment
 } from "@/lib/aptitude/QuestionEngine";
 import { exportToCsv, exportToExcel } from "@/lib/chat/ExportUtils";
 
@@ -222,6 +223,7 @@ export default function AptitudePage() {
 
   // Anti-cheating security
   const [assessmentId, setAssessmentId] = useState<string | null>(null);
+  const [isDevelopmentMock, setIsDevelopmentMock] = useState<boolean>(false);
   const [hiddenFullQuestions, setHiddenFullQuestions] = useState<Question[]>([]);
   const [tabSwitchesCount, setTabSwitchesCount] = useState<number>(0);
   const [cheatingFlags, setCheatingFlags] = useState<string[]>([]);
@@ -410,11 +412,23 @@ export default function AptitudePage() {
       if (res.data && res.data.assessmentId) {
         setAssessmentId(res.data.assessmentId);
         setQuizQuestions(res.data.questions);
+        setHiddenFullQuestions(res.data.questions);
+        setIsDevelopmentMock(false);
       }
     } catch (err) {
       console.error("Secure backend initialization failed", err);
-      alert("Failed to start assessment session.");
-      return;
+      const isLocalDev = process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEV_FALLBACK === "true";
+      if (isLocalDev) {
+        console.warn("Falling back to local development mock assessment session");
+        const mockQuestions = generateLocalMockAssessment(questionCount, selectedCategory, selectedTopic);
+        setAssessmentId(`mock-session-${Date.now()}`);
+        setQuizQuestions(mockQuestions);
+        setHiddenFullQuestions(mockQuestions);
+        setIsDevelopmentMock(true);
+      } else {
+        alert("Failed to start assessment session.");
+        return;
+      }
     }
 
     setUserAnswers({});
@@ -451,13 +465,18 @@ export default function AptitudePage() {
     }
 
     if (selectedMode === "adaptive" && currentQuestionIdx + 1 < questionCount) {
-      if (assessmentId) {
+      if (isDevelopmentMock) {
+        const nextQ = generateLocalMockAssessment(1, selectedCategory, selectedTopic)[0];
+        setQuizQuestions(prev => [...prev, nextQ]);
+        setHiddenFullQuestions(prev => [...prev, nextQ]);
+      } else if (assessmentId) {
         api.post(`/aptitude/assessment/${assessmentId}/next`, {
           lastQuestionId: questionId,
           selectedOption: option
         }).then(res => {
           if (res.data) {
             setQuizQuestions(prev => [...prev, res.data]);
+            setHiddenFullQuestions(prev => [...prev, res.data]);
           }
         }).catch(err => {
           console.error("Failed to fetch next adaptive question from backend", err);
@@ -478,6 +497,48 @@ export default function AptitudePage() {
     let evaluatedList = [...hiddenFullQuestions];
 
     let serverAptitudeData: string | null = null;
+    if (isDevelopmentMock) {
+      evaluatedList.forEach(q => {
+        const isCorrect = userAnswers[q.id] === q.answer;
+        if (isCorrect) {
+          correctCount++;
+          if (!strongList.includes(q.topic)) strongList.push(q.topic);
+        } else {
+          if (!weakList.includes(q.topic)) weakList.push(q.topic);
+        }
+      });
+
+      const scorePct = Math.round((correctCount / evaluatedList.length) * 100);
+      const accuracyPct = Math.round((correctCount / (Object.keys(userAnswers).length || 1)) * 100);
+      const calculatedPercentile = Math.min(99, Math.round(scorePct * 0.95 + 10));
+
+      const attempt: TestAttempt = {
+        id: `attempt-mock-${Date.now()}`,
+        date: new Date().toISOString().split("T")[0],
+        testName: `${selectedCategory === "any" ? "Mixed" : selectedCategory} (${selectedMode})`,
+        companyPattern: selectedCompany,
+        score: scorePct,
+        accuracy: Math.min(100, accuracyPct),
+        timeTaken: duration,
+        percentile: calculatedPercentile,
+        weakTopics: weakList.slice(0, 3),
+        strongTopics: strongList.slice(0, 3),
+        totalQuestions: evaluatedList.length,
+        correctAnswersCount: correctCount,
+        cheatingFlags: cheatingFlags,
+        responseTimes: responseTimes,
+        versionId: "1.2.0",
+        templateVersion: "v2.1",
+        irtModelVersion: "IRT-3PL-v1",
+        catStrategyVersion: "CAT-IIF-v1"
+      };
+
+      setHiddenFullQuestions(evaluatedList);
+      setActiveQuizAttempt(attempt);
+      setShowQuizResultsSummary(true);
+      return;
+    }
+
     if (assessmentId) {
       try {
         const res = await api.post(`/aptitude/assessment/${assessmentId}/submit`, {
@@ -669,6 +730,7 @@ export default function AptitudePage() {
 
     syncAptitudeData(nextAttempts, nextElo, nextRepetition, nextGamification, nextRoadmap, nextStudyPlan);
 
+    setHiddenFullQuestions(evaluatedList);
     setActiveQuizAttempt(attempt);
     setShowQuizResultsSummary(true);
   };
@@ -919,9 +981,16 @@ export default function AptitudePage() {
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-emerald-600" />
                 <div>
-                  <span className="text-[9px] font-black text-indigo-650 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-widest">
-                    {quizQuestions[currentQuestionIdx].category}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black text-indigo-650 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-widest">
+                      {quizQuestions[currentQuestionIdx].category}
+                    </span>
+                    {isDevelopmentMock && (
+                      <span className="text-[9px] font-black text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest animate-pulse">
+                        Development Mode
+                      </span>
+                    )}
+                  </div>
                   <CardTitle className="text-sm font-bold text-foreground mt-1">
                     Topic: {quizQuestions[currentQuestionIdx].topic}
                   </CardTitle>
@@ -1020,6 +1089,19 @@ export default function AptitudePage() {
       {/* QUIZ RESULTS DETAILED SUMMARY */}
       {showQuizResultsSummary && activeQuizAttempt && (
         <div className="max-w-4xl mx-auto space-y-6">
+
+          {/* Development Mode Badge */}
+          {isDevelopmentMock && (
+            <Card className="border border-amber-500/20 bg-amber-500/5 p-4 rounded-2xl flex items-center gap-3 text-xs text-amber-800 dark:text-amber-200 font-bold select-none">
+              <AlertOctagon className="w-5 h-5 text-amber-600 animate-pulse" />
+              <div>
+                <span>Development Mode: Mock Session Results</span>
+                <p className="text-[10px] text-amber-500 font-normal leading-tight mt-0.5">
+                  This session ran under local mock conditions. No XP, level, ELO, streak, or history updates have been saved.
+                </p>
+              </div>
+            </Card>
+          )}
 
           {/* Anti-cheating security status header banner */}
           {activeQuizAttempt.cheatingFlags && activeQuizAttempt.cheatingFlags.length > 0 && (
