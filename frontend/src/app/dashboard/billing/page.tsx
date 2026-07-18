@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { Check, Loader2, Sparkles, CreditCard, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -139,7 +139,7 @@ export default function BillingPage() {
           <CardContent className="flex-1 space-y-6">
             <div className="flex items-baseline">
               <span className="text-5xl font-black tracking-tight text-foreground font-heading">₹99</span>
-              <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ year</span>
+              <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ month</span>
             </div>
             <ul className="space-y-3">
               {[
@@ -196,7 +196,7 @@ export default function BillingPage() {
           <CardContent className="flex-1 space-y-6">
             <div className="flex items-baseline">
               <span className="text-5xl font-black tracking-tight text-foreground font-heading">₹299</span>
-              <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ year</span>
+              <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ month</span>
             </div>
             <ul className="space-y-3">
               {[

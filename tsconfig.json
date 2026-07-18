@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["frontend/src/*"],
+      "*": ["*", "frontend/node_modules/*"]
+    }
+  },
+  "exclude": [
+    "backend",
+    "**/node_modules",
+    ".next"
+  ]
+}
