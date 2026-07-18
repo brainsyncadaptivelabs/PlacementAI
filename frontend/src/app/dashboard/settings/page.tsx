@@ -508,6 +508,7 @@ export default function SettingsPage() {
           <CardContent className="flex flex-col gap-2">
             {[
               { label: "My Profile", icon: User, url: "/dashboard/profile" },
+              { label: "Plans and Billing", icon: CreditCard, url: "/dashboard/billing" },
               { label: "Change Password", icon: Key },
               { label: "Download My Data", icon: Download },
             ].map((item, i) => (
