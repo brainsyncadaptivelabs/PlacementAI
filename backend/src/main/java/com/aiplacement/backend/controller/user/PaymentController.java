@@ -37,7 +37,13 @@ public class PaymentController {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        int amountInPaise = 99900; // Rs 999
+        String requestedPlan = payload.getOrDefault("plan", "PRO");
+        int amountInPaise = 29900; // Rs 299 (PRO)
+        if ("BASIC".equalsIgnoreCase(requestedPlan)) {
+            amountInPaise = 9900; // Rs 99 (BASIC)
+        } else {
+            requestedPlan = "PRO";
+        }
 
         try {
             if (keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy") || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret)) {
@@ -57,6 +63,7 @@ public class PaymentController {
             response.put("amount", amountInPaise);
             response.put("currency", "INR");
             response.put("keyId", keyId);
+            response.put("plan", requestedPlan);
             response.put("mock", false);
             return ResponseEntity.ok(response);
 
@@ -69,6 +76,7 @@ public class PaymentController {
             response.put("amount", amountInPaise);
             response.put("currency", "INR");
             response.put("keyId", (keyId != null && !keyId.startsWith("rzp_test_dummy")) ? keyId : "rzp_test_mockkey");
+            response.put("plan", requestedPlan);
             response.put("mock", true);
             return ResponseEntity.ok(response);
         }
@@ -83,6 +91,10 @@ public class PaymentController {
         String orderId = payload.get("razorpay_order_id");
         String paymentId = payload.get("razorpay_payment_id");
         String signature = payload.get("razorpay_signature");
+        String plan = payload.getOrDefault("plan", "PRO");
+        if (!"BASIC".equalsIgnoreCase(plan)) {
+            plan = "PRO";
+        }
 
         if (orderId == null || paymentId == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing order ID or payment ID"));
@@ -107,7 +119,7 @@ public class PaymentController {
         }
 
         if (isVerified) {
-            user.setPlan("PRO");
+            user.setPlan(plan);
             user.setPaymentStatus("COMPLETED");
             user.setPlanSelected(true);
             user.setPaymentCompleted(true);
@@ -115,7 +127,7 @@ public class PaymentController {
 
             return ResponseEntity.ok(Map.of(
                 "status", "success",
-                "message", "Payment verified. User upgraded to PRO plan."
+                "message", "Payment verified. User upgraded to " + plan + " plan."
             ));
         }
 

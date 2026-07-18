@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Check, Loader2, Sparkles, CreditCard, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +13,11 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(false);
   const [showMockModal, setShowMockModal] = useState(false);
   const [mockOrderId, setMockOrderId] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<"BASIC" | "PRO" | null>(null);
 
-  const isPro = user?.plan === "PRO";
+  const currentPlan = user?.plan || "FREE";
+  const isPro = currentPlan === "PRO";
+  const isBasic = currentPlan === "BASIC";
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
@@ -28,10 +30,11 @@ export default function BillingPage() {
     });
   };
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (planName: "BASIC" | "PRO") => {
     setLoading(true);
+    setSelectedPlan(planName);
     try {
-      const res = await api.post("/payment/create-order", { plan: "PRO" });
+      const res = await api.post("/payment/create-order", { plan: planName });
       const { orderId, amount, currency, keyId, mock } = res.data;
 
       if (mock) {
@@ -53,7 +56,7 @@ export default function BillingPage() {
         amount: amount,
         currency: currency,
         name: "PlacementAI",
-        description: "AI Placement Copilot PRO Upgrade",
+        description: `AI Placement Copilot ${planName} Upgrade`,
         image: "/favicon.ico",
         order_id: orderId,
         handler: async function (response: any) {
@@ -63,13 +66,15 @@ export default function BillingPage() {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
+              plan: planName,
             });
-            toast.success("Successfully upgraded to PRO!");
+            toast.success(`Successfully upgraded to ${planName}!`);
             await mutate();
           } catch (err) {
             toast.error("Payment verification failed.");
           } finally {
             setLoading(false);
+            setSelectedPlan(null);
           }
         },
         prefill: {
@@ -82,6 +87,7 @@ export default function BillingPage() {
         modal: {
           ondismiss: function () {
             setLoading(false);
+            setSelectedPlan(null);
           },
         },
       };
@@ -91,10 +97,12 @@ export default function BillingPage() {
     } catch (err) {
       toast.error("Unable to initialize checkout. Please try again.");
       setLoading(false);
+      setSelectedPlan(null);
     }
   };
 
   const handleSimulateMockSuccess = async () => {
+    if (!selectedPlan) return;
     setLoading(true);
     setShowMockModal(false);
     try {
@@ -102,13 +110,15 @@ export default function BillingPage() {
         razorpay_order_id: mockOrderId,
         razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substring(7),
         razorpay_signature: "mock_signature",
+        plan: selectedPlan,
       });
-      toast.success("Sandbox Upgrade Successful! You are now a PRO member.");
+      toast.success(`Sandbox Upgrade Successful! You are now subscribed to ${selectedPlan}.`);
       await mutate();
     } catch (err) {
       toast.error("Mock verification failed.");
     } finally {
       setLoading(false);
+      setSelectedPlan(null);
     }
   };
 
@@ -120,23 +130,23 @@ export default function BillingPage() {
       </div>
 
       <div className="grid md:grid-cols-2 gap-8 pt-4">
-        {/* FREE PLAN */}
-        <Card className="border border-border bg-card flex flex-col relative overflow-hidden h-full">
+        {/* BASIC PLAN */}
+        <Card className={`border bg-card flex flex-col relative overflow-hidden h-full ${isBasic ? 'border-primary/20 shadow-[0_8px_30px_rgb(59,130,246,0.04)]' : 'border-border'}`}>
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold font-heading">Free Starter</CardTitle>
-            <CardDescription>Essential features to test your placement preparation.</CardDescription>
+            <CardTitle className="text-2xl font-bold font-heading">Placement Basic</CardTitle>
+            <CardDescription>Essential features for placement tracking and setup.</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 space-y-6">
             <div className="flex items-baseline">
-              <span className="text-5xl font-black tracking-tight text-foreground font-heading">₹0</span>
-              <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ lifetime</span>
+              <span className="text-5xl font-black tracking-tight text-foreground font-heading">₹99</span>
+              <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ year</span>
             </div>
             <ul className="space-y-3">
               {[
-                "5 ATS resume scans total",
-                "1 AI mock interview session",
+                "10 ATS resume scans total",
+                "5 AI mock interview sessions",
                 "Basic career roadmap visualization",
-                "Limited skill gap checking",
+                "Standard skill gap checking",
               ].map((feat) => (
                 <li key={feat} className="flex items-center gap-2.5 text-sm font-medium text-muted-foreground">
                   <Check className="w-4 h-4 text-emerald-500 shrink-0" />
@@ -147,17 +157,35 @@ export default function BillingPage() {
           </CardContent>
           <CardFooter className="pt-6">
             <Button
-              variant="outline"
-              disabled
-              className="w-full h-12 font-bold rounded-xl border-border bg-muted/50 text-muted-foreground"
+              onClick={() => handleUpgrade("BASIC")}
+              disabled={loading || isBasic || isPro}
+              className={`w-full h-12 font-bold rounded-xl ${
+                isBasic
+                  ? "bg-emerald-500 hover:bg-emerald-500 cursor-default text-white"
+                  : isPro
+                  ? "bg-muted text-muted-foreground cursor-default border-none"
+                  : "bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
+              }`}
             >
-              {!isPro ? "Current Plan" : "Downgrade Unavailable"}
+              {loading && selectedPlan === "BASIC" ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : isBasic ? (
+                <span className="flex items-center justify-center gap-2">
+                  <ShieldCheck className="w-5 h-5" /> Current Plan
+                </span>
+              ) : isPro ? (
+                "Downgrade Unavailable"
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  <CreditCard className="w-5 h-5" /> Get Basic
+                </span>
+              )}
             </Button>
           </CardFooter>
         </Card>
 
         {/* PRO PLAN */}
-        <Card className="border border-primary/30 bg-card flex flex-col relative overflow-hidden h-full shadow-[0_8px_30px_rgb(59,130,246,0.08)]">
+        <Card className={`border bg-card flex flex-col relative overflow-hidden h-full ${isPro ? 'border-emerald-500/30 shadow-[0_8px_30px_rgb(16,185,129,0.08)]' : 'border-primary/30 shadow-[0_8px_30px_rgb(59,130,246,0.08)]'}`}>
           <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-bl-xl flex items-center gap-1">
             <Sparkles className="w-3 h-3" /> Recommended
           </div>
@@ -167,7 +195,7 @@ export default function BillingPage() {
           </CardHeader>
           <CardContent className="flex-1 space-y-6">
             <div className="flex items-baseline">
-              <span className="text-5xl font-black tracking-tight text-foreground font-heading">₹999</span>
+              <span className="text-5xl font-black tracking-tight text-foreground font-heading">₹299</span>
               <span className="text-muted-foreground ml-1 text-sm font-bold uppercase tracking-wider">/ year</span>
             </div>
             <ul className="space-y-3">
@@ -188,7 +216,7 @@ export default function BillingPage() {
           </CardContent>
           <CardFooter className="pt-6">
             <Button
-              onClick={handleUpgrade}
+              onClick={() => handleUpgrade("PRO")}
               disabled={loading || isPro}
               className={`w-full h-12 font-bold rounded-xl text-white ${
                 isPro
@@ -196,7 +224,7 @@ export default function BillingPage() {
                   : "bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
               }`}
             >
-              {loading ? (
+              {loading && selectedPlan === "PRO" ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : isPro ? (
                 <span className="flex items-center justify-center gap-2">
@@ -233,14 +261,14 @@ export default function BillingPage() {
                 {mockOrderId}
               </code>
               <p>
-                Click below to simulate a successful payment process and complete your upgrade verification.
+                Click below to simulate a successful payment process and complete your upgrade verification for the <strong className="text-foreground">{selectedPlan}</strong> plan.
               </p>
             </div>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 className="flex-1 rounded-xl"
-                onClick={() => setShowMockModal(false)}
+                onClick={() => { setShowMockModal(false); setSelectedPlan(null); }}
               >
                 Cancel
               </Button>
