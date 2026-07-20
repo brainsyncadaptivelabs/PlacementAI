@@ -146,7 +146,7 @@ nvidia:
 # ── Code Execution (Judge0) ───────────────────────────────────
 judge0:
   api:
-    url: ${JUDGE0_API_URL:http://localhost:2358}
+    url: ${JUDGE0_API_URL:http://127.0.0.1:2358}
     key: ${JUDGE0_API_KEY:}
 
 # ── Chatbot ───────────────────────────────────────────────────
