@@ -255,7 +255,7 @@ export default function SettingsPage() {
         <div style="margin-bottom: 35px;">
           <h2 style="font-size: 16px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 15px 0; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">3. Professional Skills</h2>
           <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            ${user.skills.split(',').map(skill => `
+            ${user.skills.split(',').map((skill: string) => `
               <span style="background-color: #f1f5f9; color: #334155; font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 6px; border: 1px solid #e2e8f0; display: inline-block;">
                 ${skill.trim()}
               </span>
@@ -440,7 +440,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Email Notifications</span>
                 <span className="text-xs text-muted-foreground">Receive weekly job matches and application updates.</span>
               </div>
-              <Switch checked={emailNotifs} onCheckedChange={(val) => { setEmailNotifs(val); updatePreference("emailNotifications", val); }} />
+              <Switch checked={emailNotifs} onCheckedChange={(val: boolean) => { setEmailNotifs(val); updatePreference("emailNotifications", val); }} />
             </div>
 
             <Separator className="my-2" />
@@ -462,7 +462,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Auto-Save Progress</span>
                 <span className="text-xs text-muted-foreground">Automatically save changes in the resume builder.</span>
               </div>
-              <Switch checked={autoSave} onCheckedChange={(val) => { setAutoSave(val); updatePreference("autoSave", val); }} />
+              <Switch checked={autoSave} onCheckedChange={(val: boolean) => { setAutoSave(val); updatePreference("autoSave", val); }} />
             </div>
 
           </CardContent>
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Public Profile Visibility</span>
                 <span className="text-xs text-muted-foreground">Allow verified recruiters to search and view your academic profile.</span>
               </div>
-              <Switch checked={profileVisible} onCheckedChange={(val) => { setProfileVisible(val); updatePreference("profileVisible", val); }} />
+              <Switch checked={profileVisible} onCheckedChange={(val: boolean) => { setProfileVisible(val); updatePreference("profileVisible", val); }} />
             </div>
 
             <Separator className="my-2" />
@@ -493,7 +493,7 @@ export default function SettingsPage() {
                 <span className="text-sm font-semibold text-foreground">Two-Factor Authentication</span>
                 <span className="text-xs text-muted-foreground">Secure your account with an authentication app verification code.</span>
               </div>
-              <Switch checked={twoFactor} onCheckedChange={(val) => { setTwoFactor(val); updatePreference("twoFactorEnabled", val); }} />
+              <Switch checked={twoFactor} onCheckedChange={(val: boolean) => { setTwoFactor(val); updatePreference("twoFactorEnabled", val); }} />
             </div>
 
           </CardContent>
@@ -596,7 +596,7 @@ export default function SettingsPage() {
                 id="oldPassword"
                 type="password"
                 value={oldPassword}
-                onChange={(e) => setOldPassword(e.target.value)}
+                onChange={(e: any) => setOldPassword(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -605,7 +605,7 @@ export default function SettingsPage() {
                 id="newPassword"
                 type="password"
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={(e: any) => setNewPassword(e.target.value)}
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -614,7 +614,7 @@ export default function SettingsPage() {
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={(e: any) => setConfirmPassword(e.target.value)}
               />
             </div>
             {passwordError && (
@@ -651,7 +651,7 @@ export default function SettingsPage() {
                 id="supportSubject"
                 type="text"
                 value={supportSubject}
-                onChange={(e) => setSupportSubject(e.target.value)}
+                onChange={(e: any) => setSupportSubject(e.target.value)}
                 placeholder="What do you need help with?"
               />
             </div>
@@ -660,7 +660,7 @@ export default function SettingsPage() {
               <Textarea
                 id="supportMessage"
                 value={supportMessage}
-                onChange={(e) => setSupportMessage(e.target.value)}
+                onChange={(e: any) => setSupportMessage(e.target.value)}
                 placeholder="Provide detailed information about the issue..."
                 className="min-h-[120px]"
               />

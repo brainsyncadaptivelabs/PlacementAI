@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 export default function MockInterviewLandingPage() {
   const router = useRouter();
-  const setInterviewData = useInterviewStore((state) => state.setInterviewData);
+  const setInterviewData = useInterviewStore((state: any) => state.setInterviewData);
   
   // Navigation / Mode States
   const [viewMode, setViewMode] = useState<"landing" | "setup">("landing");
@@ -71,7 +71,7 @@ export default function MockInterviewLandingPage() {
 
   const handleSelectResume = async (resumeId: number) => {
     setSelectedResumeId(resumeId);
-    const target = resumes.find(r => r.id === resumeId);
+    const target = resumes.find((r: any) => r.id === resumeId);
     if (target) {
       setSelectedResumeName(target.fileName);
     }
@@ -107,7 +107,7 @@ export default function MockInterviewLandingPage() {
       // Let's call the proper file upload from interviewService
       // Wait, interviewService has no uploadResume, but we can call api.post('/resume/upload')
       const response = await apiUploadResume(file);
-      setResumes(prev => [response.resumeDto, ...prev]);
+      setResumes((prev: any[]) => [response.resumeDto, ...prev]);
       setSelectedResumeId(response.resumeDto?.id || null);
       setSelectedResumeName(file.name);
       setSelectedResumeText(response.extractedText || "");
@@ -229,7 +229,7 @@ export default function MockInterviewLandingPage() {
   const handleBack = () => {
     if (viewMode === "setup") {
       if (currentStep > 1) {
-        setCurrentStep(prev => prev - 1);
+        setCurrentStep((prev: number) => prev - 1);
       } else {
         setViewMode("landing");
       }
@@ -433,7 +433,7 @@ export default function MockInterviewLandingPage() {
                   <div className="space-y-3">
                     <Label className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase">Your Uploaded Resumes ({resumes.length})</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {resumes.map((res) => (
+                      {resumes.map((res: any) => (
                         <div
                           key={res.id}
                           onClick={() => handleSelectResume(res.id)}
