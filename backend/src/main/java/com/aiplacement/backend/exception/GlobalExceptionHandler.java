@@ -67,6 +67,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(CodeExecutionException.class)
+    public ResponseEntity<ApiErrorResponse> handleCodeExecutionException(CodeExecutionException ex) {
+        log.error("[CODING] Code execution error: {}", ex.getMessage());
+
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
         log.error("[SYSTEM_ERROR] Unhandled runtime exception: ", ex);

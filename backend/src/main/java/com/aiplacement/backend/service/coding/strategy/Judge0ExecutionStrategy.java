@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import com.aiplacement.backend.exception.CodeExecutionException;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -75,7 +77,7 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
             return mapResponse(request, judge0Response);
         } catch (Exception e) {
             log.error("[CODING] [JUDGE0] Execution failed for language {}: {}", lang, e.getMessage());
-            throw new RuntimeException("Code execution failed via Judge0: " + e.getMessage(), e);
+            throw new CodeExecutionException("Code execution failed via Judge0: " + e.getMessage(), e);
         }
     }
 
@@ -106,7 +108,7 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
                     .message(response.getMessage())
                     .build();
 
-            // Handle runtime error (statusId >= 7)
+            // Handle runtime error (statusId >= 7 and <= 12)
             if (statusId >= 7 && statusId <= 12) {
                 runResult.setCode(response.getExit_code() != null ? response.getExit_code() : 1);
                 runResult.setStderr(response.getStderr() != null ? response.getStderr() : "Runtime Error (status id: " + statusId + ")");
@@ -115,6 +117,11 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
             if (statusId == 5) {
                 runResult.setCode(124);
                 runResult.setStderr("Time Limit Exceeded");
+            }
+            // Handle Judge0 Internal Errors (statusId >= 13)
+            if (statusId >= 13) {
+                runResult.setCode(1);
+                runResult.setStderr(response.getMessage() != null ? response.getMessage() : "Internal Judge0 Error (status id: " + statusId + ")");
             }
         }
 
