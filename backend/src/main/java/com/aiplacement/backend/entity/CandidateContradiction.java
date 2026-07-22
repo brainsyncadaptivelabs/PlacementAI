@@ -29,4 +29,22 @@ public class CandidateContradiction {
 
     @Column(columnDefinition = "TEXT")
     private String suggestedFollowup;
+
+    @Column(columnDefinition = "TEXT")
+    private String explanation;
+
+    @Column(columnDefinition = "TEXT")
+    private String evidence;
+
+    @Column(name = "matched_resume_section", columnDefinition = "TEXT")
+    private String matchedResumeSection;
+
+    @Column(name = "matched_interview_answer", columnDefinition = "TEXT")
+    private String matchedInterviewAnswer;
+
+    private Double confidence;
+
+    private String status; // e.g. "Needs Human Review"
+
+    private java.time.LocalDateTime timestamp;
 }

@@ -55,8 +55,10 @@ class NvidiaBuildClientTest {
         ApiUsageLogRepository mockRepo = Mockito.mock(ApiUsageLogRepository.class);
         com.aiplacement.backend.logging.AiLoggingService mockAiLogging = Mockito.mock(com.aiplacement.backend.logging.AiLoggingService.class);
         com.aiplacement.backend.monitoring.AiMetrics mockAiMetrics = Mockito.mock(com.aiplacement.backend.monitoring.AiMetrics.class);
+        com.aiplacement.backend.repository.chat.PromptVersionRepository mockPromptVersionRepo = Mockito.mock(com.aiplacement.backend.repository.chat.PromptVersionRepository.class);
+        Mockito.when(mockPromptVersionRepo.findActiveByPromptKey(Mockito.anyString())).thenReturn(java.util.Optional.empty());
 
-        aiClient = new NvidiaBuildClient(webClient, properties, objectMapper, mockRepo, mockAiLogging, mockAiMetrics);
+        aiClient = new NvidiaBuildClient(webClient, properties, objectMapper, mockRepo, mockAiLogging, mockAiMetrics, mockPromptVersionRepo);
     }
 
     @AfterEach

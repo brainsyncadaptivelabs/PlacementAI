@@ -11,6 +11,7 @@ import com.aiplacement.backend.exception.ai.AIProviderException;
 import com.aiplacement.backend.exception.ai.AIRateLimitException;
 import com.aiplacement.backend.exception.ai.AITimeoutException;
 import com.aiplacement.backend.repository.ApiUsageLogRepository;
+import com.aiplacement.backend.repository.chat.PromptVersionRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +63,7 @@ public class NvidiaBuildClient implements AIClient {
     private final ApiUsageLogRepository apiUsageLogRepository;
     private final com.aiplacement.backend.logging.AiLoggingService aiLoggingService;
     private final com.aiplacement.backend.monitoring.AiMetrics aiMetrics;
+    private final PromptVersionRepository promptVersionRepository;
 
     public NvidiaBuildClient(
             WebClient webClient,
@@ -69,7 +71,8 @@ public class NvidiaBuildClient implements AIClient {
             ObjectMapper objectMapper,
             ApiUsageLogRepository apiUsageLogRepository,
             com.aiplacement.backend.logging.AiLoggingService aiLoggingService,
-            com.aiplacement.backend.monitoring.AiMetrics aiMetrics
+            com.aiplacement.backend.monitoring.AiMetrics aiMetrics,
+            PromptVersionRepository promptVersionRepository
     ) {
         this.webClient = webClient;
         this.properties = properties;
@@ -77,6 +80,7 @@ public class NvidiaBuildClient implements AIClient {
         this.apiUsageLogRepository = apiUsageLogRepository;
         this.aiLoggingService = aiLoggingService;
         this.aiMetrics = aiMetrics;
+        this.promptVersionRepository = promptVersionRepository;
     }
 
     // ─── AIClient contract ────────────────────────────────────────────────────
@@ -112,21 +116,21 @@ public class NvidiaBuildClient implements AIClient {
             log.info("NVIDIA responded");
             long latency = System.currentTimeMillis() - start;
             int compLen = (content != null ? content.length() : 0);
-            saveLog(feature, response, latency, "SUCCESS", promptLen, compLen);
+            saveLog(feature, response, latency, "SUCCESS", promptLen, compLen, null);
             log.info("Returning response");
             return content;
 
         } catch (AIAuthenticationException | AIRateLimitException e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0, e.getMessage());
             throw e;
         } catch (AIException e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0, e.getMessage());
             throw e;
         } catch (Exception e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0, e.getMessage());
             throw new AIException("AI generation failed — provider unreachable or returned unexpected response", e);
         } finally {
             log.debug("Request cycle completed for generate()");
@@ -176,7 +180,7 @@ public class NvidiaBuildClient implements AIClient {
             log.info("NVIDIA responded");
             long latency = System.currentTimeMillis() - start;
             int compLen = (rawContent != null ? rawContent.length() : 0);
-            saveLog(feature, response, latency, "SUCCESS", promptLen, compLen);
+            saveLog(feature, response, latency, "SUCCESS", promptLen, compLen, null);
 
             String repairedJson = cleanAndRepairJson(rawContent);
             log.info("Returning response");
@@ -184,11 +188,11 @@ public class NvidiaBuildClient implements AIClient {
 
         } catch (AIAuthenticationException e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0, e.getMessage());
             throw e; // Never fall back on auth errors — operator must fix key
         } catch (Exception e) {
             long latency = System.currentTimeMillis() - start;
-            saveLog(feature, null, latency, "FAILURE", promptLen, 0);
+            saveLog(feature, null, latency, "FAILURE", promptLen, 0, e.getMessage());
             log.warn("[AI] generateJson failed for feature={}, attempting fallback. Reason: {}",
                     feature, e.getClass().getSimpleName());
             try {
@@ -456,7 +460,7 @@ public class NvidiaBuildClient implements AIClient {
 
     // ─── Usage logging ─────────────────────────────────────────────────────────
 
-    private void saveLog(String feature, NvidiaResponse response, long latencyMs, String status, int promptLength, int completionLength) {
+    private void saveLog(String feature, NvidiaResponse response, long latencyMs, String status, int promptLength, int completionLength, String failureReason) {
         try {
             String userEmail = "anonymous@example.com";
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -473,6 +477,14 @@ public class NvidiaBuildClient implements AIClient {
             // Cost estimate: $0.59/M input, $0.59/M output (llama-3.1-70b on NVIDIA)
             double estimatedCost = (promptTokens * 0.00000059) + (completionTokens * 0.00000059);
 
+            String promptVersion = "v1";
+            try {
+                var opt = promptVersionRepository.findActiveByPromptKey(feature.toLowerCase());
+                if (opt.isPresent()) {
+                    promptVersion = "v" + opt.get().getVersionNumber();
+                }
+            } catch (Exception ignored) {}
+
             ApiUsageLog logEntry = ApiUsageLog.builder()
                     .userEmail(userEmail)
                     .featureUsed(feature)
@@ -487,6 +499,8 @@ public class NvidiaBuildClient implements AIClient {
                     .retryCount(0)
                     .promptLength(promptLength)
                     .completionLength(completionLength)
+                    .promptVersion(promptVersion)
+                    .failureReason(failureReason)
                     .build();
 
             apiUsageLogRepository.save(logEntry);

@@ -61,6 +61,12 @@ public class ApiUsageLog {
     @Column(name = "completion_length")
     private Integer completionLength;
 
+    @Column(name = "prompt_version")
+    private String promptVersion;
+
+    @Column(name = "failure_reason", columnDefinition = "TEXT")
+    private String failureReason;
+
     @PrePersist
     protected void onCreate() {
         timestamp = LocalDateTime.now();

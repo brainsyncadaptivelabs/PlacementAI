@@ -33,6 +33,13 @@ public class ContradictionDetectionEngineImpl implements ContradictionDetectionE
                     .severity(conNode.has("severity") ? conNode.get("severity").asText() : "MEDIUM")
                     .relatedQuestions(conNode.has("relatedQuestions") ? conNode.get("relatedQuestions").toString() : "")
                     .suggestedFollowup(conNode.has("suggestedFollowup") ? conNode.get("suggestedFollowup").asText() : "")
+                    .explanation(conNode.has("explanation") ? conNode.get("explanation").asText() : "")
+                    .evidence(conNode.has("evidence") ? conNode.get("evidence").asText() : "")
+                    .matchedResumeSection(conNode.has("matchedResumeSection") ? conNode.get("matchedResumeSection").asText() : "")
+                    .matchedInterviewAnswer(conNode.has("matchedInterviewAnswer") ? conNode.get("matchedInterviewAnswer").asText() : "")
+                    .confidence(conNode.has("confidence") ? conNode.get("confidence").asDouble() : 0.8)
+                    .status("Needs Human Review")
+                    .timestamp(java.time.LocalDateTime.now())
                     .build();
 
             candidateContradictionRepository.save(contradiction);

@@ -69,16 +69,16 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
 
                                 "/v3/api-docs/**",
-                                
-                                "/actuator/**",
 
-                                "/api/v1/profile/public/**",
+                                "/actuator/health",
 
-                                "/api/v1/voice/**",
-
-                                "/voice-test.html"
+                                "/api/v1/profile/public/**"
 
                         ).permitAll()
+
+                        .requestMatchers(
+                                "/actuator/**"
+                        ).hasAnyRole("ADMIN", "SUPER_ADMIN")
 
                         .requestMatchers(
                                 "/api/v1/admin/auth/**"

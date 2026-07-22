@@ -75,7 +75,8 @@ public class AIClientConfig {
             ObjectMapper objectMapper,
             com.aiplacement.backend.repository.ApiUsageLogRepository apiUsageLogRepository,
             com.aiplacement.backend.logging.AiLoggingService aiLoggingService,
-            com.aiplacement.backend.monitoring.AiMetrics aiMetrics
+            com.aiplacement.backend.monitoring.AiMetrics aiMetrics,
+            com.aiplacement.backend.repository.chat.PromptVersionRepository promptVersionRepository
     ) {
         return new NvidiaBuildClient(
                 nvidiaWebClient(),
@@ -83,7 +84,8 @@ public class AIClientConfig {
                 objectMapper,
                 apiUsageLogRepository,
                 aiLoggingService,
-                aiMetrics
+                aiMetrics,
+                promptVersionRepository
         );
     }
 }
