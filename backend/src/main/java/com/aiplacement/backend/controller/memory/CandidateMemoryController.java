@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/memory")
@@ -79,7 +80,11 @@ public class CandidateMemoryController {
                 resumeTrustScore -= 5.0;
             }
         }
+        // AI Governance: only CONFIRMED contradictions affect the placement score.
+        // PENDING_REVIEW contradictions are awaiting human validation and must not
+        // silently penalise a candidate based on unverified AI detections.
         for (CandidateContradiction contradiction : contradictions) {
+            if (ContradictionReviewStatus.CONFIRMED != contradiction.getReviewStatus()) continue;
             if ("HIGH".equalsIgnoreCase(contradiction.getSeverity())) {
                 resumeTrustScore -= 20.0;
                 riskCount += 3;
@@ -98,6 +103,14 @@ public class CandidateMemoryController {
             hiringConfidence = (avgConfidence * 0.7) + (resumeTrustScore * 0.3);
         }
 
+        // Split contradictions by review status for recruiter transparency
+        List<CandidateContradiction> confirmedContradictions = contradictions.stream()
+                .filter(c -> ContradictionReviewStatus.CONFIRMED == c.getReviewStatus())
+                .collect(Collectors.toList());
+        List<CandidateContradiction> pendingContradictions = contradictions.stream()
+                .filter(c -> ContradictionReviewStatus.PENDING_REVIEW == c.getReviewStatus())
+                .collect(Collectors.toList());
+
         Map<String, Object> response = new HashMap<>();
         response.put("userId", userId);
         response.put("fullName", user.getFullName());
@@ -107,7 +120,10 @@ public class CandidateMemoryController {
         response.put("verifiedClaims", verifiedClaims);
         response.put("projectConfidence", projects);
         response.put("skillConfidence", skills);
+        // Full list for audit; split sub-lists for recruiter dashboard
         response.put("contradictions", contradictions);
+        response.put("confirmedContradictions", confirmedContradictions);
+        response.put("pendingReviewContradictions", pendingContradictions);
 
         return ResponseEntity.ok(response);
     }

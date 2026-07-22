@@ -107,6 +107,8 @@ public class SecurityCertificationTest {
         if (rateLimitProperties != null) {
             rateLimitProperties.setChat(new RateLimitProperties.LimitConfig(60, 60));
             rateLimitProperties.setLogin(new RateLimitProperties.LimitConfig(5, 60));
+            // Prevent upload tests from hitting the 10/hr resume rate limit across test runs
+            rateLimitProperties.setResumeUpload(new RateLimitProperties.LimitConfig(100, 3600));
         }
         userRepository.deleteAll();
         // Create student A
@@ -499,12 +501,16 @@ public class SecurityCertificationTest {
     }
 
     // Case 2: EMPTY FILE
+    // A 0-byte upload is rejected by PdfServiceImpl.extractText() (line 33) with
+    // IllegalArgumentException("Uploaded file is empty."), which the controller
+    // now surfaces as 400 Bad Request. This is semantically correct: an empty
+    // file is a client error, not a server error.
     @Test
     void upload_emptyFile() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "resume.pdf", "application/pdf", new byte[0]);
         mockMvc.perform(multipart("/api/v1/resume/extract-text").file(file)
                         .header("Authorization", studentAToken))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     // Case 3: OVERSIZED FILE
@@ -526,12 +532,15 @@ public class SecurityCertificationTest {
     }
 
     // Case 5: DOUBLE EXTENSION
+    // File "resume.pdf.exe" has an unsupported extension (.exe is not .pdf or .docx).
+    // PdfServiceImpl.extractText() line 56 throws IllegalArgumentException("Unsupported file type").
+    // ResumeController now surfaces this as 400 Bad Request — a client error, not a server error.
     @Test
     void upload_doubleExtension() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "resume.pdf.exe", "application/octet-stream", "hostile payload".getBytes());
         mockMvc.perform(multipart("/api/v1/resume/extract-text").file(file)
                         .header("Authorization", studentAToken))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     // Case 6: FAKE PDF CONTENT WITH application/pdf
@@ -544,12 +553,15 @@ public class SecurityCertificationTest {
     }
 
     // Case 7: MIME/EXTENSION MISMATCH
+    // File "fake.png" has an unsupported extension (.png is not .pdf or .docx).
+    // PdfServiceImpl.extractText() line 56 throws IllegalArgumentException("Unsupported file type").
+    // ResumeController now surfaces this as 400 Bad Request — a client error, not a server error.
     @Test
     void upload_mimeExtensionMismatch() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "fake.png", "application/pdf", "malformed".getBytes());
         mockMvc.perform(multipart("/api/v1/resume/extract-text").file(file)
                         .header("Authorization", studentAToken))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     // Case 8: CORRUPTED PDF

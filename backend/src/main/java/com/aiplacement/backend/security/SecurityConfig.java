@@ -72,7 +72,9 @@ public class SecurityConfig {
 
                                 "/actuator/health",
 
-                                "/api/v1/profile/public/**"
+                                "/api/v1/profile/public/**",
+
+                                "/error"
 
                         ).permitAll()
 
@@ -126,6 +128,15 @@ public class SecurityConfig {
                                 "PLACEMENT_OFFICER",
                                 "ADMIN"
                         )
+
+                        .requestMatchers(
+                                "/api/v1/voice/webhook",
+                                "/api/v1/voice/callback"
+                        ).permitAll()
+
+                        .requestMatchers(
+                                "/api/v1/voice/**"
+                        ).authenticated()
 
                         .requestMatchers(
                                 "/api/v1/student/**"

@@ -17,9 +17,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import org.springframework.security.test.context.support.WithMockUser;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@WithMockUser(username = "student@example.com", roles = "STUDENT")
 class NvidiaVoiceInfraTest {
 
     @Autowired

@@ -74,37 +74,35 @@ public class JwtAuthenticationFilter
                             token
                     );
 
-            if (SecurityContextHolder.getContext().getAuthentication() == null) {
-                String role = jwtService.extractRole(token);
-                if (role != null) {
+            String role = jwtService.extractRole(token);
+            if (role != null) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        email,
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                User user = userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
+                if (user != null) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
-                    User user = userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
-                    if (user != null) {
+                    com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
+                    if (admin != null) {
                         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                                 email,
                                 null,
-                                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                                List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
                         );
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
-                    } else {
-                        com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
-                        if (admin != null) {
-                            UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                    email,
-                                    null,
-                                    List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
-                            );
-                            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                            SecurityContextHolder.getContext().setAuthentication(authToken);
-                        }
                     }
                 }
             }

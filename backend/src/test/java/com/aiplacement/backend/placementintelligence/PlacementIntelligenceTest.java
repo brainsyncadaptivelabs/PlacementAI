@@ -1,6 +1,7 @@
 package com.aiplacement.backend.placementintelligence;
 
 import com.aiplacement.backend.dto.shared.PlacementIntelligenceDto;
+import com.aiplacement.backend.placementintelligence.dto.PlacementScoreDto;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.placementintelligence.aptitude.*;
@@ -13,6 +14,7 @@ import com.aiplacement.backend.placementintelligence.prediction.OfferProbability
 import com.aiplacement.backend.placementintelligence.prediction.OfferProbabilityEngine.OfferProbabilityDetails;
 import com.aiplacement.backend.placementintelligence.prediction.PackagePredictionEngine;
 import com.aiplacement.backend.placementintelligence.prediction.PackagePredictionEngine.PackageDetails;
+import com.aiplacement.backend.placementintelligence.scoring.PlacementIntelligenceScoring;
 import com.aiplacement.backend.service.shared.HiringProbabilityService;
 import com.aiplacement.backend.service.shared.RecruiterSummaryServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -22,6 +24,8 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PlacementIntelligenceTest {
+
+    private final PlacementIntelligenceScoring placementIntelligenceScoring = new PlacementIntelligenceScoring();
 
     private final RecruiterSummaryServiceImpl recruiterSummaryService = new RecruiterSummaryServiceImpl();
     private final HiringProbabilityService hiringProbabilityService = new HiringProbabilityService();
@@ -209,5 +213,46 @@ public class PlacementIntelligenceTest {
         System.out.println("Stress test completed successfully. Generated questions: " + totalQuestionsToGenerate);
         System.out.println("Unique fingerprints: " + fingerprints.size() + ", duplicate fingerprints: " + duplicateFingerprints);
         System.out.println("Unique texts: " + generatedTexts.size() + ", duplicate texts: " + duplicateTexts);
+    }
+
+    @Test
+    void testPlacementIntelligenceScoring() {
+        // Test standard scores
+        PlacementScoreDto dto = placementIntelligenceScoring.calculatePlacementScore(
+                80, 80, 80, 80, 80, 20, 80, 80
+        );
+        // resume: 80 * 0.15 = 12
+        // coding: 80 * 0.20 = 16
+        // interview: 80 * 0.20 = 16
+        // communication: 80 * 0.15 = 12
+        // aptitude: 80 * 0.10 = 8
+        // skillGapProficiency: (100 - 20) * 0.10 = 8
+        // consistency: 80 * 0.05 = 4
+        // learningProgress: 80 * 0.05 = 4
+        // Total = 12 + 16 + 16 + 12 + 8 + 8 + 4 + 4 = 80
+        assertEquals(80, dto.getPlacementScore());
+
+        // Test boundary 0
+        PlacementScoreDto zeroDto = placementIntelligenceScoring.calculatePlacementScore(
+                0, 0, 0, 0, 0, 100, 0, 0
+        );
+        assertEquals(0, zeroDto.getPlacementScore());
+
+        // Test boundary 100
+        PlacementScoreDto maxDto = placementIntelligenceScoring.calculatePlacementScore(
+                100, 100, 100, 100, 100, 0, 100, 100
+        );
+        assertEquals(100, maxDto.getPlacementScore());
+
+        // Test negative / out of bounds inputs
+        PlacementScoreDto minBoundedDto = placementIntelligenceScoring.calculatePlacementScore(
+                -50, -50, -50, -50, -50, 200, -50, -50
+        );
+        assertEquals(0, minBoundedDto.getPlacementScore());
+
+        PlacementScoreDto maxBoundedDto = placementIntelligenceScoring.calculatePlacementScore(
+                200, 200, 200, 200, 200, -100, 200, 200
+        );
+        assertEquals(100, maxBoundedDto.getPlacementScore());
     }
 }

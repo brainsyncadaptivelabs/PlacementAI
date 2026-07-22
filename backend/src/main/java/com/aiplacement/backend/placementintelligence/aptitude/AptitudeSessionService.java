@@ -37,9 +37,16 @@ public class AptitudeSessionService {
 
             String json = objectMapper.writeValueAsString(sessionData);
 
+            boolean savedInRedis = false;
             if (redisTemplate != null) {
-                redisTemplate.opsForValue().set(REDIS_PREFIX + sessionId, json, SESSION_TTL_MINUTES, TimeUnit.MINUTES);
-            } else {
+                try {
+                    redisTemplate.opsForValue().set(REDIS_PREFIX + sessionId, json, SESSION_TTL_MINUTES, TimeUnit.MINUTES);
+                    savedInRedis = true;
+                } catch (Exception e) {
+                    // Fall back to local sessions
+                }
+            }
+            if (!savedInRedis) {
                 localSessions.put(sessionId, json);
             }
         } catch (Exception e) {
@@ -51,8 +58,14 @@ public class AptitudeSessionService {
         try {
             String json = null;
             if (redisTemplate != null) {
-                json = redisTemplate.opsForValue().get(REDIS_PREFIX + sessionId);
-            } else {
+                try {
+                    json = redisTemplate.opsForValue().get(REDIS_PREFIX + sessionId);
+                } catch (Exception e) {
+                    // Fall back to local sessions
+                }
+            }
+
+            if (json == null) {
                 json = localSessions.get(sessionId);
             }
 
@@ -82,9 +95,16 @@ public class AptitudeSessionService {
             sessionData.put("submitted", true);
             String json = objectMapper.writeValueAsString(sessionData);
 
+            boolean submittedInRedis = false;
             if (redisTemplate != null) {
-                redisTemplate.opsForValue().set(REDIS_PREFIX + sessionId, json, SESSION_TTL_MINUTES, TimeUnit.MINUTES);
-            } else {
+                try {
+                    redisTemplate.opsForValue().set(REDIS_PREFIX + sessionId, json, SESSION_TTL_MINUTES, TimeUnit.MINUTES);
+                    submittedInRedis = true;
+                } catch (Exception e) {
+                    // Fall back to local sessions
+                }
+            }
+            if (!submittedInRedis) {
                 localSessions.put(sessionId, json);
             }
         } catch (Exception e) {
@@ -94,9 +114,12 @@ public class AptitudeSessionService {
 
     public void removeSession(String sessionId) {
         if (redisTemplate != null) {
-            redisTemplate.delete(REDIS_PREFIX + sessionId);
-        } else {
-            localSessions.remove(sessionId);
+            try {
+                redisTemplate.delete(REDIS_PREFIX + sessionId);
+            } catch (Exception e) {
+                // ignore and clean local
+            }
         }
+        localSessions.remove(sessionId);
     }
 }

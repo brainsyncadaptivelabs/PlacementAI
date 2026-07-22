@@ -37,6 +37,10 @@ public class ResumeController {
                 log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
             }
             return ResponseEntity.ok(text);
+        } catch (IllegalArgumentException e) {
+            // Validation error — empty file, unsupported type, etc. — is a client error
+            log.warn("File validation failed during text extraction: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             log.error("Failed to extract text from file", e);
             return ResponseEntity.status(500).body("Failed to extract text: " + e.getMessage());

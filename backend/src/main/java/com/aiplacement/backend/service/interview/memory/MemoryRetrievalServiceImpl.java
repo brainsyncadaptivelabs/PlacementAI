@@ -1,6 +1,7 @@
 package com.aiplacement.backend.service.interview.memory;
 
 import com.aiplacement.backend.entity.*;
+import com.aiplacement.backend.entity.ContradictionReviewStatus;
 import com.aiplacement.backend.repository.memory.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,15 +49,23 @@ public class MemoryRetrievalServiceImpl implements MemoryRetrievalService {
             sb.append("\n");
         }
 
-        // 3. Retrieve Historical Contradictions
-        List<CandidateContradiction> contradictions = candidateContradictionRepository.findByUser(user);
+        // 3. Retrieve CONFIRMED Contradictions only — PENDING_REVIEW items are unvalidated
+        // AI detections and must not be used as basis for aggressive candidate probing.
+        List<CandidateContradiction> contradictions = candidateContradictionRepository
+                .findByUserAndReviewStatus(user, ContradictionReviewStatus.CONFIRMED);
+        long pendingCount = candidateContradictionRepository
+                .findByUserAndReviewStatus(user, ContradictionReviewStatus.PENDING_REVIEW).size();
+
         if (!contradictions.isEmpty()) {
-            sb.append("Detected Historical Answer Contradictions (Use this to probe reliability):\n");
+            sb.append("Confirmed Answer Contradictions (Use this to probe reliability):\n");
             for (CandidateContradiction cc : contradictions) {
-                sb.append(String.format("- Discrepancy: %s (Severity: %s, Suggested probe question: %s)\n", 
+                sb.append(String.format("- Discrepancy: %s (Severity: %s, Suggested probe question: %s)\n",
                         cc.getContradictionText(), cc.getSeverity(), cc.getSuggestedFollowup()));
             }
             sb.append("\n");
+        }
+        if (pendingCount > 0) {
+            sb.append(String.format("Note: %d potential contradiction(s) are awaiting recruiter review and have not been confirmed.\n\n", pendingCount));
         }
 
         // 4. Retrieve Unasked Follow-ups
