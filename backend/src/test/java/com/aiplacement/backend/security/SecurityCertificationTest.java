@@ -564,13 +564,12 @@ public class SecurityCertificationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // Case 6: FAKE PDF CONTENT WITH application/pdf
     @Test
     void upload_fakePdfContent() throws Exception {
         MockMultipartFile file = new MockMultipartFile("file", "fake.pdf", "application/pdf", "not a real pdf content".getBytes());
         mockMvc.perform(multipart("/api/v1/resume/extract-text").file(file)
                         .header("Authorization", studentAToken))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     // Case 7: MIME/EXTENSION MISMATCH

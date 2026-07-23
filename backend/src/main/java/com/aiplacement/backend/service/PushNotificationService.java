@@ -16,6 +16,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class PushNotificationService {
 
     @Value("${vapid.public.key}")
@@ -54,8 +55,7 @@ public class PushNotificationService {
             Notification notification = new Notification(subscription, payload);
             pushService.send(notification);
         } catch (Exception e) {
-            System.err.println("Failed to send push notification to endpoint: " + sub.getEndpoint());
-            e.printStackTrace();
+            log.error("Failed to send push notification to endpoint: {}", sub.getEndpoint(), e);
         }
     }
 }

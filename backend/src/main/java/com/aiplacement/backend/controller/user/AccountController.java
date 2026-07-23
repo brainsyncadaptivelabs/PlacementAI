@@ -209,7 +209,6 @@ public class AccountController {
             log.info("Email sent successfully");
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
-            ex.printStackTrace();
             throw new RuntimeException("Unable to resend verification email.");
         }
 

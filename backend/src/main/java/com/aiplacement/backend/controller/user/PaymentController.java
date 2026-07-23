@@ -17,6 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 @RestController
 @RequestMapping("/api/v1/payment")
+@lombok.extern.slf4j.Slf4j
 public class PaymentController {
 
     private final UserRepository userRepository;
@@ -105,7 +106,7 @@ public class PaymentController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            System.out.println("[PaymentController] Razorpay order creation failed: " + e.getMessage() + ". Defaulting to Mock Order Sandbox Mode.");
+            log.warn("[PaymentController] Razorpay order creation failed: {}. Defaulting to Mock Order Sandbox Mode.", e.getMessage());
             
             String mockOrderId = "order_mock_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14);
             Map<String, Object> response = new HashMap<>();
@@ -156,16 +157,18 @@ public class PaymentController {
         // Mock verification validation
         if (orderId.startsWith("order_mock_") || keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy") || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret)) {
             isVerified = true;
-            System.out.println("[PaymentController] Mock verification success for order ID: " + orderId);
+            log.info("[PaymentController] Mock verification success for order ID: {}", orderId);
         } else {
             try {
                 String data = orderId + "|" + paymentId;
                 String calculatedSignature = calculateHmacSha256(data, keySecret);
-                if (calculatedSignature.equals(signature)) {
+                if (calculatedSignature != null && signature != null && java.security.MessageDigest.isEqual(
+                        calculatedSignature.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                        signature.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
                     isVerified = true;
                 }
             } catch (Exception e) {
-                System.err.println("[PaymentController] Signature verification failed: " + e.getMessage());
+                log.error("[PaymentController] Signature verification failed", e);
             }
         }
 
