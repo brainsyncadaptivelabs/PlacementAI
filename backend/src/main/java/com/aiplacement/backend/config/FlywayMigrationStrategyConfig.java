@@ -23,25 +23,13 @@ public class FlywayMigrationStrategyConfig {
 
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
-        // Do nothing on startup, letting Hibernate create/update the tables first
-        return flyway -> {};
-    }
-
-    @Bean
-    public ApplicationRunner flywayRunner(org.springframework.beans.factory.ObjectProvider<Flyway> flywayProvider) {
-        return args -> {
-            Flyway flyway = flywayProvider.getIfAvailable();
-            if (flyway == null) {
-                System.out.println("[FlywayConfig] Flyway is disabled. Skipping post-startup migration.");
-                return;
-            }
-
+        return flyway -> {
             int maxRetries = 15;
             int delayMs = 3000;
             boolean hasHistory = false;
             boolean connected = false;
 
-            System.out.println("[FlywayConfig] Starting post-startup database readiness check and migration...");
+            System.out.println("[FlywayConfig] Starting database readiness check and migration...");
             
             try {
                 for (int i = 1; i <= maxRetries; i++) {
@@ -77,7 +65,7 @@ public class FlywayMigrationStrategyConfig {
                 throw new RuntimeException(e);
             }
             
-            // Execute standard migrations/validation
+            // Execute standard migrations/validation before Hibernate validation
             System.out.println("[FlywayConfig] Running Flyway migrations...");
             flyway.migrate();
             System.out.println("[FlywayConfig] Flyway migration complete.");
