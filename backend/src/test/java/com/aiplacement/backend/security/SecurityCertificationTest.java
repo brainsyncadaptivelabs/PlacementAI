@@ -168,7 +168,7 @@ public class SecurityCertificationTest {
         "/api/v1/admin/users, STUDENT, 403",
         "/api/v1/admin/users, RECRUITER, 403",
         "/api/v1/admin/users, PLACEMENT_OFFICER, 403",
-        "/api/v1/intelligence/me, ANONYMOUS, 403"
+        "/api/v1/intelligence/me, ANONYMOUS, 401"
     })
     void roleAuthorizationMatrixTest(String route, String actor, int expectedStatus) throws Exception {
         String token = null;
@@ -404,12 +404,33 @@ public class SecurityCertificationTest {
                 .andExpect(status().isForbidden());
     }
 
+    // ─── ACTUATOR SECURITY VERIFICATION ────────────────────────────────────────
+
+    @Test
+    void actuator_healthPublic() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void actuator_prometheusUnauthenticatedReturns401() throws Exception {
+        mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void actuator_prometheusStudentForbiddenReturns403() throws Exception {
+        mockMvc.perform(get("/actuator/prometheus")
+                        .header("Authorization", studentAToken))
+                .andExpect(status().isForbidden());
+    }
+
     // ─── TASK 5: JWT ADVERSARIAL TESTS ─────────────────────────────────────────
 
     @Test
     void jwtAdversarial_noToken() throws Exception {
         mockMvc.perform(get("/api/v1/intelligence/me"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
