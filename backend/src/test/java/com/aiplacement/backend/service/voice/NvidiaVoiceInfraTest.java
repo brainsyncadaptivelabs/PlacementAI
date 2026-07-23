@@ -22,7 +22,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@WithMockUser(username = "student@example.com", roles = "STUDENT")
+@WithMockUser(username = "student@example.com", roles = "ADMIN")
 class NvidiaVoiceInfraTest {
 
     @Autowired

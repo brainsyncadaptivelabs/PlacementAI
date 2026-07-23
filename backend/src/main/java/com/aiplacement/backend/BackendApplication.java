@@ -3,6 +3,9 @@ package com.aiplacement.backend;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
@@ -12,12 +15,13 @@ import java.util.List;
 
 @SpringBootApplication
 @EnableCaching
-@org.springframework.scheduling.annotation.EnableScheduling
+@EnableScheduling
 public class BackendApplication {
+    private static final Logger log = LoggerFactory.getLogger(BackendApplication.class);
 
     public static void main(String[] args) {
-        loadEnv();
         detectAndSetProfile(args);
+        loadEnv();
         SpringApplication.run(BackendApplication.class, args);
     }
 
@@ -46,30 +50,27 @@ public class BackendApplication {
             }
         }
 
-        if (System.getProperty("spring.profiles.active") == null 
-                && System.getenv("SPRING_PROFILES_ACTIVE") == null 
-                && !hasActiveProfileArg) {
+        if (System.getProperty("spring.profiles.active") == null &&
+                System.getenv("SPRING_PROFILES_ACTIVE") == null &&
+                !hasActiveProfileArg) {
             System.setProperty("spring.profiles.active", profile);
         }
-        
-        System.out.println("=================================================");
-        System.out.println("ADAPTIVE PERFORMANCE DETECTION");
-        System.out.println("System RAM: " + totalMemoryGB + " GB");
-        System.out.println("System Cores: " + cores);
-        System.out.println("Active Profile: " + System.getProperty("spring.profiles.active"));
-        System.out.println("=================================================");
+
+        log.info("=================================================");
+        log.info("ADAPTIVE PERFORMANCE DETECTION");
+        log.info("System RAM: {} GB", totalMemoryGB);
+        log.info("System Cores: {}", cores);
+        log.info("Active Profile: {}", System.getProperty("spring.profiles.active"));
+        log.info("=================================================");
     }
 
     private static void loadEnv() {
-        String[] possiblePaths = {
-            "backend/.env",
-            ".env",
-            "../.env"
-        };
+        log.info("[FlywayConfig] Starting database readiness check and migration...");
+        String[] possiblePaths = {"backend/.env", ".env", "../.env"};
         for (String pathStr : possiblePaths) {
             Path envPath = Paths.get(pathStr);
             if (Files.exists(envPath)) {
-                System.out.println("Loading environment variables from: " + envPath.toAbsolutePath());
+                log.info("Loading environment variables from: {}", envPath.toAbsolutePath());
                 try {
                     List<String> lines = Files.readAllLines(envPath);
                     for (String line : lines) {
@@ -81,8 +82,7 @@ public class BackendApplication {
                         if (eqIdx > 0) {
                             String key = line.substring(0, eqIdx).trim();
                             String value = line.substring(eqIdx + 1).trim();
-                            // Strip quotes if any
-                            if (value.startsWith("\"") && value.endsWith("\"")) {
+                            if (value.startsWith("\"") && value.endsWith("\"") ) {
                                 value = value.substring(1, value.length() - 1);
                             } else if (value.startsWith("'") && value.endsWith("'")) {
                                 value = value.substring(1, value.length() - 1);
@@ -93,10 +93,9 @@ public class BackendApplication {
                         }
                     }
                 } catch (IOException e) {
-                    System.err.println("Failed to load environment file " + pathStr + ": " + e.getMessage());
+                    log.error("Failed to load environment file {}: {}", pathStr, e.getMessage(), e);
                 }
             }
         }
     }
 }
-

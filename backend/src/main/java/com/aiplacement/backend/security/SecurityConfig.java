@@ -71,12 +71,16 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
 
                                 "/actuator/health",
-
-                                "/api/v1/profile/public/**",
-
-                                "/error"
+                                 "/actuator/info",
+                                 "/api/v1/profile/public/**",
+                                 "/error"
 
                         ).permitAll()
+
+                        .requestMatchers(
+                                 "/actuator/health",
+                                 "/actuator/info"
+                         ).permitAll()
 
                         .requestMatchers(
                                 "/actuator/**"
@@ -132,11 +136,11 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/v1/voice/webhook",
                                 "/api/v1/voice/callback"
-                        ).permitAll()
+                        ).hasRole("ADMIN")
 
                         .requestMatchers(
-                                "/api/v1/voice/**"
-                        ).authenticated()
+                                 "/api/v1/voice/**"
+                         ).hasRole("ADMIN")
 
                         .requestMatchers(
                                 "/api/v1/student/**"
@@ -209,14 +213,12 @@ public CorsConfigurationSource corsConfigurationSource() {
             "OPTIONS"
     ));
 
-    configuration.setAllowedHeaders(List.of("*"));
+    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
 
-    configuration.setExposedHeaders(List.of(
-            "Authorization",
-            "Content-Type"
-    ));
-
-    configuration.setAllowCredentials(true);
+     configuration.setExposedHeaders(List.of(
+                                 "Authorization",
+                                 "Content-Type"
+                         ));configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
