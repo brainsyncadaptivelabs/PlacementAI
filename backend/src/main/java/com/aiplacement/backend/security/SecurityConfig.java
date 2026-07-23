@@ -152,14 +152,10 @@ public class SecurityConfig {
 
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
-                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"message\":\"Full authentication is required to access this resource.\",\"status\":401}");
+                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED, "Full authentication is required to access this resource.");
                         })
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
-                            response.setContentType("application/json");
-                            response.getWriter().write("{\"message\":\"Access denied. You do not have permission to access this resource.\",\"status\":403}");
+                            response.sendError(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN, "Access denied. You do not have permission to access this resource.");
                         })
                 )
                 .addFilterBefore(
