@@ -77,8 +77,9 @@ public class AccountController {
         // Clean up any existing deletion requests
         deleteAccountVerificationRepository.deleteByUserId(user.getId());
 
-        // Hardcoded OTP for local dev bypass
-        String otp = "1234";
+        // Generate new 4-digit OTP
+        SecureRandom secureRandom = new SecureRandom();
+        String otp = String.format("%04d", secureRandom.nextInt(10000));
         log.info("Generated OTP {}", otp);
 
         DeleteAccountVerification verification = DeleteAccountVerification.builder()
@@ -99,7 +100,10 @@ public class AccountController {
             log.info("Email sent successfully");
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
-            log.warn("DEVELOPMENT MODE: Bypassing email failure. User can use OTP: 1234");
+            // In case of email failure, do not save the verification and return an error
+            deleteAccountVerificationRepository.delete(verification);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new DeleteResponseDto(false, "Failed to send verification email. Please check the email server configuration."));
         }
 
         return ResponseEntity.ok(new DeleteResponseDto(true, "Verification code sent."));
@@ -192,8 +196,9 @@ public class AccountController {
         }
         verification.setLastResendAt(now);
 
-        // Hardcoded OTP for local dev bypass
-        String otp = "1234";
+        // Generate new 4-digit OTP
+        SecureRandom secureRandom = new SecureRandom();
+        String otp = String.format("%04d", secureRandom.nextInt(10000));
         log.info("Generated OTP {}", otp);
 
         verification.setOtpHash(passwordEncoder.encode(otp));
@@ -208,7 +213,8 @@ public class AccountController {
             log.info("Email sent successfully");
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
-            log.warn("DEVELOPMENT MODE: Bypassing email failure. User can use OTP: 1234");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new DeleteResponseDto(false, "Failed to resend verification email. Please check the email server configuration."));
         }
 
         return ResponseEntity.ok(new DeleteResponseDto(true, "New verification code sent to your email."));
