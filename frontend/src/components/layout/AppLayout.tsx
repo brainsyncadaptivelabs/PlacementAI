@@ -64,12 +64,6 @@ export function AppLayout({ children, role }: AppLayoutProps) {
         return;
       }
 
-      // Enforce billing for students (FREE plan users must upgrade)
-      if (user.role === "STUDENT" && user.plan === "FREE" && pathname !== "/dashboard/billing") {
-        router.push("/dashboard/billing");
-        return;
-      }
-
       // Role check & mismatch resolution
       const userRole = normalizeRole(user.role);
       const targetRole = normalizeRole(role);
