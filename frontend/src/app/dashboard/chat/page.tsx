@@ -1442,7 +1442,7 @@ export default function ChatPage() {
                 )}
 
                 <div 
-                  className="relative flex items-center bg-white dark:bg-card border border-[#dbe3ef] transition-all px-4 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:border-indigo-500/50 gap-3"
+                  className="relative flex items-center bg-white dark:bg-card border border-[#dbe3ef] transition-all px-4 shadow-sm gap-3"
                   style={{ height: "58px", minHeight: "58px", maxHeight: "58px", borderRadius: "18px", width: "100%" }}
                 >
                   <input 
