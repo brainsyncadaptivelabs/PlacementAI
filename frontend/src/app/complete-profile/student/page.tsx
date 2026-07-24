@@ -49,7 +49,7 @@ export default function CompleteStudentProfile() {
     try {
       await api.post("/profile/student", formData);
       await mutate();
-      router.push("/success/student");
+      router.push("/dashboard/billing");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));
     } finally {
