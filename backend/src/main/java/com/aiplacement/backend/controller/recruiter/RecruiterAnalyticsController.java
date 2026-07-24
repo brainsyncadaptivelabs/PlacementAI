@@ -26,6 +26,7 @@ public class RecruiterAnalyticsController {
     private final UserRepository userRepository;
 
     @Operation(deprecated = true, summary = "Deprecated endpoint – use /api/v1/recruiters/analytics instead.")
+    @Deprecated(since = "2.2", forRemoval = true)
     @GetMapping
     public ResponseEntity<RecruiterAnalyticsDto> getAnalytics(HttpServletRequest request) {
         log.warn("DEPRECATED endpoint accessed: {}", request.getRequestURI());

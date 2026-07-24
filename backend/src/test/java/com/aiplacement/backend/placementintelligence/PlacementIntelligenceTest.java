@@ -1,6 +1,5 @@
 package com.aiplacement.backend.placementintelligence;
 
-import com.aiplacement.backend.dto.shared.PlacementIntelligenceDto;
 import com.aiplacement.backend.placementintelligence.dto.PlacementScoreDto;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.Role;

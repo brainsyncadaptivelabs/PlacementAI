@@ -32,6 +32,7 @@ public class RecruiterDashboardController {
     private final PlacementAnalyticsCompiler analyticsCompiler;
 
     @Operation(deprecated = true, summary = "Deprecated endpoint – use /api/v1/recruiters/dashboard instead.")
+    @Deprecated(since = "2.2", forRemoval = true)
     @GetMapping
     public ResponseEntity<PlacementAnalyticsDto> getDashboardStats(HttpServletRequest request) {
         log.warn("DEPRECATED endpoint accessed: {}", request.getRequestURI());

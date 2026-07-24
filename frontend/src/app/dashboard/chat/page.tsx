@@ -1514,7 +1514,7 @@ export default function ChatPage() {
                       whileTap={input.trim() ? { scale: 0.95 } : {}}
                       className={`h-8 px-3.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shrink-0 cursor-pointer font-bold text-xs whitespace-nowrap ${
                         (input.trim() || uploadedAttachments.length > 0) && !isLoading 
-                        ? 'bg-indigo-650 hover:bg-indigo-750 text-white shadow-sm' 
+                        ? 'bg-indigo-650 hover:bg-indigo-750 text-black shadow-sm' 
                         : 'bg-transparent text-slate-400'
                       }`}
                     >
