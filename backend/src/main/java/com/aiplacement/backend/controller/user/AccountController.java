@@ -92,16 +92,14 @@ public class AccountController {
                 .expiresAt(LocalDateTime.now().plusMinutes(5))
                 .build();
 
-        deleteAccountVerificationRepository.save(verification);
-
         log.info("Sending deletion OTP to {}", user.getEmail());
         try {
             emailService.sendDeleteAccountOtpEmail(user.getEmail(), user.getFullName(), otp);
             log.info("Email sent successfully");
+            deleteAccountVerificationRepository.save(verification);
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
             // In case of email failure, do not save the verification and return an error
-            deleteAccountVerificationRepository.delete(verification);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new DeleteResponseDto(false, "Failed to send verification email. Please check the email server configuration."));
         }
@@ -205,12 +203,11 @@ public class AccountController {
         verification.setExpiresAt(now.plusMinutes(5));
         verification.setAttempts(0);
 
-        deleteAccountVerificationRepository.save(verification);
-
         log.info("Sending deletion OTP to {}", user.getEmail());
         try {
             emailService.sendDeleteAccountOtpEmail(user.getEmail(), user.getFullName(), otp);
             log.info("Email sent successfully");
+            deleteAccountVerificationRepository.save(verification);
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
