@@ -117,14 +117,9 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
     }
 
     private static String resolveBaseUrl(Judge0Properties properties) {
-        if (properties.getUrl() != null && !properties.getUrl().isBlank()) {
-            return properties.getUrl();
-        }
-        if (properties.getApi() != null && properties.getApi().getUrl() != null && !properties.getApi().getUrl().isBlank()) {
-            return properties.getApi().getUrl();
-        }
-        return "http://localhost:2358";
+        return properties.getNormalizedUrl();
     }
+
 
     @PostConstruct
     public void validateStartupConfig() {

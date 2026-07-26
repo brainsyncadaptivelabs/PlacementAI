@@ -24,6 +24,25 @@ public class Judge0Properties {
      */
     private Api api = new Api();
 
+    public String getNormalizedUrl() {
+        String raw = url;
+        if (raw == null || raw.isBlank()) {
+            if (api != null && api.getUrl() != null && !api.getUrl().isBlank()) {
+                raw = api.getUrl();
+            } else {
+                raw = "http://localhost:2358";
+            }
+        }
+        raw = raw.trim();
+        if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
+            raw = "http://" + raw;
+        }
+        if (raw.endsWith("/")) {
+            raw = raw.substring(0, raw.length() - 1);
+        }
+        return raw;
+    }
+
     /**
      * Timeout configurations for HTTP WebClient
      */

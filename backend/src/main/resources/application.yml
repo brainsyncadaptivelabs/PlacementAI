@@ -70,10 +70,11 @@ spring:
   # ── Redis ────────────────────────────────────────────────
   data:
     redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
+      host: ${REDIS_HOST:${REDISHOST:localhost}}
+      port: ${REDIS_PORT:${REDISPORT:6379}}
+      password: ${REDIS_PASSWORD:${REDISPASSWORD:}}
 
-  # ── Email ────────────────────────────────────────────────
+# ── Email ────────────────────────────────────────────────
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
     port: ${MAIL_PORT:587}
@@ -145,11 +146,12 @@ nvidia:
 
 # ── Code Execution (Judge0) ───────────────────────────────────
 judge0:
-  url: ${JUDGE0_API_URL:http://127.0.0.1:2358}
-  key: ${JUDGE0_API_KEY:}
+  url: ${JUDGE0_URL:${JUDGE0_API_URL:${JUDGE0_HOST:http://127.0.0.1:2358}}}
+  key: ${JUDGE0_API_KEY:${JUDGE0_KEY:}}
   api:
-    url: ${JUDGE0_API_URL:http://127.0.0.1:2358}
-    key: ${JUDGE0_API_KEY:}
+    url: ${JUDGE0_URL:${JUDGE0_API_URL:${JUDGE0_HOST:http://127.0.0.1:2358}}}
+    key: ${JUDGE0_API_KEY:${JUDGE0_KEY:}}
+
   timeout:
     connect-ms: ${JUDGE0_CONNECT_TIMEOUT_MS:5000}
     read-ms: ${JUDGE0_READ_TIMEOUT_MS:10000}

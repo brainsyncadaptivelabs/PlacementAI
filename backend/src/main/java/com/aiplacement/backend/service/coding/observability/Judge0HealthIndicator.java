@@ -61,10 +61,9 @@ public class Judge0HealthIndicator implements HealthIndicator {
     }
 
     private String resolveJudge0Url() {
-        if (properties.getUrl() != null && !properties.getUrl().isBlank()) return properties.getUrl();
-        if (properties.getApi() != null && properties.getApi().getUrl() != null) return properties.getApi().getUrl();
-        return "http://localhost:2358";
+        return properties.getNormalizedUrl();
     }
+
 
     private String resolveApiKey() {
         if (properties.getKey() != null && !properties.getKey().isBlank()) return properties.getKey();
