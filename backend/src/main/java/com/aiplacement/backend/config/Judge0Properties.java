@@ -34,14 +34,12 @@ public class Judge0Properties {
             }
         }
         raw = raw.trim();
-        if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
-            raw = "http://" + raw;
-        }
         if (raw.endsWith("/")) {
             raw = raw.substring(0, raw.length() - 1);
         }
         return raw;
     }
+
 
     /**
      * Timeout configurations for HTTP WebClient
