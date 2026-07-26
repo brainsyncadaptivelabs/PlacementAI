@@ -75,9 +75,7 @@ export function EditProfileDialog({
       if (fileInputRef.current?.files?.[0]) {
         const imageFormData = new FormData();
         imageFormData.append("file", fileInputRef.current.files[0]);
-        await api.post("/profile/upload-image", imageFormData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
+        await api.post("/profile/upload-image", imageFormData);
       }
 
       await api.put("/profile/update", {

@@ -168,9 +168,7 @@ export default function ProfileDashboard() {
     formData.append("file", file);
 
     try {
-      await api.post("/resume/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post("/resume/upload", formData);
       toast.success("Resume uploaded successfully!");
       // Optionally mutate user or fetch latest resume
     } catch (error) {

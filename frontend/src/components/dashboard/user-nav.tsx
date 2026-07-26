@@ -52,9 +52,7 @@ export function UserNav() {
     formData.append("file", file);
 
     try {
-      await api.post("/profile/upload-image", formData, {
-        headers: { "Content-Type": "multipart/form-data" }
-      });
+      await api.post("/profile/upload-image", formData);
       window.location.reload();
     } catch (error) {
       console.error("Upload failed", error);

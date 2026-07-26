@@ -127,11 +127,7 @@ export default function MockInterviewLandingPage() {
     const formData = new FormData();
     formData.append("file", file);
     const api = (await import("@/lib/api")).default;
-    const response = await api.post('/resume/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
+    const response = await api.post('/resume/upload', formData);
     // Stub a resumeDto mapping if backend returned AtsResponseDto
     return {
       ...response.data,

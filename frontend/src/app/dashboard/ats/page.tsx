@@ -80,11 +80,7 @@ export default function ResumeATSPage() {
     setError("");
 
     try {
-      const response = await api.post("/resume/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const response = await api.post("/resume/upload", formData);
       setAnalysisResult(response.data);
       localStorage.setItem("latest_ats_analysis", JSON.stringify(response.data));
       setIsAnalyzed(true);
