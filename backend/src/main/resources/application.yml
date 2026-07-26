@@ -173,6 +173,15 @@ management:
   endpoint:
     health:
       show-details: always
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    diskspace:
+      enabled: true
+    mail:
+      enabled: false
   metrics:
     export:
       prometheus:
@@ -190,6 +199,7 @@ management:
       probability: 1.0
     otlp:
       endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
+
 
 # ── Chatbot ───────────────────────────────────────────────────
 chatbot:
@@ -215,25 +225,6 @@ admin:
 # ── Frontend ─────────────────────────────────────────────────
 frontend:
   url: ${FRONTEND_URL:http://localhost:3000}
-
-# ── Actuator / Management ────────────────────────────────────
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,prometheus
-  endpoint:
-    health:
-      show-details: when-authorized
-      probes:
-        enabled: true
-  health:
-    redis:
-      enabled: false
-    mail:
-      enabled: false
-    diskspace:
-      enabled: false
 
 # ── Web Push (VAPID) ─────────────────────────────────────────
 vapid:
