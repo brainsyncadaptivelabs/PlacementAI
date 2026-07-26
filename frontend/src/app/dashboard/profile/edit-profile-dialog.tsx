@@ -134,6 +134,45 @@ export function EditProfileDialog({
     } as React.CSSProperties;
   };
 
+  const calculateProfileCompletion = () => {
+    if (!user) return 0;
+    
+    let fields: any[] = [];
+    if (user.role === "STUDENT") {
+      fields = [
+        user.fullName,
+        user.email,
+        user.phone,
+        user.collegeName,
+        user.branch,
+        user.graduationYear,
+        user.dateOfBirth,
+        user.skills,
+        user.linkedinUrl,
+        user.githubUrl,
+        user.leetcodeUrl,
+        user.profileImage
+      ];
+    } else {
+      fields = [
+        user.fullName,
+        user.email,
+        user.phone,
+        user.designation,
+        user.linkedinUrl,
+        user.profileImage
+      ];
+    }
+    
+    const completedFields = fields.filter(field => {
+      if (typeof field === 'string') return field.trim().length > 0;
+      if (typeof field === 'number') return field > 0;
+      return field !== null && field !== undefined;
+    });
+    
+    return Math.round((completedFields.length / fields.length) * 100);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent style={getThemeVariables()} className={`w-full h-full sm:h-auto sm:max-w-5xl sm:w-[90vw] max-h-screen sm:max-h-[90vh] overflow-y-auto sm:overflow-hidden p-0 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 ${user?.role === 'PLACEMENT_OFFICER' ? 'dark text-slate-100' : ''}`}>
@@ -188,9 +227,12 @@ export function EditProfileDialog({
                 <span>Profile Completion</span>
               </div>
               <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div className="h-full bg-[var(--theme-color)] w-[85%] rounded-full"></div>
+                <div 
+                  className="h-full bg-[var(--theme-color)] rounded-full transition-all duration-500 ease-out" 
+                  style={{ width: `${calculateProfileCompletion()}%` }}
+                ></div>
               </div>
-              <div className="text-sm font-bold text-[var(--theme-color)]">85% <span className="text-muted-foreground font-medium">Complete</span></div>
+              <div className="text-sm font-bold text-[var(--theme-color)]">{calculateProfileCompletion()}% <span className="text-muted-foreground font-medium">Complete</span></div>
             </div>
 
             {/* Why Complete Profile */}
