@@ -66,6 +66,8 @@ public class UserController {
                 .twoFactorEnabled(user.getTwoFactorEnabled())
                 .language(user.getLanguage())
                 .skills(user.getSkills())
+                .phone(user.getPhone())
+                .designation(user.getDesignation())
                 .createdAt(user.getCreatedAt())
                 .build());
     }
