@@ -35,6 +35,7 @@ public class CodingExecution {
     private int retryCount;
 
     private java.time.LocalDateTime webhookReceivedAt;
+    private java.time.LocalDateTime updatedAt;
 
     @Column(columnDefinition = "TEXT")
     private String input;
