@@ -220,37 +220,41 @@ export function EditProfileDialog({
               </div>
             </div>
 
-            {/* Profile Completion */}
-            <div className="space-y-2 w-full">
-              <div className="flex justify-between items-center text-sm font-semibold text-slate-700 dark:text-slate-200">
-                <span>Profile Completion</span>
-              </div>
-              <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-[var(--theme-color)] rounded-full transition-all duration-500 ease-out" 
-                  style={{ width: `${calculateProfileCompletion()}%` }}
-                ></div>
-              </div>
-              <div className="text-sm font-bold text-[var(--theme-color)]">{calculateProfileCompletion()}% <span className="text-muted-foreground font-medium">Complete</span></div>
-            </div>
+            {calculateProfileCompletion() < 100 && (
+              <>
+                {/* Profile Completion */}
+                <div className="space-y-2 w-full">
+                  <div className="flex justify-between items-center text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <span>Profile Completion</span>
+                  </div>
+                  <div className="h-2 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-[var(--theme-color)] rounded-full transition-all duration-500 ease-out" 
+                      style={{ width: `${calculateProfileCompletion()}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-sm font-bold text-[var(--theme-color)]">{calculateProfileCompletion()}% <span className="text-muted-foreground font-medium">Complete</span></div>
+                </div>
 
-            {/* Why Complete Profile */}
-            <div className="bg-[var(--theme-color-5)] dark:bg-[var(--theme-color-10)] border border-[var(--theme-color-20)] dark:border-[var(--theme-color-20)] rounded-2xl p-5 space-y-4 shadow-sm">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
-                <Star className="w-4 h-4 text-amber-400 fill-amber-400" /> Why complete your profile?
-              </div>
-              <div className="space-y-3">
-                <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {user?.role === "STUDENT" ? "Get better AI recommendations" : "Keep your account information up to date"}
+                {/* Why Complete Profile */}
+                <div className="bg-[var(--theme-color-5)] dark:bg-[var(--theme-color-10)] border border-[var(--theme-color-20)] dark:border-[var(--theme-color-20)] rounded-2xl p-5 space-y-4 shadow-sm">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    <Star className="w-4 h-4 text-amber-400 fill-amber-400" /> Why complete your profile?
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {user?.role === "STUDENT" ? "Get better AI recommendations" : "Keep your account information up to date"}
+                    </div>
+                    <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {user?.role === "STUDENT" ? "Increase mock interview matches" : "Build trust with students and partners"}
+                    </div>
+                    <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {user?.role === "STUDENT" ? "Improve placement opportunities" : "Enhance your platform experience"}
+                    </div>
+                  </div>
                 </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {user?.role === "STUDENT" ? "Increase mock interview matches" : "Build trust with students and partners"}
-                </div>
-                <div className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" /> {user?.role === "STUDENT" ? "Improve placement opportunities" : "Enhance your platform experience"}
-                </div>
-              </div>
-            </div>
+              </>
+            )}
 
             {/* Decorative SVG Placeholder */}
             <div className="mt-auto pt-4 flex justify-center opacity-80">
