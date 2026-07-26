@@ -92,7 +92,7 @@ export function EditProfileDialog({
         designation: formData.designation
       });
 
-      await mutate();
+      await mutate(true);
       toast.success("Profile updated successfully!");
       onOpenChange(false);
     } catch (err) {
@@ -142,7 +142,6 @@ export function EditProfileDialog({
       fields = [
         user.fullName,
         user.email,
-        user.phone,
         user.collegeName,
         user.branch,
         user.graduationYear,
