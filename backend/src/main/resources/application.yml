@@ -145,9 +145,51 @@ nvidia:
 
 # ── Code Execution (Judge0) ───────────────────────────────────
 judge0:
+  url: ${JUDGE0_API_URL:http://127.0.0.1:2358}
+  key: ${JUDGE0_API_KEY:}
   api:
     url: ${JUDGE0_API_URL:http://127.0.0.1:2358}
     key: ${JUDGE0_API_KEY:}
+  timeout:
+    connect-ms: ${JUDGE0_CONNECT_TIMEOUT_MS:5000}
+    read-ms: ${JUDGE0_READ_TIMEOUT_MS:10000}
+    write-ms: ${JUDGE0_WRITE_TIMEOUT_MS:5000}
+    response-ms: ${JUDGE0_RESPONSE_TIMEOUT_MS:10000}
+  limits:
+    cpu-time-limit: ${JUDGE0_CPU_TIME_LIMIT:5.0}
+    wall-time-limit: ${JUDGE0_WALL_TIME_LIMIT:10.0}
+    memory-limit: ${JUDGE0_MEMORY_LIMIT:262144}
+    stack-limit: ${JUDGE0_STACK_LIMIT:64000}
+    max-processes-and-or-threads: ${JUDGE0_MAX_PROCESSES:60}
+    max-file-size: ${JUDGE0_MAX_FILE_SIZE:2048}
+    max-output-size: ${JUDGE0_MAX_OUTPUT_SIZE:10240}
+
+# ── Spring Boot Actuator & Observability ──────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus,env,loggers"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        judge0.execution.time: true
+        judge0.compilation.time: true
+        judge0.api.latency: true
+    tags:
+      application: placementai-backend
+  tracing:
+    sampling:
+      probability: 1.0
+    otlp:
+      endpoint: ${OTLP_ENDPOINT:http://localhost:4318/v1/traces}
 
 # ── Chatbot ───────────────────────────────────────────────────
 chatbot:

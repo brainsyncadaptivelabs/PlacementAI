@@ -13,4 +13,7 @@ public interface CodingExecutionRepository extends JpaRepository<CodingExecution
     List<CodingExecution> findByCodingSubmissionAndPassedTrue(CodingSubmission submission);
     List<CodingExecution> findByCodingSubmissionAndPassedFalse(CodingSubmission submission);
     long countByCodingSubmissionAndPassedTrue(CodingSubmission submission);
+
+    java.util.Optional<CodingExecution> findByJudge0Token(String judge0Token);
+    List<CodingExecution> findByExecutionStateIn(List<com.aiplacement.backend.entity.coding.ExecutionStatus> states);
 }

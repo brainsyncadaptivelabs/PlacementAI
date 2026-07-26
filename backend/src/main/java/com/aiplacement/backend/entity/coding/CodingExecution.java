@@ -26,6 +26,16 @@ public class CodingExecution {
 
     private int testCaseOrdinal;
 
+    @Column(name = "judge0_token", length = 64)
+    private String judge0Token;
+
+    @Enumerated(EnumType.STRING)
+    private ExecutionStatus executionState;
+
+    private int retryCount;
+
+    private java.time.LocalDateTime webhookReceivedAt;
+
     @Column(columnDefinition = "TEXT")
     private String input;
 

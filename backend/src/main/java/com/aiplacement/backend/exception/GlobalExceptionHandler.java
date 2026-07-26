@@ -67,6 +67,39 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(Judge0UnavailableException.class)
+    public ResponseEntity<ApiErrorResponse> handleJudge0UnavailableException(Judge0UnavailableException ex) {
+        log.error("[CODING] [JUDGE0] Service unavailable: {}", ex.getMessage());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
+    @ExceptionHandler(ExecutionTimeoutException.class)
+    public ResponseEntity<ApiErrorResponse> handleExecutionTimeoutException(ExecutionTimeoutException ex) {
+        log.warn("[CODING] [JUDGE0] Execution timeout: {}", ex.getMessage());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.GATEWAY_TIMEOUT.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.GATEWAY_TIMEOUT);
+    }
+
+    @ExceptionHandler(Judge0BadRequestException.class)
+    public ResponseEntity<ApiErrorResponse> handleJudge0BadRequestException(Judge0BadRequestException ex) {
+        log.warn("[CODING] [JUDGE0] Bad request: {}", ex.getMessage());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(CodeExecutionException.class)
     public ResponseEntity<ApiErrorResponse> handleCodeExecutionException(CodeExecutionException ex) {
         log.error("[CODING] Code execution error: {}", ex.getMessage());

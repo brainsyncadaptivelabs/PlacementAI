@@ -36,6 +36,12 @@ public class CodingSubmission {
 
     private String status;  // ACCEPTED, WRONG_ANSWER, TIME_LIMIT_EXCEEDED, COMPILE_ERROR, RUNTIME_ERROR, PLAGIARISM_FLAGGED
 
+    @Enumerated(EnumType.STRING)
+    private ExecutionStatus executionState; // QUEUED, COMPILING, RUNNING, FINISHED, FAILED, TIMEOUT, CANCELLED
+
+    @Version
+    private Integer version;
+
     private Integer passedTests;
     private Integer totalTests;
     private Integer passRate;          // 0-100 percentage
