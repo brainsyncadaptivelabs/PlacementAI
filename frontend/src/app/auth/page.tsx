@@ -1069,7 +1069,7 @@ export default function AuthPage() {
         
         {/* Left Branding Panel */}
         <div className="auth-left-panel">
-          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className={`absolute w-28 md:w-36 lg:w-48 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer ${selectedRole === 'PLACEMENT_OFFICER' ? '-top-8' : 'top-2 md:top-6'} -right-12 md:-right-20 lg:-right-28 z-20`} />
+          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className={`absolute w-28 md:w-32 lg:w-40 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer ${selectedRole === 'PLACEMENT_OFFICER' ? '-top-4' : 'top-4'} right-2 md:right-6 z-20`} />
           
           <div className="left-panel-logo-container w-full" style={{ alignItems: 'flex-start' }}>
             <div className="flex gap-3 relative z-10">
@@ -1085,13 +1085,13 @@ export default function AuthPage() {
             </div>
           </div>
 
-          <h1 className="left-panel-headline">
+          <h1 className="left-panel-headline pr-24 lg:pr-32">
             Your AI-Powered<br />
             {selectedRole === "RECRUITER" ? <span>Recruitment</span> : selectedRole === "PLACEMENT_OFFICER" ? <span>Placement Office</span> : <span>Placement</span>} 
             {selectedRole === "RECRUITER" ? " Partner" : selectedRole === "PLACEMENT_OFFICER" ? " Partner" : " Partner"}
           </h1>
 
-          <p className="left-panel-description">
+          <p className="left-panel-description pr-24 lg:pr-32">
             {selectedRole === "RECRUITER" 
               ? "Streamline hiring, find the right talent faster, and build high-performing teams with AI." 
               : selectedRole === "PLACEMENT_OFFICER" 
