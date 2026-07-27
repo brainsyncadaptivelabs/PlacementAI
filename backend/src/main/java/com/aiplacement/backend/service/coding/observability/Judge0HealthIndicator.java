@@ -34,7 +34,8 @@ public class Judge0HealthIndicator implements HealthIndicator {
                 spec = spec.header("X-Auth-Token", apiKey);
             }
 
-            Map response = spec.retrieve()
+            @SuppressWarnings("unchecked")
+            Map<String, Object> response = spec.retrieve()
                     .bodyToMono(Map.class)
                     .block(Duration.ofSeconds(3));
 

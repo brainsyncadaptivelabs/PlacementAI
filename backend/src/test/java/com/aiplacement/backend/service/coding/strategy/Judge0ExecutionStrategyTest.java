@@ -4,7 +4,6 @@ import com.aiplacement.backend.config.Judge0Properties;
 import com.aiplacement.backend.dto.coding.CodeExecutionRequest;
 import com.aiplacement.backend.dto.coding.CodeExecutionResponse;
 import com.aiplacement.backend.exception.Judge0BadRequestException;
-import com.aiplacement.backend.exception.Judge0UnavailableException;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;

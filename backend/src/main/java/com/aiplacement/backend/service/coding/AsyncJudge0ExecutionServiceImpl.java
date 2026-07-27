@@ -92,7 +92,8 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
                     spec = spec.header("X-Auth-Token", apiKey);
                 }
 
-                Map responseBody = spec.retrieve()
+                @SuppressWarnings("unchecked")
+                Map<String, Object> responseBody = spec.retrieve()
                         .bodyToMono(Map.class)
                         .block();
 
@@ -148,7 +149,7 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
         String decodedStdout = safeBase64Decode(payload.getStdout());
         String decodedStderr = safeBase64Decode(payload.getStderr());
         String decodedCompileOutput = safeBase64Decode(payload.getCompile_output());
-        String decodedMessage = safeBase64Decode(payload.getMessage());
+        // decodedMessage is unused, removed to fix warning
 
         int statusId = payload.getStatus() != null ? payload.getStatus().getId() : 3;
         String verdict = "ACCEPTED";
