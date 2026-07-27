@@ -1069,7 +1069,7 @@ export default function AuthPage() {
         
         {/* Left Branding Panel */}
         <div className="auth-left-panel">
-          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className={`absolute w-32 md:w-40 xl:w-52 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer ${selectedRole === 'PLACEMENT_OFFICER' ? '-top-8' : 'top-0 md:top-4'} ${selectedRole === 'STUDENT' ? '-right-4 md:-right-8 xl:-right-12' : 'right-0 md:right-4'}`} style={{ zIndex: 20 }} />
+          <img src="/robot-graduation-transparent.png" alt="PlacementAI Robot" className={`absolute w-28 md:w-36 lg:w-48 h-auto drop-shadow-2xl transition-all duration-300 hover:-translate-y-6 hover:scale-110 cursor-pointer ${selectedRole === 'PLACEMENT_OFFICER' ? '-top-8' : 'top-2 md:top-6'} -right-12 md:-right-20 lg:-right-28 z-20`} />
           
           <div className="left-panel-logo-container w-full" style={{ alignItems: 'flex-start' }}>
             <div className="flex gap-3 relative z-10">
