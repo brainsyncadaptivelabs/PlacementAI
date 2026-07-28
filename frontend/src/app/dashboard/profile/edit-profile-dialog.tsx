@@ -92,7 +92,7 @@ export function EditProfileDialog({
         designation: formData.designation
       });
 
-      await mutate(true);
+      await mutate();
       toast.success("Profile updated successfully!");
       onOpenChange(false);
     } catch (err) {
