@@ -107,6 +107,7 @@ export async function GET(request: Request) {
     let backendRole = 'STUDENT'; // safe default
     let placementToken: string | null = null;
     let backendErrorType: string | null = null;
+    let profileCompleted = false;
 
     try {
       const backendResponse = await fetch(`${API_URL}/auth/google`, {
@@ -123,6 +124,7 @@ export async function GET(request: Request) {
         console.log("[PlacementAI OAuth] backend response keys:", Object.keys(backendData));
         
         placementToken = backendData.accessToken;
+        profileCompleted = backendData.profileCompleted ?? false;
         
         console.log("[PlacementAI OAuth] PlacementAI token exists:", Boolean(placementToken));
         console.log("[PlacementAI OAuth] backend role:", backendData.role);
@@ -171,7 +173,10 @@ export async function GET(request: Request) {
     console.log("[PlacementAI OAuth] role attached:", destination.searchParams.get("_role"));
     console.log("[PlacementAI OAuth] redirect pathname:", destination.pathname);
 
-    return NextResponse.redirect(destination.toString());
+    const response = NextResponse.redirect(destination.toString());
+    response.cookies.set('placementai_role', backendRole, { path: '/', maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', secure: true });
+    response.cookies.set('placementai_profile_completed', String(profileCompleted), { path: '/', maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', secure: true });
+    return response;
 
   } catch (err) {
     console.error('[AUTH_CALLBACK] Uncaught error:', err);
