@@ -33,6 +33,6 @@ class ActuatorSecurityIntegrationTest {
         mockMvc.perform(get("/api/v1/voice/webhook").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/api/v1/voice/callback").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

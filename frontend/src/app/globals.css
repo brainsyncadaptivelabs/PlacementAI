@@ -496,6 +496,8 @@ html {
 html, body {
   max-width: 100vw;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 /* Responsive Table fallback for all standard HTML tables */
@@ -514,10 +516,49 @@ table {
 
 /* fluid typography utility */
 .fluid-heading-1 {
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.8rem, 5vw, 3.5rem) !important;
 }
 .fluid-heading-2 {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-size: clamp(1.4rem, 4vw, 2.5rem) !important;
+}
+.fluid-heading-3 {
+  font-size: clamp(1.1rem, 2.5vw, 1.75rem) !important;
+}
+.fluid-text-sm {
+  font-size: clamp(0.75rem, 1vw, 0.875rem) !important;
+}
+.fluid-text-base {
+  font-size: clamp(0.875rem, 1.2vw, 1rem) !important;
+}
+.fluid-text-lg {
+  font-size: clamp(1rem, 1.5vw, 1.125rem) !important;
+}
+
+/* Fluid Spacing Utilities */
+.fluid-p {
+  padding: clamp(12px, 2vw, 32px) !important;
+}
+.fluid-p-sm {
+  padding: clamp(8px, 1.5vw, 16px) !important;
+}
+.fluid-p-lg {
+  padding: clamp(16px, 3vw, 48px) !important;
+}
+.fluid-m {
+  margin: clamp(12px, 2vw, 32px) !important;
+}
+.fluid-gap {
+  gap: clamp(12px, 2vw, 24px) !important;
+}
+.fluid-rounded {
+  border-radius: clamp(12px, 2vw, 24px) !important;
+}
+
+/* Fluid Grid System */
+.fluid-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)) !important;
+  gap: clamp(12px, 2vw, 24px) !important;
 }
 
 /* Ensure images always scale gracefully */

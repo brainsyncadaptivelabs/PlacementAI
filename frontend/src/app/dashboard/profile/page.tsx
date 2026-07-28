@@ -193,7 +193,7 @@ export default function ProfileDashboard() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Top Banner */}
-      <div className="bg-[#1e4a8c] px-8 py-10 text-white w-full">
+      <div className="bg-[#1e4a8c] px-[clamp(16px,4vw,32px)] py-[clamp(24px,4vh,48px)] text-white w-full">
         <div className="max-w-6xl mx-auto space-y-8">
           
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -239,7 +239,7 @@ export default function ProfileDashboard() {
           </div>
 
           {/* Grid for Email, Profiles, Skills */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-white/10 pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-[clamp(16px,3vw,32px)] border-t border-white/10 pt-6">
             <div className="space-y-6">
                <div className="flex flex-col gap-1">
                  <p className="text-xs font-semibold text-white/60 tracking-wider uppercase">Email ID</p>
@@ -325,8 +325,8 @@ export default function ProfileDashboard() {
       </div>
 
       {/* Main Content Dashboard */}
-      <div className="flex-1 p-8 max-w-6xl mx-auto w-full space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="flex-1 fluid-p max-w-6xl mx-auto w-full fluid-gap flex flex-col">
+        <div className="fluid-grid">
            
            {/* Activity Card */}
            <Card className="col-span-1 border-border/50 shadow-sm">

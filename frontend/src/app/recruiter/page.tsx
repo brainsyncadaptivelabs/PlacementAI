@@ -55,8 +55,8 @@ export default function RecruiterDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8 font-sans">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="fluid-p fluid-gap flex flex-col font-sans">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-[clamp(12px,2vw,24px)]">
         <div>
           <h1 className="text-3xl font-black text-foreground tracking-tight font-heading flex items-center gap-2">
             <Briefcase className="h-8 w-8 text-primary" /> ATS Dashboard
@@ -72,14 +72,14 @@ export default function RecruiterDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="fluid-grid">
         <AnalyticsCard title="Total Students" value={stats?.totalStudents || 0} />
         <AnalyticsCard title="Eligible Students" value={stats?.eligibleStudents || 0} />
         <AnalyticsCard title="Total Applications" value={stats?.totalApplications || 0} />
         <AnalyticsCard title="Offers Extended" value={stats?.offersExtended || 0} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="fluid-grid">
         <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle>Hiring Funnel</CardTitle>
@@ -126,7 +126,7 @@ export default function RecruiterDashboard() {
              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
              AI Recruiter Intelligence
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-[clamp(16px,2.5vw,32px)]">
              <Card className="lg:col-span-2 border-border bg-card">
                 <CardHeader>
                    <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -141,7 +141,7 @@ export default function RecruiterDashboard() {
                       const reason = shortlist ? shortlist.reasoning : candidate.reason;
 
                       return (
-                         <div key={candidate.userId || idx} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 rounded-xl border border-border bg-muted/30">
+                         <div key={candidate.userId || idx} className="flex flex-col md:flex-row justify-between items-start md:items-center gap-[clamp(12px,1.5vw,20px)] p-[clamp(12px,1.5vw,20px)] rounded-xl border border-border bg-muted/30">
                             <div>
                                <div className="flex items-center gap-2">
                                   <span className="font-bold text-foreground">{idx + 1}. {candidate.name}</span>

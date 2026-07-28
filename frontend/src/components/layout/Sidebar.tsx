@@ -71,7 +71,7 @@ export function Sidebar({ role }: SidebarProps) {
       } as React.CSSProperties}
       className={role === "RECRUITER" ? "border-r-0 dark:border-r dark:border-border" : "border-r border-border"}
     >
-      <SidebarHeader className="h-[80px] w-full flex items-center justify-center shrink-0 p-0">
+      <SidebarHeader className="h-[clamp(64px,10vh,80px)] w-full flex items-center justify-center shrink-0 p-0">
         <Link 
           href={(roleMenus[role]?.[0]?.url || "/")} 
           className="h-full w-[90%] flex items-center justify-center gap-3 m-auto p-0 scale-75 origin-center transition-opacity duration-200 hover:opacity-85"
@@ -82,7 +82,7 @@ export function Sidebar({ role }: SidebarProps) {
           </span>
         </Link>
       </SidebarHeader>
-      <SidebarContent className="px-3 py-4 overflow-y-auto space-y-4">
+      <SidebarContent className="px-[clamp(8px,1.5vw,16px)] py-[clamp(12px,2vw,24px)] overflow-y-auto space-y-4">
         {role === "STUDENT" ? (
           studentMenuGroups.map((group, idx) => (
             <div key={group.title || idx} className="space-y-1">

@@ -58,8 +58,8 @@ export default function PlacementOfficerDashboard() {
   }
 
   return (
-    <div className="p-8 space-y-8 font-sans">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="fluid-p fluid-gap flex flex-col font-sans">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-[clamp(12px,2vw,24px)]">
         <div>
           <h1 className="text-3xl font-black text-foreground tracking-tight font-heading flex items-center gap-2">
             <GraduationCap className="h-8 w-8 text-primary" /> Placement Officer Analytics
@@ -68,14 +68,14 @@ export default function PlacementOfficerDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="fluid-grid">
         <AnalyticsCard title="Total Students" value={data?.totalStudents || 0} />
         <AnalyticsCard title="Eligible Students" value={data?.eligibleStudents || 0} />
         <AnalyticsCard title="Total Applications" value={data?.totalApplications || 0} />
         <AnalyticsCard title="Offers Extended" value={data?.offersExtended || 0} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="fluid-grid">
         <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Score Averages</CardTitle>
@@ -146,7 +146,7 @@ export default function PlacementOfficerDashboard() {
              <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse" />
              AI Placement Officer Intelligence
           </h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-[clamp(16px,2.5vw,32px)]">
              <Card className="border-border bg-card">
                 <CardHeader>
                    <CardTitle className="text-md font-bold">Branch Performance Leaderboard</CardTitle>
@@ -199,13 +199,13 @@ export default function PlacementOfficerDashboard() {
              </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="fluid-grid">
              <Card className="border-border bg-card">
                 <CardHeader>
                    <CardTitle className="text-md font-bold">Batch Placement Forecasts</CardTitle>
                    <CardDescription>Predictive conversion stats.</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-4">
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                    <div className="p-4 rounded-xl border border-border bg-muted/20">
                       <div className="text-[10px] font-black text-muted-foreground/60 uppercase">Expected Placements</div>
                       <div className="text-xl font-black text-foreground mt-1">{officerIntel.forecast?.expectedPlacements} Students</div>

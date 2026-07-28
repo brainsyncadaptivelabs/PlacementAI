@@ -414,9 +414,9 @@ export default function SuperAdminPortal() {
       case "dashboard":
         if (!dashboardData) return null;
         return (
-          <div className="space-y-8">
+          <div className="fluid-gap flex flex-col">
             {/* KPI Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="fluid-grid">
               {[
                 { label: "Total Users", value: dashboardData.totalUsers, icon: Users, color: "text-blue-500", bg: "bg-blue-500/10" },
                 { label: "Online Users", value: dashboardData.onlineUsers, icon: Activity, color: "text-emerald-500", bg: "bg-emerald-500/10" },
@@ -443,9 +443,9 @@ export default function SuperAdminPortal() {
                 );
               })}
             </div>
-
+ 
             {/* Visual Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="fluid-grid">
               <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-lg font-bold text-slate-800">Weekly User Growth</CardTitle>
@@ -1263,9 +1263,9 @@ export default function SuperAdminPortal() {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900 font-sans">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50 text-slate-900 font-sans">
       {/* Sidebar navigation */}
-      <aside className="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between flex-shrink-0">
+      <aside className="w-full lg:w-64 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col lg:justify-between flex-shrink-0">
         <div className="p-6">
           <div className="flex items-center gap-3 border-b border-slate-800 pb-6 mb-6">
             <div className="p-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-600/20">

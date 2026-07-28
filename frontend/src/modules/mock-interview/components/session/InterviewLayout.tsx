@@ -23,7 +23,7 @@ export const InterviewLayout = ({ controls }: InterviewLayoutProps) => {
     (interviewData.role && interviewData.role.toLowerCase().includes("dsa"));
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-7xl mx-auto px-4 py-6">
+    <div className="flex flex-col gap-[clamp(16px,2vw,32px)] w-full max-w-screen-2xl mx-auto px-[clamp(12px,2vw,32px)] py-[clamp(16px,3vw,32px)]">
       <div className="flex flex-col md:flex-row items-stretch justify-between gap-4">
         <div className="flex-1">
           <ProgressBar />
@@ -33,9 +33,9 @@ export const InterviewLayout = ({ controls }: InterviewLayoutProps) => {
         </div>
       </div>
 
-      <div className={isCodingRound ? "grid grid-cols-1 lg:grid-cols-12 gap-6" : "flex flex-col gap-6"}>
+      <div className={isCodingRound ? "grid grid-cols-1 lg:grid-cols-12 gap-[clamp(16px,2vw,32px)]" : "flex flex-col gap-[clamp(16px,2vw,32px)]"}>
         {/* Left Side / Main Interview Panel */}
-        <div className={isCodingRound ? "lg:col-span-6 flex flex-col gap-6" : "flex flex-col gap-6 max-w-3xl mx-auto w-full"}>
+        <div className={isCodingRound ? "lg:col-span-6 flex flex-col gap-[clamp(16px,2vw,32px)]" : "flex flex-col gap-[clamp(16px,2vw,32px)] max-w-3xl mx-auto w-full"}>
           <QuestionPanel />
           <VoiceController />
           <TranscriptPanel />

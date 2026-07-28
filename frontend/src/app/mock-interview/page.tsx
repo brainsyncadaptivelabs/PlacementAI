@@ -303,7 +303,7 @@ export default function MockInterviewLandingPage() {
               </h2>
               <p className="text-xs text-muted-foreground mt-1">Select a focused track to practice core skills with customized state trees.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="fluid-grid">
               {interviewTypes.map((module) => (
                 <Card key={module.id} className="flex flex-col justify-between border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur hover:border-primary/50 hover:shadow-xl transition-all duration-300 shadow-md">
                   <CardHeader className="pb-3">
@@ -336,7 +336,7 @@ export default function MockInterviewLandingPage() {
               </h2>
               <p className="text-xs text-muted-foreground mt-1">Practice interview formats tailored for top tech and consulting firms.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="fluid-grid">
               {companies.map((company) => (
                 <Card key={company.id} className="flex flex-col justify-between border-slate-200 dark:border-slate-800/60 bg-white/95 dark:bg-[#0c1831]/95 backdrop-blur hover:border-primary/50 hover:shadow-xl transition-all duration-300 shadow-md">
                   <CardHeader className="pb-3">
@@ -428,7 +428,7 @@ export default function MockInterviewLandingPage() {
                 ) : resumes.length > 0 ? (
                   <div className="space-y-3">
                     <Label className="text-xs font-black text-slate-900 dark:text-slate-100 uppercase">Your Uploaded Resumes ({resumes.length})</Label>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="fluid-grid">
                       {resumes.map((res: any) => (
                         <div
                           key={res.id}

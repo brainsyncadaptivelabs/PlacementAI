@@ -130,6 +130,7 @@ function ResumeEditor() {
   const [leftSidebarWidth, setLeftSidebarWidth] = useState(320);
   const [isLeftDragging, setIsLeftDragging] = useState(false);
   const [leftExpanded, setLeftExpanded] = useState(true);
+  const [mobileActiveTab, setMobileActiveTab] = useState<"edit" | "preview" | "copilot">("edit");
 
   useEffect(() => {
     const savedWidth = localStorage.getItem("placementai_coach_sidebar_width");
@@ -1523,17 +1524,50 @@ Risk: <e.g., Low or None>
         </header>
       )}
 
+      {/* Mobile Tab switcher */}
+      {!focusMode && (
+        <div className="md:hidden sticky top-[64px] z-30 bg-white border-b border-border flex justify-around py-2 px-4 shadow-sm shrink-0">
+          <button
+            onClick={() => setMobileActiveTab("edit")}
+            className={cn(
+              "px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider",
+              mobileActiveTab === "edit" ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            ✍️ Edit
+          </button>
+          <button
+            onClick={() => setMobileActiveTab("preview")}
+            className={cn(
+              "px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider",
+              mobileActiveTab === "preview" ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            👁️ Preview
+          </button>
+          <button
+            onClick={() => setMobileActiveTab("copilot")}
+            className={cn(
+              "px-4 py-1.5 rounded-lg text-xs font-bold transition-all uppercase tracking-wider",
+              mobileActiveTab === "copilot" ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            🤖 AI Coach
+          </button>
+        </div>
+      )}
+
       {/* Main Workspace flex layout */}
       {!focusMode && (
-        <div className="flex-1 flex gap-0 p-0 h-[calc(100vh-64px)] overflow-hidden w-full max-w-none bg-slate-50">
+        <div className="flex-1 flex flex-col md:flex-row gap-0 p-0 h-[calc(100vh-64px)] md:h-[calc(100vh-64px)] overflow-hidden w-full max-w-none bg-slate-50">
           
           {/* 1. EDITOR PANEL: Left Resizable */}
           <div 
             style={leftExpanded ? { width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${leftSidebarWidth}px` : undefined } : undefined}
             className={cn(
-              "h-full flex flex-col overflow-hidden shrink-0 z-10 bg-white",
+              "h-full flex flex-col overflow-hidden shrink-0 z-10 bg-white w-full lg:w-auto",
               !isLeftDragging && "transition-all duration-300",
-              leftExpanded ? "w-full md:w-[40%] lg:w-auto opacity-100" : "w-0 opacity-0 pointer-events-none hidden lg:block"
+              leftExpanded ? (mobileActiveTab === "edit" ? "flex" : "hidden md:flex") : "hidden lg:block w-0 opacity-0 pointer-events-none"
             )}
           >
             {/* Section tabs */}
@@ -2146,7 +2180,8 @@ Risk: <e.g., Low or None>
 
           {/* 2. DOME PREVIEW WORKSPACE: Middle panel (takes remaining space on desktop, 60% tablet, hidden on mobile) */}
           <div id="resume-preview-panel" className={cn(
-            "hidden md:flex flex-col h-full overflow-hidden relative transition-all duration-300 flex-grow"
+            "h-full overflow-hidden relative transition-all duration-300 flex-grow flex-col",
+            mobileActiveTab === "preview" ? "flex w-full" : "hidden md:flex"
           )}>
             {/* Dynamic A4 Preview Toolbar */}
             <div className="h-12 shrink-0 bg-card border-b border-border flex items-center justify-between px-6 select-none">
@@ -2284,12 +2319,13 @@ Risk: <e.g., Low or None>
 
                 <div 
                   ref={aiPanelRef}
-                  style={aiExpanded ? { width: window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined } : undefined}
+                  style={aiExpanded ? { width: typeof window !== 'undefined' && window.innerWidth >= 1024 ? `${sidebarWidth}px` : undefined } : undefined}
                   className={cn(
-                    "fixed right-4 top-24 bottom-4 z-40 flex flex-col overflow-hidden lg:static lg:right-0 lg:top-0 lg:h-full shrink-0 bg-white text-slate-900",
+                    "flex-col overflow-hidden shrink-0 bg-white text-slate-900",
                     !isDragging && "transition-all duration-300",
-                    aiExpanded ? "translate-x-0 opacity-100" : "translate-x-full opacity-0 pointer-events-none lg:hidden",
-                    !aiExpanded && "w-0"
+                    aiExpanded 
+                      ? (mobileActiveTab === "copilot" ? "flex w-full h-full static" : "hidden lg:flex fixed right-4 top-24 bottom-4 z-40 translate-x-0 opacity-100")
+                      : "hidden"
                   )}
                 >
                   {/* Sticky Fixed Header */}

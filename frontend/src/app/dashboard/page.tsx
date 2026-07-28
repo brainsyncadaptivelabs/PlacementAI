@@ -119,7 +119,7 @@ export default function PerfectStudentPortal() {
   }), [stats, profile]);
 
   return (
-    <div className={`p-8 space-y-8 font-sans ${perfProfile === 'low' ? 'no-animations' : ''}`}>
+    <div className={`fluid-p fluid-gap flex flex-col font-sans ${perfProfile === 'low' ? 'no-animations' : ''}`}>
       {(statsError || storeError) && (
         <div className="bg-red-500/10 border border-red-500/20 text-red-500 px-4 py-3 rounded-2xl flex items-center justify-between text-xs font-bold shadow-sm backdrop-blur-md">
           <div className="flex items-center gap-2">
@@ -133,8 +133,8 @@ export default function PerfectStudentPortal() {
       )}
 
       {/* Hero Welcome Section */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 bg-slate-900 rounded-[2rem] p-8 lg:p-12 text-white relative overflow-hidden shadow-md">
-         <div className="relative z-10 space-y-6 lg:max-w-2xl">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-[clamp(16px,3vw,32px)] bg-slate-900 rounded-[clamp(16px,2vw,32px)] fluid-p text-white relative overflow-hidden shadow-md">
+         <div className="relative z-10 space-y-[clamp(12px,2vw,24px)] lg:max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/10 border border-transparent text-primary text-[10px] font-black uppercase tracking-widest">
                <Sparkles className="w-3 h-3" /> Ready for the next leap?
             </div>
@@ -165,10 +165,10 @@ export default function PerfectStudentPortal() {
          <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -ml-20 -mb-20" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-         <div className="lg:col-span-2 space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-[clamp(16px,2.5vw,32px)]">
+         <div className="lg:col-span-2 space-y-[clamp(16px,2.5vw,32px)]">
             {stats ? (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="fluid-grid">
                   <Card className="flex flex-col justify-between h-full">
                      <div className="flex-1 flex flex-col justify-between">
                         <div className="flex justify-between items-center mb-6">
@@ -226,7 +226,7 @@ export default function PerfectStudentPortal() {
                   </Card>
                </div>
             ) : (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <div className="fluid-grid">
                   <div className="h-56 animate-pulse bg-muted/20 rounded-3xl" />
                   <div className="h-56 animate-pulse bg-muted/20 rounded-3xl" />
                </div>
@@ -387,12 +387,12 @@ export default function PerfectStudentPortal() {
                               </li>
                            ))}
                         </ul>
-                     </div>
+                      </div>
 
                      {/* Week-by-Week detailed roadmap */}
                      <div className="border-t border-border pt-6 space-y-4">
                         <div className="text-xs font-black uppercase tracking-widest text-muted-foreground/60">Personalized Learning Roadmap</div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="fluid-grid">
                            {placementIntel.detailedRoadmap?.map((item: string, idx: number) => (
                               <div key={idx} className="bg-muted/40 border border-border/60 rounded-xl p-4 space-y-2">
                                  <div className="text-[10px] font-black text-primary uppercase tracking-widest">Week {idx + 1}</div>

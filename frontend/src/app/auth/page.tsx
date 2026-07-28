@@ -1041,6 +1041,79 @@ export default function AuthPage() {
         .col-span-2 {
           grid-column: span 2;
         }
+
+        @media (max-width: 1024px) {
+          .auth-main-container {
+            flex-direction: column;
+            height: auto;
+            min-height: 100vh;
+            background: var(--auth-bg-gradient);
+          }
+          
+          .auth-main-container::before {
+            display: none;
+          }
+
+          .auth-left-panel {
+            width: 100%;
+            padding: clamp(16px, 3vw, 32px);
+            align-items: center;
+            text-align: center;
+          }
+          
+          .left-panel-logo-container {
+            justify-content: center !important;
+            align-items: center !important;
+          }
+          
+          .left-panel-logo-container .flex {
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+          }
+
+          .left-panel-headline {
+            font-size: clamp(24px, 5vw, 32px) !important;
+            padding: 0 !important;
+            margin-top: 16px;
+          }
+
+          .left-panel-description {
+            padding: 0 !important;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: clamp(12px, 2vw, 14px) !important;
+          }
+
+          .features-list {
+            display: none;
+          }
+
+          .auth-left-panel img {
+            display: none;
+          }
+
+          .auth-right-panel {
+            width: 100%;
+            height: auto;
+            margin: 0;
+            padding: clamp(12px, 2vw, 24px);
+          }
+
+          .auth-card {
+            padding: clamp(16px, 3vw, 32px);
+            max-width: 100%;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .signup-form-grid {
+            grid-template-columns: 1fr;
+          }
+          .signup-form-grid > div {
+            grid-column: span 1 !important;
+          }
+        }
       `}</style>
 
       {/* Alerts */}
@@ -1376,7 +1449,7 @@ export default function AuthPage() {
               </form>
               
               <div className="auth-top-nav">
-                Don&apos;t have an account? <button onClick={() => { setActiveTab('signup'); setError(''); }}>Sign up</button>
+                Don&apos;t have an account? <button type="button" onClick={() => { setActiveTab('signup'); setError(''); }}>Sign up</button>
               </div>
               <div className="global-footer">
                 <div>© 2026 PlacementAI. All rights reserved.</div>
@@ -1592,7 +1665,7 @@ export default function AuthPage() {
                   </button>
                   
                   <div className="auth-top-nav font-medium" style={{ marginTop: '12px', marginBottom: '8px' }}>
-                    Already have an account? <button onClick={() => { setActiveTab('login'); setError(''); }} className="text-purple-600 hover:text-purple-700">Sign in</button>
+                    Already have an account? <button type="button" onClick={() => { setActiveTab('login'); setError(''); }} className="text-purple-600 hover:text-purple-700">Sign in</button>
                   </div>
                   
 

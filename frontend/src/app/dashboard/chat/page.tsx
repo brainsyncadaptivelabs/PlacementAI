@@ -1416,13 +1416,12 @@ export default function ChatPage() {
               )}
             </main>
 
-            {/* ChatGPT-Style Centered Input Area */}
-            <div className="w-full shrink-0 py-3 pb-4 relative z-10 select-none bg-background">
-              <div className="max-w-[96%] mx-auto px-6 relative">
+              <div className="w-full shrink-0 py-3 pb-4 relative z-10 select-none bg-background">
+              <div className="max-w-[96%] mx-auto px-[clamp(8px,1.5vw,24px)] relative flex flex-col gap-2">
                 
                 {/* Upload attachment pre-views */}
                 {(uploadedAttachments.length > 0 || Object.keys(uploadingFiles).length > 0) && (
-                  <div className="absolute -top-20 left-6 flex flex-wrap gap-3.5 animate-in fade-in slide-in-from-bottom-2 z-20">
+                  <div className="flex flex-wrap gap-2 animate-in fade-in slide-in-from-bottom-2 z-20 mb-2">
                     {uploadedAttachments.map((att) => (
                       <FileUploadPreview 
                         key={att.id} 
@@ -1440,10 +1439,10 @@ export default function ChatPage() {
                     ))}
                   </div>
                 )}
-
+ 
                 <div 
-                  className="relative flex items-center bg-white dark:bg-card border border-[#dbe3ef] transition-all px-4 shadow-sm gap-3"
-                  style={{ height: "58px", minHeight: "58px", maxHeight: "58px", borderRadius: "18px", width: "100%" }}
+                  className="relative flex items-center bg-white dark:bg-card border border-[#dbe3ef] transition-all px-4 shadow-sm gap-3 py-2"
+                  style={{ minHeight: "58px", borderRadius: "18px", width: "100%" }}
                 >
                   <input 
                     type="file" 

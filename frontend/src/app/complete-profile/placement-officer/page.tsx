@@ -42,7 +42,7 @@ export default function CompletePlacementOfficerProfile() {
 
   return (
     <>
-      <div className="theme-placement-officer min-h-screen bg-background flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-colors duration-300">
+      <div className="theme-placement-officer min-h-screen bg-background flex flex-col justify-center py-[clamp(16px,4vh,48px)] px-[clamp(12px,2vw,32px)] relative overflow-hidden transition-colors duration-300">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#C25E2D]/10 rounded-full blur-3xl -z-10" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#C25E2D]/10 rounded-full blur-3xl -z-10" />
 

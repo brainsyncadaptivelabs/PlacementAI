@@ -41,7 +41,7 @@ export default function CompleteRecruiterProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-[clamp(16px,4vh,48px)] px-[clamp(12px,2vw,32px)] relative overflow-hidden">
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-teal-500/5 rounded-full blur-3xl -z-10" />
 

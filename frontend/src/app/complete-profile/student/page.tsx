@@ -170,10 +170,10 @@ export default function CompleteStudentProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-muted flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-muted flex flex-col justify-center py-[clamp(16px,4vh,48px)] px-[clamp(12px,2vw,32px)] relative overflow-hidden">
       <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -z-10" />
-
+ 
       <AnimatePresence mode="wait">
         {error && (
           <motion.div 
@@ -194,7 +194,7 @@ export default function CompleteStudentProfile() {
           </motion.div>
         )}
       </AnimatePresence>
-
+ 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="sm:mx-auto sm:w-full sm:max-w-4xl text-center mb-8">
         <h2 className="text-3xl font-black text-foreground font-heading">
           {step === 1 ? "Complete Your Student Profile" : "Select Your Plan"}
@@ -203,7 +203,7 @@ export default function CompleteStudentProfile() {
           {step === 1 ? "Just a few more details to personalize your experience." : "Choose a plan to activate your dashboard."}
         </p>
       </motion.div>
-
+ 
       <AnimatePresence mode="wait">
         {step === 1 && (
           <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -247,10 +247,10 @@ export default function CompleteStudentProfile() {
             </Card>
           </motion.div>
         )}
-
+ 
         {step === 2 && (
           <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="sm:mx-auto sm:w-full sm:max-w-5xl">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="fluid-grid">
               {STUDENT_PLANS.map((plan) => (
                 <Card 
                   key={plan.id}

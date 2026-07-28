@@ -149,25 +149,27 @@ export function AppLayout({ children, role }: AppLayoutProps) {
         style={{ "--accent": role === "RECRUITER" ? "#832838" : undefined } as React.CSSProperties}
       >
         <Sidebar role={role} />
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           {/* Topbar */}
           {!isChatMode && (
-            <header className="h-16 flex items-center justify-between px-8 bg-background border-b border-border/40 shrink-0 sticky top-0 z-30">
-              <div className="flex items-center gap-4 flex-1">
+            <header className="h-[clamp(56px,8vh,64px)] flex items-center justify-between px-[clamp(12px,2vw,32px)] bg-background border-b border-border/40 shrink-0 sticky top-0 z-30">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <SidebarTrigger />
-                <SearchBar />
+                <div className="flex-1 max-w-md hidden sm:block">
+                  <SearchBar />
+                </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-[clamp(8px,1.5vw,16px)] shrink-0">
                  <Button 
                    variant="ghost" 
                    size="icon" 
                    onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                   className="text-muted-foreground hover:bg-muted rounded-xl transition-colors"
+                   className="text-muted-foreground hover:bg-muted rounded-xl transition-colors h-10 w-10 sm:h-12 sm:w-12"
                    title="Toggle Theme"
                  >
                    {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
                  </Button>
-                 <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors">
+                 <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors h-10 w-10 sm:h-12 sm:w-12">
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
                  </Button>
@@ -175,7 +177,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
               </div>
             </header>
           )}
-          <div className="flex-1 overflow-hidden relative">
+          <div className="flex-1 overflow-y-auto relative w-full">
              {children}
           </div>
         </main>
