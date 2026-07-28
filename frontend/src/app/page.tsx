@@ -71,38 +71,81 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              {/* HERO VISUAL: Sleek Placement Readiness Score Dashboard Panel */}
-              <div className="lg:w-1/2 w-[80%] md:w-full mx-auto relative mt-4 lg:mt-0">
-                <div className="relative aspect-[4/3] rounded-3xl bg-slate-900/5 overflow-hidden border border-border shadow-2xl p-4 md:p-6">
-                  <div className="h-full w-full bg-card rounded-2xl border border-border shadow-inner p-4 md:p-6 flex flex-col justify-between relative overflow-hidden">
-                    <div className="flex items-center justify-between border-b border-border pb-3 md:pb-4">
-                      <div className="flex items-center gap-2">
-                        <span className="font-heading font-black text-[10px] md:text-sm text-foreground">PLACEMENT INTELLIGENCE PROFILE</span>
-                        <span className="bg-green-100 text-green-700 text-[8px] md:text-[10px] font-black px-2 py-0.5 rounded-full">ACTIVE</span>
-                      </div>
-                      <div className="text-[9px] md:text-xs text-muted-foreground font-medium">Updated: Just Now</div>
+              {/* HERO VISUAL: Premium SaaS-style AI Intelligence Report Card */}
+              <div className="lg:w-1/2 w-full max-w-[350px] sm:max-w-[360px] lg:max-w-[450px] mx-auto relative mt-8 lg:mt-0 select-none">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-indigo-500 rounded-3xl blur-xl opacity-20 animate-pulse" />
+                <div className="relative rounded-2xl border border-slate-200/50 bg-white/90 backdrop-blur-xl shadow-2xl p-5 md:p-6 space-y-5 md:space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                    <div>
+                      <h4 className="font-heading font-black text-xs md:text-sm tracking-tight text-slate-900 uppercase">Placement Intelligence Report</h4>
+                      <span className="text-[10px] text-slate-400 font-bold block mt-0.5">Last analyzed: Just now</span>
                     </div>
+                    <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 text-[9px] md:text-[10px] font-extrabold px-2.5 py-1 rounded-full border border-emerald-200">
+                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                      ACTIVE
+                    </span>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-4 md:gap-6 my-3 md:my-4">
-                      <div className="bg-primary/5 rounded-2xl border border-primary/10 p-3 md:p-4 flex flex-col items-center justify-center gap-1.5 md:gap-2">
-                        <div className="text-2xl md:text-3xl font-black text-primary font-heading">85%</div>
-                        <div className="text-[9px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">ATS Compatibility</div>
-                      </div>
-                      <div className="bg-secondary/5 rounded-2xl border border-secondary/10 p-3 md:p-4 flex flex-col items-center justify-center gap-1.5 md:gap-2">
-                        <div className="text-2xl md:text-3xl font-black text-secondary font-heading">92%</div>
-                        <div className="text-[9px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest text-center">Skill Readiness</div>
-                      </div>
+                  {/* Overall score + Circle */}
+                  <div className="flex items-center gap-4 md:gap-5 bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 rounded-xl border border-slate-200/40">
+                    <div className="relative w-14 h-14 md:w-16 md:h-16 flex items-center justify-center shrink-0">
+                      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                        <path
+                          className="text-slate-200"
+                          strokeWidth="3.5"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        <path
+                          className="text-primary"
+                          strokeWidth="3.5"
+                          strokeDasharray="86, 100"
+                          strokeLinecap="round"
+                          stroke="currentColor"
+                          fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                      </svg>
+                      <span className="absolute text-xs md:text-sm font-black text-slate-800 font-heading">86%</span>
                     </div>
+                    <div>
+                      <span className="text-[9px] md:text-[10px] uppercase font-black tracking-wider text-slate-400">Readiness Status</span>
+                      <h5 className="text-xs md:text-sm font-black text-slate-800 mt-0.5">High Placement Probability</h5>
+                      <p className="text-[9px] md:text-[10px] text-slate-500 leading-normal">Your profile meets standard tier-1 shortlisting thresholds.</p>
+                    </div>
+                  </div>
 
-                    <div className="space-y-2 md:space-y-3 bg-muted/50 p-3 md:p-4 rounded-xl border border-border">
-                      <div className="flex justify-between items-center text-[10px] md:text-xs">
-                        <span className="font-bold text-foreground">Next High-Priority Action:</span>
-                        <span className="text-primary font-black uppercase text-[8px] md:text-[10px] tracking-widest">IMMEDIATE</span>
+                  {/* Four Insights Grid */}
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    {[
+                      { icon: <FileText className="w-3.5 h-3.5 text-primary" />, title: "ATS Match", val: "85%" },
+                      { icon: <Brain className="w-3.5 h-3.5 text-indigo-500" />, title: "Tech Skills", val: "78%" },
+                      { icon: <Award className="w-3.5 h-3.5 text-amber-500" />, title: "Interview Ready", val: "90%" },
+                      { icon: <Sparkles className="w-3.5 h-3.5 text-emerald-500" />, title: "Communication", val: "88%" }
+                    ].map((item, idx) => (
+                      <div key={idx} className="bg-slate-50/50 border border-slate-200/40 p-2.5 md:p-3 rounded-xl flex items-center gap-2.5 shadow-sm">
+                        <div className="p-1.5 rounded-lg bg-white border border-slate-200/50 shadow-sm shrink-0">
+                          {item.icon}
+                        </div>
+                        <div className="truncate">
+                          <span className="text-[9px] text-slate-400 font-bold block uppercase truncate">{item.title}</span>
+                          <span className="font-extrabold text-slate-800 text-[10px] md:text-[11px]">{item.val}</span>
+                        </div>
                       </div>
-                      <div className="text-[10px] md:text-xs text-muted-foreground leading-relaxed">
-                        "Add evidence-backed project details for AWS & Docker skills to fill JD alignment gap."
-                      </div>
+                    ))}
+                  </div>
+
+                  {/* Gap & recommendation */}
+                  <div className="p-3.5 md:p-4 bg-rose-500/5 border border-rose-100 rounded-xl space-y-1.5 md:space-y-2">
+                    <div className="flex justify-between items-center text-[9px] md:text-[10px] font-black">
+                      <span className="text-rose-700 uppercase tracking-wider">Highest Priority Gap</span>
+                      <span className="text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md text-[8px] md:text-[9px]">CRITICAL</span>
                     </div>
+                    <p className="text-[11px] md:text-xs text-slate-700 leading-relaxed font-semibold">
+                      "Improve Spring Boot projects and DSA to increase interview probability."
+                    </p>
                   </div>
                 </div>
               </div>
