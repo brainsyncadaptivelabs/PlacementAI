@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useTheme } from "next-themes";
+
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Share2, Download, Building2, Loader2, Check } from "lucide-react";
@@ -23,7 +23,7 @@ export function ShareProfileDialog({
    const [isDownloading, setIsDownloading] = useState(false);
    const [isCopied, setIsCopied] = useState(false);
    const [scale, setScale] = useState(1);
-   const { resolvedTheme } = useTheme();
+
    const containerRef = useRef<HTMLDivElement>(null);
    const previewRef = useRef<HTMLDivElement>(null);
 
@@ -131,8 +131,7 @@ export function ShareProfileDialog({
             {/* Right Side Preview Panel */}
             <div ref={containerRef} className="flex-1 bg-muted/20 p-6 md:p-10 flex items-center justify-center overflow-hidden h-full min-h-[500px]">
                <div style={{ transform: `scale(${scale})`, transformOrigin: 'center' }}>
-                  {/* Dynamically apply dark mode only if the user's active theme is dark to prevent html-to-image bugs */}
-                  <div ref={previewRef} className={`${resolvedTheme === 'dark' ? 'dark ' : ''}w-[800px] h-[550px] shrink-0 bg-background border border-border rounded-xl overflow-hidden relative flex flex-col text-foreground`}>
+                  <div ref={previewRef} className={`w-[800px] h-[550px] shrink-0 bg-background border border-border rounded-xl overflow-hidden relative flex flex-col text-foreground`}>
 
                      {/* Preview Header */}
                      <div className="p-8 flex items-start justify-between z-10">

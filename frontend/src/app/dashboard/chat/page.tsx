@@ -35,7 +35,7 @@ import {
   FileSpreadsheet
 } from "lucide-react";
 import { useUser } from "@/hooks/use-user";
-import { useTheme } from "next-themes";
+
 import { WidgetRenderer } from "@/components/chat/widgets/index";
 import { useConversationManager } from "@/components/chat/useConversationManager";
 import { Message } from "@/components/chat/ConversationStorage";
@@ -807,12 +807,11 @@ MessageItem.displayName = "MessageItem";
 
 export default function ChatPage() {
   const { user, loading: userLoading } = useUser();
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  
   const router = useRouter();
   
   useEffect(() => {
-    setMounted(true);
+
     // Load contextual memory from localStorage initially
     const savedMemory = localStorage.getItem("ai_copilot_memory");
     if (savedMemory) {
@@ -1331,13 +1330,7 @@ export default function ChatPage() {
             >
               <Trash2 className="w-4 h-4" />
             </button>
-            <button 
-              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl text-muted-foreground hover:text-foreground transition-colors"
-              title="Toggle Theme"
-            >
-              {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />) : <Moon className="w-4 h-4" />}
-            </button>
+
           </div>
         </header>
 

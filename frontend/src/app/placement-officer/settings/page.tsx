@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ChevronRight, Bell, Shield, Download, Trash2, Key, Sun, Moon, Monitor, Eye, User, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
+
 import { PageShell } from "@/components/ui/theme-components";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
@@ -29,8 +29,7 @@ export default function PlacementOfficerSettingsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isReportCardModalOpen, setIsReportCardModalOpen] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+
   const { signOut } = useAuth();
   const router = useRouter();
 
@@ -56,9 +55,7 @@ export default function PlacementOfficerSettingsPage() {
   const [supportMessage, setSupportMessage] = useState("");
   const [supportError, setSupportError] = useState("");
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+
 
   useEffect(() => {
     if (user) {

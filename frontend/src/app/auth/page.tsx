@@ -13,7 +13,7 @@ import { Loader2, X, GraduationCap, Briefcase, ChevronLeft, ChevronRight, Mail, 
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
 import { createClient } from "@/lib/supabase/client";
-import { useTheme } from "next-themes";
+
 import { getDashboardRouteForRole } from "@/lib/auth-routes";
 
 import { usePathname } from "next/navigation";
@@ -41,11 +41,7 @@ export default function AuthPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
-  const { setTheme } = useTheme();
   
-  useEffect(() => {
-    setTheme('light');
-  }, [setTheme]);
   
   const { signInWithProvider } = useAuth();
   const supabase = createClient();

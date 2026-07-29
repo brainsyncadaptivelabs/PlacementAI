@@ -2,7 +2,6 @@
 
 import React, { useEffect } from "react";
 import { AuthProvider } from "@/providers/auth-provider";
-import { ThemeProvider } from "next-themes";
 import { ToastContainer } from "@/components/ui/toast-container";
 
 export default function Providers({
@@ -21,12 +20,10 @@ export default function Providers({
   }, []);
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>
-        {children}
-        <ToastContainer />
-      </AuthProvider>
-    </ThemeProvider>
+    <AuthProvider>
+      {children}
+      <ToastContainer />
+    </AuthProvider>
   );
 }
 

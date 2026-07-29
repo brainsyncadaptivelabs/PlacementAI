@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/use-user";
-import { useTheme } from "next-themes";
-import { Sun, Moon, Bell, Loader2 } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useConversationManager } from "@/components/chat/useConversationManager";
@@ -14,14 +13,8 @@ import { NotificationCenter } from "@/components/workspace/NotificationCenter";
 
 export default function CoachPage() {
   const { user, loading } = useUser();
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const router = useRouter();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const {
     conversations,
@@ -80,13 +73,7 @@ export default function CoachPage() {
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500" />
             </button>
-            <button 
-              onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-xl text-slate-400 hover:text-white transition-colors cursor-pointer"
-              title="Toggle Theme"
-            >
-              {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
-            </button>
+
           </div>
         </header>
 

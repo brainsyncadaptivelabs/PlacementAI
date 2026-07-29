@@ -2,8 +2,7 @@
 
 import * as React from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Loader2, Sun, Moon, Bell, WifiOff, RefreshCw } from "lucide-react";
-import { useTheme } from "next-themes";
+import { Loader2, Bell, WifiOff, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { SearchBar } from "@/components/search-bar";
@@ -24,12 +23,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
   const session = useAuthStore((state) => state.session);
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
   
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
   
   // Determine Route Guard State Machine State
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
@@ -160,15 +154,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
                 </div>
               </div>
               <div className="flex items-center gap-[clamp(8px,1.5vw,16px)] shrink-0">
-                 <Button 
-                   variant="ghost" 
-                   size="icon" 
-                   onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                   className="text-muted-foreground hover:bg-muted rounded-xl transition-colors h-10 w-10 sm:h-12 sm:w-12"
-                   title="Toggle Theme"
-                 >
-                   {mounted ? (resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />) : <Moon className="w-5 h-5" />}
-                 </Button>
+
                  <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors h-10 w-10 sm:h-12 sm:w-12">
                     <Bell className="w-5 h-5" />
                     <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
