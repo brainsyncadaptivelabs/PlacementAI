@@ -40,6 +40,9 @@ public class ChatConversation {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<ChatMessage> messages;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

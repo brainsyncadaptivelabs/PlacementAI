@@ -81,7 +81,6 @@ services:
         reservations:
           cpus: '0.25'
           memory: 512M
-    pids_limit: 500
     environment:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
@@ -117,7 +116,6 @@ services:
         reservations:
           cpus: '0.5'
           memory: 1024M
-    pids_limit: 1000
     environment:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
