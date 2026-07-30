@@ -76,6 +76,7 @@ public class AccountController {
 
         // Clean up any existing deletion requests
         deleteAccountVerificationRepository.deleteByUserId(user.getId());
+        deleteAccountVerificationRepository.flush(); // Ensure old requests are removed before saving a new one
 
         // Generate new 4-digit OTP
         SecureRandom secureRandom = new SecureRandom();
@@ -94,12 +95,20 @@ public class AccountController {
 
         log.info("Sending deletion OTP to {}", user.getEmail());
         try {
+            deleteAccountVerificationRepository.saveAndFlush(verification);
+        } catch (Exception ex) {
+            log.error("Failed to save deletion verification request to database", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new DeleteResponseDto(false, "Failed to initiate deletion request due to a database error."));
+        }
+
+        try {
             emailService.sendDeleteAccountOtpEmail(user.getEmail(), user.getFullName(), otp);
             log.info("Email sent successfully");
-            deleteAccountVerificationRepository.save(verification);
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
-            // In case of email failure, do not save the verification and return an error
+            // Rollback the verification request since the email failed
+            deleteAccountVerificationRepository.delete(verification);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new DeleteResponseDto(false, "Failed to send verification email. Please check the email server configuration."));
         }
@@ -205,9 +214,16 @@ public class AccountController {
 
         log.info("Sending deletion OTP to {}", user.getEmail());
         try {
+            deleteAccountVerificationRepository.saveAndFlush(verification);
+        } catch (Exception ex) {
+            log.error("Failed to update deletion verification request", ex);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new DeleteResponseDto(false, "Failed to initiate deletion request due to a database error."));
+        }
+
+        try {
             emailService.sendDeleteAccountOtpEmail(user.getEmail(), user.getFullName(), otp);
             log.info("Email sent successfully");
-            deleteAccountVerificationRepository.save(verification);
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
