@@ -110,7 +110,7 @@ public class AccountController {
             // Rollback the verification request since the email failed
             deleteAccountVerificationRepository.delete(verification);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new DeleteResponseDto(false, "Failed to send verification email. Please check the email server configuration."));
+                    .body(new DeleteResponseDto(false, "Failed to send verification email. Error: " + ex.getMessage()));
         }
 
         return ResponseEntity.ok(new DeleteResponseDto(true, "Verification code sent."));
@@ -227,7 +227,7 @@ public class AccountController {
         } catch (Exception ex) {
             log.error("Delete OTP email failed", ex);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new DeleteResponseDto(false, "Failed to resend verification email. Please check the email server configuration."));
+                    .body(new DeleteResponseDto(false, "Failed to resend verification email. Error: " + ex.getMessage()));
         }
 
         return ResponseEntity.ok(new DeleteResponseDto(true, "New verification code sent to your email."));
