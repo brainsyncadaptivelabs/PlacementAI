@@ -64,16 +64,22 @@ spring:
 
   # ── Caching ──────────────────────────────────────────────
   cache:
-    type: simple
+    type: redis
     cache-names: roadmaps,jd_analysis,skills_gap,dashboard_stats,placement_context,placement_readiness,placement_profile,placement_score,company_readiness,placement_recommendations,placement_dashboard,mentor_data,timeline_data
 
   # ── Redis ────────────────────────────────────────────────
   data:
     redis:
-      host: ${REDIS_HOST:${REDISHOST:localhost}}
-      port: ${REDIS_PORT:${REDISPORT:6379}}
-      password: ${REDIS_PASSWORD:${REDISPASSWORD:}}
-
+      url: ${REDIS_URL:redis://localhost:6379}
+      timeout: 5s
+      connect-timeout: 5s
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 16
+          max-idle: 8
+          min-idle: 2
+          max-wait: 5s
 # ── Email ────────────────────────────────────────────────
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
