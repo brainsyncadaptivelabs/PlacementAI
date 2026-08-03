@@ -1,292 +1,348 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Upload, FileText, CheckCircle2, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from "react";
+import { useAtsAnalysisStore } from "@/store/useAtsAnalysisStore";
+import { AtsScoreReport } from "@/components/ats/AtsScoreReport";
 import api from "@/lib/api";
-import { getErrorMessage } from "@/lib/errors";
-import { cn } from "@/lib/utils";
+import {
+  FileText,
+  Upload,
+  RefreshCw,
+  Search,
+  Sparkles,
+  AlertTriangle,
+  History,
+  Layers,
+  CheckCircle2,
+  Lock,
+} from "lucide-react";
 
-type AnalysisResult = {
-  id?: number;
-  atsScore?: number;
-  suggestions?: string[];
-  bestRole?: string;
-};
-
-type AtsHistoryItem = {
+interface ResumeItem {
   id: number;
-  bestRole: string;
-  atsScore: number;
-  resumeName: string;
-  grade: string;
+  fileName: string;
+  filePath: string;
   createdAt: string;
-};
+}
 
 export default function ResumeATSPage() {
-  const router = useRouter();
-  const [isUploading, setIsUploading] = useState(false);
-  const [isAnalyzed, setIsAnalyzed] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
-  const [error, setError] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const atsScore = analysisResult?.atsScore ?? 0;
+  const {
+    currentScan,
+    scanHistory,
+    isLoading,
+    error,
+    scanMode,
+    setScanMode,
+    runGeneralScan,
+    runJdScan,
+    fetchHistory,
+    selectHistoricalScan,
+    clearError,
+  } = useAtsAnalysisStore();
 
-  // History State
-  const [historyList, setHistoryList] = useState<AtsHistoryItem[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState(false);
+  const [resumes, setResumes] = useState<ResumeItem[]>([]);
+  const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
+  const [resumesLoading, setResumesLoading] = useState(true);
 
-  const fetchHistory = async () => {
-    setHistoryLoading(true);
-    setHistoryError(false);
-    try {
-      const response = await api.get("/ats/history");
-      const sorted = [...response.data].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-      setHistoryList(sorted);
-    } catch (err) {
-      console.error("Failed to fetch ATS history:", err);
-      setHistoryError(true);
-    } finally {
-      setHistoryLoading(false);
-    }
-  };
+  // JD mode state
+  const [jdText, setJdText] = useState("");
+  const [jdFileUrl, setJdFileUrl] = useState("");
+  const [targetRole, setTargetRole] = useState("");
 
+  // Load user resumes on mount
   useEffect(() => {
-    const saved = localStorage.getItem("latest_ats_analysis");
-    if (saved) {
+    const loadResumes = async () => {
+      setResumesLoading(true);
       try {
-        setAnalysisResult(JSON.parse(saved));
-        setIsAnalyzed(true);
-      } catch (e) {
-        console.error("Failed to parse cached ATS analysis:", e);
+        const res = await api.get("/resume/all");
+        if (Array.isArray(res.data) && res.data.length > 0) {
+          setResumes(res.data);
+          setSelectedResumeId(res.data[0].id);
+          fetchHistory(res.data[0].id);
+        }
+      } catch {
+        // Fallback to single resume endpoint if /resume/all unavailable
+        try {
+          const single = await api.get("/resume/latest");
+          if (single.data?.id) {
+            setResumes([single.data]);
+            setSelectedResumeId(single.data.id);
+            fetchHistory(single.data.id);
+          }
+        } catch {
+          console.warn("No user resumes found");
+        }
+      } finally {
+        setResumesLoading(false);
       }
-    }
-    fetchHistory();
+    };
+
+    loadResumes();
   }, []);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleResumeChange = (id: number) => {
+    setSelectedResumeId(id);
+    clearError();
+    fetchHistory(id);
+  };
 
-    const formData = new FormData();
-    formData.append("file", file);
+  const handleRunScan = () => {
+    if (!selectedResumeId) return;
+    clearError();
 
-    setIsUploading(true);
-    setIsAnalyzed(false);
-    setError("");
-
-    try {
-      const response = await api.post("/resume/upload", formData);
-      setAnalysisResult(response.data);
-      localStorage.setItem("latest_ats_analysis", JSON.stringify(response.data));
-      setIsAnalyzed(true);
-      fetchHistory();
-    } catch (err: unknown) {
-      setError(getErrorMessage(err, "Failed to analyze resume"));
-    } finally {
-      setIsUploading(false);
+    if (scanMode === "general") {
+      runGeneralScan(selectedResumeId);
+    } else {
+      runJdScan(selectedResumeId, {
+        jdText: jdText.trim() ? jdText.trim() : undefined,
+        jdFileUrl: jdFileUrl.trim() ? jdFileUrl.trim() : undefined,
+        targetRole: targetRole.trim() ? targetRole.trim() : undefined,
+      });
     }
   };
 
-  // Calculate session history details
-  const totalSize = historyList.length;
-  const startIndex = Math.max(0, totalSize - 5);
-  const displayedSessions = historyList.slice(startIndex).map((item, index) => {
-    const realSessionNum = startIndex + index + 1;
-    return {
-      ...item,
-      sessionNum: `S${realSessionNum}`,
-      realNum: realSessionNum
-    };
-  });
+  // Mutually exclusive inputs: disable one if the other is filled
+  const isJdTextFilled = jdText.trim().length > 0;
+  const isJdFileFilled = jdFileUrl.trim().length > 0;
 
-  const currentAnalysisId = analysisResult?.id;
-  const currentSessionIndex = displayedSessions.findIndex(item => item.id === currentAnalysisId);
-  const emphasizedId = currentSessionIndex !== -1 
-    ? currentAnalysisId 
-    : (displayedSessions.length > 0 ? displayedSessions[displayedSessions.length - 1].id : null);
-
-  let scoreDeltaText = "";
-  if (displayedSessions.length > 1) {
-    const firstScore = displayedSessions[0].atsScore;
-    const latestScore = displayedSessions[displayedSessions.length - 1].atsScore;
-    const diff = latestScore - firstScore;
-    if (diff > 0) {
-      scoreDeltaText = `↑ ATS score increased by ${diff} points`;
-    } else if (diff < 0) {
-      scoreDeltaText = `↓ ATS score decreased by ${Math.abs(diff)} points`;
-    } else {
-      scoreDeltaText = `ATS score remained unchanged`;
-    }
-  } else if (displayedSessions.length === 1) {
-    scoreDeltaText = "First ATS analysis";
-  }
+  const canRunScan =
+    selectedResumeId !== null &&
+    !isLoading &&
+    (scanMode === "general" || isJdTextFilled || isJdFileFilled);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold font-heading text-foreground">Resume & ATS Analysis</h1>
-        <p className="text-muted-foreground">Optimize your resume for applicant tracking systems and increase your chances.</p>
-      </div>
-
-      {error && (
-        <div className="p-4 bg-red-100 text-red-700 rounded-lg border border-red-200">
-          {error}
+    <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-8 min-h-screen">
+      {/* Page Title & Subtitle */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-3">
+            <Sparkles className="w-7 h-7 text-indigo-600 dark:text-indigo-400" />
+            ATS Resume Scanner & Copilot
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            Analyze your resume with experience-tier awareness or target specific job descriptions.
+          </p>
         </div>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        {/* Upload Section */}
-        <Card className="border-2 border-dashed border-border bg-card shadow-none">
-          <CardContent className="pt-12 pb-12 flex flex-col items-center justify-center space-y-4">
-             <div className="w-16 h-16 rounded-full bg-primary/5 flex items-center justify-center">
-                <Upload className="w-8 h-8 text-primary" />
-             </div>
-             <div className="text-center space-y-1">
-                <h3 className="font-bold text-lg">Upload Your Resume</h3>
-                <p className="text-sm text-muted-foreground">PDF, DOCX (Max 5MB)</p>
-             </div>
-             <input 
-               type="file" 
-               ref={fileInputRef} 
-               onChange={handleFileChange} 
-               className="hidden" 
-               accept=".pdf,.docx"
-             />
-             <Button 
-               onClick={() => fileInputRef.current?.click()} 
-               disabled={isUploading}
-               className="bg-primary hover:bg-primary/90 px-8"
-             >
-               {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-               {isUploading ? "Analyzing..." : "Upload Resume"}
-             </Button>
-             {isUploading && (
-               <div className="w-full max-w-xs space-y-2 pt-4">
-                 <Progress value={66} className="h-1" />
-                 <p className="text-[10px] text-center text-muted-foreground/70 uppercase font-bold tracking-widest animate-pulse">Scanning keywords...</p>
-               </div>
-             )}
-          </CardContent>
-        </Card>
-
-        {/* Analysis Result */}
-        {isAnalyzed && analysisResult ? (
-          <Card className="border-none shadow-sm bg-card overflow-hidden">
-             <div className="p-6 border-b border-border flex items-center justify-between bg-primary/5">
-                <CardTitle className="text-lg font-bold font-heading text-primary">Analysis Result</CardTitle>
-                <div className="w-12 h-12 rounded-full bg-card flex items-center justify-center text-primary font-bold shadow-md border-2 border-primary/20 text-xl">
-                   {atsScore}
-                </div>
-             </div>
-             <CardContent className="pt-6 space-y-6">
-                <div className="space-y-2">
-                   <h3 className="font-bold text-foreground flex items-center gap-2">
-                     {atsScore >= 80 ? "🚀 Great job! High Match" : 
-                      atsScore >= 50 ? "📈 Good! But can be better." : 
-                      "⚠️ Significant improvements needed"}
-                   </h3>
-                   <p className="text-sm text-muted-foreground italic">Target a score of 85+ for best results with major companies.</p>
-                </div>
-
-                {/* Session Progression (V2) */}
-                {displayedSessions.length > 0 && (
-                  <div className="space-y-4 py-4 border-y border-border my-4">
-                    <span className="text-[10px] uppercase font-black text-muted-foreground tracking-widest block">Session Progress</span>
-                    {historyLoading ? (
-                      <div className="h-16 flex items-center justify-center">
-                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
-                      </div>
-                    ) : historyError ? (
-                      <p className="text-xs text-muted-foreground">Progress history unavailable</p>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="relative flex justify-between items-center px-4 pt-4">
-                          {/* Connecting Line */}
-                          <div className="absolute left-8 right-8 top-1.5 h-[2px] bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0" />
-                          
-                          {displayedSessions.map((session) => {
-                            const isCurrent = session.id === emphasizedId;
-                            // Assertion validation check (Task 13)
-                            if (isCurrent && session.id === currentAnalysisId) {
-                              console.assert(session.atsScore === atsScore, `Mismatch: Current score badge (${atsScore}) != current session score (${session.atsScore})`);
-                            }
-
-                            return (
-                              <div key={session.id} className="relative flex flex-col items-center z-10">
-                                {/* Dot */}
-                                <div 
-                                  className={cn(
-                                    "w-3 h-3 rounded-full border-2 transition-all",
-                                    isCurrent 
-                                      ? "bg-primary border-primary ring-4 ring-primary/25 scale-125" 
-                                      : "bg-background border-slate-300 dark:border-slate-700"
-                                  )}
-                                />
-                                
-                                {/* Score */}
-                                <span className={cn("text-xs font-black mt-1.5", isCurrent ? "text-primary font-black" : "text-muted-foreground")}>
-                                  {session.atsScore}
-                                </span>
-                                
-                                {/* Session ID */}
-                                <span className="text-[10px] font-bold text-muted-foreground uppercase">
-                                  {session.sessionNum}
-                                </span>
-
-                                {/* Current Indicator */}
-                                {isCurrent && (
-                                  <span className="absolute -bottom-4 text-[8px] font-extrabold uppercase text-primary tracking-widest whitespace-nowrap">
-                                    Current
-                                  </span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        {/* Delta progression change description */}
-                        {scoreDeltaText && (
-                          <div className="pt-2 text-[11px] font-semibold text-slate-500 flex items-center gap-1.5">
-                            <span>{scoreDeltaText}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <Button 
-                  onClick={() => {
-                    console.log("View Full Analysis clicked");
-                    // Persist the latest ATS analysis for the dashboard page
-                    if (analysisResult) {
-                      sessionStorage.setItem("ats-analysis", JSON.stringify(analysisResult));
-                    }
-                    if (currentAnalysisId) {
-                      router.push(`/dashboard/ats/analysis/${currentAnalysisId}`);
-                    } else {
-                      router.push("/dashboard/ats/analysis");
-                    }
-                  }} 
-                  className="w-full py-6 group bg-slate-900 hover:bg-slate-800"
-                >
-                   View Full Analysis 
-                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-             </CardContent>
-          </Card>
-        ) : (
-          <div className="h-full flex flex-col items-center justify-center p-8 bg-muted/50 rounded-2xl border border-border border-dashed">
-             <FileText className="w-12 h-12 text-muted-foreground/50 mb-4" />
-             <p className="text-muted-foreground/70 text-sm text-center">Your analysis results will appear here after you upload a resume.</p>
+        {/* History Selector Dropdown */}
+        {scanHistory.length > 0 && (
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+            <History className="w-4 h-4 text-indigo-500 shrink-0" />
+            <select
+              value={currentScan?.analysisId || ""}
+              onChange={(e) => selectHistoricalScan(Number(e.target.value))}
+              className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[220px] truncate"
+            >
+              {scanHistory.map((item) => (
+                <option key={item.analysisId} value={item.analysisId} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                  {item.scanType} Scan — {new Date(item.createdAt).toLocaleDateString()}
+                </option>
+              ))}
+            </select>
           </div>
         )}
       </div>
+
+      {/* Control Panel: Resume Selection & Mode Toggles */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Active Resume & Mode Config */}
+        <div className="lg:col-span-1 space-y-6 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          {/* Active Resume Selection */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <FileText className="w-3.5 h-3.5 text-indigo-500" /> Active Resume
+            </label>
+
+            {resumesLoading ? (
+              <div className="h-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg" />
+            ) : resumes.length > 0 ? (
+              <select
+                value={selectedResumeId || ""}
+                onChange={(e) => handleResumeChange(Number(e.target.value))}
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+              >
+                {resumes.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.fileName} ({new Date(r.createdAt).toLocaleDateString()})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
+                No uploaded resumes found. Upload a resume first to run an ATS scan.
+              </p>
+            )}
+          </div>
+
+          {/* Mode Switcher Tabs */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-indigo-500" /> Scan Mode
+            </label>
+
+            <div className="grid grid-cols-2 gap-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setScanMode("general")}
+                className={`py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+                  scanMode === "general"
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                General Scan
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setScanMode("jd")}
+                className={`py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+                  scanMode === "jd"
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                Scan Against JD
+              </button>
+            </div>
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={handleRunScan}
+            disabled={!canRunScan}
+            className={`w-full py-3 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg transition-all ${
+              canRunScan
+                ? "bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-500/20 active:scale-[0.99]"
+                : "bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed shadow-none"
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                Analyzing Resume...
+              </>
+            ) : (
+              <>
+                <Search className="w-4 h-4" />
+                {scanMode === "general" ? "Run General ATS Scan" : "Scan Against Target JD"}
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Right Column: Mode Inputs & Dynamic Options */}
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+          {scanMode === "general" ? (
+            <div className="space-y-4 my-auto py-6 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 flex items-center justify-center mx-auto text-indigo-600 dark:text-indigo-400">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
+                Experience-Aware General ATS Scan
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                Generates a complete breakdown of your resume strengths, level-expected skills, and stretch career milestones without requiring a specific job description.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Target Job Title (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Senior Backend Engineer"
+                  value={targetRole}
+                  onChange={(e) => setTargetRole(e.target.value)}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Mutually Exclusive Inputs Notice */}
+              <p className="text-[11px] text-slate-400 font-medium italic">
+                Provide either JD Text OR a Document File URL below (inputs are mutually exclusive):
+              </p>
+
+              {/* Option A: Paste JD Text */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>Option A: Paste Job Description Text</span>
+                  {isJdFileFilled && <span className="text-[10px] text-amber-500 flex items-center gap-1"><Lock className="w-3 h-3" /> Disabled (URL active)</span>}
+                </label>
+                <textarea
+                  rows={4}
+                  disabled={isJdFileFilled}
+                  placeholder="Paste raw Job Description text here..."
+                  value={jdText}
+                  onChange={(e) => setJdText(e.target.value)}
+                  className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 ${
+                    isJdFileFilled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                />
+              </div>
+
+              {/* Option B: JD File URL */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                  <span>Option B: Job Description File URL</span>
+                  {isJdTextFilled && <span className="text-[10px] text-amber-500 flex items-center gap-1"><Lock className="w-3 h-3" /> Disabled (Text active)</span>}
+                </label>
+                <input
+                  type="text"
+                  disabled={isJdTextFilled}
+                  placeholder="https://example.com/jd-file.pdf"
+                  value={jdFileUrl}
+                  onChange={(e) => setJdFileUrl(e.target.value)}
+                  className={`w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg p-2.5 text-xs focus:ring-2 focus:ring-indigo-500 ${
+                    isJdTextFilled ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* HTTP 502 / Error Banner with Retry */}
+      {error && (
+        <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 flex items-center justify-between gap-4 text-amber-900 dark:text-amber-200 text-sm">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={handleRunScan}
+            className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors"
+          >
+            Retry Scan
+          </button>
+        </div>
+      )}
+
+      {/* Main Analysis Report Section */}
+      {isLoading ? (
+        <div className="space-y-4 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 animate-pulse">
+          <div className="h-24 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+            <div className="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl" />
+          </div>
+        </div>
+      ) : currentScan ? (
+        <AtsScoreReport scan={currentScan} />
+      ) : (
+        /* Friendly Empty State */
+        <div className="p-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
+          <div className="w-12 h-12 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto">
+            <Upload className="w-6 h-6" />
+          </div>
+          <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No ATS Scans Run Yet</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
+            Select a resume and click <strong>Run Scan</strong> above to generate your first experience-aware ATS report.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

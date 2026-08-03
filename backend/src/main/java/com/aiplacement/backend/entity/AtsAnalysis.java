@@ -2,6 +2,8 @@ package com.aiplacement.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -90,7 +92,50 @@ public class AtsAnalysis {
     @Column(name = "resume_hash")
     private String resumeHash;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @Column(name = "inferred_role")
+    private String inferredRole;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "inferred_experience_level")
+    private SeniorityTier inferredExperienceLevel;
+
+    @Column(name = "inference_confidence")
+    private Double inferenceConfidence;
+
+    @Column(name = "inference_reasoning", columnDefinition = "TEXT")
+    private String inferenceReasoning;
+
+    @Column(name = "core_fit_score")
+    private Integer coreFitScore;
+
+    @Column(name = "full_jd_match_score")
+    private Integer fullJdMatchScore;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "jd_inferred_level")
+    private SeniorityTier jdInferredLevel;
+
+    @Builder.Default
+    @Column(name = "level_gap_detected")
+    private Boolean levelGapDetected = false;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "growth_areas")
+    private List<String> growthAreas;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "candidate_override_level")
+    private SeniorityTier candidateOverrideLevel;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = "scan_type", nullable = false)
+    private ScanType scanType = ScanType.GENERAL;
+
+    @Column(name = "jd_text_snapshot", columnDefinition = "TEXT")
+    private String jdTextSnapshot;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id")
     private Resume resume;
 
@@ -99,4 +144,4 @@ public class AtsAnalysis {
     private User user;
 
     private LocalDateTime createdAt;
-}
+}

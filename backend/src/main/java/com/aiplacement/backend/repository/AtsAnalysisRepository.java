@@ -16,6 +16,10 @@ public interface AtsAnalysisRepository
 
     List<AtsAnalysis> findByUserIdOrderByCreatedAtDesc(Long userId);
 
+    List<AtsAnalysis> findByResumeId(Long resumeId);
+
+    List<AtsAnalysis> findByResumeIdAndScanType(Long resumeId, com.aiplacement.backend.entity.ScanType scanType);
+
     Optional<AtsAnalysis> findByIdAndUser(
             Long id,
             User user

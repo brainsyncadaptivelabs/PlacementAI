@@ -199,4 +199,15 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(AtsInferenceParseException.class)
+    public ResponseEntity<ApiErrorResponse> handleAtsInferenceParseException(AtsInferenceParseException ex) {
+        log.error("[ATS] [AI] Parse exception occurred: {} | Raw body: {}", ex.getMessage(), ex.getRawResponseBody());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message("AI scoring temporarily unavailable")
+                .status(HttpStatus.BAD_GATEWAY.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.BAD_GATEWAY);
+    }
 }
