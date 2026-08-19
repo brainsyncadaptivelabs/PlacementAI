@@ -1,7 +1,5 @@
 package com.aiplacement.backend.placementintelligence.ai;
 
-import com.aiplacement.backend.entity.interview.MockInterview;
-
 import com.aiplacement.backend.placementintelligence.context.PlacementContext;
 import org.springframework.stereotype.Component;
 
@@ -15,18 +13,7 @@ public class CommunicationIntelligenceEngine {
         List<String> strengths = new ArrayList<>();
         List<String> weaknesses = new ArrayList<>();
 
-        int score = 0;
-        int count = 0;
-        if (context.getMockInterviews() != null) {
-            for (MockInterview interview : context.getMockInterviews()) {
-                if (interview.getFeedback() != null && interview.getFeedback().getCommunicationScore() != null) {
-                    score += interview.getFeedback().getCommunicationScore();
-                    count++;
-                }
-            }
-        }
-
-        int avgScore = count > 0 ? score / count : 70; // default benchmark
+        int avgScore = context.getCommunicationScore() > 0 ? context.getCommunicationScore() : 70;
 
         if (avgScore >= 80) {
             strengths.add("Excellent professional tone and structured response logic.");
@@ -55,3 +42,4 @@ public class CommunicationIntelligenceEngine {
         String hrReadiness;
     }
 }
+

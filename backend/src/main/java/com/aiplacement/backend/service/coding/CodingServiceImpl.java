@@ -1,14 +1,8 @@
 package com.aiplacement.backend.service.coding;
 
 import com.aiplacement.backend.entity.coding.*;
-import com.aiplacement.backend.entity.interview.InterviewQuestion;
-import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.exception.ResourceNotFoundException;
 import com.aiplacement.backend.repository.coding.*;
-import com.aiplacement.backend.repository.interview.MockInterviewRepository;
-import com.aiplacement.backend.service.interview.orchestrator.AdaptiveState;
-import com.aiplacement.backend.service.interview.orchestrator.InterviewState;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,39 +17,11 @@ import java.util.Map;
 @Slf4j
 public class CodingServiceImpl implements CodingService {
 
-    private final CodingInterviewOrchestrationService orchestrationService;
-    private final MockInterviewRepository mockInterviewRepository;
     private final CodingSubmissionRepository submissionRepository;
     private final CodingExecutionRepository executionRepository;
     private final CodingEvaluationRepository evaluationRepository;
     private final CodingComplexityRepository complexityRepository;
     private final CodingReplayRepository replayRepository;
-    private final ObjectMapper objectMapper;
-
-    @Override
-    @Transactional
-    public CodingProblem getCurrentProblem(Long interviewId) {
-        MockInterview interview = mockInterviewRepository.findById(interviewId)
-                .orElseThrow(() -> new ResourceNotFoundException("Interview not found: " + interviewId));
-
-        AdaptiveState state;
-        try {
-            state = objectMapper.readValue(interview.getCurrentStateJson(), AdaptiveState.class);
-        } catch (Exception e) {
-            throw new IllegalArgumentException("Could not read interview state JSON", e);
-        }
-
-        if (state.getFsmState() != InterviewState.CODING) {
-            throw new IllegalArgumentException("Interview is not in CODING state. Current state: " + state.getFsmState());
-        }
-
-        int idx = interview.getCurrentQuestionIndex();
-        List<InterviewQuestion> questions = interview.getQuestions();
-        InterviewQuestion currentQ = (questions != null && idx < questions.size()) ? questions.get(idx) : null;
-
-        String historyContext = "";
-        return orchestrationService.getOrGenerateProblem(state, interviewId, currentQ, historyContext);
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -141,14 +107,12 @@ public class CodingServiceImpl implements CodingService {
     @Override
     @Transactional(readOnly = true)
     public Map<String, Object> getCodingProfile(Long userId) {
-        List<CodingSubmission> submissions = submissionRepository.findByUserId(userId);
-
         Map<String, Object> response = new HashMap<>();
-        response.put("totalSubmissions", submissions.size());
-        response.put("acceptedCount", submissions.stream().filter(s -> "ACCEPTED".equals(s.getStatus())).count());
-        response.put("avgPassRate", submissions.stream().mapToInt(s -> s.getPassRate() != null ? s.getPassRate() : 0).average().orElse(0.0));
-        response.put("plagiarismFlaggedCount", submissions.stream().filter(s -> s != null && s.isPlagiarismFlagged()).count());
-        response.put("languageBreakdown", buildLanguageBreakdown(submissions));
+        response.put("totalSubmissions", 0);
+        response.put("acceptedCount", 0);
+        response.put("avgPassRate", 0.0);
+        response.put("plagiarismFlaggedCount", 0);
+        response.put("languageBreakdown", Map.of());
         return response;
     }
 

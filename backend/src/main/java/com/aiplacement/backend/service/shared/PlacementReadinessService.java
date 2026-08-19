@@ -5,7 +5,6 @@ import com.aiplacement.backend.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.aiplacement.backend.repository.evaluation.*;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.entity.*;
 import java.time.Instant;
@@ -35,12 +34,7 @@ public class PlacementReadinessService {
     private final RiskAnalysisService riskAnalysisService;
     private final RecruiterSummaryService recruiterSummaryService;
 
-    private final InterviewEvaluationRepository evaluationRepository;
     private final UserRepository userRepository;
-    private final InterviewCompetencyScoreRepository competencyScoreRepository;
-    private final InterviewEvidenceRepository evidenceRepository;
-    private final InterviewReasoningRepository reasoningRepository;
-    private final InterviewImprovementRepository improvementRepository;
 
     @Cacheable(value = "placement_readiness", key = "#user.email")
     @Transactional
@@ -85,44 +79,9 @@ public class PlacementReadinessService {
         if (weaknesses == null) weaknesses = List.of();
         if (riskAnalysis == null) riskAnalysis = List.of();
 
-        // Retrieve latest evaluation and compile soft competencies details
-        InterviewEvaluation latestEval = evaluationRepository.findFirstByMockInterviewUserOrderByIdDesc(user).orElse(null);
-
+        // Soft competencies details default to empty list when mock interview evaluations are absent
         List<PlacementIntelligenceDto.SoftCompetencyDto> softCompDtos = new ArrayList<>();
         List<String> personalizedRecs = new ArrayList<>();
-        if (latestEval != null) {
-            List<InterviewCompetencyScore> compScoresList = competencyScoreRepository.findByEvaluation(latestEval);
-            List<InterviewEvidence> evidences = evidenceRepository.findByEvaluation(latestEval);
-            List<InterviewReasoning> reasonings = reasoningRepository.findByEvaluation(latestEval);
-            List<InterviewImprovement> improvements = improvementRepository.findByEvaluation(latestEval);
-
-            List<String> defaultCompetencies = List.of(
-                "Technical Knowledge", "Communication", "Leadership",
-                "Behavioral Competency", "Reasoning", "Architecture Thinking"
-            );
-
-            for (InterviewCompetencyScore sc : compScoresList) {
-                if (defaultCompetencies.contains(sc.getCompetency())) continue;
-
-                String comp = sc.getCompetency();
-                String ev = evidences.stream().filter(e -> comp.equalsIgnoreCase(e.getCompetency())).map(e -> e.getEvidenceText()).findFirst().orElse("N/A");
-                String re = reasonings.stream().filter(r -> comp.equalsIgnoreCase(r.getCompetency())).map(r -> r.getReasoningText()).findFirst().orElse("N/A");
-                String im = improvements.stream().filter(i -> comp.equalsIgnoreCase(i.getImprovementArea())).map(i -> i.getSuggestion()).findFirst().orElse("N/A");
-
-                softCompDtos.add(PlacementIntelligenceDto.SoftCompetencyDto.builder()
-                        .name(comp)
-                        .score(sc.getScore())
-                        .confidence(sc.getConfidence())
-                        .evidence(ev)
-                        .reasoning(re)
-                        .improvementSuggestion(im)
-                        .build());
-
-                if (sc.getScore() != null && sc.getScore() < 70.0 && !"N/A".equals(im)) {
-                    personalizedRecs.add(comp + " Suggestion: " + im);
-                }
-            }
-        }
 
         // Skill gaps and recommendations (phase 1 deterministic placeholders)
         List<String> skillGaps = weaknesses;
@@ -166,3 +125,4 @@ public class PlacementReadinessService {
                 .build();
     }
 }
+

@@ -81,7 +81,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.creditsUsed IS NOT NULL ORDER BY u.creditsUsed DESC")
     List<User> findTopCreditConsumers(org.springframework.data.domain.Pageable pageable);
 
-    @Query("SELECT u FROM User u ORDER BY (SIZE(u.resumes) + SIZE(u.mockInterviews)) DESC")
+    @Query("SELECT u FROM User u ORDER BY SIZE(u.resumes) DESC")
     List<User> findMostActiveUser(org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT u.collegeName, COUNT(u) FROM User u WHERE u.collegeName IS NOT NULL AND u.collegeName != '' GROUP BY u.collegeName")

@@ -5,7 +5,6 @@ package com.aiplacement.backend.service.shared;
 import com.aiplacement.backend.dto.shared.PlacementAnalyticsDto;
 import com.aiplacement.backend.entity.*;
 import com.aiplacement.backend.repository.*;
-import com.aiplacement.backend.repository.interview.MockInterviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,6 @@ public class PlacementAnalyticsCompiler {
 
     private final UserRepository userRepository;
     private final JobApplicationRepository applicationRepository;
-    private final MockInterviewRepository mockInterviewRepository;
 
     public PlacementAnalyticsDto compileRecruiterStats(Long recruiterId) {
         long totalStudents = userRepository.countByRole(Role.STUDENT);
@@ -99,24 +97,8 @@ public class PlacementAnalyticsCompiler {
                         LinkedHashMap::new
                 ));
 
-        // Weak Skills
+        // Weak Skills: empty list when mock interview history is absent
         List<String> weakSkills = new ArrayList<>();
-        for (JobApplication app : apps) {
-            User student = app.getStudent();
-            if (student != null) {
-                List<com.aiplacement.backend.entity.interview.MockInterview> studentInterviews = 
-                        mockInterviewRepository.findByUserOrderByCreatedAtDesc(student);
-                for (com.aiplacement.backend.entity.interview.MockInterview mi : studentInterviews) {
-                    if (mi.getFeedback() != null && mi.getFeedback().getAreasForImprovement() != null) {
-                        for (String area : mi.getFeedback().getAreasForImprovement()) {
-                            if (!weakSkills.contains(area) && weakSkills.size() < 10) {
-                                weakSkills.add(area);
-                            }
-                        }
-                    }
-                }
-            }
-        }
 
         // Averages
         double avgAts = apps.stream()
@@ -153,3 +135,4 @@ public class PlacementAnalyticsCompiler {
                 .build();
     }
 }
+

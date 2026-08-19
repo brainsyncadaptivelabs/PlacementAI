@@ -1,7 +1,5 @@
 package com.aiplacement.backend.entity.coding;
 
-import com.aiplacement.backend.entity.interview.InterviewQuestion;
-import com.aiplacement.backend.entity.interview.MockInterview;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -21,14 +19,6 @@ public class CodingProblem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "mock_interview_id", nullable = false)
-    private MockInterview mockInterview;
-
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interview_question_id")
-    private InterviewQuestion interviewQuestion;
 
     @Column(nullable = false)
     private String title;

@@ -4,7 +4,6 @@ import com.aiplacement.backend.entity.Resume;
 import com.aiplacement.backend.entity.ResumeBuilder;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.UserStats;
-import com.aiplacement.backend.entity.interview.MockInterview;
 import lombok.Builder;
 import lombok.Value;
 
@@ -17,7 +16,6 @@ public class PlacementContext {
     UserStats userStats;
     List<Resume> resumes;
     List<ResumeBuilder> resumeBuilders;
-    List<MockInterview> mockInterviews;
     String aptitudeData;
     int atsScore;
     int jdMatchScore;
@@ -29,3 +27,4 @@ public class PlacementContext {
     int learningProgress;
     int activityScore;
 }
+

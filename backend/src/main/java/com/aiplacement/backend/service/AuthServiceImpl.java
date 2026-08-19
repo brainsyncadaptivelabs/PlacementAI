@@ -483,17 +483,14 @@ public class AuthServiceImpl implements AuthService {
         SecureRandom secureRandom = new SecureRandom();
         String otp = String.format("%06d", secureRandom.nextInt(900000) + 100000);
 
-        // Delete existing unverified records for this email
-        emailVerificationOtpRepository.findByEmail(request.getEmail())
-                .ifPresent(emailVerificationOtpRepository::delete);
+        // Retrieve or create OTP verification record for this email
+        EmailVerificationOtp verification = emailVerificationOtpRepository.findByEmail(request.getEmail())
+                .orElseGet(() -> EmailVerificationOtp.builder().email(request.getEmail()).build());
 
-        EmailVerificationOtp verification = EmailVerificationOtp.builder()
-                .email(request.getEmail())
-                .otp(passwordEncoder.encode(otp))
-                .verified(false)
-                .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusMinutes(10))
-                .build();
+        verification.setOtp(passwordEncoder.encode(otp));
+        verification.setVerified(false);
+        verification.setCreatedAt(LocalDateTime.now());
+        verification.setExpiresAt(LocalDateTime.now().plusMinutes(10));
 
         emailVerificationOtpRepository.save(verification);
 
