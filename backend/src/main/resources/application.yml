@@ -263,6 +263,12 @@ ratelimit:
     capacity: ${RATE_LIMIT_INTERVIEW_CAPACITY:15}
     duration-seconds: ${RATE_LIMIT_INTERVIEW_DURATION:3600}
 
+# ── Storage Configuration ──────────────────────────────────────
+storage:
+  provider: ${STORAGE_PROVIDER:local}
+  local:
+    dir: ${LOCAL_STORAGE_DIR:./storage/uploads}
+
 # ── Supabase Storage ─────────────────────────────────────────
 supabase:
   url: ${NEXT_PUBLIC_SUPABASE_URL:https://glyvbdltoxjpwlzsbcyx.supabase.co}
@@ -274,4 +280,5 @@ razorpay:
   key:
     id: ${RAZORPAY_KEY_ID:rzp_test_dummy_id}
     secret: ${RAZORPAY_KEY_SECRET:dummy_secret}
+
 #

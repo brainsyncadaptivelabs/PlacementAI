@@ -73,6 +73,7 @@ public class SecurityConfig {
                                 "/actuator/health",
                                  "/actuator/info",
                                  "/api/v1/profile/public/**",
+                                 "/storage/files/**",
                                  "/error"
 
                         ).permitAll()

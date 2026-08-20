@@ -88,7 +88,7 @@ export async function GET(request: Request) {
       process.env.NEXT_PUBLIC_API_URL;
 
     if (!API_URL) {
-      throw new Error("Production backend API URL is not configured");
+      throw new Error("Backend API URL (NEXT_PUBLIC_API_URL) is not configured");
     }
 
     const validRoles = ['STUDENT', 'RECRUITER', 'PLACEMENT_OFFICER', 'ADMIN', 'SUPER_ADMIN'];

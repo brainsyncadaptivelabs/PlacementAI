@@ -45,7 +45,7 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // Define public paths
-  const isPublicPath = 
+  const isPublicPath =
     pathname === "/" ||
     pathname.startsWith("/about") ||
     pathname.startsWith("/privacy") ||
@@ -53,7 +53,12 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/cookies") ||
     pathname.startsWith("/blog") ||
     pathname.startsWith("/mission") ||
-    pathname.startsWith("/success-stories");
+    pathname.startsWith("/success-stories") ||
+    pathname.startsWith("/404") ||
+    pathname.startsWith("/403") ||
+    pathname.startsWith("/500") ||
+    pathname.startsWith("/unauthorized") ||
+    pathname.startsWith("/maintenance");
 
   const isAuthPath = pathname.startsWith("/auth");
 
@@ -70,7 +75,7 @@ export async function updateSession(request: NextRequest) {
       } else if (pathname.startsWith("/placement-officer")) {
         loginPath = "/auth/placement-officer";
       }
-      
+
       const redirectUrl = new URL(loginPath, request.url);
       redirectUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(redirectUrl);
