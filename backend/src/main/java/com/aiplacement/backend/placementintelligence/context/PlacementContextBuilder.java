@@ -21,7 +21,6 @@ public class PlacementContextBuilder {
     private final com.aiplacement.backend.repository.ResumeBuilderRepository resumeBuilderRepository;
     private final com.aiplacement.backend.repository.ResumeRepository resumeRepository;
     private final com.aiplacement.backend.repository.UserRepository userRepository;
-    private final com.aiplacement.backend.repository.interview.MockInterviewRepository mockInterviewRepository;
 
     public PlacementContext buildContext(User user) {
         Long userId = user.getId();
@@ -36,7 +35,6 @@ public class PlacementContextBuilder {
         java.util.List<com.aiplacement.backend.entity.ResumeBuilder> resumeBuilders = resumeBuilderRepository.findByUserId(userId);
         java.util.List<com.aiplacement.backend.entity.Resume> resumes = resumeRepository.findByUserIdOrderByCreatedAtDesc(userId);
         com.aiplacement.backend.entity.UserStats userStats = userRepository.findUserStatsByUserId(userId).orElse(null);
-        java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviews = mockInterviewRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         String selectedTemplate = !resumeBuilders.isEmpty() ?
                 resumeBuilders.stream()
@@ -56,7 +54,6 @@ public class PlacementContextBuilder {
                 .userStats(userStats)
                 .resumes(resumes)
                 .resumeBuilders(resumeBuilders)
-                .mockInterviews(mockInterviews)
                 .aptitudeData(user.getAptitudeData())
                 .atsScore(atsScore)
                 .jdMatchScore(jdMatchScore)
@@ -70,3 +67,4 @@ public class PlacementContextBuilder {
                 .build();
     }
 }
+

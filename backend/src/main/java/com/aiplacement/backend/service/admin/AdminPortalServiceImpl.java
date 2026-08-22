@@ -1,9 +1,7 @@
 package com.aiplacement.backend.service.admin;
 
 import com.aiplacement.backend.entity.*;
-import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.repository.*;
-import com.aiplacement.backend.repository.interview.MockInterviewRepository;
 import com.sun.management.OperatingSystemMXBean;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +28,12 @@ public class AdminPortalServiceImpl implements AdminPortalService {
     private final UserRepository userRepository;
     private final ResumeRepository resumeRepository;
     private final AtsAnalysisRepository atsAnalysisRepository;
-    private final MockInterviewRepository mockInterviewRepository;
     private final ApiUsageLogRepository apiUsageLogRepository;
     private final AuditLogRepository auditLogRepository;
+    private final com.aiplacement.backend.security.UserTokenRevocationService tokenRevocationService;
+    private final com.aiplacement.backend.security.JwtService jwtService;
+    private final AdminBulkJobManager bulkJobManager;
+    private final AdminUserNoteRepository adminUserNoteRepository;
 
     @Autowired(required = false)
     private RedisConnectionFactory redisConnectionFactory;
@@ -68,7 +69,6 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         // Feature metrics
         long totalResumes = resumeRepository.count();
         long totalAnalyses = atsAnalysisRepository.count();
-        long totalInterviews = mockInterviewRepository.count();
         long totalRoadmaps = apiUsageLogRepository.countByFeatureUsed("ROADMAP");
         long totalJdMatches = apiUsageLogRepository.countByFeatureUsed("JD_MATCH");
         long totalAiRequests = apiUsageLogRepository.count();
@@ -76,11 +76,12 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         stats.put("totalResumesUploaded", totalResumes);
         stats.put("totalResumeAnalyses", totalAnalyses);
-        stats.put("totalMockInterviews", totalInterviews);
+        stats.put("totalMockInterviews", null);
         stats.put("totalRoadmapsGenerated", totalRoadmaps);
         stats.put("totalJdMatches", totalJdMatches);
         stats.put("totalAiRequests", totalAiRequests);
         stats.put("totalAiConversations", totalConversations);
+        stats.put("mockInterviewFeatureDeprecated", true);
 
         // Credits Stats
         Long rem = userRepository.sumCreditsRemaining();
@@ -96,11 +97,10 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         // Averages
         Double avgResumeScore = resumeRepository.getGlobalAverageResumeScore();
         Double avgAtsScore = atsAnalysisRepository.getGlobalAverageAtsScore();
-        Double avgInterviewScore = mockInterviewRepository.getGlobalAverageScore();
 
         stats.put("averageResumeScore", Math.round((avgResumeScore != null ? avgResumeScore : 0.0) * 10.0) / 10.0);
         stats.put("averageAtsScore", Math.round((avgAtsScore != null ? avgAtsScore : 0.0) * 10.0) / 10.0);
-        stats.put("averageInterviewScore", Math.round((avgInterviewScore != null ? avgInterviewScore : 0.0) * 10.0) / 10.0);
+        stats.put("averageInterviewScore", null);
 
         // API cost stats
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
@@ -131,11 +131,9 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         // High scores
         Integer maxAtsVal = atsAnalysisRepository.getGlobalHighestAtsScore();
         int maxAts = maxAtsVal != null ? maxAtsVal : 0;
-        Integer maxInterviewVal = mockInterviewRepository.getGlobalHighestInterviewScore();
-        int maxInterview = maxInterviewVal != null ? maxInterviewVal : 0;
 
         stats.put("highestAtsScore", maxAts);
-        stats.put("highestInterviewScore", maxInterview);
+        stats.put("highestInterviewScore", null);
 
         // Dynamic weekly user growth trend
         List<Map<String, Object>> weeklyUserGrowth = new ArrayList<>();
@@ -150,39 +148,15 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         }
         stats.put("weeklyUserGrowth", weeklyUserGrowth);
 
-        // Dynamic weekly API cost trend
-        List<Map<String, Object>> weeklyApiSpend = new ArrayList<>();
-        List<ApiUsageLog> recentLogs = apiUsageLogRepository.findByTimestampAfter(today.minusDays(6).atStartOfDay());
-        for (int i = 6; i >= 0; i--) {
-            LocalDate day = today.minusDays(i);
-            double dailyCost = recentLogs.stream()
-                .filter(l -> l.getTimestamp() != null && l.getTimestamp().toLocalDate().isEqual(day))
-                .mapToDouble(l -> l.getEstimatedCost() != null ? l.getEstimatedCost() : 0.0)
-                .sum();
-            Map<String, Object> m = new HashMap<>();
-            m.put("name", day.getDayOfWeek().name().substring(0, 3));
-            m.put("cost", Math.round(dailyCost * 100.0) / 100.0);
-            weeklyApiSpend.add(m);
-        }
-        stats.put("weeklyApiSpend", weeklyApiSpend);
-
-        // Revenue calculations
-        long premiumUsersCount = userRepository.countByPlan("PREMIUM");
-        long basicUsersCount = userRepository.countByPlan("BASIC");
-        long totalRevenueVal = (premiumUsersCount * 299) + (basicUsersCount * 149);
-        stats.put("revenuePlaceholder", "₹" + totalRevenueVal);
-        
-        long usersAddedToday = userRepository.countByCreatedAtAfter(today.atStartOfDay());
-        double growthPct = totalUsers > usersAddedToday ? ((double) usersAddedToday / (totalUsers - usersAddedToday)) * 100.0 : 0.0;
-        stats.put("growthPercentage", String.format("+%.1f%%", growthPct));
-
-        // Branch placement readiness list
+        // Branch readiness
         List<Object[]> branchReadinessStats = userRepository.getBranchReadinessStats();
         List<Map<String, Object>> branchReadinessList = new ArrayList<>();
-        for (Object[] row : branchReadinessStats) {
+        for (Object[] arr : branchReadinessStats) {
+            String branchName = (String) arr[0];
+            Double avgScore = (Double) arr[1];
             Map<String, Object> m = new HashMap<>();
-            m.put("branch", row[0]);
-            m.put("readiness", row[1] != null ? Math.round(((Double) row[1])) : 0);
+            m.put("branch", branchName != null ? branchName : "General");
+            m.put("readiness", avgScore != null ? Math.round(avgScore) : 0);
             branchReadinessList.add(m);
         }
         stats.put("branchReadiness", branchReadinessList);
@@ -190,13 +164,11 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         // Funnel splits
         long registeredCount = userRepository.countByRole(Role.STUDENT);
         long aptitudeClearedCount = userRepository.countByAptitudeDataIsNotNull();
-        long interviewShortlistedCount = mockInterviewRepository.countDistinctUsers();
-        long placedCount = mockInterviewRepository.countDistinctUsersWithScoreGreaterThanEqual(80);
 
         stats.put("funnelRegistered", registeredCount);
         stats.put("funnelAptitudeCleared", aptitudeClearedCount);
-        stats.put("funnelShortlisted", interviewShortlistedCount);
-        stats.put("funnelPlaced", placedCount);
+        stats.put("funnelShortlisted", 0L);
+        stats.put("funnelPlaced", 0L);
 
         return stats;
     }
@@ -231,19 +203,16 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             m.put("creditsRemaining", u.getCreditsRemaining() != null ? u.getCreditsRemaining() : 100);
             m.put("creditsUsed", u.getCreditsUsed() != null ? u.getCreditsUsed() : 0);
             Long totalResumes = resumeRepository.countByUserId(u.getId());
-            long totalInterviews = mockInterviewRepository.countByUserId(u.getId());
             m.put("totalResumes", totalResumes != null ? totalResumes : 0L);
-            m.put("totalInterviews", totalInterviews);
+            m.put("totalInterviews", 0L);
             m.put("accountStatus", u.getAccountStatus() != null ? u.getAccountStatus() : "ACTIVE");
 
             // Calculate averages
             Double atsAvgVal = atsAnalysisRepository.findAverageAtsScoreByUserId(u.getId());
             double atsAvg = atsAvgVal != null ? atsAvgVal : 0.0;
-            Double intAvgVal = mockInterviewRepository.getAverageScoreByUserId(u.getId());
-            double intAvg = intAvgVal != null ? intAvgVal : 0.0;
 
             m.put("avgAtsScore", Math.round(atsAvg * 10.0) / 10.0);
-            m.put("avgInterviewScore", Math.round(intAvg * 10.0) / 10.0);
+            m.put("avgInterviewScore", 0.0);
 
             return m;
         }).collect(Collectors.toList());
@@ -297,21 +266,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             return rm;
         }).collect(Collectors.toList());
         details.put("resumes", resumes);
-
-        // Mock Interviews List
-        java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviewsList = mockInterviewRepository.findByUserIdOrderByCreatedAtDesc(u.getId());
-        List<Map<String, Object>> interviews = mockInterviewsList.stream().map(i -> {
-            Map<String, Object> im = new HashMap<>();
-            im.put("id", i.getId());
-            im.put("role", i.getRole());
-            im.put("company", i.getCompany());
-            im.put("topic", i.getTopic());
-            im.put("createdAt", i.getCreatedAt());
-            im.put("completedAt", i.getCompletedAt());
-            im.put("score", i.getFeedback() != null ? i.getFeedback().getTotalScore() : null);
-            return im;
-        }).collect(Collectors.toList());
-        details.put("interviews", interviews);
+        details.put("interviews", List.of());
 
         // Activity timeline
         List<Map<String, Object>> timeline = new ArrayList<>();
@@ -320,13 +275,6 @@ public class AdminPortalServiceImpl implements AdminPortalService {
             t.put("event", "Resume Uploaded: " + r.getFileName());
             t.put("timestamp", r.getCreatedAt());
             t.put("type", "RESUME");
-            timeline.add(t);
-        });
-        mockInterviewsList.forEach(i -> {
-            Map<String, Object> t = new HashMap<>();
-            t.put("event", "Mock Interview Started for " + i.getRole() + " (" + i.getCompany() + ")");
-            t.put("timestamp", i.getCreatedAt());
-            t.put("type", "INTERVIEW");
             timeline.add(t);
         });
 
@@ -470,28 +418,11 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         log.info("[ADMIN_PORTAL] Fetching mock interview analytics...");
         Map<String, Object> interviews = new HashMap<>();
 
-        long total = mockInterviewRepository.count();
-        long completed = mockInterviewRepository.countByCompletedAtIsNotNull();
-
-        interviews.put("totalInterviews", total);
-        interviews.put("completedInterviews", completed);
-
-        Double avgScoreVal = mockInterviewRepository.getGlobalAverageScore();
-        double avgScore = avgScoreVal != null ? avgScoreVal : 0.0;
-        interviews.put("averageScore", Math.round(avgScore * 10.0) / 10.0);
-
-        long passed = mockInterviewRepository.countWithScoreGreaterThanEqual(60);
-        double passRate = total > 0 ? ((double) passed / total) * 100.0 : 0.0;
-        interviews.put("passRate", Math.round(passRate * 10.0) / 10.0);
-
-        // Topic/Role distribution
-        List<Object[]> topicCounts = mockInterviewRepository.getTopicCounts();
-        Map<String, Long> topicDistribution = topicCounts.stream()
-                .collect(Collectors.toMap(
-                        arr -> (String) arr[0],
-                        arr -> (Long) arr[1]
-                ));
-        interviews.put("topics", topicDistribution);
+        interviews.put("totalInterviews", 0L);
+        interviews.put("completedInterviews", 0L);
+        interviews.put("averageScore", 0.0);
+        interviews.put("passRate", 0.0);
+        interviews.put("topics", Map.of());
 
         return interviews;
     }
@@ -615,46 +546,14 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         List<User> collegeUsers = userRepository.findUsersByCollegeAndBranch(college, branch);
         result.put("totalStudents", collegeUsers.size());
+        result.put("completionRate", 0.0);
+        result.put("totalInterviews", 0);
+        result.put("completedInterviews", 0);
 
-        List<MockInterview> interviews = mockInterviewRepository.findInterviewsByCollegeAndBranch(college, branch);
-
-        long completedInterviews = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                .count();
-
-        double completionRate = interviews.isEmpty() ? 0.0 : ((double) completedInterviews / interviews.size()) * 100.0;
-        result.put("completionRate", Math.round(completionRate * 10.0) / 10.0);
-        result.put("totalInterviews", interviews.size());
-        result.put("completedInterviews", completedInterviews);
-
-        double avgTotal = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                .mapToInt(m -> m.getFeedback().getTotalScore())
-                .average().orElse(0.0);
-
-        double avgTech = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getTechnicalScore() != null)
-                .mapToInt(m -> m.getFeedback().getTechnicalScore())
-                .average().orElse(0.0);
-
-        double avgComm = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getCommunicationScore() != null)
-                .mapToInt(m -> m.getFeedback().getCommunicationScore())
-                .average().orElse(0.0);
-
-        double avgConfidence = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getConfidenceScore() != null)
-                .mapToInt(m -> m.getFeedback().getConfidenceScore())
-                .average().orElse(0.0);
-
-        result.put("avgOverallScore", Math.round(avgTotal * 10.0) / 10.0);
-        result.put("avgTechnicalScore", Math.round(avgTech * 10.0) / 10.0);
-        result.put("avgCommunicationScore", Math.round(avgComm * 10.0) / 10.0);
-        result.put("avgConfidenceScore", Math.round(avgConfidence * 10.0) / 10.0);
-
-        Map<Long, List<MockInterview>> interviewsByUserId = interviews.stream()
-                .filter(m -> m.getUser() != null)
-                .collect(Collectors.groupingBy(m -> m.getUser().getId()));
+        result.put("avgOverallScore", 0.0);
+        result.put("avgTechnicalScore", 0.0);
+        result.put("avgCommunicationScore", 0.0);
+        result.put("avgConfidenceScore", 0.0);
 
         List<Map<String, Object>> studentRankings = collegeUsers.stream()
                 .map(u -> {
@@ -663,111 +562,23 @@ public class AdminPortalServiceImpl implements AdminPortalService {
                     map.put("name", u.getFullName());
                     map.put("email", u.getEmail());
                     map.put("branch", u.getBranch() != null ? u.getBranch() : "General");
-                    
-                    List<MockInterview> userInterviews = interviewsByUserId.getOrDefault(u.getId(), Collections.emptyList());
-                    int maxScore = userInterviews.stream()
-                            .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                            .mapToInt(m -> m.getFeedback().getTotalScore())
-                            .max().orElse(0);
-                    map.put("bestScore", maxScore);
-                    map.put("interviewsCount", userInterviews.size());
+                    map.put("bestScore", 0);
+                    map.put("interviewsCount", 0);
                     return map;
                 })
-                .sorted((a, b) -> Integer.compare((int) b.get("bestScore"), (int) a.get("bestScore")))
                 .limit(15)
                 .collect(Collectors.toList());
 
         result.put("studentRankings", studentRankings);
+        result.put("branchPerformance", List.of());
 
-        Map<String, List<User>> usersByBranch = collegeUsers.stream()
-                .filter(u -> u.getBranch() != null && !u.getBranch().trim().isEmpty())
-                .collect(Collectors.groupingBy(u -> u.getBranch() != null ? u.getBranch() : "General"));
+        result.put("readinessReadyCount", 0);
+        result.put("readinessAlmostReadyCount", 0);
+        result.put("readinessNeedsImprovementCount", collegeUsers.size());
 
-        List<Map<String, Object>> branchPerformance = new ArrayList<>();
-        for (Map.Entry<String, List<User>> entry : usersByBranch.entrySet()) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("branch", entry.getKey());
-            map.put("studentCount", entry.getValue().size());
-            
-            double bAvg = entry.getValue().stream()
-                    .flatMap(u -> interviewsByUserId.getOrDefault(u.getId(), Collections.emptyList()).stream())
-                    .filter(m -> m.getFeedback() != null && m.getFeedback().getTotalScore() != null)
-                    .mapToInt(m -> m.getFeedback().getTotalScore())
-                    .average().orElse(0.0);
-            map.put("avgScore", Math.round(bAvg * 10.0) / 10.0);
-            branchPerformance.add(map);
-        }
-        result.put("branchPerformance", branchPerformance);
-
-        long ready = studentRankings.stream().filter(r -> (int) r.get("bestScore") >= 75).count();
-        long almostReady = studentRankings.stream().filter(r -> (int) r.get("bestScore") >= 60 && (int) r.get("bestScore") < 75).count();
-        long needsImprovement = collegeUsers.size() - ready - almostReady;
-
-        result.put("readinessReadyCount", ready);
-        result.put("readinessAlmostReadyCount", almostReady);
-        result.put("readinessNeedsImprovementCount", needsImprovement);
-
-        Map<String, Long> weakTopicsFreq = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getAreasForImprovement() != null)
-                .flatMap(m -> m.getFeedback().getAreasForImprovement().stream())
-                .collect(Collectors.groupingBy(s -> s != null ? s : "Unknown", Collectors.counting()));
-
-        List<Map<String, Object>> commonWeakTopics = weakTopicsFreq.entrySet().stream()
-                .map(e -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("topic", e.getKey());
-                    m.put("count", e.getValue());
-                    return m;
-                })
-                .sorted((a, b) -> Long.compare((long) b.get("count"), (long) a.get("count")))
-                .limit(5)
-                .collect(Collectors.toList());
-
-        result.put("commonWeakTopics", commonWeakTopics);
-
-        Map<String, Long> recruiterSkillsFreq = interviews.stream()
-                .filter(m -> m.getFeedback() != null && m.getFeedback().getStrengths() != null)
-                .flatMap(m -> m.getFeedback().getStrengths().stream())
-                .collect(Collectors.groupingBy(s -> s != null ? s : "Unknown", Collectors.counting()));
-
-        List<Map<String, Object>> topRecruiterSkills = recruiterSkillsFreq.entrySet().stream()
-                .map(e -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("skill", e.getKey());
-                    m.put("count", e.getValue());
-                    return m;
-                })
-                .sorted((a, b) -> Long.compare((long) b.get("count"), (long) a.get("count")))
-                .limit(5)
-                .collect(Collectors.toList());
-
-        result.put("topRecruiterSkills", topRecruiterSkills);
-
-        List<Map<String, Object>> monthlyImprovement = new ArrayList<>();
-        for (int i = 5; i >= 0; i--) {
-            LocalDate startOfMonth = LocalDate.now().minusMonths(i).withDayOfMonth(1);
-            LocalDate endOfMonth = startOfMonth.plusMonths(1).minusDays(1);
-            
-            List<MockInterview> monthInterviews = interviews.stream()
-                .filter(mi -> mi.getCreatedAt() != null && 
-                              !mi.getCreatedAt().toLocalDate().isBefore(startOfMonth) && 
-                              !mi.getCreatedAt().toLocalDate().isAfter(endOfMonth))
-                .collect(Collectors.toList());
-                
-            long count = monthInterviews.stream().filter(mi -> mi.getCompletedAt() != null).count();
-            double avg = monthInterviews.stream()
-                .filter(mi -> mi.getFeedback() != null && mi.getFeedback().getTotalScore() != null)
-                .mapToInt(mi -> mi.getFeedback().getTotalScore())
-                .average().orElse(0.0);
-                
-            String monthLabel = startOfMonth.getMonth().toString().substring(0, 3) + " " + startOfMonth.getYear();
-            Map<String, Object> m = new HashMap<>();
-            m.put("month", monthLabel);
-            m.put("averageScore", Math.round(avg * 10.0) / 10.0);
-            m.put("interviewsCount", count);
-            monthlyImprovement.add(m);
-        }
-        result.put("monthlyImprovement", monthlyImprovement);
+        result.put("commonWeakTopics", List.of());
+        result.put("topRecruiterSkills", List.of());
+        result.put("monthlyImprovement", List.of());
 
         return result;
     }
@@ -775,9 +586,237 @@ public class AdminPortalServiceImpl implements AdminPortalService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        log.info("[ADMIN_PORTAL] Deleting user with ID: {}", id);
+        log.info("[ADMIN_PORTAL] Legacy deleteUser fallback called for ID: {}", id);
+        softDeleteUser(id, "SUPER_ADMIN", "127.0.0.1");
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Object> updateUserPlan(Long id, String newPlan, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Updating plan for user ID: {} to {}", id, newPlan);
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String oldPlan = u.getPlan() != null ? u.getPlan() : "FREE";
+        u.setPlan(newPlan);
+
+        if ("PREMIUM".equalsIgnoreCase(newPlan)) {
+            u.setCreditsRemaining(1000);
+        } else if ("BASIC".equalsIgnoreCase(newPlan)) {
+            u.setCreditsRemaining(500);
+        } else {
+            u.setCreditsRemaining(100);
+        }
+
+        userRepository.save(u);
+        logAdminAuditAction(adminEmail, clientIp, "USER_PLAN_UPDATE", "User ID: " + id + ", Email: " + u.getEmail() + " [Plan: " + oldPlan + " -> " + newPlan + "]", "SUCCESS");
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "User plan updated to " + newPlan);
+        result.put("plan", u.getPlan());
+        result.put("creditsRemaining", u.getCreditsRemaining());
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void blockUser(Long id, String reason, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Blocking user ID: {} with reason: {}", id, reason);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String oldStatus = u.getAccountStatus() != null ? u.getAccountStatus().name() : "ACTIVE";
+        u.setAccountStatus(AccountStatus.BLOCKED);
+        u.setBlockReason(reason);
+        u.setBlockedAt(LocalDateTime.now());
+        userRepository.save(u);
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.revokeUserTokens(id, u.getEmail());
+        }
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_BLOCKED", "User ID: " + id + ", Email: " + u.getEmail() + " [Status: " + oldStatus + " -> BLOCKED, Reason: " + (reason != null ? reason : "None") + "]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public void unblockUser(Long id, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Unblocking user ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        u.setAccountStatus(AccountStatus.ACTIVE);
+        u.setBlockReason(null);
+        u.setBlockedAt(null);
+        userRepository.save(u);
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.clearUserRevocation(id, u.getEmail());
+        }
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_UNBLOCKED", "User ID: " + id + ", Email: " + u.getEmail() + " [Status: BLOCKED -> ACTIVE]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteUser(Long id, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Soft-deleting user ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String oldStatus = u.getAccountStatus() != null ? u.getAccountStatus().name() : "ACTIVE";
+        u.setAccountStatus(AccountStatus.DELETED);
+        u.setDeletedAt(LocalDateTime.now());
+        userRepository.save(u);
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.revokeUserTokens(id, u.getEmail());
+        }
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_SOFT_DELETED", "User ID: " + id + ", Email: " + u.getEmail() + " [Status: " + oldStatus + " -> DELETED, Soft Delete Retained 30 Days]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public void hardDeleteUser(Long id, String confirmEmail, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Permanently hard-deleting user ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (confirmEmail == null || !confirmEmail.trim().equalsIgnoreCase(u.getEmail().trim())) {
+            throw new RuntimeException("Target user email confirmation mismatch. Expected: " + u.getEmail() + ", Provided: " + confirmEmail);
+        }
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.revokeUserTokens(id, u.getEmail());
+        }
+
         userRepository.delete(u);
+        logAdminAuditAction(adminEmail, clientIp, "USER_HARD_DELETED", "User ID: " + id + ", Email: " + u.getEmail() + " [Permanent Account Purge]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public com.aiplacement.backend.dto.admin.ImpersonateResponse impersonateUser(Long targetUserId, String reason, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Starting impersonation session for target user ID: {} by admin: {}", targetUserId, adminEmail);
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        if (target.getAccountStatus() == AccountStatus.BLOCKED || target.getAccountStatus() == AccountStatus.DELETED) {
+            throw new RuntimeException("Cannot impersonate a blocked or deleted candidate account");
+        }
+
+        String adminToken = jwtService.generateAccessToken(adminEmail, "SUPER_ADMIN");
+        String impersonationToken = jwtService.generateImpersonationToken(
+                target.getEmail(),
+                target.getId(),
+                target.getRole() != null ? target.getRole().name() : "STUDENT",
+                0L,
+                adminEmail,
+                "SUPER_ADMIN",
+                reason
+        );
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_IMPERSONATION_STARTED", "Admin: " + adminEmail + " impersonating Candidate: " + target.getEmail() + " (ID: " + targetUserId + ") [Reason: " + (reason != null ? reason : "None") + "]", "SUCCESS");
+
+        return com.aiplacement.backend.dto.admin.ImpersonateResponse.builder()
+                .impersonationAccessToken(impersonationToken)
+                .adminAccessToken(adminToken)
+                .targetEmail(target.getEmail())
+                .targetName(target.getFullName())
+                .targetRole(target.getRole() != null ? target.getRole().name() : "STUDENT")
+                .targetUserId(target.getId())
+                .expiresInSeconds(1800L) // 30 minutes
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void endImpersonation(String impersonationToken, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Ending impersonation session for admin: {}", adminEmail);
+        String targetEmail = "UNKNOWN";
+        if (impersonationToken != null && jwtService.isTokenValid(impersonationToken)) {
+            targetEmail = jwtService.extractEmail(impersonationToken);
+        }
+        logAdminAuditAction(adminEmail, clientIp, "USER_IMPERSONATION_ENDED", "Admin: " + adminEmail + " ended impersonation session of Candidate: " + targetEmail, "SUCCESS");
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkPlan(com.aiplacement.backend.dto.admin.bulk.BulkPlanRequest request, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkPlanJob(request, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkBlock(com.aiplacement.backend.dto.admin.bulk.BulkBlockRequest request, boolean isBlock, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkBlockJob(request, isBlock, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkUpload(java.util.List<com.aiplacement.backend.dto.admin.bulk.BulkUploadRow> rows, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkUploadJob(rows, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkExport(com.aiplacement.backend.dto.admin.bulk.BulkUserFilterDto filter, java.util.List<Long> userIds, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkExportJob(filter, userIds, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto getBulkJobStatus(String jobId) {
+        return bulkJobManager.getJobStatus(jobId);
+    }
+
+    @Override
+    @Transactional
+    public com.aiplacement.backend.dto.admin.note.AdminNoteDto createAdminUserNote(Long userId, com.aiplacement.backend.dto.admin.note.CreateAdminNoteRequest request, String adminEmail) {
+        if (request.getNoteText() == null || request.getNoteText().isBlank()) {
+            throw new RuntimeException("Note text cannot be empty");
+        }
+        com.aiplacement.backend.entity.AdminUserNote note = com.aiplacement.backend.entity.AdminUserNote.builder()
+                .userId(userId)
+                .adminEmail(adminEmail)
+                .noteText(request.getNoteText().trim())
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        note = adminUserNoteRepository.save(note);
+        return com.aiplacement.backend.dto.admin.note.AdminNoteDto.builder()
+                .id(note.getId())
+                .userId(note.getUserId())
+                .adminEmail(note.getAdminEmail())
+                .noteText(note.getNoteText())
+                .createdAt(note.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<com.aiplacement.backend.dto.admin.note.AdminNoteDto> getAdminUserNotes(Long userId) {
+        return adminUserNoteRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(n -> com.aiplacement.backend.dto.admin.note.AdminNoteDto.builder()
+                        .id(n.getId())
+                        .userId(n.getUserId())
+                        .adminEmail(n.getAdminEmail())
+                        .noteText(n.getNoteText())
+                        .createdAt(n.getCreatedAt())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private void logAdminAuditAction(String adminEmail, String clientIp, String action, String target, String status) {
+        try {
+            AuditLog entry = AuditLog.builder()
+                    .timestamp(LocalDateTime.now())
+                    .ipAddress(clientIp != null ? clientIp : "127.0.0.1")
+                    .adminEmail(adminEmail != null ? adminEmail : "SUPER_ADMIN")
+                    .action(action)
+                    .target(target)
+                    .status(status != null ? status : "SUCCESS")
+                    .browser("Admin Portal")
+                    .os("Server")
+                    .build();
+            auditLogRepository.save(entry);
+        } catch (Exception e) {
+            log.warn("[ADMIN_AUDIT] Failed to save audit log entry", e);
+        }
     }
 }

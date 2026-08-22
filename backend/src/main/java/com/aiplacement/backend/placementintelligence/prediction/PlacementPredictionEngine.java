@@ -33,7 +33,7 @@ public class PlacementPredictionEngine {
 
             // Confidence Index (based on data completeness)
             int hasResumes = (context.getResumes() != null && !context.getResumes().isEmpty()) ? 25 : 0;
-            int hasMocks = (context.getMockInterviews() != null && !context.getMockInterviews().isEmpty()) ? 25 : 0;
+            int hasMocks = (context.getInterviewScore() > 0) ? 25 : 0;
             int hasStats = (context.getUserStats() != null) ? 25 : 0;
             int hasApt = (context.getAptitudeData() != null) ? 25 : 0;
             int confidence = hasResumes + hasMocks + hasStats + hasApt;

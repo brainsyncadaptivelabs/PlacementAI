@@ -152,7 +152,7 @@ export default function RecruiterAnalyticsPage() {
               <div key={s.label}>
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground">{s.label}</span>
-                  <span className="font-bold text-foreground">{s.value?.toFixed(0) || 0}</span>
+                  <span className="font-bold text-foreground">{s.value != null ? s.value.toFixed(0) : "N/A"}</span>
                 </div>
                 <div className="bg-muted rounded-full h-2 overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${s.value || 0}%`, backgroundColor: s.color }} />

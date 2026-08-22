@@ -21,6 +21,8 @@ import javax.crypto.spec.SecretKeySpec;
 public class PaymentController {
 
     private final UserRepository userRepository;
+    private final com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository;
+    private final com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService;
 
     @Value("${razorpay.key.id:rzp_test_dummy_id}")
     private String keyId;
@@ -28,8 +30,14 @@ public class PaymentController {
     @Value("${razorpay.key.secret:dummy_secret}")
     private String keySecret;
 
-    public PaymentController(UserRepository userRepository) {
+    public PaymentController(
+            UserRepository userRepository,
+            com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository,
+            com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService
+    ) {
         this.userRepository = userRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
+        this.paymentManagementService = paymentManagementService;
     }
 
     @PostMapping("/create-order")
@@ -179,6 +187,23 @@ public class PaymentController {
             user.setPaymentCompleted(true);
             userRepository.save(user);
 
+            // Record transaction record
+            try {
+                paymentTransactionRepository.save(com.aiplacement.backend.entity.PaymentTransaction.builder()
+                        .userId(user.getId())
+                        .userEmail(user.getEmail())
+                        .razorpayOrderId(orderId)
+                        .razorpayPaymentId(paymentId)
+                        .amount(199.0) // Nominal base plan pricing in INR
+                        .currency("INR")
+                        .plan(basePlan)
+                        .status("SUCCESS")
+                        .createdAt(java.time.LocalDateTime.now())
+                        .build());
+            } catch (Exception ex) {
+                log.warn("[PaymentController] Failed to record payment transaction record", ex);
+            }
+
             return ResponseEntity.ok(Map.of(
                 "status", "success",
                 "message", "Payment verified. User upgraded to " + basePlan + " plan."
@@ -186,6 +211,13 @@ public class PaymentController {
         }
 
         return ResponseEntity.badRequest().body(Map.of("error", "Payment signature verification failed."));
+    }
+
+    @PostMapping("/validate-coupon")
+    public ResponseEntity<com.aiplacement.backend.dto.admin.payment.ValidateCouponResponse> validateCoupon(
+            @RequestBody com.aiplacement.backend.dto.admin.payment.ValidateCouponRequest body
+    ) {
+        return ResponseEntity.ok(paymentManagementService.validateCoupon(body));
     }
 
     private String calculateHmacSha256(String data, String secret) throws Exception {

@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface CodingService {
-    CodingProblem getCurrentProblem(Long interviewId);
     Map<String, Object> getSubmission(Long submissionId);
     List<CodingReplay> getReplay(Long submissionId);
     Map<String, Object> getCodingProfile(Long userId);

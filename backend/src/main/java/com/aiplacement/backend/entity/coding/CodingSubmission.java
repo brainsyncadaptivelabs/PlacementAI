@@ -1,6 +1,5 @@
 package com.aiplacement.backend.entity.coding;
 
-import com.aiplacement.backend.entity.interview.InterviewQuestion;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,10 +19,6 @@ public class CodingSubmission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "interview_question_id", nullable = false)
-    private InterviewQuestion interviewQuestion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coding_problem_id")

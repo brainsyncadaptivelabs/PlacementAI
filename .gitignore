@@ -92,3 +92,5 @@ logs/
 temp/
 uploads/
 .cache/
+data/
+backend/data/

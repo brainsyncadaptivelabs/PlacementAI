@@ -18,13 +18,17 @@ import static org.mockito.Mockito.*;
 public class PaymentControllerTest {
 
     private UserRepository userRepository;
+    private com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository;
+    private com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService;
     private PaymentController controller;
     private User user;
 
     @BeforeEach
     void setUp() {
         userRepository = mock(UserRepository.class);
-        controller = new PaymentController(userRepository);
+        paymentTransactionRepository = mock(com.aiplacement.backend.repository.PaymentTransactionRepository.class);
+        paymentManagementService = mock(com.aiplacement.backend.service.admin.PaymentManagementService.class);
+        controller = new PaymentController(userRepository, paymentTransactionRepository, paymentManagementService);
 
         user = new User();
         user.setId(1L);

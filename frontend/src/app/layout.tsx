@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: "AI Mock Interviews, ATS Analysis, Personalized Roadmaps and everything you need to crack placements.",
 };
 
+import ImpersonationBanner from "@/components/ImpersonationBanner";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,7 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-background text-foreground">
         <Providers>
           <TooltipProvider>
+            <ImpersonationBanner />
             {children}
             <Toaster richColors position="top-right" />
             <Analytics />

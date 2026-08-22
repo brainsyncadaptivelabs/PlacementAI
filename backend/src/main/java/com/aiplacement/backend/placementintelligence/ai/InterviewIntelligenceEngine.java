@@ -1,6 +1,5 @@
 package com.aiplacement.backend.placementintelligence.ai;
 
-import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.placementintelligence.context.PlacementContext;
 import org.springframework.stereotype.Component;
 
@@ -14,18 +13,7 @@ public class InterviewIntelligenceEngine {
         List<String> strengths = new ArrayList<>();
         List<String> weaknesses = new ArrayList<>();
 
-        int score = 0;
-        int count = 0;
-        if (context.getMockInterviews() != null) {
-            for (MockInterview interview : context.getMockInterviews()) {
-                if (interview.getFeedback() != null && interview.getFeedback().getTotalScore() != null) {
-                    score += interview.getFeedback().getTotalScore();
-                    count++;
-                }
-            }
-        }
-
-        int avgScore = count > 0 ? score / count : 65; // default benchmark
+        int avgScore = context.getInterviewScore() > 0 ? context.getInterviewScore() : 65;
 
         if (avgScore >= 75) {
             strengths.add("Strong confidence and structured architectural thinking.");
@@ -33,11 +21,7 @@ public class InterviewIntelligenceEngine {
             weaknesses.add("Struggles to articulate algorithm steps clearly during mock runs.");
         }
 
-        if (count >= 3) {
-            strengths.add("Great mock practice frequency (" + count + " sessions logged).");
-        } else {
-            weaknesses.add("Need to complete at least 3 mock interviews to gain confidence.");
-        }
+        weaknesses.add("Need to complete practice sessions to gain confidence.");
 
         return InterviewMetrics.builder()
                 .strengths(strengths)
@@ -58,3 +42,4 @@ public class InterviewIntelligenceEngine {
         String behavioralReadiness;
     }
 }
+

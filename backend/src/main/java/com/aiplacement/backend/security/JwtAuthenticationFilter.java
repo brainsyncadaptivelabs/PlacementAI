@@ -30,6 +30,8 @@ public class JwtAuthenticationFilter
 
     private final AdminUserRepository adminUserRepository;
 
+    private final UserTokenRevocationService tokenRevocationService;
+
     @Override
     protected boolean shouldNotFilterAsyncDispatch() {
         return false;
@@ -75,6 +77,20 @@ public class JwtAuthenticationFilter
                     );
 
             String role = jwtService.extractRole(token);
+            User user = userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
+            
+            if (user != null) {
+                if (user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.BLOCKED || 
+                    user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.DELETED ||
+                    (tokenRevocationService != null && tokenRevocationService.isRevoked(user.getId(), email))) {
+                    
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"message\":\"Your account has been suspended. Contact support for details.\"}");
+                    return;
+                }
+            }
+
             if (role != null) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         email,
@@ -84,7 +100,6 @@ public class JwtAuthenticationFilter
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
-                User user = userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
                 if (user != null) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             email,

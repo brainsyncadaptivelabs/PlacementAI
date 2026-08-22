@@ -38,7 +38,6 @@ export const studentMenu: MenuItem[] = [
   { title: "Resume History", icon: History, url: "/dashboard/history" },
   { title: "JD Matching", icon: Target, url: "/dashboard/jd-match" },
   { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
-  { title: "Mock Interviews", icon: Mic2, url: "/mock-interview" },
   { title: "Career Roadmap", icon: Map, url: "/dashboard/roadmap" },
   { title: "AI Chatbot", icon: MessageSquare, url: "/dashboard/chat" },
   { title: "Notes", icon: BookOpen, url: "/dashboard/notes" },
@@ -74,7 +73,6 @@ export const studentMenuGroups: MenuGroup[] = [
       { title: "Coding Practice", icon: Code2, url: "/dashboard/coding" },
       { title: "Aptitude", icon: Brain, url: "/dashboard/aptitude" },
       { title: "Communication Analysis", icon: Volume2, url: "/dashboard/communication", comingSoon: true },
-      { title: "Mock Interviews", icon: Mic2, url: "/mock-interview" },
       { title: "Skill Gap Analysis", icon: Zap, url: "/dashboard/skills" },
       { title: "Career Roadmap", icon: Map, url: "/dashboard/roadmap" },
       { title: "Learning Hub", icon: BookOpen, url: "/dashboard/learning", comingSoon: true }

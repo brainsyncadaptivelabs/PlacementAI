@@ -2,12 +2,10 @@ package com.aiplacement.backend.security;
 
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.Role;
-import com.aiplacement.backend.entity.interview.MockInterview;
 import com.aiplacement.backend.entity.AtsAnalysis;
 import com.aiplacement.backend.entity.ResumeBuilder;
 import com.aiplacement.backend.entity.chat.ChatConversation;
 import com.aiplacement.backend.repository.UserRepository;
-import com.aiplacement.backend.repository.interview.MockInterviewRepository;
 import com.aiplacement.backend.repository.AtsAnalysisRepository;
 import com.aiplacement.backend.repository.ResumeBuilderRepository;
 import com.aiplacement.backend.repository.chat.ChatConversationRepository;
@@ -50,9 +48,6 @@ public class SecurityCertificationTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private MockInterviewRepository mockInterviewRepository;
 
     @Autowired
     private AtsAnalysisRepository atsAnalysisRepository;
@@ -186,41 +181,7 @@ public class SecurityCertificationTest {
                 .andExpect(status().is(expectedStatus));
     }
 
-    // ─── TASK 3 & 5 & 6: DIRECT TESTING OF ALL 12 OWNER-SCOPED ROUTES ───────────
-
-    // Route 1: GET /api/v1/interview/{id}
-    @Test
-    void test_route1_readInterview() throws Exception {
-        MockInterview interview = MockInterview.builder()
-                .user(studentA)
-                .role("Software Engineer")
-                .createdAt(LocalDateTime.now())
-                .build();
-        interview = mockInterviewRepository.save(interview);
-
-        mockMvc.perform(get("/api/v1/interview/" + interview.getId())
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(get("/api/v1/interview/" + interview.getId())
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
-
-    // Route 2: DELETE /api/v1/interview/{id}
-    @Test
-    void test_route2_deleteInterview() throws Exception {
-        MockInterview interview = MockInterview.builder()
-                .user(studentA)
-                .role("Software Engineer")
-                .createdAt(LocalDateTime.now())
-                .build();
-        interview = mockInterviewRepository.save(interview);
-
-        mockMvc.perform(delete("/api/v1/interview/" + interview.getId())
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
+    // ─── TASK 3 & 5 & 6: DIRECT TESTING OF ALL OWNER-SCOPED ROUTES ───────────
 
     // Route 3: GET /api/v1/ats/{id}
     @Test
@@ -662,124 +623,5 @@ public class SecurityCertificationTest {
                         .header("Access-Control-Request-Headers", "Authorization, Content-Type"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Access-Control-Allow-Origin", "https://www.placementai.in"));
-    }
-
-    // ─── CANDIDATE EVALUATION IDOR REGRESSION TESTS ──────────────────────────────
-
-    private MockInterview createTestInterview(User user) {
-        MockInterview interview = MockInterview.builder()
-                .user(user)
-                .role("Software Engineer")
-                .createdAt(LocalDateTime.now())
-                .build();
-        return mockInterviewRepository.save(interview);
-    }
-
-    // 1. Competency Owner Test
-    @Test
-    void evaluation_competencyOwner() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/competency/Java")
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-    }
-
-    // 2. Competency Cross-User Test
-    @Test
-    void evaluation_competencyCrossUser() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/competency/Java")
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
-
-    // 3. Hiring Decision Owner Test
-    @Test
-    void evaluation_hiringDecisionOwner() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/hiring-decision")
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-    }
-
-    // 4. Hiring Decision Cross-User Test
-    @Test
-    void evaluation_hiringDecisionCrossUser() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/hiring-decision")
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
-
-    // 5. Skill Gaps Owner Test
-    @Test
-    void evaluation_skillGapsOwner() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/skill-gaps")
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-    }
-
-    // 6. Skill Gaps Cross-User Test
-    @Test
-    void evaluation_skillGapsCrossUser() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/skill-gaps")
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
-
-    // 7. Learning Recommendations Owner Test
-    @Test
-    void evaluation_recommendationsOwner() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/recommendations")
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-    }
-
-    // 8. Learning Recommendations Cross-User Test
-    @Test
-    void evaluation_recommendationsCrossUser() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/recommendations")
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
-
-    // 9. System Design Scorecards Owner Test
-    @Test
-    void evaluation_systemDesignOwner() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/system-design")
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-    }
-
-    // 10. System Design Scorecards Cross-User Test
-    @Test
-    void evaluation_systemDesignCrossUser() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/system-design")
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
-    }
-
-    // 11. Audit Logs Owner Test
-    @Test
-    void evaluation_auditLogsOwner() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/audit")
-                        .header("Authorization", studentAToken))
-                .andExpect(status().isOk());
-    }
-
-    // 12. Audit Logs Cross-User Test
-    @Test
-    void evaluation_auditLogsCrossUser() throws Exception {
-        MockInterview interview = createTestInterview(studentA);
-        mockMvc.perform(get("/api/v1/evaluation/interview/" + interview.getId() + "/audit")
-                        .header("Authorization", studentBToken))
-                .andExpect(status().isForbidden());
     }
 }

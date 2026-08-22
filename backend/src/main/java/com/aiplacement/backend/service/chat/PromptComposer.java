@@ -25,8 +25,6 @@ public class PromptComposer {
             detectedToolOutput = toolRegistry.executeTool("resume-analysis", sessionContext.getEmail());
         } else if (userLower.contains("ats") || userLower.contains("scan")) {
             detectedToolOutput = toolRegistry.executeTool("ats-score", sessionContext.getEmail());
-        } else if (userLower.contains("interview")) {
-            detectedToolOutput = toolRegistry.executeTool("mock-interview", sessionContext.getEmail());
         } else if (userLower.contains("dsa") || userLower.contains("practice") || userLower.contains("problem")) {
             detectedToolOutput = toolRegistry.executeTool("coding-practice", sessionContext.getEmail());
         } else if (userLower.contains("prep") || userLower.contains("company") || userLower.contains("tcs")) {
@@ -52,3 +50,4 @@ public class PromptComposer {
         return sb.toString();
     }
 }
+

@@ -3,6 +3,7 @@ package com.aiplacement.backend.controller.admin;
 import com.aiplacement.backend.dto.admin.AdminAnalyticsDto;
 import com.aiplacement.backend.service.admin.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,7 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ANALYTICS_VIEWER')")
     public AdminAnalyticsDto getAdminAnalytics() {
         return adminService.getAdminAnalytics();
     }

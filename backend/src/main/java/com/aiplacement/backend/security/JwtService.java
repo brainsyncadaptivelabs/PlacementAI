@@ -53,6 +53,52 @@ public class JwtService {
                 .compact();
     }
 
+    public String generateImpersonationToken(
+            String targetEmail,
+            Long targetUserId,
+            String targetRole,
+            Long adminId,
+            String adminEmail,
+            String adminRole,
+            String reason
+    ) {
+        java.util.Map<String, Object> actingAs = java.util.Map.of(
+                "adminId", adminId != null ? adminId : 0L,
+                "adminEmail", adminEmail != null ? adminEmail : "SUPER_ADMIN",
+                "adminRole", adminRole != null ? adminRole : "SUPER_ADMIN"
+        );
+
+        return Jwts.builder()
+                .setSubject(targetEmail)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION)) // 30 minutes hard limit
+                .claim("userId", targetUserId)
+                .claim("role", targetRole)
+                .claim("impersonated", true)
+                .claim("actingAs", actingAs)
+                .claim("reason", reason != null ? reason : "Admin Impersonation Session")
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean isImpersonatedToken(String token) {
+        try {
+            Boolean imp = extractClaims(token).get("impersonated", Boolean.class);
+            return Boolean.TRUE.equals(imp);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public java.util.Map<String, Object> extractActingAs(String token) {
+        try {
+            return extractClaims(token).get("actingAs", java.util.Map.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     public String extractRole(String token) {
         try {
             return extractClaims(token).get("role", String.class);

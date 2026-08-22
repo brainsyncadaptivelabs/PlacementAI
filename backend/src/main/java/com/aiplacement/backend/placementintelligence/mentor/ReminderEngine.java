@@ -12,8 +12,8 @@ public class ReminderEngine {
     public List<String> generateReminders(PlacementContext context) {
         List<String> reminders = new ArrayList<>();
 
-        if (context.getMockInterviews() == null || context.getMockInterviews().isEmpty()) {
-            reminders.add("Complete your first mock interview to compile communication readiness feedback.");
+        if (context.getInterviewScore() <= 0) {
+            reminders.add("Complete your first practice session to compile communication readiness feedback.");
         }
         if (context.getResumes() == null || context.getResumes().isEmpty()) {
             reminders.add("Upload a resume to scan for keyword compliance gaps.");

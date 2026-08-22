@@ -27,7 +27,6 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final com.aiplacement.backend.repository.AtsAnalysisRepository atsAnalysisRepository;
     private final com.aiplacement.backend.repository.ResumeRepository resumeRepository;
-    private final com.aiplacement.backend.repository.interview.MockInterviewRepository mockInterviewRepository;
     private final com.aiplacement.backend.service.shared.PlacementReadinessService placementReadinessService;
 
     @GetMapping("/profile")
@@ -124,26 +123,9 @@ public class UserController {
         Double averageAts = atsAnalysisRepository.findAverageAtsScoreByUser(user);
         Long resumesCount = resumeRepository.countByUser(user);
         
-        java.util.List<com.aiplacement.backend.entity.interview.MockInterview> mockInterviews = mockInterviewRepository.findByUserOrderByCreatedAtDesc(user);
-        long interviewsCount = mockInterviews.size();
-        
-        double mockScoreSum = 0;
-        int mockScoreCount = 0;
-        int highestMockScore = 0;
-        
-        for (com.aiplacement.backend.entity.interview.MockInterview interview : mockInterviews) {
-            if (interview.getFeedback() != null && interview.getFeedback().getTotalScore() != null) {
-                int score = interview.getFeedback().getTotalScore();
-                mockScoreSum += score;
-                mockScoreCount++;
-                if (score > highestMockScore) {
-                    highestMockScore = score;
-                }
-            }
-        }
-        
-        Double averageMockScore = mockScoreCount > 0 ? (mockScoreSum / mockScoreCount) : null;
-        Integer highestMockScoreVal = mockScoreCount > 0 ? highestMockScore : null;
+        long interviewsCount = 0L;
+        Double averageMockScore = null;
+        Integer highestMockScoreVal = null;
         
         int codingSolved = 0;
         java.util.Optional<com.aiplacement.backend.entity.UserStats> statsOpt = userRepository.findUserStatsByUserId(user.getId());

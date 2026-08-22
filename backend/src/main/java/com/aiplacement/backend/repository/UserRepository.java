@@ -30,7 +30,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
             "AND (:college IS NULL OR :college = '' OR u.collegeName = :college) " +
             "AND (:branch IS NULL OR :branch = '' OR u.branch = :branch) " +
             "AND (:plan IS NULL OR :plan = '' OR u.plan = :plan) " +
-            "AND (:status IS NULL OR :status = '' OR u.accountStatus = :status)")
+            "AND (:status IS NULL OR :status = '' OR UPPER(CAST(u.accountStatus AS string)) = UPPER(:status)) " +
+            "AND (u.accountStatus != com.aiplacement.backend.entity.AccountStatus.DELETED OR (:status IS NOT NULL AND UPPER(:status) = 'DELETED'))")
     org.springframework.data.domain.Page<User> searchUsers(
             @Param("search") String search,
             @Param("college") String college,
@@ -39,6 +40,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("status") String status,
             org.springframework.data.domain.Pageable pageable
     );
+
+    List<User> findByAccountStatusAndDeletedAtBefore(com.aiplacement.backend.entity.AccountStatus accountStatus, java.time.LocalDateTime dateTime);
 
     @Query("SELECT u.userStats FROM User u WHERE u.id = :userId")
     Optional<com.aiplacement.backend.entity.UserStats> findUserStatsByUserId(@Param("userId") Long userId);
@@ -81,7 +84,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.creditsUsed IS NOT NULL ORDER BY u.creditsUsed DESC")
     List<User> findTopCreditConsumers(org.springframework.data.domain.Pageable pageable);
 
-    @Query("SELECT u FROM User u ORDER BY (SIZE(u.resumes) + SIZE(u.mockInterviews)) DESC")
+    @Query("SELECT u FROM User u ORDER BY SIZE(u.resumes) DESC")
     List<User> findMostActiveUser(org.springframework.data.domain.Pageable pageable);
 
     @Query("SELECT u.collegeName, COUNT(u) FROM User u WHERE u.collegeName IS NOT NULL AND u.collegeName != '' GROUP BY u.collegeName")

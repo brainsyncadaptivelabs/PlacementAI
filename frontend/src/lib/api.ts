@@ -164,6 +164,38 @@ const api = {
     if (!response.ok) await handleResponseError(response, url);
     const resData = await response.json().catch(() => ({}));
     return { data: resData };
+  },
+  patch: async (url: string, data?: any, config?: any) => {
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const headers: any = { ...getHeaders(url), ...(config?.headers || {}) };
+    
+    if (isFormData || headers["Content-Type"] === "multipart/form-data") {
+      delete headers["Content-Type"];
+    }
+
+    let response;
+    try {
+      response = await fetch(`${BASE_URL}${url}`, {
+        method: "PATCH",
+        ...config,
+        headers,
+        body: isFormData ? data : (data ? JSON.stringify(data) : undefined)
+      });
+    } catch (err: any) {
+      if (err.message === "Failed to fetch") {
+        throw new Error("Backend unavailable");
+      }
+      throw err;
+    }
+    if (!response.ok) await handleResponseError(response, url);
+    const resText = await response.text();
+    let resData;
+    try {
+      resData = resText ? JSON.parse(resText) : {};
+    } catch (e) {
+      resData = resText;
+    }
+    return { data: resData };
   }
 };
 

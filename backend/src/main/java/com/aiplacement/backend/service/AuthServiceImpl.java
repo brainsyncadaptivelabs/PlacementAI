@@ -146,8 +146,8 @@ public class AuthServiceImpl implements AuthService {
                     changed = true;
                 }
 
-                if (!"ACTIVE".equals(user.getAccountStatus())) {
-                    user.setAccountStatus("ACTIVE");
+                if (user.getAccountStatus() != com.aiplacement.backend.entity.AccountStatus.ACTIVE) {
+                    user.setAccountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE);
                     changed = true;
                 }
 
@@ -206,7 +206,7 @@ public class AuthServiceImpl implements AuthService {
                         .authProvider(authProv)
                         .emailVerified(true)
                         .verifiedAt(LocalDateTime.now())
-                        .accountStatus("ACTIVE")
+                        .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                         .profileCompleted(false)
                         .supabaseUuid(suuid)
                         .createdAt(LocalDateTime.now())
@@ -442,7 +442,7 @@ public class AuthServiceImpl implements AuthService {
                 .companyName(assignedRole == Role.RECRUITER ? request.getCompanyName() : null)
                 .emailVerified(true)
                 .verifiedAt(LocalDateTime.now())
-                .accountStatus("ACTIVE")
+                .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                 .profileCompleted(true)
                 
                 .authProvider(com.aiplacement.backend.entity.AuthProvider.LOCAL)
@@ -483,17 +483,14 @@ public class AuthServiceImpl implements AuthService {
         SecureRandom secureRandom = new SecureRandom();
         String otp = String.format("%06d", secureRandom.nextInt(900000) + 100000);
 
-        // Delete existing unverified records for this email
-        emailVerificationOtpRepository.findByEmail(request.getEmail())
-                .ifPresent(emailVerificationOtpRepository::delete);
+        // Retrieve or create OTP verification record for this email
+        EmailVerificationOtp verification = emailVerificationOtpRepository.findByEmail(request.getEmail())
+                .orElseGet(() -> EmailVerificationOtp.builder().email(request.getEmail()).build());
 
-        EmailVerificationOtp verification = EmailVerificationOtp.builder()
-                .email(request.getEmail())
-                .otp(passwordEncoder.encode(otp))
-                .verified(false)
-                .createdAt(LocalDateTime.now())
-                .expiresAt(LocalDateTime.now().plusMinutes(10))
-                .build();
+        verification.setOtp(passwordEncoder.encode(otp));
+        verification.setVerified(false);
+        verification.setCreatedAt(LocalDateTime.now());
+        verification.setExpiresAt(LocalDateTime.now().plusMinutes(10));
 
         emailVerificationOtpRepository.save(verification);
 
@@ -542,6 +539,12 @@ public class AuthServiceImpl implements AuthService {
 
         if (Boolean.FALSE.equals(user.getEmailVerified())) {
             throw new RuntimeException("Please verify your email first.");
+        }
+
+        if (user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.BLOCKED ||
+            user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.DELETED) {
+            log.warn("[AUTH] Login rejected for suspended/deleted account: {}", user.getEmail());
+            throw new com.aiplacement.backend.exception.AccountBlockedException("Your account has been suspended. Contact support for details.");
         }
 
 
@@ -642,7 +645,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(assignedRole)
                 .emailVerified(true)
                 .verifiedAt(LocalDateTime.now())
-                .accountStatus("ACTIVE")
+                .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                 .profileCompleted(true)
                 
                 .build();

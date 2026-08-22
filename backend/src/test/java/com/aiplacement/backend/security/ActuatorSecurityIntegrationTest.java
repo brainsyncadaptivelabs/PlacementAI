@@ -24,9 +24,9 @@ class ActuatorSecurityIntegrationTest {
     @Test
     void whenUnauthenticated_thenOtherActuatorEndpointsForbidden() throws Exception {
         mockMvc.perform(get("/actuator/env").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
         mockMvc.perform(get("/actuator/beans").accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     @Test
     void whenUnauthenticated_thenVoiceEndpointsForbidden() throws Exception {

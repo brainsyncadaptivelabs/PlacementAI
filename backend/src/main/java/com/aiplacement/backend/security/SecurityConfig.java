@@ -33,6 +33,7 @@ public class SecurityConfig {
     private final CsrfProtectionFilter csrfProtectionFilter;
     private final com.aiplacement.backend.logging.RequestLoggingFilter requestLoggingFilter;
     private final com.aiplacement.backend.ratelimit.RateLimitFilter rateLimitFilter;
+    private final ImpersonationActionGuardFilter impersonationActionGuardFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(
@@ -70,10 +71,12 @@ public class SecurityConfig {
 
                                 "/v3/api-docs/**",
 
-                                "/actuator/health",
+                                 "/actuator/health",
                                  "/actuator/info",
                                  "/api/v1/profile/public/**",
                                  "/storage/files/**",
+                                 "/api/v1/announcements/active-banner",
+                                 "/api/v1/feature-flags/evaluate/**",
                                  "/error"
 
                         ).permitAll()
@@ -93,7 +96,7 @@ public class SecurityConfig {
 
                         .requestMatchers(
                                 "/api/v1/admin/**"
-                        ).hasRole("SUPER_ADMIN")
+                        ).hasAnyRole("SUPER_ADMIN", "SUPPORT", "BILLING_ADMIN", "ANALYTICS_VIEWER")
 
                         // Standardized enterprise URL hierarchy (Phase 1)
                         .requestMatchers(
@@ -168,18 +171,20 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .addFilterBefore(
-
+                        impersonationActionGuardFilter,
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                .addFilterBefore(
                         jwtAuthenticationFilter,
-
                         UsernamePasswordAuthenticationFilter.class
                 )
                 .addFilterAfter(
                         rateLimitFilter,
-                        JwtAuthenticationFilter.class
+                        UsernamePasswordAuthenticationFilter.class
                 )
                 .addFilterAfter(
                         csrfProtectionFilter,
-                        JwtAuthenticationFilter.class
+                        UsernamePasswordAuthenticationFilter.class
                 );
 
         return http.build();
