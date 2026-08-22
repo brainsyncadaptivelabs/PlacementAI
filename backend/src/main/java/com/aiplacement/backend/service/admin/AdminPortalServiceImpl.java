@@ -30,6 +30,10 @@ public class AdminPortalServiceImpl implements AdminPortalService {
     private final AtsAnalysisRepository atsAnalysisRepository;
     private final ApiUsageLogRepository apiUsageLogRepository;
     private final AuditLogRepository auditLogRepository;
+    private final com.aiplacement.backend.security.UserTokenRevocationService tokenRevocationService;
+    private final com.aiplacement.backend.security.JwtService jwtService;
+    private final AdminBulkJobManager bulkJobManager;
+    private final AdminUserNoteRepository adminUserNoteRepository;
 
     @Autowired(required = false)
     private RedisConnectionFactory redisConnectionFactory;
@@ -72,11 +76,12 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         stats.put("totalResumesUploaded", totalResumes);
         stats.put("totalResumeAnalyses", totalAnalyses);
-        stats.put("totalMockInterviews", 0L);
+        stats.put("totalMockInterviews", null);
         stats.put("totalRoadmapsGenerated", totalRoadmaps);
         stats.put("totalJdMatches", totalJdMatches);
         stats.put("totalAiRequests", totalAiRequests);
         stats.put("totalAiConversations", totalConversations);
+        stats.put("mockInterviewFeatureDeprecated", true);
 
         // Credits Stats
         Long rem = userRepository.sumCreditsRemaining();
@@ -95,7 +100,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
 
         stats.put("averageResumeScore", Math.round((avgResumeScore != null ? avgResumeScore : 0.0) * 10.0) / 10.0);
         stats.put("averageAtsScore", Math.round((avgAtsScore != null ? avgAtsScore : 0.0) * 10.0) / 10.0);
-        stats.put("averageInterviewScore", 0.0);
+        stats.put("averageInterviewScore", null);
 
         // API cost stats
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
@@ -128,7 +133,7 @@ public class AdminPortalServiceImpl implements AdminPortalService {
         int maxAts = maxAtsVal != null ? maxAtsVal : 0;
 
         stats.put("highestAtsScore", maxAts);
-        stats.put("highestInterviewScore", 0);
+        stats.put("highestInterviewScore", null);
 
         // Dynamic weekly user growth trend
         List<Map<String, Object>> weeklyUserGrowth = new ArrayList<>();
@@ -581,9 +586,237 @@ public class AdminPortalServiceImpl implements AdminPortalService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        log.info("[ADMIN_PORTAL] Deleting user with ID: {}", id);
+        log.info("[ADMIN_PORTAL] Legacy deleteUser fallback called for ID: {}", id);
+        softDeleteUser(id, "SUPER_ADMIN", "127.0.0.1");
+    }
+
+    @Override
+    @Transactional
+    public Map<String, Object> updateUserPlan(Long id, String newPlan, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Updating plan for user ID: {} to {}", id, newPlan);
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String oldPlan = u.getPlan() != null ? u.getPlan() : "FREE";
+        u.setPlan(newPlan);
+
+        if ("PREMIUM".equalsIgnoreCase(newPlan)) {
+            u.setCreditsRemaining(1000);
+        } else if ("BASIC".equalsIgnoreCase(newPlan)) {
+            u.setCreditsRemaining(500);
+        } else {
+            u.setCreditsRemaining(100);
+        }
+
+        userRepository.save(u);
+        logAdminAuditAction(adminEmail, clientIp, "USER_PLAN_UPDATE", "User ID: " + id + ", Email: " + u.getEmail() + " [Plan: " + oldPlan + " -> " + newPlan + "]", "SUCCESS");
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("message", "User plan updated to " + newPlan);
+        result.put("plan", u.getPlan());
+        result.put("creditsRemaining", u.getCreditsRemaining());
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public void blockUser(Long id, String reason, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Blocking user ID: {} with reason: {}", id, reason);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String oldStatus = u.getAccountStatus() != null ? u.getAccountStatus().name() : "ACTIVE";
+        u.setAccountStatus(AccountStatus.BLOCKED);
+        u.setBlockReason(reason);
+        u.setBlockedAt(LocalDateTime.now());
+        userRepository.save(u);
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.revokeUserTokens(id, u.getEmail());
+        }
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_BLOCKED", "User ID: " + id + ", Email: " + u.getEmail() + " [Status: " + oldStatus + " -> BLOCKED, Reason: " + (reason != null ? reason : "None") + "]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public void unblockUser(Long id, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Unblocking user ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        u.setAccountStatus(AccountStatus.ACTIVE);
+        u.setBlockReason(null);
+        u.setBlockedAt(null);
+        userRepository.save(u);
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.clearUserRevocation(id, u.getEmail());
+        }
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_UNBLOCKED", "User ID: " + id + ", Email: " + u.getEmail() + " [Status: BLOCKED -> ACTIVE]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteUser(Long id, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Soft-deleting user ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String oldStatus = u.getAccountStatus() != null ? u.getAccountStatus().name() : "ACTIVE";
+        u.setAccountStatus(AccountStatus.DELETED);
+        u.setDeletedAt(LocalDateTime.now());
+        userRepository.save(u);
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.revokeUserTokens(id, u.getEmail());
+        }
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_SOFT_DELETED", "User ID: " + id + ", Email: " + u.getEmail() + " [Status: " + oldStatus + " -> DELETED, Soft Delete Retained 30 Days]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public void hardDeleteUser(Long id, String confirmEmail, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Permanently hard-deleting user ID: {}", id);
+        User u = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (confirmEmail == null || !confirmEmail.trim().equalsIgnoreCase(u.getEmail().trim())) {
+            throw new RuntimeException("Target user email confirmation mismatch. Expected: " + u.getEmail() + ", Provided: " + confirmEmail);
+        }
+
+        if (tokenRevocationService != null) {
+            tokenRevocationService.revokeUserTokens(id, u.getEmail());
+        }
+
         userRepository.delete(u);
+        logAdminAuditAction(adminEmail, clientIp, "USER_HARD_DELETED", "User ID: " + id + ", Email: " + u.getEmail() + " [Permanent Account Purge]", "SUCCESS");
+    }
+
+    @Override
+    @Transactional
+    public com.aiplacement.backend.dto.admin.ImpersonateResponse impersonateUser(Long targetUserId, String reason, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Starting impersonation session for target user ID: {} by admin: {}", targetUserId, adminEmail);
+        User target = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        if (target.getAccountStatus() == AccountStatus.BLOCKED || target.getAccountStatus() == AccountStatus.DELETED) {
+            throw new RuntimeException("Cannot impersonate a blocked or deleted candidate account");
+        }
+
+        String adminToken = jwtService.generateAccessToken(adminEmail, "SUPER_ADMIN");
+        String impersonationToken = jwtService.generateImpersonationToken(
+                target.getEmail(),
+                target.getId(),
+                target.getRole() != null ? target.getRole().name() : "STUDENT",
+                0L,
+                adminEmail,
+                "SUPER_ADMIN",
+                reason
+        );
+
+        logAdminAuditAction(adminEmail, clientIp, "USER_IMPERSONATION_STARTED", "Admin: " + adminEmail + " impersonating Candidate: " + target.getEmail() + " (ID: " + targetUserId + ") [Reason: " + (reason != null ? reason : "None") + "]", "SUCCESS");
+
+        return com.aiplacement.backend.dto.admin.ImpersonateResponse.builder()
+                .impersonationAccessToken(impersonationToken)
+                .adminAccessToken(adminToken)
+                .targetEmail(target.getEmail())
+                .targetName(target.getFullName())
+                .targetRole(target.getRole() != null ? target.getRole().name() : "STUDENT")
+                .targetUserId(target.getId())
+                .expiresInSeconds(1800L) // 30 minutes
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void endImpersonation(String impersonationToken, String adminEmail, String clientIp) {
+        log.info("[ADMIN_PORTAL] Ending impersonation session for admin: {}", adminEmail);
+        String targetEmail = "UNKNOWN";
+        if (impersonationToken != null && jwtService.isTokenValid(impersonationToken)) {
+            targetEmail = jwtService.extractEmail(impersonationToken);
+        }
+        logAdminAuditAction(adminEmail, clientIp, "USER_IMPERSONATION_ENDED", "Admin: " + adminEmail + " ended impersonation session of Candidate: " + targetEmail, "SUCCESS");
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkPlan(com.aiplacement.backend.dto.admin.bulk.BulkPlanRequest request, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkPlanJob(request, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkBlock(com.aiplacement.backend.dto.admin.bulk.BulkBlockRequest request, boolean isBlock, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkBlockJob(request, isBlock, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkUpload(java.util.List<com.aiplacement.backend.dto.admin.bulk.BulkUploadRow> rows, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkUploadJob(rows, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto submitBulkExport(com.aiplacement.backend.dto.admin.bulk.BulkUserFilterDto filter, java.util.List<Long> userIds, String adminEmail, String clientIp) {
+        return bulkJobManager.submitBulkExportJob(filter, userIds, adminEmail, clientIp);
+    }
+
+    @Override
+    public com.aiplacement.backend.dto.admin.bulk.BulkJobStateDto getBulkJobStatus(String jobId) {
+        return bulkJobManager.getJobStatus(jobId);
+    }
+
+    @Override
+    @Transactional
+    public com.aiplacement.backend.dto.admin.note.AdminNoteDto createAdminUserNote(Long userId, com.aiplacement.backend.dto.admin.note.CreateAdminNoteRequest request, String adminEmail) {
+        if (request.getNoteText() == null || request.getNoteText().isBlank()) {
+            throw new RuntimeException("Note text cannot be empty");
+        }
+        com.aiplacement.backend.entity.AdminUserNote note = com.aiplacement.backend.entity.AdminUserNote.builder()
+                .userId(userId)
+                .adminEmail(adminEmail)
+                .noteText(request.getNoteText().trim())
+                .createdAt(java.time.LocalDateTime.now())
+                .build();
+        note = adminUserNoteRepository.save(note);
+        return com.aiplacement.backend.dto.admin.note.AdminNoteDto.builder()
+                .id(note.getId())
+                .userId(note.getUserId())
+                .adminEmail(note.getAdminEmail())
+                .noteText(note.getNoteText())
+                .createdAt(note.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public java.util.List<com.aiplacement.backend.dto.admin.note.AdminNoteDto> getAdminUserNotes(Long userId) {
+        return adminUserNoteRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(n -> com.aiplacement.backend.dto.admin.note.AdminNoteDto.builder()
+                        .id(n.getId())
+                        .userId(n.getUserId())
+                        .adminEmail(n.getAdminEmail())
+                        .noteText(n.getNoteText())
+                        .createdAt(n.getCreatedAt())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    private void logAdminAuditAction(String adminEmail, String clientIp, String action, String target, String status) {
+        try {
+            AuditLog entry = AuditLog.builder()
+                    .timestamp(LocalDateTime.now())
+                    .ipAddress(clientIp != null ? clientIp : "127.0.0.1")
+                    .adminEmail(adminEmail != null ? adminEmail : "SUPER_ADMIN")
+                    .action(action)
+                    .target(target)
+                    .status(status != null ? status : "SUCCESS")
+                    .browser("Admin Portal")
+                    .os("Server")
+                    .build();
+            auditLogRepository.save(entry);
+        } catch (Exception e) {
+            log.warn("[ADMIN_AUDIT] Failed to save audit log entry", e);
+        }
     }
 }

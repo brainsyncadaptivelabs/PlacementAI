@@ -89,9 +89,19 @@ public class User {
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;
 
-    @Column(name = "account_status")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "account_status", nullable = false)
     @Builder.Default
-    private String accountStatus = "ACTIVE";
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
+
+    @Column(name = "block_reason", columnDefinition = "TEXT")
+    private String blockReason;
+
+    @Column(name = "blocked_at")
+    private LocalDateTime blockedAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     public boolean isProfileCompleted() {
         return profileCompleted != null && profileCompleted;

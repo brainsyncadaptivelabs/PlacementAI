@@ -121,7 +121,7 @@ public class PlacementReadinessService {
                 .improvementPlan(improvementPlan)
                 .hiringRecommendation(hiringRecommendation)
                 .aiSummary(aiSummary)
-                .softCompetencyDetails(softCompDtos)
+                .softCompetencyDetails(null)
                 .build();
     }
 }

@@ -131,7 +131,8 @@ public class PlacementAnalyticsCompiler {
                 .weakSkills(weakSkills)
                 .averageAtsScore(Math.round(avgAts * 10.0) / 10.0)
                 .averageCodingScore(Math.round(avgCoding * 10.0) / 10.0)
-                .averageInterviewScore(Math.round(avgInterview * 10.0) / 10.0)
+                .averageInterviewScore(null)
+                .mockInterviewFeatureDeprecated(true)
                 .build();
     }
 }

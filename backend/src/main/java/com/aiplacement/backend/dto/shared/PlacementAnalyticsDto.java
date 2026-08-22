@@ -34,7 +34,10 @@ public class PlacementAnalyticsDto {
     // Averages
     private double averageAtsScore;
     private double averageCodingScore;
-    private double averageInterviewScore;
+    private Double averageInterviewScore;
+    
+    @Builder.Default
+    private Boolean mockInterviewFeatureDeprecated = true;
 
     @Data
     @Builder

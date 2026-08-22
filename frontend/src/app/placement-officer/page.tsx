@@ -98,7 +98,7 @@ export default function PlacementOfficerDashboard() {
             <div>
               <div className="flex justify-between text-sm font-medium mb-1">
                 <span>Interview Score</span>
-                <span className="font-bold">{data?.averageInterviewScore || 0}%</span>
+                <span className="font-bold">{data?.averageInterviewScore != null ? `${data.averageInterviewScore}%` : "N/A"}</span>
               </div>
               <Progress value={data?.averageInterviewScore || 0} className="h-2" indicatorClassName="bg-amber-500" />
             </div>

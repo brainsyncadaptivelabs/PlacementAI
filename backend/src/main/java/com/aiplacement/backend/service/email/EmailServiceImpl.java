@@ -184,7 +184,7 @@ public class EmailServiceImpl
                         .email(toEmail)
                         .fullName(fullName)
                         .role(com.aiplacement.backend.entity.Role.STUDENT)
-                        .accountStatus("ACTIVE")
+                        .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                         .createdAt(LocalDateTime.now())
                         .verifiedAt(LocalDateTime.now())
                         .build();

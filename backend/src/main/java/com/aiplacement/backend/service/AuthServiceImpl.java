@@ -146,8 +146,8 @@ public class AuthServiceImpl implements AuthService {
                     changed = true;
                 }
 
-                if (!"ACTIVE".equals(user.getAccountStatus())) {
-                    user.setAccountStatus("ACTIVE");
+                if (user.getAccountStatus() != com.aiplacement.backend.entity.AccountStatus.ACTIVE) {
+                    user.setAccountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE);
                     changed = true;
                 }
 
@@ -206,7 +206,7 @@ public class AuthServiceImpl implements AuthService {
                         .authProvider(authProv)
                         .emailVerified(true)
                         .verifiedAt(LocalDateTime.now())
-                        .accountStatus("ACTIVE")
+                        .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                         .profileCompleted(false)
                         .supabaseUuid(suuid)
                         .createdAt(LocalDateTime.now())
@@ -442,7 +442,7 @@ public class AuthServiceImpl implements AuthService {
                 .companyName(assignedRole == Role.RECRUITER ? request.getCompanyName() : null)
                 .emailVerified(true)
                 .verifiedAt(LocalDateTime.now())
-                .accountStatus("ACTIVE")
+                .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                 .profileCompleted(true)
                 
                 .authProvider(com.aiplacement.backend.entity.AuthProvider.LOCAL)
@@ -539,6 +539,12 @@ public class AuthServiceImpl implements AuthService {
 
         if (Boolean.FALSE.equals(user.getEmailVerified())) {
             throw new RuntimeException("Please verify your email first.");
+        }
+
+        if (user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.BLOCKED ||
+            user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.DELETED) {
+            log.warn("[AUTH] Login rejected for suspended/deleted account: {}", user.getEmail());
+            throw new com.aiplacement.backend.exception.AccountBlockedException("Your account has been suspended. Contact support for details.");
         }
 
 
@@ -639,7 +645,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(assignedRole)
                 .emailVerified(true)
                 .verifiedAt(LocalDateTime.now())
-                .accountStatus("ACTIVE")
+                .accountStatus(com.aiplacement.backend.entity.AccountStatus.ACTIVE)
                 .profileCompleted(true)
                 
                 .build();
