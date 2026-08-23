@@ -45,43 +45,41 @@ const STUDENT_PLANS: Plan[] = [
     ctaText: "Select Free"
   },
   {
-    id: "STUDENT_PRO",
-    name: "Pro",
-    priceMonthly: 199,
-    priceYearly: 1910,
+    id: "STUDENT_BASIC",
+    name: "Basic",
+    priceMonthly: 149,
+    priceYearly: 1490,
     badge: "Most Popular",
     isPopular: true,
-    description: "Advanced prep resources to guarantee selection.",
+    description: "Everything you need to systematically target placement offers.",
     features: [
-      "Unlimited Resume Analysis",
-      "Unlimited ATS Score",
-      "AI Resume Builder",
-      "Unlimited Mock Interviews",
-      "Unlimited Coding Practice",
-      "AI Career Mentor",
-      "Skill Gap Analysis",
-      "Company Eligibility Checker",
-      "Learning Roadmap",
-      "Placement Prediction",
-      "Email Support"
+      "50 ATS Analyses / month",
+      "15 JD Matches / month",
+      "5 Skill Gap Analyses / month",
+      "5 Resume Compares / month",
+      "300 AI Chatbot interactions / month",
+      "30 mins English Practice / month",
+      "20 mins AI Mock Interview / month",
+      "Ad-Supported Experience"
     ],
-    ctaText: "Activate Pro"
+    ctaText: "Activate Basic"
   },
   {
     id: "STUDENT_PREMIUM",
     name: "Premium",
-    priceMonthly: 499,
-    priceYearly: 4790,
-    description: "Premium tools for executive preparation.",
+    priceMonthly: 249,
+    priceYearly: 2490,
+    description: "Maximum limits & zero ads for serious job seekers.",
     features: [
-      "Everything in Pro",
-      "Voice AI Mock Interview",
-      "Advanced Resume Optimization",
-      "AI Coding Assistant",
-      "Personalized Learning Roadmap",
-      "Advanced Placement Prediction",
-      "Premium Dashboard",
-      "Priority Support"
+      "150 ATS Analyses / month",
+      "50 JD Matches / month",
+      "20 Skill Gap Analyses / month",
+      "20 Resume Compares / month",
+      "1000 AI Chatbot interactions / month",
+      "120 mins English Practice / month",
+      "90 mins AI Mock Interview / month",
+      "100% Ad-Free Experience",
+      "Priority Customer Support"
     ],
     ctaText: "Activate Premium"
   }
@@ -124,8 +122,10 @@ export default function CompleteStudentProfile() {
 
     try {
       await api.post("/profile/student", formData);
+      document.cookie = 'placementai_profile_completed=true; path=/; max-age=2592000; SameSite=Lax; Secure';
+      document.cookie = 'placementai_plan_selected=false; path=/; max-age=2592000; SameSite=Lax; Secure';
       await mutate();
-      setStep(2); // Move to plan selection
+      router.push("/select-plan");
     } catch (err: unknown) {
       setError(getErrorMessage(err, "Failed to complete profile"));
     } finally {

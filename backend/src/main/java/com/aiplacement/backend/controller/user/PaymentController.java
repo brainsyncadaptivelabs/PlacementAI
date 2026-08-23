@@ -50,17 +50,24 @@ public class PaymentController {
         int amountInPaise;
 
         switch (requestedPlan) {
-            case "STUDENT_PRO_MONTHLY":
-                amountInPaise = 19900;
-                break;
-            case "STUDENT_PRO_YEARLY":
-                amountInPaise = 191000;
+            case "STUDENT_BASIC_MONTHLY":
+            case "STUDENT_BASIC":
+            case "BASIC":
+                amountInPaise = 14900;
                 break;
             case "STUDENT_PREMIUM_MONTHLY":
-                amountInPaise = 49900;
+            case "STUDENT_PREMIUM":
+            case "PREMIUM":
+                amountInPaise = 24900;
                 break;
+            case "STUDENT_PRO_MONTHLY":
+            case "STUDENT_PRO":
+            case "PRO":
+                amountInPaise = 24900;
+                break;
+            case "STUDENT_PRO_YEARLY":
             case "STUDENT_PREMIUM_YEARLY":
-                amountInPaise = 479000;
+                amountInPaise = 239000;
                 break;
             case "RECRUITER_STARTER_MONTHLY":
                 amountInPaise = 99900;
@@ -87,8 +94,8 @@ public class PaymentController {
                 amountInPaise = 6719000;
                 break;
             default:
-                amountInPaise = 19900; // Default fallback
-                requestedPlan = "STUDENT_PRO_MONTHLY";
+                amountInPaise = 14900; // Default fallback for BASIC ₹149
+                requestedPlan = "STUDENT_BASIC_MONTHLY";
         }
 
         try {
@@ -218,6 +225,89 @@ public class PaymentController {
             @RequestBody com.aiplacement.backend.dto.admin.payment.ValidateCouponRequest body
     ) {
         return ResponseEntity.ok(paymentManagementService.validateCoupon(body));
+    }
+
+    @PostMapping("/select-plan")
+    public ResponseEntity<Map<String, Object>> selectPlan(@RequestBody Map<String, String> payload) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String requestedPlan = payload != null ? payload.getOrDefault("plan", "FREE").toUpperCase() : "FREE";
+        if (requestedPlan.contains("FREE")) {
+            user.setPlan("FREE");
+            user.setPaymentStatus("COMPLETED");
+            user.setPlanSelected(true);
+            user.setPaymentCompleted(true);
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                "status", "success",
+                "message", "FREE plan activated successfully.",
+                "plan", "FREE",
+                "planSelected", true,
+                "paymentCompleted", true
+            ));
+        }
+
+        return ResponseEntity.badRequest().body(Map.of(
+            "error", "Paid plans (BASIC/PREMIUM) require order creation and payment verification."
+        ));
+    }
+
+    @GetMapping("/subscription-status")
+    public ResponseEntity<Map<String, Object>> getSubscriptionStatus() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String plan = user.getPlan() != null ? user.getPlan().toUpperCase() : "FREE";
+        boolean adsEnabled = !"PREMIUM".equals(plan);
+
+        java.time.LocalDate resetDate = java.time.LocalDate.now().plusDays(30);
+
+        // Configure limits based on plan
+        int atsLimit = "PREMIUM".equals(plan) ? 150 : ("BASIC".equals(plan) ? 50 : 4);
+        int jdMatchLimit = "PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 15 : 0);
+        int skillGapLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
+        int resumeCompareLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
+        int chatLimit = "PREMIUM".equals(plan) ? 1000 : ("BASIC".equals(plan) ? 300 : 0);
+        int englishLimit = "PREMIUM".equals(plan) ? 120 : ("BASIC".equals(plan) ? 30 : 0);
+        int interviewLimit = "PREMIUM".equals(plan) ? 90 : ("BASIC".equals(plan) ? 20 : 0);
+        int codingLimit = "PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 20 : 0);
+        int tailoringLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
+
+        Map<String, Object> features = new HashMap<>();
+        features.put("ATS_ANALYSIS", createFeatureMeta(atsLimit, 0, "analyses", true));
+        features.put("JD_MATCH", createFeatureMeta(jdMatchLimit, 0, "matches", jdMatchLimit > 0));
+        features.put("SKILL_GAP", createFeatureMeta(skillGapLimit, 0, "analyses", skillGapLimit > 0));
+        features.put("RESUME_COMPARE", createFeatureMeta(resumeCompareLimit, 0, "comparisons", resumeCompareLimit > 0));
+        features.put("AI_CHAT", createFeatureMeta(chatLimit, 0, "messages", chatLimit > 0));
+        features.put("ENGLISH_PRACTICE", createFeatureMeta(englishLimit, 0, "minutes", englishLimit > 0));
+        features.put("MOCK_INTERVIEW", createFeatureMeta(interviewLimit, 0, "minutes", interviewLimit > 0));
+        features.put("CODING_AI_REVIEW", createFeatureMeta(codingLimit, 0, "reviews", codingLimit > 0));
+        features.put("RESUME_TAILORING", createFeatureMeta(tailoringLimit, 0, "tailorings", tailoringLimit > 0));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("plan", plan);
+        response.put("planSelected", user.isPlanSelected());
+        response.put("paymentCompleted", user.isPaymentCompleted());
+        response.put("paymentStatus", user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED");
+        response.put("adsEnabled", adsEnabled);
+        response.put("periodEnd", resetDate.toString());
+        response.put("features", features);
+
+        return ResponseEntity.ok(response);
+    }
+
+    private Map<String, Object> createFeatureMeta(int limit, int used, String unit, boolean included) {
+        Map<String, Object> meta = new HashMap<>();
+        meta.put("limit", limit);
+        meta.put("used", used);
+        meta.put("remaining", Math.max(0, limit - used));
+        meta.put("unit", unit);
+        meta.put("included", included);
+        return meta;
     }
 
     private String calculateHmacSha256(String data, String secret) throws Exception {

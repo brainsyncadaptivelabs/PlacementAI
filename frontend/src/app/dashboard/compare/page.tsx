@@ -8,6 +8,7 @@ import { Scale, FileText, CheckCircle2, AlertCircle, TrendingUp, ArrowRight, Loa
 import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 import api from "@/lib/api";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 
 type ResumeItem = {
   id: number;
@@ -119,6 +120,8 @@ export default function ResumeComparePage() {
         <h1 className="text-2xl font-bold font-heading text-foreground">Resume Comparison</h1>
         <p className="text-muted-foreground max-w-2xl mx-auto">Select two resumes from your library to compare their effectiveness and see which one performs better.</p>
       </div>
+
+      <FeatureUsageBar featureKey="RESUME_COMPARE" featureTitle="Resume Compare" />
 
       {error && (
         <Card className="border-destructive/30 bg-destructive/5 text-destructive p-4 rounded-xl flex items-center gap-3">

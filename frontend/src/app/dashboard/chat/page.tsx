@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import ChatMarkdown from "@/components/chat/ChatMarkdown";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 import { Avatar } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { 

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Code2, Play, Terminal, Square, Loader2 } from "lucide-react";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import api from "@/lib/api";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 
 const languageSnippets: Record<string, { language: string, filename: string, code: string }> = {
   javascript: {
@@ -200,10 +201,12 @@ export default function CodingPracticePage() {
         <div className="flex items-center justify-between gap-4 px-6 py-3.5 border-b border-border bg-card/60 shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-base font-bold font-heading text-foreground flex items-center gap-2.5">
-              <Code2 className="w-5 h-5 text-primary" /> Interactive Coding
+              <Code2 className="w-5 h-5 text-primary" /> Interactive Coding AI Copilot
             </h1>
           </div>
         </div>
+
+        <FeatureUsageBar featureKey="CODING_AI_REVIEW" featureTitle="Coding AI Review" className="m-3" />
 
         <div className="flex flex-1 min-h-0">
           {/* 1. Language Sidebar */}

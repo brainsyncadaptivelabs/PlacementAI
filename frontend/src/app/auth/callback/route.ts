@@ -125,10 +125,12 @@ export async function GET(request: Request) {
         
         placementToken = backendData.accessToken;
         profileCompleted = backendData.profileCompleted ?? false;
+        const planSelected = backendData.planSelected ?? true;
         
         console.log("[PlacementAI OAuth] PlacementAI token exists:", Boolean(placementToken));
         console.log("[PlacementAI OAuth] backend role:", backendData.role);
         console.log("[PlacementAI OAuth] profileCompleted:", backendData.profileCompleted);
+        console.log("[PlacementAI OAuth] planSelected:", backendData.planSelected);
 
         backendRole = backendData.role ?? validatedRole ?? 'STUDENT';
 
@@ -176,6 +178,7 @@ export async function GET(request: Request) {
     const response = NextResponse.redirect(destination.toString());
     response.cookies.set('placementai_role', backendRole, { path: '/', maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', secure: true });
     response.cookies.set('placementai_profile_completed', String(profileCompleted), { path: '/', maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', secure: true });
+    response.cookies.set('placementai_plan_selected', String(planSelected), { path: '/', maxAge: 60 * 60 * 24 * 30, sameSite: 'lax', secure: true });
     return response;
 
   } catch (err) {

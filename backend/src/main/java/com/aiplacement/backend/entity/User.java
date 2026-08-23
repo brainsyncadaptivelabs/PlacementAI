@@ -230,15 +230,35 @@ public class User {
 
     @Column(name = "payment_status", length = 20)
     @Builder.Default
-    private String paymentStatus = "COMPLETED";
+    private String paymentStatus = "PENDING";
 
     @Column(name = "plan_selected")
     @Builder.Default
-    private Boolean planSelected = true;
+    private Boolean planSelected = false;
 
     @Column(name = "payment_completed")
     @Builder.Default
-    private Boolean paymentCompleted = true;
+    private Boolean paymentCompleted = false;
+
+    public boolean isPlanSelected() {
+        if (role != null && role != Role.STUDENT) {
+            return true;
+        }
+        if (planSelected != null) {
+            return planSelected;
+        }
+        return plan != null && !plan.isBlank();
+    }
+
+    public boolean isPaymentCompleted() {
+        if (role != null && role != Role.STUDENT) {
+            return true;
+        }
+        if (paymentCompleted != null) {
+            return paymentCompleted;
+        }
+        return plan != null && !plan.isBlank();
+    }
 
     @Column(name = "supabase_uuid", unique = true)
     private UUID supabaseUuid;

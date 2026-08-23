@@ -161,6 +161,18 @@ export function UserNav() {
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
               </Link>
 
+              <Link 
+                href="/dashboard/wallet"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+              >
+                <div className="flex items-center gap-3 text-foreground">
+                  <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="text-sm font-semibold">Feature Wallet</span>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+              </Link>
+
               <button 
                 onClick={() => {
                   fileInputRef.current?.click();

@@ -10,6 +10,7 @@ import { useConversationManager } from "@/components/chat/useConversationManager
 import { WorkspaceTabs } from "@/components/workspace/WorkspaceTabs";
 import { CoachHome } from "@/components/coach/CoachHome";
 import { NotificationCenter } from "@/components/workspace/NotificationCenter";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 
 export default function CoachPage() {
   const { user, loading } = useUser();
@@ -83,6 +84,10 @@ export default function CoachPage() {
             router.push("/dashboard/chat");
           }
         }} />
+
+        <div className="px-6 pt-3">
+          <FeatureUsageBar featureKey="ENGLISH_PRACTICE" featureTitle="English Practice" />
+        </div>
 
         <div className="flex-1 overflow-hidden relative flex flex-col">
           <NotificationCenter isOpen={notificationsOpen} onClose={() => setNotificationsOpen(false)} />

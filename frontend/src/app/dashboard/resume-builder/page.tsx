@@ -9,6 +9,7 @@ import { ACTIVE_TEMPLATES, TEMPLATE_REGISTRY } from "@/lib/resume/templates/temp
 import { ResumeState } from "@/lib/resume/templates/legacy/placementai-educator/schema";
 import { ResumeService } from "@/services/resume.service";
 import { useUser } from "@/hooks/use-user";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 
 interface ResumeDto {
   id: string;
@@ -81,16 +82,18 @@ export default function ResumeBuilderPortal() {
     <div className="p-8 space-y-8 max-w-7xl mx-auto animate-in fade-in duration-300">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Resume Builder</h1>
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Resume Builder & Tailoring</h1>
           <p className="text-muted-foreground mt-1">Create and manage high-fidelity professional resumes with AI feedback.</p>
         </div>
         <Button 
           onClick={() => router.push("/dashboard/resume-builder/new")} 
           className="rounded-xl bg-slate-900 text-white hover:bg-indigo-650 py-5 text-xs font-bold"
         >
-          <Plus className="w-4 h-4 mr-2" /> New Resume
+          <Plus className="w-4 h-4 mr-2" /> Create New Resume
         </Button>
       </div>
+
+      <FeatureUsageBar featureKey="RESUME_TAILORING" featureTitle="Resume Tailoring" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {resumes.length === 0 ? (

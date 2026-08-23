@@ -63,9 +63,10 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPath = pathname.startsWith("/auth");
 
-  // Read cookies for role and profile completion
+  // Read cookies for role, profile completion, and plan selection
   const role = request.cookies.get('placementai_role')?.value || "STUDENT";
   const profileCompleted = request.cookies.get('placementai_profile_completed')?.value !== 'false';
+  const planSelected = request.cookies.get('placementai_plan_selected')?.value !== 'false';
 
   // 1. Unauthenticated users handling
   if (!user) {
@@ -102,6 +103,16 @@ export async function updateSession(request: NextRequest) {
     else if (role === "PLACEMENT_OFFICER") completePath = "/complete-profile/placement-officer";
 
     return NextResponse.redirect(new URL(completePath, request.url));
+  }
+
+  // Enforce plan selection for STUDENT users who have completed their profile
+  if (role === "STUDENT" && profileCompleted) {
+    if (!planSelected && !pathname.startsWith("/select-plan") && !pathname.startsWith("/complete-profile")) {
+      return NextResponse.redirect(new URL("/select-plan", request.url));
+    }
+    if (planSelected && (pathname.startsWith("/select-plan") || pathname.startsWith("/complete-profile"))) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
   }
 
   // Enforce role-based access control

@@ -137,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('token', data.accessToken);
           document.cookie = `placementai_role=${data.role}; path=/; max-age=2592000; SameSite=Lax; Secure`;
           document.cookie = `placementai_profile_completed=${data.profileCompleted}; path=/; max-age=2592000; SameSite=Lax; Secure`;
+          document.cookie = `placementai_plan_selected=${data.planSelected}; path=/; max-age=2592000; SameSite=Lax; Secure`;
           console.log(`[AUTH_PROVIDER] Re-synced. role=${data.role}`);
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
@@ -177,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('token');
         document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
         document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
         window.dispatchEvent(new Event('storage'));
         window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
         setShowTimeoutWarning(false);

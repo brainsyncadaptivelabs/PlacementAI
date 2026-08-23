@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 
 type AtsQualification = {
   atsPercentage: number;
@@ -328,6 +329,8 @@ Certifications: ${selected.certifications || ""}
         <h1 className="text-2xl font-bold font-heading text-foreground">PlacementAI Intelligence Engine™</h1>
         <p className="text-muted-foreground">Premium diagnostic analysis mapping ATS, recruiter filters, and skill compatibility.</p>
       </div>
+
+      <FeatureUsageBar featureKey="JD_MATCH" featureTitle="JD Match" />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[minmax(0,_3fr)_minmax(0,_2fr)] gap-6 items-start">
         {/* Left Input Panel */}

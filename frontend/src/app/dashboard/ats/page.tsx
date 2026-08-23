@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAtsAnalysisStore } from "@/store/useAtsAnalysisStore";
 import { AtsScoreReport } from "@/components/ats/AtsScoreReport";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 import api from "@/lib/api";
 import {
   FileText,
@@ -133,14 +134,17 @@ export default function ResumeATSPage() {
               className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[220px] truncate"
             >
               {scanHistory.map((item) => (
-                <option key={item.analysisId} value={item.analysisId} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                  {item.scanType} Scan — {new Date(item.createdAt).toLocaleDateString()}
+                <option key={item.analysisId} value={item.analysisId}>
+                  Score {item.overallScore}/100 - {new Date(item.scannedAt).toLocaleDateString()}
                 </option>
               ))}
             </select>
           </div>
         )}
       </div>
+
+      {/* Feature Usage Bar */}
+      <FeatureUsageBar featureKey="ATS_ANALYSIS" featureTitle="ATS Analysis" />
 
       {/* Control Panel: Resume Selection & Mode Toggles */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Zap, TrendingUp, Sparkles, Loader2, FileX } from "lucide-react";
 import api from "@/lib/api";
+import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 
 type SkillGapResult = {
   strongSkills: string[];
@@ -86,6 +87,8 @@ export default function SkillGapPage() {
            </div>
         </Card>
       </div>
+
+      <FeatureUsageBar featureKey="SKILL_GAP" featureTitle="Skill Gap Analysis" />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
          <Card className="lg:col-span-2 border-none shadow-sm bg-card overflow-hidden">

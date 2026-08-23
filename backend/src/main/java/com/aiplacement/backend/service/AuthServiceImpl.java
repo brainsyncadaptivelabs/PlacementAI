@@ -250,8 +250,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
-                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan() != null ? user.getPlan() : "FREE")
                 .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
@@ -466,8 +466,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
-                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan() != null ? user.getPlan() : "FREE")
                 .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
@@ -559,8 +559,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
-                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan() != null ? user.getPlan() : "FREE")
                 .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();
@@ -666,8 +666,8 @@ public class AuthServiceImpl implements AuthService {
                 .refreshToken(refreshToken)
                 .role(user.getRole().name())
                 .profileCompleted(user.isProfileCompleted())
-                .planSelected(user.getPlanSelected() != null ? user.getPlanSelected() : true)
-                .paymentCompleted(user.getPaymentCompleted() != null ? user.getPaymentCompleted() : true)
+                .planSelected(user.isPlanSelected())
+                .paymentCompleted(user.isPaymentCompleted())
                 .plan(user.getPlan() != null ? user.getPlan() : "FREE")
                 .paymentStatus(user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED")
                 .build();

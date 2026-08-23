@@ -286,6 +286,59 @@ export default function PerfectStudentPortal() {
                <div className="h-80 animate-pulse bg-muted/20 rounded-3xl" />
             )}
 
+            {/* Compact Monthly Usage Overview */}
+            <Card className="bg-card overflow-hidden mt-8 border-border/80 shadow-lg">
+              <CardHeader className="px-6 py-4 flex flex-row items-center justify-between border-b border-border/60 bg-muted/30">
+                <div>
+                  <CardTitle className="text-base font-bold font-heading text-foreground flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-emerald-500" /> YOUR MONTHLY USAGE
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">Quick snapshot of active monthly feature allowances</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/wallet')} className="text-xs font-bold gap-1.5">
+                  View Usage <ChevronRight className="w-3.5 h-3.5" />
+                </Button>
+              </CardHeader>
+
+              <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs font-medium">
+                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
+                  <div className="flex justify-between text-foreground font-bold">
+                    <span>ATS Analysis</span>
+                    <span className="text-emerald-500">Active</span>
+                  </div>
+                  <Progress value={76} className="h-1.5 bg-secondary" />
+                  <p className="text-[10px] text-muted-foreground">38 / 50 analyses remaining</p>
+                </div>
+
+                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
+                  <div className="flex justify-between text-foreground font-bold">
+                    <span>JD Match</span>
+                    <span className="text-emerald-500">Active</span>
+                  </div>
+                  <Progress value={73} className="h-1.5 bg-secondary" />
+                  <p className="text-[10px] text-muted-foreground">11 / 15 matches remaining</p>
+                </div>
+
+                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
+                  <div className="flex justify-between text-foreground font-bold">
+                    <span>Skill Gap</span>
+                    <span className="text-emerald-500">Active</span>
+                  </div>
+                  <Progress value={60} className="h-1.5 bg-secondary" />
+                  <p className="text-[10px] text-muted-foreground">3 / 5 analyses remaining</p>
+                </div>
+
+                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
+                  <div className="flex justify-between text-foreground font-bold">
+                    <span>AI Career Chat</span>
+                    <span className="text-emerald-500">Active</span>
+                  </div>
+                  <Progress value={82} className="h-1.5 bg-secondary" />
+                  <p className="text-[10px] text-muted-foreground">248 / 300 messages remaining</p>
+                </div>
+              </CardContent>
+            </Card>
+
             {placementIntel ? (
                <Card className="bg-card overflow-hidden mt-8 border-primary/20 shadow-[0_8px_30px_rgb(0,0,0,0.12)]">
                   <CardHeader className="px-8 py-6 flex flex-row items-center justify-between bg-primary/5">
