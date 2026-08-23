@@ -92,10 +92,11 @@ public class JwtAuthenticationFilter
             }
 
             if (role != null) {
+                String authority = normalizeRoleAuthority(role);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         email,
                         null,
-                        List.of(new SimpleGrantedAuthority("ROLE_" + role))
+                        List.of(new SimpleGrantedAuthority(authority))
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -104,7 +105,7 @@ public class JwtAuthenticationFilter
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             email,
                             null,
-                            List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                            List.of(new SimpleGrantedAuthority(normalizeRoleAuthority(user.getRole().name())))
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
@@ -135,5 +136,16 @@ public class JwtAuthenticationFilter
                 request,
                 response
         );
+    }
+
+    public static String normalizeRoleAuthority(String rawRole) {
+        if (rawRole == null || rawRole.isBlank()) {
+            return rawRole;
+        }
+        String cleanRole = rawRole.trim();
+        while (cleanRole.startsWith("ROLE_")) {
+            cleanRole = cleanRole.substring(5);
+        }
+        return "ROLE_" + cleanRole;
     }
 }

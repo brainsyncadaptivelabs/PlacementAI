@@ -219,12 +219,21 @@ public CorsConfigurationSource corsConfigurationSource() {
             "OPTIONS"
     ));
 
-    configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+    configuration.setAllowedHeaders(List.of(
+            "Authorization",
+            "Content-Type",
+            "Accept",
+            "X-CSRF-Token",
+            "X-Requested-With",
+            "Cache-Control"
+    ));
 
-     configuration.setExposedHeaders(List.of(
-                                 "Authorization",
-                                 "Content-Type"
-                         ));configuration.setAllowCredentials(true);
+    configuration.setExposedHeaders(List.of(
+            "Authorization",
+            "Content-Type",
+            "X-CSRF-Token"
+    ));
+    configuration.setAllowCredentials(true);
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);

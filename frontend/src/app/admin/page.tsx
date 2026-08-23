@@ -225,6 +225,7 @@ export default function SuperAdminPortal() {
   // Fetch relevant tab data
   const fetchTabData = async (tab: TabType) => {
     setLoadingData(true);
+    setActionError("");
     try {
       if (tab === "dashboard") {
         const res = await api.get("/admin/dashboard");
@@ -270,8 +271,9 @@ export default function SuperAdminPortal() {
           cacheHitRatio: healthRes.data.cacheHitRatio || 0
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load tab data", err);
+      setActionError(`Failed to load ${tab} data: ${err.response?.data?.message || err.message || "Unknown error"}`);
     } finally {
       setLoadingData(false);
     }
@@ -284,8 +286,9 @@ export default function SuperAdminPortal() {
       const usersRes = await getUserAiUsageConsumption(period, sortBy, page, 10);
       setPlatformSummary(summaryRes);
       setUserConsumptionPage(usersRes);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to load AI usage analytics", err);
+      setActionError(`Failed to load AI usage data: ${err.response?.data?.message || err.message || "Unknown error"}`);
     } finally {
       setLoadingData(false);
     }
@@ -491,7 +494,20 @@ export default function SuperAdminPortal() {
 
     switch (activeTab) {
       case "dashboard":
-        if (!dashboardData) return null;
+        if (!dashboardData) {
+          return (
+            <Card className="p-12 bg-white border border-slate-200 shadow-sm rounded-2xl text-center space-y-4">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <h3 className="text-lg font-bold text-slate-800">Dashboard Data Unavailable</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Unable to load live dashboard statistics. Please verify your administrative credentials or check network connection.
+              </p>
+              <Button onClick={() => fetchTabData("dashboard")} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 h-10">
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
+              </Button>
+            </Card>
+          );
+        }
         return (
           <div className="fluid-gap flex flex-col">
             {/* KPI Cards Grid */}
@@ -1241,7 +1257,20 @@ export default function SuperAdminPortal() {
         );
 
       case "credits":
-        if (!creditsData) return null;
+        if (!creditsData) {
+          return (
+            <Card className="p-12 bg-white border border-slate-200 shadow-sm rounded-2xl text-center space-y-4">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <h3 className="text-lg font-bold text-slate-800">Credits Data Unavailable</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Unable to load platform credit statistics. Please verify your administrative session or network connection.
+              </p>
+              <Button onClick={() => fetchTabData("credits")} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 h-10">
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
+              </Button>
+            </Card>
+          );
+        }
         return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
@@ -1323,6 +1352,20 @@ export default function SuperAdminPortal() {
         );
 
       case "ai-usage":
+        if (!platformSummary && !userConsumptionPage) {
+          return (
+            <Card className="p-12 bg-white border border-slate-200 shadow-sm rounded-2xl text-center space-y-4">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <h3 className="text-lg font-bold text-slate-800">AI Usage Data Unavailable</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Unable to load AI model and token consumption analytics. Please verify your administrative session or network connection.
+              </p>
+              <Button onClick={() => fetchAiUsageData(aiPeriod, aiSortBy, aiUserPage)} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 h-10">
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
+              </Button>
+            </Card>
+          );
+        }
         return (
           <div className="space-y-8">
             {/* Toolbar Header & Period Toggle */}
@@ -1684,7 +1727,20 @@ export default function SuperAdminPortal() {
         );
 
       case "resumes":
-        if (!resumeData) return null;
+        if (!resumeData) {
+          return (
+            <Card className="p-12 bg-white border border-slate-200 shadow-sm rounded-2xl text-center space-y-4">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <h3 className="text-lg font-bold text-slate-800">Resumes Data Unavailable</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Unable to load resume analytics. Please verify your administrative session or network connection.
+              </p>
+              <Button onClick={() => fetchTabData("resumes")} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 h-10">
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
+              </Button>
+            </Card>
+          );
+        }
         return (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -1733,7 +1789,20 @@ export default function SuperAdminPortal() {
         );
 
       case "interviews":
-        if (!interviewData) return null;
+        if (!interviewData) {
+          return (
+            <Card className="p-12 bg-white border border-slate-200 shadow-sm rounded-2xl text-center space-y-4">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <h3 className="text-lg font-bold text-slate-800">Mock Interviews Data Unavailable</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Unable to load mock interview statistics. Please verify your administrative session or network connection.
+              </p>
+              <Button onClick={() => fetchTabData("interviews")} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 h-10">
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
+              </Button>
+            </Card>
+          );
+        }
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Card className="bg-white border border-slate-200 shadow-sm rounded-2xl">
@@ -1778,7 +1847,20 @@ export default function SuperAdminPortal() {
         );
 
       case "system-health":
-        if (!systemHealthData) return null;
+        if (!systemHealthData) {
+          return (
+            <Card className="p-12 bg-white border border-slate-200 shadow-sm rounded-2xl text-center space-y-4">
+              <AlertTriangle className="w-10 h-10 text-amber-500 mx-auto" />
+              <h3 className="text-lg font-bold text-slate-800">System Health Data Unavailable</h3>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Unable to load system health metrics. Please verify your administrative session or network connection.
+              </p>
+              <Button onClick={() => fetchTabData("system-health")} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-5 h-10">
+                <RefreshCw className="w-3.5 h-3.5 mr-2" /> Retry Loading
+              </Button>
+            </Card>
+          );
+        }
         return (
           <div className="space-y-8">
             {/* Status grid */}
@@ -2255,6 +2337,25 @@ export default function SuperAdminPortal() {
             </Button>
           </div>
         </header>
+
+        {actionError && (
+          <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-2xl flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-2">
+              <AlertOctagon className="w-4 h-4 text-rose-600 flex-shrink-0" />
+              <span>{actionError}</span>
+            </div>
+            <button onClick={() => setActionError("")} className="text-rose-500 hover:text-rose-700 font-bold ml-4">✕</button>
+          </div>
+        )}
+        {actionSuccess && (
+          <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-2xl flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span>{actionSuccess}</span>
+            </div>
+            <button onClick={() => setActionSuccess("")} className="text-emerald-500 hover:text-emerald-700 font-bold ml-4">✕</button>
+          </div>
+        )}
 
         {renderTabContent()}
       </main>
