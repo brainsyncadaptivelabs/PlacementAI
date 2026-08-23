@@ -67,6 +67,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(RateLimitUnavailableException.class)
+    public ResponseEntity<ApiErrorResponse> handleRateLimitUnavailableException(RateLimitUnavailableException ex) {
+        log.error("[CODING] [RATE_LIMIT] Fail-closed rate limit check error: {}", ex.getMessage());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
+    }
+
     @ExceptionHandler(Judge0UnavailableException.class)
     public ResponseEntity<ApiErrorResponse> handleJudge0UnavailableException(Judge0UnavailableException ex) {
         log.error("[CODING] [JUDGE0] Service unavailable: {}", ex.getMessage());

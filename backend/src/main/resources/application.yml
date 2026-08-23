@@ -34,7 +34,7 @@ spring:
     open-in-view: false
     show-sql: false
     hibernate:
-      ddl-auto: validate
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     defer-datasource-initialization: false
     properties:
       hibernate:
@@ -43,9 +43,9 @@ spring:
         order_updates: true
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/placementai}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${SPRING_DATASOURCE_URL:${DB_URL:jdbc:postgresql://localhost:5432/placementai}}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     hikari:
       minimum-idle: 2
       maximum-pool-size: 8
@@ -154,6 +154,7 @@ nvidia:
 judge0:
   url: ${JUDGE0_URL:${JUDGE0_API_URL:${JUDGE0_HOST:http://127.0.0.1:2358}}}
   key: ${JUDGE0_API_KEY:${JUDGE0_KEY:}}
+  webhook-secret: ${JUDGE0_WEBHOOK_SECRET:}
   api:
     url: ${JUDGE0_URL:${JUDGE0_API_URL:${JUDGE0_HOST:http://127.0.0.1:2358}}}
     key: ${JUDGE0_API_KEY:${JUDGE0_KEY:}}

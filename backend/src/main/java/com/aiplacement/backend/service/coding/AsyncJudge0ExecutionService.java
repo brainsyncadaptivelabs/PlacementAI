@@ -11,7 +11,7 @@ public interface AsyncJudge0ExecutionService {
 
     CodingSubmission submitAsync(CodingSubmission submission, CodingProblem problem);
 
-    void processWebhookResult(String token, Judge0WebhookPayload payload);
+    boolean processWebhookResult(String token, Judge0WebhookPayload payload);
 
     SseEmitter subscribeToSse(Long submissionId);
 

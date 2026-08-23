@@ -6,6 +6,7 @@ import com.aiplacement.backend.entity.coding.*;
 import com.aiplacement.backend.repository.coding.CodingExecutionRepository;
 import com.aiplacement.backend.repository.coding.CodingSubmissionRepository;
 import com.aiplacement.backend.repository.coding.CodingTestCaseRepository;
+import com.aiplacement.backend.service.coding.cache.Judge0RateLimiter;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.junit.jupiter.api.AfterEach;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -36,6 +38,7 @@ class AsyncJudge0ExecutionServiceTest {
     @Mock CodingTestCaseRepository testCaseRepository;
     @Mock CodingExecutionRepository executionRepository;
     @Mock CodingSubmissionRepository submissionRepository;
+    @Mock Judge0RateLimiter rateLimiter;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -50,17 +53,23 @@ class AsyncJudge0ExecutionServiceTest {
                 WebClient.builder(),
                 testCaseRepository,
                 executionRepository,
-                submissionRepository
+                submissionRepository,
+                rateLimiter
         );
     }
 
     @AfterEach
     void tearDown() throws IOException {
         mockWebServer.shutdown();
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
     }
 
     @Test
-    void submitAsync_createsQueuedExecutionsWithTokens() {
+    void submitAsync_createsQueuedExecutionsWithTokens_andRateLimits() {
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("user-100", "pass", List.of())
+        );
+
         mockWebServer.enqueue(new MockResponse()
                 .setResponseCode(201)
                 .setHeader("Content-Type", "application/json")
@@ -81,7 +90,18 @@ class AsyncJudge0ExecutionServiceTest {
         CodingSubmission result = asyncService.submitAsync(submission, problem);
 
         assertThat(result.getExecutionState()).isEqualTo(ExecutionStatus.QUEUED);
+        verify(rateLimiter).checkRateLimit("user-100");
         verify(executionRepository).saveAll(any());
+    }
+
+    @Test
+    void submitAsync_unauthenticatedUser_throwsUnauthorizedException() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        CodingProblem problem = CodingProblem.builder().id(1L).build();
+        CodingSubmission submission = CodingSubmission.builder().id(100L).build();
+
+        assertThatThrownBy(() -> asyncService.submitAsync(submission, problem))
+                .isInstanceOf(com.aiplacement.backend.exception.UnauthorizedException.class);
     }
 
     @Test
@@ -109,8 +129,9 @@ class AsyncJudge0ExecutionServiceTest {
                 .memory(2048)
                 .build();
 
-        asyncService.processWebhookResult("token-xyz", payload);
+        boolean processed = asyncService.processWebhookResult("token-xyz", payload);
 
+        assertThat(processed).isTrue();
         assertThat(execution.getExecutionState()).isEqualTo(ExecutionStatus.FINISHED);
         assertThat(execution.isPassed()).isTrue();
         assertThat(execution.getVerdict()).isEqualTo("ACCEPTED");
@@ -119,7 +140,7 @@ class AsyncJudge0ExecutionServiceTest {
     }
 
     @Test
-    void processWebhookResult_duplicateWebhook_ignored() {
+    void processWebhookResult_duplicateWebhook_returnsFalse() {
         CodingExecution execution = CodingExecution.builder()
                 .id(50L).judge0Token("token-xyz")
                 .executionState(ExecutionStatus.FINISHED)
@@ -128,8 +149,9 @@ class AsyncJudge0ExecutionServiceTest {
         when(executionRepository.findByJudge0Token("token-xyz")).thenReturn(Optional.of(execution));
 
         Judge0WebhookPayload payload = Judge0WebhookPayload.builder().token("token-xyz").build();
-        asyncService.processWebhookResult("token-xyz", payload);
+        boolean processed = asyncService.processWebhookResult("token-xyz", payload);
 
+        assertThat(processed).isFalse();
         verify(executionRepository, never()).save(any());
     }
 }

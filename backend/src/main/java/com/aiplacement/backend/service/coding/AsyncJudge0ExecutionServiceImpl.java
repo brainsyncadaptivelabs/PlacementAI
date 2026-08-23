@@ -32,6 +32,10 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
     private final CodingTestCaseRepository testCaseRepository;
     private final CodingExecutionRepository executionRepository;
     private final CodingSubmissionRepository submissionRepository;
+    private final com.aiplacement.backend.service.coding.cache.Judge0RateLimiter rateLimiter;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.core.env.Environment environment;
 
     @Value("${app.backend.callback-url:http://host.docker.internal:8080/api/v1/coding/webhooks/judge0}")
     private String backendCallbackUrl;
@@ -39,11 +43,27 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
     // SSE Registry: submissionId -> Set of active SseEmitters
     private final Map<Long, Set<SseEmitter>> emitterRegistry = new ConcurrentHashMap<>();
 
+    @jakarta.annotation.PostConstruct
+    public void validateCallbackUrl() {
+        if (properties != null && properties.isNonLocalEnvironment()) {
+            if (backendCallbackUrl == null || backendCallbackUrl.isBlank() ||
+                backendCallbackUrl.contains("localhost") || backendCallbackUrl.contains("127.0.0.1") || backendCallbackUrl.contains("host.docker.internal")) {
+                log.error("[CODING] [ASYNC_JUDGE0] Fast-failing startup: BACKEND_CALLBACK_URL / JUDGE0_CALLBACK_URL must be explicitly configured with a non-localhost URL in non-local environments");
+                throw new IllegalStateException("BACKEND_CALLBACK_URL / JUDGE0_CALLBACK_URL must be set in production / non-local environments");
+            }
+        }
+    }
+
     @Override
     @Transactional
     public CodingSubmission submitAsync(CodingSubmission submission, CodingProblem problem) {
         log.info("[CODING] [ASYNC_JUDGE0] Initiating async execution for submission ID: {}, language: {}",
                 submission.getId(), submission.getLanguage());
+
+        String userId = getCurrentUserId();
+        if (rateLimiter != null) {
+            rateLimiter.checkRateLimit(userId);
+        }
 
         submission.setExecutionState(ExecutionStatus.QUEUED);
         submission.setStatus("PENDING");
@@ -131,19 +151,19 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
 
     @Override
     @Transactional
-    public void processWebhookResult(String token, Judge0WebhookPayload payload) {
-        if (token == null || token.isBlank()) return;
+    public boolean processWebhookResult(String token, Judge0WebhookPayload payload) {
+        if (token == null || token.isBlank()) return false;
 
         Optional<CodingExecution> optionalExecution = executionRepository.findByJudge0Token(token);
         if (optionalExecution.isEmpty()) {
             log.warn("[CODING] [ASYNC_JUDGE0] Webhook received for unknown token: {}", token);
-            return;
+            return false;
         }
 
         CodingExecution execution = optionalExecution.get();
         if (execution.getExecutionState() != null && execution.getExecutionState().isTerminal()) {
             log.info("[CODING] [ASYNC_JUDGE0] Duplicate webhook ignored for already finished token: {}", token);
-            return;
+            return false;
         }
 
         String decodedStdout = safeBase64Decode(payload.getStdout());
@@ -198,6 +218,7 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
                 "passed", testPassed,
                 "runtimeMs", runtimeMs
         ));
+        return true;
     }
 
     @Transactional
@@ -353,5 +374,14 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
         if (properties.getKey() != null && !properties.getKey().isBlank()) return properties.getKey();
         if (properties.getApi() != null && properties.getApi().getKey() != null) return properties.getApi().getKey();
         return null;
+    }
+
+    private String getCurrentUserId() {
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new com.aiplacement.backend.exception.UnauthorizedException("User must be authenticated to submit code");
+        }
+        return auth.getName();
     }
 }

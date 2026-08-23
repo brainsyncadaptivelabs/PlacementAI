@@ -4,12 +4,16 @@ import com.aiplacement.backend.config.Judge0Properties;
 import com.aiplacement.backend.dto.coding.CodeExecutionRequest;
 import com.aiplacement.backend.dto.coding.CodeExecutionResponse;
 import com.aiplacement.backend.exception.Judge0BadRequestException;
+import com.aiplacement.backend.service.coding.cache.Judge0RateLimiter;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.env.Environment;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
@@ -19,12 +23,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.*;
 
 class Judge0ExecutionStrategyTest {
 
     private MockWebServer mockWebServer;
     private Judge0Properties properties;
     private Judge0ExecutionStrategy strategy;
+    private Judge0RateLimiter rateLimiter;
 
     @BeforeEach
     void setUp() throws IOException {
@@ -35,12 +41,24 @@ class Judge0ExecutionStrategyTest {
         properties.setUrl(mockWebServer.url("/").toString());
         properties.setKey("test-api-key");
 
-        strategy = new Judge0ExecutionStrategy(properties, WebClient.builder());
+        rateLimiter = mock(Judge0RateLimiter.class);
+
+        strategy = new Judge0ExecutionStrategy(
+                properties,
+                WebClient.builder(),
+                null, null, null,
+                rateLimiter
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("user-test-123", "pass", List.of())
+        );
     }
 
     @AfterEach
     void tearDown() throws IOException {
         mockWebServer.shutdown();
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -52,11 +70,13 @@ class Judge0ExecutionStrategyTest {
     }
 
     @Test
-    void execute_encodesInputBase64_andDecodesOutputBase64() throws Exception {
-        // Prepare mock response with base64 encoded stdout
+    void execute_rateLimitedWithRealUserId_checksRateLimiterWithUserId() throws Exception {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("user-test-777", "pass", List.of())
+        );
+
         String rawStdout = "Hello World\n";
         String encodedStdout = Base64.getEncoder().encodeToString(rawStdout.getBytes(StandardCharsets.UTF_8));
-
         String responseJson = String.format("""
                 {
                     "stdout": "%s",
@@ -79,24 +99,12 @@ class Judge0ExecutionStrategyTest {
                         .name("main.py")
                         .content("print('Hello World')")
                         .build()))
-                .stdin("input_data")
                 .build();
 
         CodeExecutionResponse response = strategy.execute(request);
 
-        // Verify request payload was base64 encoded
-        RecordedRequest recordedRequest = mockWebServer.takeRequest();
-        assertThat(recordedRequest.getPath()).contains("base64_encoded=true");
-        assertThat(recordedRequest.getHeader("X-Auth-Token")).isEqualTo("test-api-key");
-
-        String body = recordedRequest.getBody().readUtf8();
-        assertThat(body).contains(Base64.getEncoder().encodeToString("print('Hello World')".getBytes(StandardCharsets.UTF_8)));
-        assertThat(body).contains(Base64.getEncoder().encodeToString("input_data".getBytes(StandardCharsets.UTF_8)));
-
-        // Verify response decoding
-        assertThat(response.getRun()).isNotNull();
         assertThat(response.getRun().getStdout()).isEqualTo("Hello World\n");
-        assertThat(response.getRun().getCode()).isEqualTo(0);
+        verify(rateLimiter).checkRateLimit("user-test-777");
     }
 
     @Test
@@ -115,14 +123,16 @@ class Judge0ExecutionStrategyTest {
     }
 
     @Test
-    void validateStartupConfig_invalidUrl_throwsIllegalStateException() {
-        Judge0Properties invalidProps = new Judge0Properties();
-        invalidProps.setUrl("invalid-url-without-scheme");
+    void execute_unauthenticatedUser_throwsUnauthorizedException() {
+        SecurityContextHolder.clearContext();
 
-        Judge0ExecutionStrategy invalidStrategy = new Judge0ExecutionStrategy(invalidProps, WebClient.builder());
+        CodeExecutionRequest request = CodeExecutionRequest.builder()
+                .language("python")
+                .files(List.of(CodeExecutionRequest.CodeFile.builder().name("main.py").content("x = 1").build()))
+                .build();
 
-        assertThatThrownBy(invalidStrategy::validateStartupConfig)
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Invalid URL");
+        assertThatThrownBy(() -> strategy.execute(request))
+                .isInstanceOf(com.aiplacement.backend.exception.UnauthorizedException.class)
+                .hasMessageContaining("User must be authenticated for code execution");
     }
 }

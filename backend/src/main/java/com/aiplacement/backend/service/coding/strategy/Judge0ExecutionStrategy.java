@@ -161,8 +161,9 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
         int languageId = Judge0LanguageMapper.getLanguageId(lang);
         long startMs = System.currentTimeMillis();
 
+        String userId = getCurrentUserId();
         if (rateLimiter != null) {
-            rateLimiter.checkRateLimit(requestId);
+            rateLimiter.checkRateLimit(userId);
         }
 
         String sourceCode = "";
@@ -355,6 +356,15 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
             // Fallback if raw string was returned by Judge0
             return input;
         }
+    }
+
+    private String getCurrentUserId() {
+        org.springframework.security.core.Authentication auth =
+                org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+            throw new com.aiplacement.backend.exception.UnauthorizedException("User must be authenticated for code execution");
+        }
+        return auth.getName();
     }
 
     @Data

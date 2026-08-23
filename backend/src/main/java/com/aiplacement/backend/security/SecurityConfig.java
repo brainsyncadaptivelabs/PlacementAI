@@ -77,6 +77,8 @@ public class SecurityConfig {
                                  "/storage/files/**",
                                  "/api/v1/announcements/active-banner",
                                  "/api/v1/feature-flags/evaluate/**",
+                                 "/api/v1/coding/webhooks/**",
+                                 "/api/v1/internal/judge0/**",
                                  "/error"
 
                         ).permitAll()
