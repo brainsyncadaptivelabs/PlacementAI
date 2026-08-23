@@ -64,6 +64,7 @@ public class NvidiaBuildClient implements AIClient {
     private final com.aiplacement.backend.logging.AiLoggingService aiLoggingService;
     private final com.aiplacement.backend.monitoring.AiMetrics aiMetrics;
     private final PromptVersionRepository promptVersionRepository;
+    private final com.aiplacement.backend.repository.UserRepository userRepository;
 
     public NvidiaBuildClient(
             WebClient webClient,
@@ -72,7 +73,8 @@ public class NvidiaBuildClient implements AIClient {
             ApiUsageLogRepository apiUsageLogRepository,
             com.aiplacement.backend.logging.AiLoggingService aiLoggingService,
             com.aiplacement.backend.monitoring.AiMetrics aiMetrics,
-            PromptVersionRepository promptVersionRepository
+            PromptVersionRepository promptVersionRepository,
+            com.aiplacement.backend.repository.UserRepository userRepository
     ) {
         this.webClient = webClient;
         this.properties = properties;
@@ -81,6 +83,7 @@ public class NvidiaBuildClient implements AIClient {
         this.aiLoggingService = aiLoggingService;
         this.aiMetrics = aiMetrics;
         this.promptVersionRepository = promptVersionRepository;
+        this.userRepository = userRepository;
     }
 
     // ─── AIClient contract ────────────────────────────────────────────────────
@@ -468,6 +471,16 @@ public class NvidiaBuildClient implements AIClient {
                 userEmail = auth.getName();
             }
 
+            Long userId = null;
+            try {
+                if (!"anonymous@example.com".equals(userEmail) && userRepository != null) {
+                    var userOpt = userRepository.findByEmail(userEmail);
+                    if (userOpt.isPresent()) {
+                        userId = userOpt.get().getId();
+                    }
+                }
+            } catch (Exception ignored) {}
+
             int promptTokens = 0, completionTokens = 0, totalTokens = 0;
             if (response != null && response.getUsage() != null) {
                 promptTokens     = response.getUsage().getPromptTokens();
@@ -486,6 +499,7 @@ public class NvidiaBuildClient implements AIClient {
             } catch (Exception ignored) {}
 
             ApiUsageLog logEntry = ApiUsageLog.builder()
+                    .userId(userId)
                     .userEmail(userEmail)
                     .featureUsed(feature)
                     .aiModel(properties.getModel())

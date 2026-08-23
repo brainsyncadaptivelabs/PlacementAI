@@ -7,7 +7,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "api_usage_logs", indexes = {
         @Index(name = "idx_api_usage_timestamp", columnList = "timestamp"),
-        @Index(name = "idx_api_usage_user_email", columnList = "user_email")
+        @Index(name = "idx_api_usage_user_email", columnList = "user_email"),
+        @Index(name = "idx_api_usage_user_id", columnList = "user_id")
 })
 @Getter
 @Setter
@@ -19,6 +20,9 @@ public class ApiUsageLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "user_id")
+    private Long userId;
 
     @Column(nullable = false)
     private LocalDateTime timestamp;

@@ -76,7 +76,8 @@ public class AIClientConfig {
             com.aiplacement.backend.repository.ApiUsageLogRepository apiUsageLogRepository,
             com.aiplacement.backend.logging.AiLoggingService aiLoggingService,
             com.aiplacement.backend.monitoring.AiMetrics aiMetrics,
-            com.aiplacement.backend.repository.chat.PromptVersionRepository promptVersionRepository
+            com.aiplacement.backend.repository.chat.PromptVersionRepository promptVersionRepository,
+            com.aiplacement.backend.repository.UserRepository userRepository
     ) {
         return new NvidiaBuildClient(
                 nvidiaWebClient(),
@@ -85,7 +86,8 @@ public class AIClientConfig {
                 apiUsageLogRepository,
                 aiLoggingService,
                 aiMetrics,
-                promptVersionRepository
+                promptVersionRepository,
+                userRepository
         );
     }
 }

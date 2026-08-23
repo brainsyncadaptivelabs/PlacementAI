@@ -199,4 +199,38 @@ const api = {
   }
 };
 
+export const getPlatformAiUsageSummary = async (period: string = "day") => {
+  const response = await api.get(`/admin/ai-usage/summary?period=${encodeURIComponent(period)}`);
+  return response.data;
+};
+
+export const getUserAiUsageConsumption = async (period: string = "month", sortBy: string = "cost", page: number = 0, size: number = 10) => {
+  const response = await api.get(`/admin/ai-usage/users?period=${encodeURIComponent(period)}&sortBy=${encodeURIComponent(sortBy)}&page=${page}&size=${size}`);
+  return response.data;
+};
+
+export const getUserAiUsageDetail = async (userId: number, period: string = "day", date?: string) => {
+  const query = `period=${encodeURIComponent(period)}${date ? `&date=${encodeURIComponent(date)}` : ""}`;
+  const response = await api.get(`/admin/ai-usage/users/${userId}?${query}`);
+  return response.data;
+};
+
+export const exportAiUsageCsv = async (period: string = "month") => {
+  const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
+  const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"}/admin/ai-usage/export?period=${encodeURIComponent(period)}`;
+  const response = await fetch(url, {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  if (!response.ok) throw new Error("Failed to export AI usage CSV");
+  const blob = await response.blob();
+  const fileUrl = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = fileUrl;
+  a.setAttribute("download", `ai_usage_export_${period}_${new Date().toISOString().split("T")[0]}.csv`);
+  a.click();
+  window.URL.revokeObjectURL(fileUrl);
+};
+
 export default api;

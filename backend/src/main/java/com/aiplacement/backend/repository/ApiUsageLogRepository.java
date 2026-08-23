@@ -13,6 +13,10 @@ import java.util.List;
 public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> {
     List<ApiUsageLog> findByTimestampAfter(LocalDateTime timestamp);
 
+    List<ApiUsageLog> findByTimestampBetween(LocalDateTime start, LocalDateTime end);
+
+    List<ApiUsageLog> findByUserIdAndTimestampBetween(Long userId, LocalDateTime start, LocalDateTime end);
+
     long countByFeatureUsed(String feature);
     
     @Query("SELECT COALESCE(SUM(a.estimatedCost), 0.0) FROM ApiUsageLog a WHERE a.timestamp >= :since")
