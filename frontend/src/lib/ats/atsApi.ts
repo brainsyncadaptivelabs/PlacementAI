@@ -53,7 +53,7 @@ export const atsApi = {
 
   overrideExperienceLevel: async (analysisId: number, newLevel: string): Promise<AtsGeneralScanResponseDto | AtsJdScanResponseDto> => {
     // Uses fetch directly for PATCH support if api wrapper is limited
-    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+    const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     
     const response = await fetch(`${BASE_URL}/ats/scan/${analysisId}/override-level`, {

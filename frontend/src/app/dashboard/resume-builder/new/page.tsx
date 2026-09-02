@@ -39,7 +39,7 @@ export default function ResumeWizardPage() {
     setLoading(true);
     setError(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
 
     try {
       const response = await fetch(`${API_URL}/resume-builder/blueprint`, {
@@ -93,7 +93,7 @@ export default function ResumeWizardPage() {
     }
 
     if (fileNameLower.endsWith(".pdf") || fileNameLower.endsWith(".docx")) {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
       const formData = new FormData();
       formData.append("file", file);
 

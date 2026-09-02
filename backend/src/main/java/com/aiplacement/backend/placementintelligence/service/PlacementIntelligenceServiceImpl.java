@@ -50,7 +50,6 @@ public class PlacementIntelligenceServiceImpl implements PlacementIntelligenceSe
     private final com.aiplacement.backend.placementintelligence.timeline.TimelineEngine timelineEngine;
     private final com.aiplacement.backend.placementintelligence.mentor.MentorDashboardService mentorDashboardService;
 
-    @Cacheable(value = "placement_context", key = "#user.email")
     public PlacementContext getOrCreateContext(User user) {
         log.info("[PlacementAI Engine] Resume Intelligence Updated");
         log.info("[PlacementAI Engine] Coding Intelligence Updated");

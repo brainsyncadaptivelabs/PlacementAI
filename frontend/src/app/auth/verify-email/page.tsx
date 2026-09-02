@@ -118,7 +118,7 @@ function VerifyEmailContent() {
     setSuccess("");
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
       const response = await fetch(`${API_URL}/auth/verify-email`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -195,7 +195,7 @@ function VerifyEmailContent() {
     setSuccess("");
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
       const response = await fetch(`${API_URL}/auth/resend-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -222,7 +222,7 @@ function VerifyEmailContent() {
   const handleCancel = async () => {
     setLoading(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
       await fetch(`${API_URL}/auth/cancel-signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

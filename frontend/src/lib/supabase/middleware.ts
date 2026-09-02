@@ -130,7 +130,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(new URL(correctPath, request.url));
   }
 
-  if (pathname.startsWith("/admin") && role !== "ADMIN" && role !== "SUPER_ADMIN") {
+  if (pathname.startsWith("/admin") && pathname !== "/admin" && pathname !== "/admin/" && role !== "ADMIN" && role !== "SUPER_ADMIN") {
     let correctPath = "/dashboard";
     if (role === "RECRUITER") correctPath = "/recruiter";
     if (role === "PLACEMENT_OFFICER") correctPath = "/placement-officer";

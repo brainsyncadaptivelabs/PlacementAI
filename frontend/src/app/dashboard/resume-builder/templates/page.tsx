@@ -21,7 +21,7 @@ export default function TemplateGalleryPage() {
   const [failedPreviews, setFailedPreviews] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
     ACTIVE_TEMPLATES.forEach(async (tpl) => {
       try {
         const response = await fetch(`${API_URL}/resume/preview?templateId=${tpl.id}`, {

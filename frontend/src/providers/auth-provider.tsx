@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.placementai.in/api/v1';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1';
 
     // ── Step 1: Pick up tokens injected by /auth/callback via query params ──
     if (typeof window !== 'undefined') {

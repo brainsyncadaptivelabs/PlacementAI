@@ -41,6 +41,7 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
         this(strategies, testCaseRepository, executionRepository, submissionRepository, ForkJoinPool.commonPool());
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
     public TestCaseExecutionEngineImpl(
             List<ExecutionStrategy> strategies,
             CodingTestCaseRepository testCaseRepository,

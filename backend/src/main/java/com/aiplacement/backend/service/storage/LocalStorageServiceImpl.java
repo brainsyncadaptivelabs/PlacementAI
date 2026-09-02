@@ -18,7 +18,7 @@ public class LocalStorageServiceImpl implements StorageService {
     @Value("${storage.local.dir:./storage/uploads}")
     private String uploadDir;
 
-    @Value("${backend.url:https://api.placementai.in}")
+    @Value("${backend.url:http://localhost:8080}")
     private String backendUrl;
 
     @Override
