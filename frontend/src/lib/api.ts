@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
 
 const getHeaders = (url?: string) => {
   const isAdmin = url && url.startsWith("/admin");
@@ -217,7 +217,7 @@ export const getUserAiUsageDetail = async (userId: number, period: string = "day
 
 export const exportAiUsageCsv = async (period: string = "month") => {
   const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
-  const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"}/admin/ai-usage/export?period=${encodeURIComponent(period)}`;
+  const url = `${process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1"}/admin/ai-usage/export?period=${encodeURIComponent(period)}`;
   const response = await fetch(url, {
     headers: {
       "Authorization": `Bearer ${token}`

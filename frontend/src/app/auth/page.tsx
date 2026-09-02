@@ -147,7 +147,7 @@ export default function AuthPage() {
     setError("");
     setSuccess("");
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
       const response = await fetch(`${API_URL}/auth/request-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -175,7 +175,7 @@ export default function AuthPage() {
     setError("");
     setSuccess("");
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
       const response = await fetch(`${API_URL}/auth/verify-email-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -229,7 +229,7 @@ export default function AuthPage() {
     setSuccess("");
     
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
       const signupBody = {
         fullName: signupData.fullName,
         email: signupData.email,
@@ -295,7 +295,7 @@ export default function AuthPage() {
     setError("");
     
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
       const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

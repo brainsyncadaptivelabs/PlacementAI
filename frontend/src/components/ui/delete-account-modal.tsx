@@ -30,7 +30,7 @@ export function DeleteAccountModal({
   const [resendDisabledTime, setResendDisabledTime] = useState(60); // 60 seconds resend lock
 
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
   const API_BASE_URL = `${API_URL}/account`;
 
   // Reset modal state on close or open

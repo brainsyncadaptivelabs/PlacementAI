@@ -7,10 +7,7 @@ export const useAuth = () => {
   const supabase = createClient();
 
   const signInWithProvider = async (provider: Provider, role?: string) => {
-    let origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
-    if (origin.includes('placementai.in') && !origin.includes('www.')) {
-      origin = 'https://www.placementai.in';
-    }
+    const origin = typeof window !== 'undefined' ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || 'https://placementai.in');
     const redirectUrl = `${origin}/auth/callback${role ? `?role=${encodeURIComponent(role)}` : ''}`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,

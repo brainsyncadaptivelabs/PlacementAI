@@ -377,7 +377,7 @@ export default function SuperAdminPortal() {
 
   const downloadReport = (type: string) => {
     const token = localStorage.getItem("token");
-    const url = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1"}/admin/reports?type=${type}`;
+    const url = `${process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1"}/admin/reports?type=${type}`;
     
     // Perform download via browser mechanism
     const a = document.createElement("a");

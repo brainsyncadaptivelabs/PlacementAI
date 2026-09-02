@@ -70,7 +70,9 @@ spring:
   # ── Redis ────────────────────────────────────────────────
   data:
     redis:
-      url: ${REDIS_URL:redis://localhost:6379}
+      url: ${REDIS_URL:redis://${SPRING_DATA_REDIS_HOST:${REDIS_HOST:localhost}}:${SPRING_DATA_REDIS_PORT:${REDIS_PORT:6379}}}
+      host: ${SPRING_DATA_REDIS_HOST:${REDIS_HOST:localhost}}
+      port: ${SPRING_DATA_REDIS_PORT:${REDIS_PORT:6379}}
       timeout: 5s
       connect-timeout: 5s
       lettuce:
@@ -178,7 +180,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "health,info,metrics,prometheus,env,loggers"
+        include: "health,info,metrics,prometheus"
   endpoint:
     health:
       show-details: always

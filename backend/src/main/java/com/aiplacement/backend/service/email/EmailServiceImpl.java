@@ -36,7 +36,7 @@ public class EmailServiceImpl
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
-    @Value("${frontend.url:http://localhost:3000}")
+    @Value("${frontend.url:https://placementai.in}")
     private String frontendUrl;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);

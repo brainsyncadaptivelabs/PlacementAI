@@ -1015,7 +1015,7 @@ export default function ChatPage() {
         const formData = new FormData();
         formData.append("file", file);
         const token = localStorage.getItem("token");
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api/v1";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
         
         // Simulating upload progress steps
         setTimeout(() => {
@@ -1127,7 +1127,7 @@ export default function ChatPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8080/api/v1";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.placementai.in/api/v1";
       
       const response = await fetch(`${API_URL}/chat/stream`, {
         method: 'POST',
