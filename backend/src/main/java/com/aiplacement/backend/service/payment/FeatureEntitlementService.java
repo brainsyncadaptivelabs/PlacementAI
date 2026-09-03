@@ -3,7 +3,7 @@ package com.aiplacement.backend.service.payment;
 import com.aiplacement.backend.entity.FeatureEntitlement;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.FeatureEntitlementRepository;
-import com.aiplacement.backend.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.*;
 @Slf4j
 public class FeatureEntitlementService {
 
-    private final UserRepository userRepository;
+
     private final FeatureEntitlementRepository featureEntitlementRepository;
 
     public static class FeatureLimitExhaustedException extends RuntimeException {

@@ -35,7 +35,7 @@ public class AsyncJudge0ExecutionServiceImpl implements AsyncJudge0ExecutionServ
     private final com.aiplacement.backend.service.coding.cache.Judge0RateLimiter rateLimiter;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
-    private org.springframework.core.env.Environment environment;
+
 
     @Value("${app.backend.callback-url:http://host.docker.internal:8080/api/v1/coding/webhooks/judge0}")
     private String backendCallbackUrl;

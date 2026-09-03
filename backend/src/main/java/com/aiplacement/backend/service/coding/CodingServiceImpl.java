@@ -142,21 +142,4 @@ public class CodingServiceImpl implements CodingService {
         return Map.of("saved", true, "snapshotIndex", nextIndex);
     }
 
-    private Map<String, Object> buildLanguageBreakdown(List<CodingSubmission> submissions) {
-        Map<String, Long> counts = new HashMap<>();
-        Map<String, Double> avgRates = new HashMap<>();
-        for (CodingSubmission s : submissions) {
-            String lang = s.getLanguage() != null ? s.getLanguage() : "unknown";
-            counts.merge(lang, 1L, (a, b) -> a + b);
-            avgRates.merge(lang, s.getPassRate() != null ? s.getPassRate().doubleValue() : 0.0, (a, b) -> a + b);
-        }
-        Map<String, Object> breakdown = new HashMap<>();
-        counts.forEach((lang, count) -> {
-            Map<String, Object> langData = new HashMap<>();
-            langData.put("count", count);
-            langData.put("avgPassRate", avgRates.getOrDefault(lang, 0.0) / count);
-            breakdown.put(lang, langData);
-        });
-        return breakdown;
-    }
 }

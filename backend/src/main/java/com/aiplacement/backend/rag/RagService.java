@@ -34,8 +34,8 @@ public class RagService {
         String roleRaw = request.getRole() != null ? request.getRole().trim() : "";
 
         Metadata metadata = Metadata.from("company", companyRaw)
-                .add("company_normalized", companyRaw.toLowerCase())
-                .add("role", roleRaw);
+                .put("company_normalized", companyRaw.toLowerCase())
+                .put("role", roleRaw);
 
         TextSegment segment = TextSegment.from(content, metadata);
         Embedding embedding = embeddingModel.embed(segment).content();

@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.aiplacement.backend.repository.UserRepository;
-import com.aiplacement.backend.entity.*;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,7 +80,7 @@ public class PlacementReadinessService {
         if (riskAnalysis == null) riskAnalysis = List.of();
 
         // Soft competencies details default to empty list when mock interview evaluations are absent
-        List<PlacementIntelligenceDto.SoftCompetencyDto> softCompDtos = new ArrayList<>();
+
         List<String> personalizedRecs = new ArrayList<>();
 
         // Skill gaps and recommendations (phase 1 deterministic placeholders)

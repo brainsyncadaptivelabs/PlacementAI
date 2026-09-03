@@ -33,6 +33,7 @@ class RagPgVectorIntegrationTest {
     }
 
     @BeforeAll
+    @SuppressWarnings("resource")
     static void setUp() {
         boolean isDockerAvailable = false;
         try {

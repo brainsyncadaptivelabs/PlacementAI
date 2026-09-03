@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service.coding;
 
-import com.aiplacement.backend.entity.coding.CodingProblem;
+
 import com.aiplacement.backend.entity.coding.CodingReplay;
 import java.util.List;
 import java.util.Map;

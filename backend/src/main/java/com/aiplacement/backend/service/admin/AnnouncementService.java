@@ -4,7 +4,7 @@ import com.aiplacement.backend.dto.admin.announcement.*;
 import com.aiplacement.backend.entity.Announcement;
 import org.springframework.data.domain.Page;
 
-import java.util.List;
+
 
 public interface AnnouncementService {
     Page<Announcement> getAnnouncements(int page, int size);

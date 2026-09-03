@@ -113,11 +113,7 @@ public class PlacementAnalyticsCompiler {
                 .average()
                 .orElse(0.0);
 
-        double avgInterview = apps.stream()
-                .filter(a -> a != null && a.getInterviewScore() != null)
-                .mapToInt(a -> a.getInterviewScore() != null ? a.getInterviewScore() : 0)
-                .average()
-                .orElse(0.0);
+
 
         return PlacementAnalyticsDto.builder()
                 .totalStudents((int) totalStudents)
