@@ -1,4 +1,10 @@
 -- V12: Normalize ATS Analysis schema for production scoring
+CREATE TABLE IF NOT EXISTS ats_analysis (
+    id BIGSERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 ALTER TABLE ats_analysis ADD COLUMN IF NOT EXISTS analysis_version VARCHAR(50) DEFAULT '1.0';
 ALTER TABLE ats_analysis ADD COLUMN IF NOT EXISTS engine_version VARCHAR(50) DEFAULT '1.0';
 ALTER TABLE ats_analysis ADD COLUMN IF NOT EXISTS prompt_version VARCHAR(50) DEFAULT '1.0';

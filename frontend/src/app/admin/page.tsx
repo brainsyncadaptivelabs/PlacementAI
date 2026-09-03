@@ -163,7 +163,7 @@ export default function SuperAdminPortal() {
   // Check auth session on load
   const checkSession = async () => {
     setAuthLoading(true);
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("admin_token");
 
     if (token) {
       try {
@@ -196,10 +196,11 @@ export default function SuperAdminPortal() {
       });
 
       const { token, email, csrfToken } = res.data;
-      // Store token for both generic and admin endpoints
-      localStorage.setItem("token", token);
       localStorage.setItem("admin_token", token);
-      localStorage.setItem("admin_csrf", csrfToken);
+      if (csrfToken) {
+        localStorage.setItem("admin_csrf", csrfToken);
+      }
+      document.cookie = "placementai_role=SUPER_ADMIN; path=/; max-age=2592000; SameSite=Lax";
 
       setIsAuthenticated(true);
       setAdminEmail(email);
@@ -215,9 +216,9 @@ export default function SuperAdminPortal() {
     try {
       await api.post("/admin/auth/logout");
     } catch (_) {}
-    localStorage.removeItem("token");
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_csrf");
+    document.cookie = "placementai_role=; path=/; max-age=0";
     setIsAuthenticated(false);
     setAdminEmail("");
   };

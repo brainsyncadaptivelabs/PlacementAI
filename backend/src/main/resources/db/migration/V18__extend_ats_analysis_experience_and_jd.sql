@@ -10,6 +10,7 @@ BEGIN
         DROP INDEX IF EXISTS uk_ats_analysis_resume_id;
         DROP INDEX IF EXISTS ats_analysis_resume_id_key;
 
+        ALTER TABLE ats_analysis ADD COLUMN IF NOT EXISTS resume_id BIGINT;
         CREATE INDEX IF NOT EXISTS idx_ats_analysis_resume_id ON ats_analysis(resume_id);
 
         ALTER TABLE ats_analysis

@@ -40,18 +40,28 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
     const promise = (async () => {
       try {
-        const [statsRes, intelRes, mentorRes, timelineRes] = await Promise.all([
+        const [statsResult, intelResult, mentorResult, timelineResult] = await Promise.allSettled([
           api.get("/dashboard/stats"),
           api.get("/placement-intelligence/dashboard"),
           api.get("/placement-intelligence/mentor"),
           api.get("/placement-intelligence/timeline"),
         ]);
 
+        const statsData = statsResult.status === "fulfilled" ? statsResult.value.data : null;
+        const intelData = intelResult.status === "fulfilled" ? intelResult.value.data : null;
+        const mentorData = mentorResult.status === "fulfilled" ? mentorResult.value.data : null;
+        const timelineData = timelineResult.status === "fulfilled" ? timelineResult.value.data : [];
+
+        // If both core endpoints failed completely, surface an error
+        if (!statsData && !intelData) {
+          throw new Error("Core dashboard endpoints failed");
+        }
+
         set({
-          stats: statsRes.data,
-          placementIntel: intelRes.data,
-          mentorData: mentorRes.data,
-          timelineData: timelineRes.data,
+          stats: statsData,
+          placementIntel: intelData,
+          mentorData: mentorData,
+          timelineData: timelineData,
           lastFetched: Date.now(),
           loading: false,
           error: null,

@@ -1,13 +1,24 @@
 package com.aiplacement.backend.placementintelligence.timeline;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.extern.jackson.Jacksonized;
 
-@Value
+import java.io.Serializable;
+
+@Data
 @Builder
-public class TimelineEvent {
-    String month;
-    String milestone;
-    String status; // COMPLETED, UPCOMING, IN_PROGRESS
-    String details;
+@NoArgsConstructor
+@AllArgsConstructor
+@Jacksonized
+public class TimelineEvent implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String month;
+    private String milestone;
+    private String status; // COMPLETED, UPCOMING, IN_PROGRESS
+    private String details;
 }
+

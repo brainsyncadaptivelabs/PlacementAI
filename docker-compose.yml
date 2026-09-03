@@ -40,7 +40,7 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${PERF_PROFILE:-standard}
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/placementai}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/postgres}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-${DB_USERNAME:-postgres}}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${DB_PASSWORD:-postgres}}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -82,13 +82,13 @@ services:
           cpus: '0.25'
           memory: 512M
     environment:
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - POSTGRES_HOST=${DB_HOST:-postgres}
-      - POSTGRES_PORT=${DB_PORT:-5432}
-      - POSTGRES_USER=${DB_USERNAME:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
-      - POSTGRES_DB=${DB_NAME:-placementai}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      POSTGRES_HOST: ${DB_HOST:-postgres}
+      POSTGRES_PORT: ${DB_PORT:-5432}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-placementai}
     ports:
       - "2358:2358"
     healthcheck:
@@ -117,13 +117,13 @@ services:
           cpus: '0.5'
           memory: 1024M
     environment:
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - POSTGRES_HOST=${DB_HOST:-postgres}
-      - POSTGRES_PORT=${DB_PORT:-5432}
-      - POSTGRES_USER=${DB_USERNAME:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
-      - POSTGRES_DB=${DB_NAME:-placementai}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      POSTGRES_HOST: ${DB_HOST:-postgres}
+      POSTGRES_PORT: ${DB_PORT:-5432}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-placementai}
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f workers || exit 1"]
       interval: 10s
