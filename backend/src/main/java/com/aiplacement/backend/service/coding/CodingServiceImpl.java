@@ -8,7 +8,6 @@ import com.aiplacement.backend.entity.coding.*;
 import com.aiplacement.backend.exception.ResourceNotFoundException;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.coding.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

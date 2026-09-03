@@ -2,7 +2,6 @@ package com.aiplacement.backend.service.coding;
 
 import com.aiplacement.backend.dto.coding.*;
 import com.aiplacement.backend.entity.User;
-import com.aiplacement.backend.entity.coding.CodingProblem;
 import com.aiplacement.backend.entity.coding.CodingReplay;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
