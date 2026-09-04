@@ -11,6 +11,8 @@ import { Sidebar } from "./Sidebar";
 import { useUser } from "@/hooks/use-user";
 import { useAuthStore } from '@/store/auth-store';
 import { getDashboardRouteForRole, getProfileCompletionRouteForRole, normalizeRole } from "@/lib/auth-routes";
+import { NotificationCenter } from "@/components/workspace/NotificationCenter";
+import { useNotificationStore } from "@/store/notification-store";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -23,6 +25,8 @@ export function AppLayout({ children, role }: AppLayoutProps) {
   const session = useAuthStore((state) => state.session);
   const pathname = usePathname();
   const router = useRouter();
+  const [isNotifOpen, setIsNotifOpen] = React.useState(false);
+  const hasUnread = useNotificationStore((state) => state.hasUnread());
   
   
   // Determine Route Guard State Machine State
@@ -155,10 +159,13 @@ export function AppLayout({ children, role }: AppLayoutProps) {
               </div>
               <div className="flex items-center gap-[clamp(8px,1.5vw,16px)] shrink-0">
 
-                 <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors h-10 w-10 sm:h-12 sm:w-12">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>
-                 </Button>
+                 <div className="relative">
+                   <Button onClick={() => setIsNotifOpen(!isNotifOpen)} variant="ghost" size="icon" className="relative text-muted-foreground hover:bg-muted rounded-xl transition-colors h-10 w-10 sm:h-12 sm:w-12">
+                      <Bell className="w-5 h-5" />
+                      {hasUnread && <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background"></span>}
+                   </Button>
+                   <NotificationCenter isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+                 </div>
                  <UserNav />
               </div>
             </header>

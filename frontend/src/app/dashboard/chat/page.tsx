@@ -42,6 +42,7 @@ import { useConversationManager } from "@/components/chat/useConversationManager
 import { Message } from "@/components/chat/ConversationStorage";
 import { CommandPalette } from "@/components/chat/command/CommandPalette";
 import { NotificationCenter } from "@/components/workspace/NotificationCenter";
+import { useNotificationStore } from "@/store/notification-store";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -854,6 +855,7 @@ export default function ChatPage() {
   const [feedback, setFeedback] = useState<Record<number, 'like' | 'dislike'>>({});
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const hasUnread = useNotificationStore((state) => state.hasUnread());
 
   // Active Memory State
   const [memoryContext, setMemoryContext] = useState<{
@@ -1322,7 +1324,7 @@ export default function ChatPage() {
               className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-400 hover:bg-secondary transition-colors relative cursor-pointer"
             >
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              {hasUnread && <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-indigo-500" />}
             </button>
             <button 
               onClick={handleClearChat}

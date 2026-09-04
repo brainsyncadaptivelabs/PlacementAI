@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useUser } from "@/hooks/use-user";
 import { Bell, Loader2 } from "lucide-react";
+import { useNotificationStore } from "@/store/notification-store";
 import { useRouter } from "next/navigation";
 import { ConversationSidebar } from "@/components/chat/ConversationSidebar";
 import { useConversationManager } from "@/components/chat/useConversationManager";
@@ -15,6 +16,7 @@ import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 export default function CoachPage() {
   const { user, loading } = useUser();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const hasUnread = useNotificationStore((state) => state.hasUnread());
   const router = useRouter();
 
   const {
@@ -72,7 +74,7 @@ export default function CoachPage() {
               className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-400 hover:bg-slate-900 transition-colors relative cursor-pointer"
             >
               <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500" />
+              {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500" />}
             </button>
 
           </div>
