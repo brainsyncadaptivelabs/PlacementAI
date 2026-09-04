@@ -430,14 +430,14 @@ export default function SelectPlanPage() {
                           {plan.icon} {plan.name}
                         </CardTitle>
                       </div>
-                      <CardDescription className="text-slate-400 text-xs mt-1.5 h-9 font-medium">
+                      <CardDescription className="text-slate-900 text-xs mt-1.5 h-9 font-extrabold">
                         {plan.description}
                       </CardDescription>
                     </CardHeader>
 
                     <CardContent className="px-6 py-4 flex-grow space-y-6">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-4xl sm:text-5xl font-black font-heading tracking-tight text-white">
+                        <span className="text-4xl sm:text-5xl font-black font-heading tracking-tight text-slate-900">
                           ₹{plan.price}
                         </span>
                         <span className="text-slate-400 text-xs font-semibold">/month</span>
@@ -447,7 +447,7 @@ export default function SelectPlanPage() {
                         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Features Included:</p>
                         <ul className="space-y-2.5">
                           {plan.features.map((feat) => (
-                            <li key={feat} className="flex items-start gap-2.5 text-xs text-slate-300 font-medium">
+                            <li key={feat} className="flex items-start gap-2.5 text-xs text-slate-900 font-extrabold">
                               <Check className={`w-4 h-4 shrink-0 mt-0.5 ${plan.isPopular ? "text-indigo-400" : plan.isBestValue ? "text-purple-400" : "text-emerald-400"}`} />
                               <span>{feat}</span>
                             </li>
@@ -491,24 +491,24 @@ export default function SelectPlanPage() {
               <p className="text-xs text-slate-400 mt-1">Detailed quota breakdown across all subscription tiers.</p>
             </div>
 
-            <div className="border border-slate-800/80 bg-slate-900/50 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl">
+            <div className="border border-slate-300 bg-white rounded-2xl overflow-hidden shadow-2xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/80 text-slate-300">
-                      <th className="py-4 px-6 font-bold uppercase tracking-wider text-slate-400">Feature</th>
-                      <th className="py-4 px-6 font-bold text-center text-emerald-400">Free (₹0)</th>
-                      <th className="py-4 px-6 font-bold text-center text-amber-400">Basic (₹149/mo)</th>
-                      <th className="py-4 px-6 font-bold text-center text-purple-400">Premium (₹249/mo)</th>
+                    <tr className="border-b border-slate-300 bg-slate-200 text-slate-900">
+                      <th className="py-4 px-6 font-extrabold uppercase tracking-wider text-slate-900">Feature</th>
+                      <th className="py-4 px-6 font-extrabold text-center text-emerald-700">Free (₹0)</th>
+                      <th className="py-4 px-6 font-extrabold text-center text-amber-700">Basic (₹149/mo)</th>
+                      <th className="py-4 px-6 font-extrabold text-center text-purple-700">Premium (₹249/mo)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/60 text-slate-300">
                     {COMPARISON_ROWS.map((row, i) => (
-                      <tr key={row.feature} className={i % 2 === 0 ? "bg-slate-900/30" : "bg-transparent"}>
-                        <td className="py-3.5 px-6 font-semibold text-slate-200">{row.feature}</td>
-                        <td className="py-3.5 px-6 text-center font-medium text-slate-400">{row.free}</td>
-                        <td className="py-3.5 px-6 text-center font-medium text-slate-200 bg-indigo-500/5">{row.basic}</td>
-                        <td className="py-3.5 px-6 text-center font-semibold text-white bg-purple-500/5">{row.premium}</td>
+                      <tr key={row.feature} className={i % 2 === 0 ? "bg-slate-50" : "bg-white"}>
+                        <td className="py-3.5 px-6 font-extrabold text-slate-900">{row.feature}</td>
+                        <td className="py-3.5 px-6 text-center font-extrabold text-slate-900">{row.free}</td>
+                        <td className="py-3.5 px-6 text-center font-extrabold text-slate-900 bg-indigo-500/10">{row.basic}</td>
+                        <td className="py-3.5 px-6 text-center font-extrabold text-slate-900 bg-purple-500/10">{row.premium}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -565,19 +565,19 @@ export default function SelectPlanPage() {
             <div className="lg:col-span-1">
               <Card className="bg-slate-900/80 border-slate-800 backdrop-blur-xl sticky top-8 shadow-2xl rounded-2xl">
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-lg font-bold font-heading text-white flex items-center gap-2">
-                    <ShoppingCart className="w-5 h-5 text-emerald-400" /> Build Your Plan
+                  <CardTitle className="text-lg font-extrabold font-heading text-slate-900 flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-emerald-600" /> Build Your Plan
                   </CardTitle>
-                  <CardDescription className="text-xs text-slate-400">
+                  <CardDescription className="text-xs font-bold text-slate-900">
                     Selected feature credits summary
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
                   {selectedCustomKeys.length === 0 ? (
-                    <div className="text-center py-8 text-slate-500 text-xs font-medium space-y-2 border border-dashed border-slate-800 rounded-xl">
+                    <div className="text-center py-8 text-slate-900 text-xs font-extrabold space-y-2 border border-dashed border-slate-400 rounded-xl">
                       <p>No features selected yet.</p>
-                      <p className="text-[11px] text-slate-600">Click on feature cards to add them to your custom pack.</p>
+                      <p className="text-[11px] font-bold text-slate-700">Click on feature cards to add them to your custom pack.</p>
                     </div>
                   ) : (
                     <ul className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
@@ -587,12 +587,12 @@ export default function SelectPlanPage() {
                         return (
                           <li key={key} className="flex items-center justify-between text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
                             <div>
-                              <p className="font-semibold text-white">{item.name}</p>
-                              <p className="text-[10px] text-emerald-400 font-medium">{item.credits} {item.unit}</p>
+                              <p className="font-extrabold text-slate-900">{item.name}</p>
+                              <p className="text-[10px] text-emerald-700 font-bold">{item.credits} {item.unit}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-white">₹{item.priceInInr}</span>
-                              <button onClick={(e) => { e.stopPropagation(); toggleCustomFeature(key); }} className="text-slate-500 hover:text-red-400 p-0.5">
+                              <span className="font-extrabold text-slate-900">₹{item.priceInInr}</span>
+                              <button onClick={(e) => { e.stopPropagation(); toggleCustomFeature(key); }} className="text-slate-600 hover:text-red-500 p-0.5">
                                 <X className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -602,12 +602,12 @@ export default function SelectPlanPage() {
                     </ul>
                   )}
 
-                  <div className="pt-4 border-t border-slate-800 space-y-2">
+                  <div className="pt-4 border-t border-slate-300 space-y-2">
                     <div className="flex justify-between items-baseline text-sm">
-                      <span className="text-slate-400 font-medium">Subtotal</span>
-                      <span className="text-2xl font-black text-white font-heading">₹{customTotalInr}</span>
+                      <span className="text-slate-900 font-extrabold">Subtotal</span>
+                      <span className="text-2xl font-black text-slate-900 font-heading">₹{customTotalInr}</span>
                     </div>
-                    <p className="text-[10px] text-slate-500 font-medium">Includes 30 days validity per feature pack.</p>
+                    <p className="text-[10px] text-slate-800 font-bold">Includes 30 days validity per feature pack.</p>
                   </div>
                 </CardContent>
 

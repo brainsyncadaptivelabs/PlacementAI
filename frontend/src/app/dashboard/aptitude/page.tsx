@@ -318,6 +318,28 @@ export default function AptitudePage() {
     return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [isQuizActive]);
 
+  // Timer logic for active quiz
+  const handleFinishQuizRef = useRef<(() => void) | null>(null);
+  
+  useEffect(() => {
+    if (!isQuizActive) return;
+    
+    const interval = setInterval(() => {
+      setQuizTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          if (handleFinishQuizRef.current) {
+            handleFinishQuizRef.current();
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [isQuizActive]);
+
   // Load stats initially
   useEffect(() => {
     const fetchStats = async () => {
@@ -409,14 +431,16 @@ export default function AptitudePage() {
         mode: selectedMode,
         excluded: excluded
       });
-      if (res.data && res.data.assessmentId) {
-        setAssessmentId(res.data.assessmentId);
+      if (res.data && res.data.questions && res.data.questions.length > 0) {
+        setAssessmentId(res.data.assessmentId || res.data.id || `session-${Date.now()}`);
         setQuizQuestions(res.data.questions);
         setHiddenFullQuestions(res.data.questions);
         setIsDevelopmentMock(false);
+      } else {
+        throw new Error("No questions returned from backend API");
       }
-    } catch (err) {
-      console.error("Secure backend initialization failed", err);
+    } catch (err: any) {
+      console.warn("Secure backend initialization failed or returned no questions", err.message);
       const isLocalDev = process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEV_FALLBACK === "true";
       if (isLocalDev) {
         console.warn("Falling back to local development mock assessment session");
@@ -735,6 +759,10 @@ export default function AptitudePage() {
     setShowQuizResultsSummary(true);
   };
 
+  useEffect(() => {
+    handleFinishQuizRef.current = handleFinishQuiz;
+  });
+
   const getRandomElement = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
   // predicted placement readiness indices
@@ -755,8 +783,8 @@ export default function AptitudePage() {
 
     const topicScores: Record<string, number> = {};
     attempts.forEach(a => {
-      a.strongTopics.forEach(t => { topicScores[t] = Math.min(100, (topicScores[t] || 70) + 5); });
-      a.weakTopics.forEach(t => { topicScores[t] = Math.max(0, (topicScores[t] || 50) - 10); });
+      (a.strongTopics || []).forEach(t => { topicScores[t] = Math.min(100, (topicScores[t] || 70) + 5); });
+      (a.weakTopics || []).forEach(t => { topicScores[t] = Math.max(0, (topicScores[t] || 50) - 10); });
     });
 
     const weakTopics = Object.entries(eloRatings)
@@ -1036,13 +1064,13 @@ export default function AptitudePage() {
                       onClick={() => handleSelectOption(qId, opt)}
                       className={`flex items-center gap-3.5 p-4 rounded-2xl border text-left text-xs font-bold tracking-tight transition-all cursor-pointer hover:scale-101 ${
                         isSelected
-                        ? "bg-indigo-55 border-indigo-500 text-foreground shadow-sm shadow-indigo-500/5"
+                        ? "bg-indigo-50 border-indigo-600 text-foreground shadow-sm shadow-indigo-500/5"
                         : "bg-card border-border hover:bg-muted/50 text-foreground"
                       }`}
                     >
                       <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-extrabold border shrink-0 ${
                         isSelected
-                        ? "bg-indigo-650 border-indigo-650 text-white"
+                        ? "bg-indigo-600 border-indigo-600 text-white"
                         : "bg-muted border-border text-muted-foreground"
                       }`}>
                         {label}
@@ -1062,25 +1090,27 @@ export default function AptitudePage() {
                 variant="outline"
                 className="border-border hover:bg-secondary h-9 font-bold text-xs cursor-pointer text-foreground rounded-xl"
               >
-                Back
+                Previous Question
               </Button>
 
-              {currentQuestionIdx + 1 < quizQuestions.length ? (
-                <Button
-                  onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-                  className="bg-indigo-650 hover:bg-indigo-700 text-white font-bold h-9 text-xs cursor-pointer rounded-xl"
-                >
-                  Next Question
-                </Button>
-              ) : (
+              <div className="flex gap-3">
                 <Button
                   onClick={handleFinishQuiz}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-9 text-xs cursor-pointer rounded-xl flex items-center gap-1.5"
                 >
                   <Check className="w-3.5 h-3.5" />
-                  Submit Exam
+                  Submit Test
                 </Button>
-              )}
+
+                {currentQuestionIdx + 1 < quizQuestions.length && (
+                  <Button
+                    onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-9 text-xs cursor-pointer rounded-xl"
+                  >
+                    Next Question
+                  </Button>
+                )}
+              </div>
             </CardFooter>
           </Card>
         </div>
@@ -1153,7 +1183,7 @@ export default function AptitudePage() {
               <div className="p-4 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
                 <span className="font-bold text-muted-foreground block uppercase tracking-wider text-[9px]">Weakest Subject</span>
                 <span className="font-black text-rose-600 text-sm">
-                  {activeQuizAttempt.weakTopics[0] || "None identified"}
+                  {activeQuizAttempt.weakTopics?.[0] || "None identified"}
                 </span>
               </div>
               <div className="p-4 bg-indigo-500/100/10 border border-indigo-500/20 rounded-2xl text-xs space-y-1">
@@ -1170,9 +1200,9 @@ export default function AptitudePage() {
               </div>
             </div>
 
-            <p className="text-xs text-muted-foreground leading-relaxed font-semibold">
-              Based on your results, prioritize LCM methods in <strong>{activeQuizAttempt.weakTopics[0] || "your studies"}</strong>.
-              We have scheduled incorrect answers into your Spaced Repetition Review Hub to check retention in 24 hours.
+            <p className="text-muted-foreground text-xs leading-relaxed font-semibold">
+              You scored {activeQuizAttempt.score}%. Your primary focus should be addressing gaps in <strong>{activeQuizAttempt.weakTopics?.[0] || "your studies"}</strong>. 
+              The questions you got wrong have been added to your Spaced Repetition Review Hub to check retention in 24 hours.
             </p>
           </Card>
 
@@ -1228,7 +1258,8 @@ export default function AptitudePage() {
                 <div className="space-y-4">
                   {hiddenFullQuestions.map((q, idx) => {
                     const chosen = userAnswers[q.id];
-                    const isCorrect = chosen === q.answer;
+                    const isSkipped = !chosen;
+                    const isCorrect = !isSkipped && chosen === q.answer;
 
                     let classification = "Concept Understanding";
                     if (!isCorrect && activeQuizAttempt.timeTaken > 450) {
@@ -1238,18 +1269,19 @@ export default function AptitudePage() {
                     }
 
                     return (
-                      <div key={q.id} className="border border-border/50 rounded-2xl p-5 space-y-3.5 bg-card">
+                      <div key={q.id || idx} className="border border-border/50 rounded-2xl p-5 space-y-3.5 bg-card">
                         <div className="flex justify-between items-start">
                           <span className="text-sm font-extrabold text-foreground leading-relaxed whitespace-pre-line select-text">
                             Q{idx + 1}. {q.text}
                           </span>
                           <div className="flex items-center gap-2">
                             <span className={`px-2 py-0.5 rounded text-[10px] font-bold select-none ${
+                              isSkipped ? "bg-slate-500/15 text-slate-800 dark:text-slate-200" :
                               isCorrect ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-200" : "bg-rose-500/15 text-rose-800 dark:text-rose-200"
                             }`}>
-                              {isCorrect ? "Correct" : "Incorrect"}
+                              {isSkipped ? "Not Answered" : isCorrect ? "Correct" : "Incorrect"}
                             </span>
-                            {!isCorrect && (
+                            {!isCorrect && !isSkipped && (
                               <Badge variant="outline" className="text-[9px] border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300 py-0.5 px-2 font-black uppercase">
                                 {classification}
                               </Badge>
@@ -1260,8 +1292,8 @@ export default function AptitudePage() {
                         <div className="grid grid-cols-2 gap-4 text-xs select-none">
                           <div>
                             <span className="text-muted-foreground block font-bold">Your Response:</span>
-                            <span className={`font-semibold ${isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-600"}`}>
-                              {chosen || "Skipped"}
+                            <span className={`font-semibold ${isSkipped ? "text-slate-500" : isCorrect ? "text-emerald-700 dark:text-emerald-300" : "text-rose-600"}`}>
+                              {isSkipped ? "Not Answered" : chosen}
                             </span>
                           </div>
                           <div>

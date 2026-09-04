@@ -118,6 +118,13 @@ export default function PerfectStudentPortal() {
     roadmapsCount: stats?.roadmapsCount || 0,
   }), [stats, profile]);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "GOOD MORNING";
+    if (hour < 17) return "GOOD AFTERNOON";
+    return "GOOD EVENING";
+  };
+
   return (
     <div className={`fluid-p fluid-gap flex flex-col font-sans ${perfProfile === 'low' ? 'no-animations' : ''}`}>
       {(statsError || storeError) && (
@@ -138,8 +145,8 @@ export default function PerfectStudentPortal() {
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-card/10 border border-transparent text-primary text-[10px] font-black uppercase tracking-widest">
                <Sparkles className="w-3 h-3" /> Ready for the next leap?
             </div>
-            <h1 className="fluid-heading-1 font-black font-heading leading-tight">
-               Good morning, <span className="text-primary italic">{userStats.fullName}</span> 👋
+            <h1 className="fluid-heading-1 font-black font-heading leading-tight" suppressHydrationWarning>
+               {getGreeting()}, <span className="text-primary italic">{userStats.fullName}</span> 👋
             </h1>
             <p className="text-muted-foreground/70 text-lg font-medium leading-relaxed">
                Welcome to your AI Placement Copilot. Your readiness score is <span className="text-white font-bold">{userStats.readinessScore}%</span>. Keep up the good work!

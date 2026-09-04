@@ -92,14 +92,12 @@ export default function ConnectionError({
         )}
 
         <Button
-          asChild
+          render={<Link href="/dashboard" />}
           variant="outline"
-          className="w-full sm:w-auto h-10 px-5 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 font-medium text-sm flex items-center justify-center gap-2"
+          className="w-full sm:w-auto h-11 px-6 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 font-medium transition-all flex items-center justify-center gap-2"
         >
-          <Link href="/dashboard">
-            <LayoutDashboard className="w-4 h-4" />
-            Go to Dashboard
-          </Link>
+          <LayoutDashboard className="w-4 h-4" />
+          Go to Dashboard
         </Button>
       </div>
     </motion.div>

@@ -265,7 +265,7 @@ export default function CompleteStudentProfile() {
                   )}
                   <CardHeader className={plan.isPopular ? "pt-10" : ""}>
                     <CardTitle className="text-2xl font-bold font-heading">{plan.name}</CardTitle>
-                    <CardDescription className="h-10 mt-2 font-medium">{plan.description}</CardDescription>
+                    <CardDescription className="h-10 mt-2 font-bold text-slate-900 dark:text-slate-100">{plan.description}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex items-baseline gap-1">
@@ -274,7 +274,7 @@ export default function CompleteStudentProfile() {
                     </div>
                     <ul className="space-y-3.5">
                       {plan.features.map((feat) => (
-                        <li key={feat} className="flex items-start gap-3 text-sm font-medium text-slate-700 dark:text-slate-300">
+                        <li key={feat} className="flex items-start gap-3 text-sm font-extrabold text-slate-900 dark:text-slate-100">
                           <div className="rounded-full p-0.5 bg-primary/10 text-primary mt-0.5 shrink-0">
                             <Check className="w-3 h-3" />
                           </div>

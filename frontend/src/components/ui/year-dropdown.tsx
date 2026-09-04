@@ -121,23 +121,6 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
           scrollbar-width: thin;
           scrollbar-color: #5E6AFF transparent;
         }
-        input.custom-year-search-input,
-        input.custom-year-search-input:not(.oauth-btn) {
-          background: transparent !important;
-          background-color: transparent !important;
-          border: none !important;
-          border-radius: 0px !important;
-          outline: none !important;
-          box-shadow: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          color: #F8FAFC !important;
-          width: 100% !important;
-          height: 100% !important;
-        }
-        .custom-year-search-input::placeholder {
-          color: rgba(255, 255, 255, 0.45) !important;
-        }
       `}</style>
       
       {/* input closed state */}
@@ -193,15 +176,15 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
             {/* search bar sticky at top */}
             <div className="p-[8px] border-b border-[rgba(255,255,255,0.04)] shrink-0">
               <div 
-                className="flex items-center px-[14px] h-[44px] rounded-[14px]"
-                style={{ background: '#1A2236' }}
+                className="flex items-center px-[14px] h-[44px] rounded-[14px] bg-[#1A2236]"
               >
                 <Search className="w-4 h-4 text-[rgba(255,255,255,0.45)] mr-[10px] shrink-0" />
                 <input
                   ref={searchInputRef}
                   type="text"
                   placeholder="Search..."
-                  className="custom-year-search-input"
+                  className="flex-1 !bg-transparent !border-0 !outline-none !shadow-none !ring-0 !appearance-none !text-white placeholder-[rgba(255,255,255,0.45)] w-full h-full p-0 m-0"
+                  style={{ background: 'transparent', backgroundColor: 'transparent', border: 'none', outline: 'none', boxShadow: 'none', WebkitAppearance: 'none', color: 'white' }}
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
