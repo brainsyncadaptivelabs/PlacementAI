@@ -1,80 +1,91 @@
-import { createClient } from '@/lib/supabase/client';
-import { Database } from '@/lib/supabase/database.types';
+import api from '@/lib/api';
 
-type ResumeRow = Database['public']['Tables']['resumes']['Row'];
-type ResumeInsert = Database['public']['Tables']['resumes']['Insert'];
-type ResumeUpdate = Database['public']['Tables']['resumes']['Update'];
+const toRequestDto = (data: any) => {
+  const state = data.resume_data || {};
+  return {
+    title: data.title || "Untitled Resume",
+    templateName: data.template_id || "placementai-educator",
+    fullName: state.personalInfo?.name || "",
+    email: state.personalInfo?.email || "",
+    phone: state.personalInfo?.phone || "",
+    linkedin: state.personalInfo?.linkedin || "",
+    github: state.personalInfo?.github || "",
+    summary: state.summary || "",
+    skills: JSON.stringify(state.skills || []),
+    projects: JSON.stringify(state.projects || []),
+    experience: JSON.stringify(state.experience || []),
+    certifications: JSON.stringify(state.certifications || []),
+    education: JSON.stringify(state.education || [])
+  };
+};
 
-const supabase = createClient();
+const safeParseJSON = (str: string | null | undefined, fallback: any = []) => {
+  if (!str) return fallback;
+  try {
+    return JSON.parse(str);
+  } catch (e) {
+    return fallback;
+  }
+};
+
+const toFrontendResume = (dto: any) => {
+  return {
+    id: String(dto.id),
+    title: dto.title,
+    template_id: dto.templateName,
+    resume_data: {
+      personalInfo: {
+        name: dto.fullName || "",
+        email: dto.email || "",
+        phone: dto.phone || "",
+        linkedin: dto.linkedin || "",
+        github: dto.github || "",
+        leetcode: ""
+      },
+      summary: dto.summary || "",
+      skills: safeParseJSON(dto.skills, []),
+      projects: safeParseJSON(dto.projects, []),
+      experience: safeParseJSON(dto.experience, []),
+      certifications: safeParseJSON(dto.certifications, []),
+      education: safeParseJSON(dto.education, []),
+      achievements: []
+    }
+  };
+};
 
 export const ResumeService = {
-  async createResume(data: ResumeInsert) {
-    const { data: resume, error } = await supabase
-      .from('resumes')
-      .insert(data)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return resume;
+  async createResume(data: any) {
+    const dto = toRequestDto(data);
+    const response = await api.post('/resume-builder', dto);
+    return { id: response.data.id };
   },
 
   async getResume(id: string) {
-    const { data: resume, error } = await supabase
-      .from('resumes')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) throw error;
-    return resume;
+    const response = await api.get(`/resume-builder/${id}`);
+    return toFrontendResume(response.data);
   },
 
   async getAllResumes(userId: string) {
-    const { data: resumes, error } = await supabase
-      .from('resumes')
-      .select('*')
-      .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
-
-    if (error) throw error;
-    return resumes;
+    const response = await api.get('/resume-builder');
+    if (Array.isArray(response.data)) {
+      return response.data.map(toFrontendResume);
+    }
+    return [];
   },
 
-  async updateResume(id: string, data: ResumeUpdate) {
-    const { data: resume, error } = await supabase
-      .from('resumes')
-      .update(data)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return resume;
+  async updateResume(id: string, data: any) {
+    const dto = toRequestDto(data);
+    const response = await api.put(`/resume-builder/${id}`, dto);
+    return { id: response.data.id };
   },
 
   async deleteResume(id: string) {
-    const { error } = await supabase
-      .from('resumes')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    await api.delete(`/resume-builder/${id}`);
     return true;
   },
 
   async saveVersion(resumeId: string, versionNumber: number, resumeData: any) {
-    const { data, error } = await supabase
-      .from('resume_versions')
-      .insert({
-        resume_id: resumeId,
-        version_number: versionNumber,
-        resume_data: resumeData,
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    console.warn("saveVersion not implemented on Spring Boot backend yet");
+    return null;
   }
 };

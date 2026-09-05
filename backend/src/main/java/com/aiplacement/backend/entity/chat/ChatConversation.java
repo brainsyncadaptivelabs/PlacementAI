@@ -40,6 +40,7 @@ public class ChatConversation {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
     private java.util.List<ChatMessage> messages;
 

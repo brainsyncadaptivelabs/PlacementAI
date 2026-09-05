@@ -7,6 +7,8 @@ import java.util.Map;
 
 @Data
 @Builder
+@lombok.NoArgsConstructor
+@lombok.AllArgsConstructor
 public class PlacementIntelligenceDto {
     private String version;
     private String generatedAt;
@@ -41,6 +43,8 @@ public class PlacementIntelligenceDto {
 
     @Data
     @Builder
+    @lombok.NoArgsConstructor
+    @lombok.AllArgsConstructor
     public static class SoftCompetencyDto {
         private String name;
         private Double score;

@@ -216,7 +216,7 @@ export function EditProfileDialog({
                  >
                    <Camera className="w-4 h-4 mr-2" /> Change Photo
                  </Button>
-                 <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">JPG, PNG or GIF. Max 1MB.</p>
+                 <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">JPG, PNG or GIF.</p>
               </div>
             </div>
 

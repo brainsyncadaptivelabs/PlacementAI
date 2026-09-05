@@ -92,7 +92,7 @@ export default function FeatureWalletPage() {
           <Button variant="outline" size="sm" onClick={fetchWallet} disabled={loading} className="gap-2">
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
           </Button>
-          <Link href="/select-plan">
+          <Link href="/dashboard/billing">
             <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-2 shadow-lg shadow-emerald-600/20">
               <Plus className="w-4 h-4" /> Buy More Credits
             </Button>
@@ -144,7 +144,7 @@ export default function FeatureWalletPage() {
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   You haven't purchased any custom feature packs yet. Buy only the features you need.
                 </p>
-                <Link href="/select-plan">
+                <Link href="/dashboard/billing">
                   <Button className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
                     Build Custom Plan
                   </Button>

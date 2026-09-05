@@ -137,7 +137,7 @@ export function FeatureUsageBar({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/select-plan">
+            <Link href="/dashboard/billing">
               <Button size="sm" className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs gap-1.5 shadow-md">
                 <Sparkles className="w-3.5 h-3.5" /> Upgrade Plan
               </Button>
@@ -168,12 +168,12 @@ export function FeatureUsageBar({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Link href="/select-plan">
+            <Link href="/dashboard/billing">
               <Button size="sm" variant="outline" className="text-xs font-bold border-red-500/30 text-red-600 dark:text-red-400">
                 Buy Custom Pack
               </Button>
             </Link>
-            <Link href="/select-plan">
+            <Link href="/dashboard/billing">
               <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs gap-1 shadow-md">
                 Upgrade Plan <ArrowUpRight className="w-3.5 h-3.5" />
               </Button>

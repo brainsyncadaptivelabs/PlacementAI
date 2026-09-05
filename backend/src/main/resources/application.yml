@@ -140,7 +140,7 @@ nvidia:
     base-url: ${NVIDIA_API_URL:https://integrate.api.nvidia.com/v1/chat/completions}
 
     # Model — llama-3.3-70b matches your API usage
-    model: ${NVIDIA_MODEL:meta/llama-3.1-70b-instruct}
+    model: ${NVIDIA_MODEL:meta/llama-3.2-11b-vision-instruct}
 
     # Sampling parameters (matched from your API snippet)
     temperature: ${NVIDIA_TEMPERATURE:0.2}
