@@ -24,7 +24,17 @@ type AtsAnalysis = {
   bestRole?: string;
 };
 
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
+
 export default function ResumeComparePage() {
+  return (
+    <FeatureGuard featureKey="RESUME_COMPARE" featureTitle="Resume Compare">
+      <ResumeComparePageContent />
+    </FeatureGuard>
+  );
+}
+
+function ResumeComparePageContent() {
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [resumeAId, setResumeAId] = useState<string>("");
   const [resumeBId, setResumeBId] = useState<string>("");

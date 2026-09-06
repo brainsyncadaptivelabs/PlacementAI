@@ -25,51 +25,14 @@ public class FlywayMigrationStrategyConfig {
     @Bean
     public FlywayMigrationStrategy flywayMigrationStrategy() {
         return flyway -> {
-            int maxRetries = 15;
-            int delayMs = 3000;
-            boolean hasHistory = false;
-            boolean connected = false;
-
-            log.info("[FlywayConfig] Starting database readiness check and migration...");
-            
+            log.info("[FlywayConfig] Running Flyway migration...");
             try {
-                for (int i = 1; i <= maxRetries; i++) {
-                    try (Connection conn = flyway.getConfiguration().getDataSource().getConnection()) {
-                        log.info("[FlywayConfig] Successfully connected to the database on attempt {}", i);
-                        connected = true;
-                        try (ResultSet rs = conn.getMetaData().getTables(null, null, "flyway_schema_history", null)) {
-                            if (rs.next()) {
-                                hasHistory = true;
-                            }
-                        }
-                        break;
-                    } catch (Exception e) {
-                        log.warn("[FlywayConfig] Database connection not ready yet (attempt {}/{}). Retrying in {}ms... Error: {}", i, maxRetries, delayMs, e.getMessage(), e);
-                        if (i == maxRetries) {
-                            throw new RuntimeException("Database connection failed after " + maxRetries + " attempts. Boot aborted.", e);
-                        }
-                        try {
-                            Thread.sleep(delayMs);
-                        } catch (InterruptedException ie) {
-                            Thread.currentThread().interrupt();
-                            throw new RuntimeException("Database connection retry interrupted", ie);
-                        }
-                    }
-                }
-                
-                if (connected && !hasHistory) {
-                    log.info("[FlywayConfig] Clean database detected. Programmatically baselining at version 9...");
-                    flyway.baseline();
-                }
+                flyway.migrate();
+                log.info("[FlywayConfig] Flyway migration complete.");
             } catch (Exception e) {
-                log.error("[FlywayConfig] Error during Flyway detection/baselining: {}", e.getMessage(), e);
-                throw new RuntimeException(e);
+                log.error("[FlywayConfig] Flyway migration failed: {}", e.getMessage(), e);
+                throw e;
             }
-            
-            // Execute standard migrations/validation before Hibernate validation
-            log.info("[FlywayConfig] Running Flyway migrations...");
-            flyway.migrate();
-            log.info("[FlywayConfig] Flyway migration complete.");
         };
     }
 }

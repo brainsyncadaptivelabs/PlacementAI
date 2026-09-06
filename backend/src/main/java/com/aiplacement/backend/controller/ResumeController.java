@@ -60,6 +60,14 @@ public class ResumeController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/upload-only")
+    public ResponseEntity<com.aiplacement.backend.dto.ResumeDto> uploadOnlyResume(
+            @RequestParam("file") MultipartFile file
+    ) {
+        log.info("Resume upload-only requested for file: {}", file.getOriginalFilename());
+        return ResponseEntity.ok(resumeService.uploadResumeOnly(file));
+    }
+
     @PostMapping("/upload-image")
 
     public ResponseEntity<ImageResumeResponseDto>

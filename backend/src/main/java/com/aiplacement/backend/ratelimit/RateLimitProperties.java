@@ -11,14 +11,14 @@ import org.springframework.stereotype.Component;
 @Setter
 public class RateLimitProperties {
 
-    private LimitConfig login = new LimitConfig(5, 60);             // 5 per minute
-    private LimitConfig signup = new LimitConfig(3, 3600);           // 3 per hour
-    private LimitConfig chat = new LimitConfig(60, 60);             // 60 per minute
-    private LimitConfig resumeUpload = new LimitConfig(10, 3600);    // 10 per hour
-    private LimitConfig ats = new LimitConfig(20, 3600);             // 20 per hour
-    private LimitConfig mockInterview = new LimitConfig(15, 3600);   // 15 per hour
-    private LimitConfig coding = new LimitConfig(30, 60);            // 30 per minute
-    private LimitConfig jdMatch = new LimitConfig(30, 3600);         // 30 per hour
+    private LimitConfig login = new LimitConfig(15, 60);            // 15 per minute
+    private LimitConfig signup = new LimitConfig(10, 3600);         // 10 per hour
+    private LimitConfig chat = new LimitConfig(100, 60);            // 100 per minute
+    private LimitConfig resumeUpload = new LimitConfig(120, 60);    // 120 per minute
+    private LimitConfig ats = new LimitConfig(120, 60);             // 120 per minute
+    private LimitConfig mockInterview = new LimitConfig(30, 3600);  // 30 per hour
+    private LimitConfig coding = new LimitConfig(60, 60);           // 60 per minute
+    private LimitConfig jdMatch = new LimitConfig(60, 3600);        // 60 per hour
 
     @Getter
     @Setter

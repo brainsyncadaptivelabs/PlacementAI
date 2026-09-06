@@ -81,4 +81,11 @@ export const atsApi = {
     const res = await api.get(`/ats/scan/history/${resumeId}`);
     return res.data;
   },
+
+  uploadResume: async (file: File): Promise<{ id: number; fileName: string; filePath: string; createdAt: string }> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await api.post("/resume/upload-only", formData);
+    return res.data;
+  },
 };

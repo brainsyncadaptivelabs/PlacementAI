@@ -117,7 +117,17 @@ const defaultSeedProblems: ProblemDto[] = [
   }
 ];
 
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
+
 export default function CodingPage() {
+  return (
+    <FeatureGuard featureKey="CODING_REVIEW" featureTitle="Coding AI Review">
+      <CodingPageContent />
+    </FeatureGuard>
+  );
+}
+
+function CodingPageContent() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "problems" | "workspace">("dashboard");
   const [problems, setProblems] = useState<ProblemDto[]>(defaultSeedProblems);
   const [selectedProblem, setSelectedProblem] = useState<ProblemDto | null>(null);

@@ -46,6 +46,77 @@ public class ResumeServiceImpl implements ResumeService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    public com.aiplacement.backend.dto.ResumeDto uploadResumeOnly(MultipartFile file) {
+        placementMetrics.incrementResumeUploads();
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("Uploaded file is empty.");
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || originalFilename.trim().isEmpty()) {
+            throw new IllegalArgumentException("Unable to determine file name.");
+        }
+
+        File tempFile = null;
+        try {
+            log.info("Starting resume upload-only process for: {}", originalFilename);
+            String uploadDir = System.getProperty("user.dir") + "/temp/";
+            File directory = new File(uploadDir);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            String cleanFilename = new File(originalFilename).getName()
+                    .replace("..", "")
+                    .replace("/", "")
+                    .replace("\\", "");
+            String fileName = UUID.randomUUID() + "_" + cleanFilename;
+            String tempFilePath = uploadDir + fileName;
+            tempFile = new File(tempFilePath);
+
+            String storageUrl = storageService.uploadFile(file);
+
+            file.transferTo(tempFile);
+            String extractedText = pdfService.extractText(tempFile, originalFilename);
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            Resume resume = Resume.builder()
+                    .fileName(cleanFilename)
+                    .filePath(storageUrl)
+                    .extractedText(extractedText)
+                    .user(user)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            Resume saved = resumeRepository.save(resume);
+            log.info("Resume saved to database with ID: {}", saved.getId());
+
+            if (tempFile.exists()) {
+                tempFile.delete();
+            }
+
+            return com.aiplacement.backend.dto.ResumeDto.builder()
+                    .id(saved.getId())
+                    .fileName(saved.getFileName())
+                    .filePath(saved.getFilePath())
+                    .createdAt(saved.getCreatedAt())
+                    .build();
+        } catch (Exception e) {
+            log.error("Error during resume upload-only process", e);
+            throw new RuntimeException("Failed to upload resume: " + e.getMessage(), e);
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public AtsResponseDto uploadResume(MultipartFile file, String jobDescription) {
         placementMetrics.incrementResumeUploads();
         if (file == null || file.isEmpty()) {
@@ -76,6 +147,9 @@ public class ResumeServiceImpl implements ResumeService {
             String fileName = UUID.randomUUID() + "_" + cleanFilename;
             String tempFilePath = uploadDir + fileName;
             tempFile = new File(tempFilePath);
+
+            String storageUrl = storageService.uploadFile(file);
+            log.info("Resume uploaded to storage successfully");
 
             file.transferTo(tempFile);
             log.info("Temporary resume file created: {}", fileName);
@@ -111,8 +185,7 @@ public class ResumeServiceImpl implements ResumeService {
                 }
             }
 
-            String storageUrl = storageService.uploadFile(file);
-            log.info("Resume uploaded to Supabase Storage successfully");
+
 
             Resume resume = Resume.builder()
                     .fileName(fileName)

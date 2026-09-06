@@ -182,7 +182,7 @@ public class SecurityConfig {
                 )
                 .addFilterAfter(
                         rateLimitFilter,
-                        UsernamePasswordAuthenticationFilter.class
+                        JwtAuthenticationFilter.class
                 )
                 .addFilterAfter(
                         csrfProtectionFilter,

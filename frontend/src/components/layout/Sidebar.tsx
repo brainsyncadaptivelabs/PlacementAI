@@ -3,10 +3,11 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Settings, LogOut, Crown } from "lucide-react";
+import { Settings, LogOut, Crown, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { roleMenus, studentMenuGroups } from "@/config/menu-config";
 import PlacementAILogo from "@/components/branding/PlacementAILogo";
+import api from "@/lib/api";
 
 import {
   Sidebar as ShadcnSidebar,
@@ -29,7 +30,18 @@ export function Sidebar({ role }: SidebarProps) {
   const router = useRouter();
   const { signOut } = useAuth();
   const { isMobile, setOpenMobile } = useSidebar();
+  const [userPlan, setUserPlan] = React.useState<string>("FREE");
   const menuItems = (roleMenus[role] || []);
+
+  React.useEffect(() => {
+    if (role === "STUDENT") {
+      api.get("/payment/subscription-status")
+        .then((res) => {
+          if (res.data?.plan) setUserPlan(res.data.plan);
+        })
+        .catch(() => {});
+    }
+  }, [role]);
 
   const handleItemClick = React.useCallback(() => {
     if (isMobile) {
@@ -99,6 +111,10 @@ export function Sidebar({ role }: SidebarProps) {
                   const isActive = isRootUrl 
                     ? pathname === item.url 
                     : (pathname === item.url || pathname.startsWith(item.url + '/'));
+
+                  const isAllowedOnFree = item.url === "/dashboard" || item.url === "/dashboard/ats" || item.url === "/dashboard/history" || item.url === "/dashboard/settings";
+                  const isLockedForFree = userPlan === "FREE" && !isAllowedOnFree && !item.comingSoon;
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
@@ -112,11 +128,15 @@ export function Sidebar({ role }: SidebarProps) {
                           <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
                           <span className={`font-medium ${isActive ? 'text-primary font-semibold' : 'text-foreground'}`}>{item.title}</span>
                         </div>
-                        {item.comingSoon && (
+                        {item.comingSoon ? (
                           <span className="px-2 py-0.5 text-[8px] font-black uppercase tracking-wider text-indigo-600 dark:text-gray-400 bg-indigo-50 dark:bg-gray-800/50 border border-indigo-100 dark:border-gray-700 rounded-full shrink-0">
                             Soon
                           </span>
-                        )}
+                        ) : isLockedForFree ? (
+                          <span className="px-2 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-full shrink-0 flex items-center gap-1">
+                            <Lock className="w-2.5 h-2.5" /> Basic+
+                          </span>
+                        ) : null}
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );

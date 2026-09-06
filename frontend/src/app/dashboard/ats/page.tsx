@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useAtsAnalysisStore } from "@/store/useAtsAnalysisStore";
 import { AtsScoreReport } from "@/components/ats/AtsScoreReport";
 import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 import api from "@/lib/api";
+import { atsApi } from "@/lib/ats/atsApi";
 import {
   FileText,
   Upload,
@@ -43,6 +45,7 @@ export default function ResumeATSPage() {
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<number | null>(null);
   const [resumesLoading, setResumesLoading] = useState(true);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // JD mode state
   const [jdText, setJdText] = useState("");
@@ -150,30 +153,112 @@ export default function ResumeATSPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Active Resume & Mode Config */}
         <div className="lg:col-span-1 space-y-6 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          {/* Active Resume Selection */}
+          {/* Active Resume Selection & Direct File Upload */}
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <FileText className="w-3.5 h-3.5 text-indigo-500" /> Active Resume
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-indigo-500" /> Active Resume
+              </label>
+              <label className="cursor-pointer text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                <Upload className="w-3 h-3" /> {resumes.length > 0 ? "Upload New" : "Upload"}
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.txt"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      setUploadError(null);
+                      setResumesLoading(true);
+                      const uploaded = await atsApi.uploadResume(file);
+                      const newResumeItem: ResumeItem = {
+                        id: uploaded.id,
+                        fileName: uploaded.fileName,
+                        filePath: uploaded.filePath,
+                        createdAt: uploaded.createdAt || new Date().toISOString(),
+                      };
+                      setResumes((prev) => [newResumeItem, ...prev]);
+                      setSelectedResumeId(uploaded.id);
+                      fetchHistory(uploaded.id);
+                    } catch (err: any) {
+                      console.error("Resume upload failed", err);
+                      setUploadError(err?.response?.data?.message || err.message || "We couldn't process this resume. Please try again.");
+                    } finally {
+                      setResumesLoading(false);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            {uploadError && (
+              <div className="mb-3 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl text-xs text-red-700 dark:text-red-300 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Resume upload failed</p>
+                  <p className="text-[11px] text-red-600 dark:text-red-400 mt-0.5">{uploadError}</p>
+                </div>
+              </div>
+            )}
 
             {resumesLoading ? (
-              <div className="h-10 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-lg" />
+              <div className="h-14 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-xl flex items-center justify-center text-xs text-slate-400">
+                Uploading & parsing resume...
+              </div>
             ) : resumes.length > 0 ? (
-              <select
-                value={selectedResumeId || ""}
-                onChange={(e) => handleResumeChange(Number(e.target.value))}
-                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg p-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500"
-              >
-                {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.fileName} ({new Date(r.createdAt).toLocaleDateString()})
-                  </option>
-                ))}
-              </select>
+              <div className="space-y-2">
+                <select
+                  value={selectedResumeId || ""}
+                  onChange={(e) => handleResumeChange(Number(e.target.value))}
+                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-xl p-2.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500"
+                >
+                  {resumes.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      📄 {r.fileName} ({new Date(r.createdAt).toLocaleDateString()})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Active resume ready for ATS scan
+                </p>
+              </div>
             ) : (
-              <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-3 rounded-lg border border-amber-200 dark:border-amber-800">
-                No uploaded resumes found. Upload a resume first to run an ATS scan.
-              </p>
+              <div className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-xl border border-amber-200 dark:border-amber-800 space-y-2">
+                <p className="font-semibold">No uploaded resumes found.</p>
+                <p className="text-[11px]">Upload a resume PDF/DOCX to run an ATS scan immediately.</p>
+                <label className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold cursor-pointer transition-colors shadow-sm">
+                  <Upload className="w-3.5 h-3.5" /> Upload Resume PDF/DOCX
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        setUploadError(null);
+                        setResumesLoading(true);
+                        const uploaded = await atsApi.uploadResume(file);
+                        const newResumeItem: ResumeItem = {
+                          id: uploaded.id,
+                          fileName: uploaded.fileName,
+                          filePath: uploaded.filePath,
+                          createdAt: uploaded.createdAt || new Date().toISOString(),
+                        };
+                        setResumes((prev) => [newResumeItem, ...prev]);
+                        setSelectedResumeId(uploaded.id);
+                        fetchHistory(uploaded.id);
+                      } catch (err: any) {
+                        console.error("Resume upload failed", err);
+                        setUploadError(err?.response?.data?.message || err.message || "We couldn't process this resume. Please try again.");
+                      } finally {
+                        setResumesLoading(false);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
             )}
           </div>
 

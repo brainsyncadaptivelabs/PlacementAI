@@ -50,13 +50,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if (uri.startsWith("/api/v1/chat/") || uri.startsWith("/api/chat/")) {
             limitConfig = properties.getChat();
             limitType = "chat";
-        } else if (uri.startsWith("/api/v1/resume/") || uri.startsWith("/api/resume/")) {
+        } else if ((uri.contains("/resume/upload") || uri.contains("/upload/")) && ("POST".equalsIgnoreCase(request.getMethod()) || "PUT".equalsIgnoreCase(request.getMethod()))) {
             limitConfig = properties.getResumeUpload();
             limitType = "resume";
-        } else if (uri.startsWith("/api/v1/upload/") || uri.startsWith("/api/upload/")) {
-            limitConfig = properties.getResumeUpload();
-            limitType = "upload";
-        } else if (uri.startsWith("/api/v1/ats/") || uri.startsWith("/api/ats/")) {
+        } else if ((uri.contains("/ats/scan/") || uri.contains("/ats/")) && "POST".equalsIgnoreCase(request.getMethod())) {
             limitConfig = properties.getAts();
             limitType = "ats";
         } else if (uri.startsWith("/api/v1/mock-interview/") || uri.startsWith("/api/mock-interview/")) {

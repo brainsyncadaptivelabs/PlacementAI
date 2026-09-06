@@ -18,7 +18,17 @@ interface ResumeDto {
   resume_data: any;
 }
 
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
+
 export default function ResumeBuilderPortal() {
+  return (
+    <FeatureGuard featureKey="RESUME_TAILORING" featureTitle="Resume Builder & Tailoring">
+      <ResumeBuilderPortalContent />
+    </FeatureGuard>
+  );
+}
+
+function ResumeBuilderPortalContent() {
   const router = useRouter();
   const { user } = useUser();
   const [resumes, setResumes] = useState<ResumeDto[]>([]);

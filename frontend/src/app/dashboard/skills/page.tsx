@@ -15,7 +15,17 @@ type SkillGapResult = {
   careerLevel: string;
 };
 
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
+
 export default function SkillGapPage() {
+  return (
+    <FeatureGuard featureKey="SKILL_GAP" featureTitle="Skill Gap Analysis">
+      <SkillGapPageContent />
+    </FeatureGuard>
+  );
+}
+
+function SkillGapPageContent() {
   const [result, setResult] = useState<SkillGapResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

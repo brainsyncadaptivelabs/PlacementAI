@@ -158,7 +158,17 @@ type JdMatchResponse = {
   confidenceScore?: ConfidenceScore;
 };
 
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
+
 export default function JDMatchPage() {
+  return (
+    <FeatureGuard featureKey="JD_MATCH" featureTitle="JD Matching">
+      <JDMatchPageContent />
+    </FeatureGuard>
+  );
+}
+
+function JDMatchPageContent() {
   const [activeSource, setActiveSource] = useState<"upload" | "saved">("upload");
   const [resumeText, setResumeText] = useState("");
   const [fileName, setFileName] = useState("");

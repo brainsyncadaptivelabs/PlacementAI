@@ -807,7 +807,17 @@ const MessageItem = memo(({
 });
 MessageItem.displayName = "MessageItem";
 
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
+
 export default function ChatPage() {
+  return (
+    <FeatureGuard featureKey="AI_CHAT" featureTitle="AI Career Chat">
+      <ChatPageContent />
+    </FeatureGuard>
+  );
+}
+
+function ChatPageContent() {
   const { user, loading: userLoading } = useUser();
   
   const router = useRouter();
