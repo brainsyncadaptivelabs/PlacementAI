@@ -151,7 +151,7 @@ public class ResumeServiceImpl implements ResumeService {
             String storageUrl = storageService.uploadFile(file);
             log.info("Resume uploaded to storage successfully");
 
-            file.transferTo(tempFile);
+            java.nio.file.Files.copy(file.getInputStream(), tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             log.info("Temporary resume file created: {}", fileName);
 
             // Dynamically extract text based on extension
@@ -383,14 +383,23 @@ public class ResumeServiceImpl implements ResumeService {
 
         return AtsResponseDto.builder()
                 .atsScore(analysis.getAtsScore())
-                .strengths(analysis.getStrengths())
-                .weaknesses(analysis.getWeaknesses())
-                .missingKeywords(analysis.getMissingKeywords())
-                .matchedKeywords(analysis.getMatchedKeywords())
-                .suggestions(analysis.getSuggestions())
+                .strengths(copyList(analysis.getStrengths()))
+                .weaknesses(copyList(analysis.getWeaknesses()))
+                .missingKeywords(copyList(analysis.getMissingKeywords()))
+                .matchedKeywords(copyList(analysis.getMatchedKeywords()))
+                .suggestions(copyList(analysis.getSuggestions()))
                 .bestRole(analysis.getBestRole())
                 .extractedText(analysis.getExtractedText())
                 .build();
+    }
+
+    private java.util.List<String> copyList(java.util.List<String> collection) {
+        if (collection == null) return new java.util.ArrayList<>();
+        try {
+            return new java.util.ArrayList<>(collection);
+        } catch (Exception e) {
+            return new java.util.ArrayList<>();
+        }
     }
 
     private String getSha256Hash(String text) {

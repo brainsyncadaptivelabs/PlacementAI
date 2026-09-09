@@ -313,7 +313,11 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
         if (cleanJson.endsWith("```")) {
             cleanJson = cleanJson.substring(0, cleanJson.length() - 3);
         }
-        cleanJson = cleanJson.trim();
+        int firstBrace = cleanJson.indexOf('{');
+        int lastBrace = cleanJson.lastIndexOf('}');
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+            cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+        }
 
         try {
             return objectMapper.readTree(cleanJson);
@@ -379,6 +383,18 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
         return list;
     }
 
+    private List<String> copyList(List<String> collection) {
+        if (collection == null) {
+            return new ArrayList<>();
+        }
+        try {
+            return new ArrayList<>(collection);
+        } catch (Exception e) {
+            log.warn("Failed to safely read lazy collection on AtsAnalysis: {}", e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
     private AtsGeneralScanResponseDto mapToGeneralDto(AtsAnalysis entity) {
         return AtsGeneralScanResponseDto.builder()
                 .analysisId(entity.getId())
@@ -391,12 +407,12 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
                 .inferenceReasoning(entity.getInferenceReasoning())
                 .candidateOverrideLevel(entity.getCandidateOverrideLevel())
                 .effectiveExperienceLevel(resolveEffectiveExperienceLevel(entity))
-                .strengths(entity.getStrengths())
-                .weaknesses(entity.getWeaknesses())
-                .missingKeywords(entity.getMissingKeywords())
-                .matchedKeywords(entity.getMatchedKeywords())
-                .suggestions(entity.getSuggestions())
-                .growthAreas(entity.getGrowthAreas())
+                .strengths(copyList(entity.getStrengths()))
+                .weaknesses(copyList(entity.getWeaknesses()))
+                .missingKeywords(copyList(entity.getMissingKeywords()))
+                .matchedKeywords(copyList(entity.getMatchedKeywords()))
+                .suggestions(copyList(entity.getSuggestions()))
+                .growthAreas(copyList(entity.getGrowthAreas()))
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
@@ -418,12 +434,12 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
                 .candidateOverrideLevel(entity.getCandidateOverrideLevel())
                 .effectiveExperienceLevel(resolveEffectiveExperienceLevel(entity))
                 .jdTextSnapshot(entity.getJdTextSnapshot())
-                .strengths(entity.getStrengths())
-                .weaknesses(entity.getWeaknesses())
-                .missingKeywords(entity.getMissingKeywords())
-                .matchedKeywords(entity.getMatchedKeywords())
-                .suggestions(entity.getSuggestions())
-                .growthAreas(entity.getGrowthAreas())
+                .strengths(copyList(entity.getStrengths()))
+                .weaknesses(copyList(entity.getWeaknesses()))
+                .missingKeywords(copyList(entity.getMissingKeywords()))
+                .matchedKeywords(copyList(entity.getMatchedKeywords()))
+                .suggestions(copyList(entity.getSuggestions()))
+                .growthAreas(copyList(entity.getGrowthAreas()))
                 .createdAt(entity.getCreatedAt())
                 .build();
     }
