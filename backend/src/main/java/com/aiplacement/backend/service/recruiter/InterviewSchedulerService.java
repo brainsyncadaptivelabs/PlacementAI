@@ -21,6 +21,7 @@ public class InterviewSchedulerService {
     private final InterviewScheduleRepository scheduleRepository;
     private final UserRepository userRepository;
     private final JobApplicationRepository applicationRepository;
+    private final com.aiplacement.backend.service.email.EmailService emailService;
 
     @Transactional
     public InterviewScheduleDto schedule(InterviewScheduleDto dto, User recruiter) {
@@ -46,7 +47,28 @@ public class InterviewSchedulerService {
                 .status("SCHEDULED")
                 .build();
 
-        return toDto(scheduleRepository.save(schedule));
+        InterviewSchedule saved = scheduleRepository.save(schedule);
+
+        try {
+            String jobTitle = (application != null && application.getJob() != null)
+                    ? application.getJob().getTitle()
+                    : "Placement Interview";
+            emailService.sendInterviewScheduleEmail(
+                    student.getEmail(),
+                    student.getFullName(),
+                    dto.getInterviewerName(),
+                    jobTitle,
+                    dto.getRound(),
+                    dto.getScheduledDate(),
+                    dto.getDuration(),
+                    dto.getMeetingLink(),
+                    dto.getMode()
+            );
+        } catch (Exception ex) {
+            // Ensure email dispatch issues do not roll back schedule creation
+        }
+
+        return toDto(saved);
     }
 
     public List<InterviewScheduleDto> getSchedulesForRecruiter(Long recruiterId) {

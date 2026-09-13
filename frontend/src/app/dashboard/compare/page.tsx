@@ -48,8 +48,12 @@ function ResumeComparePageContent() {
   useEffect(() => {
     const fetchResumes = async () => {
       try {
-        const response = await api.get("/resume/all");
-        setResumes(response.data || []);
+        const response = await api.get("/resumes/my-resumes", {
+          params: { page: 0, size: 50 },
+        });
+        const data = response.data;
+        const items = Array.isArray(data) ? data : data?.content || [];
+        setResumes(items);
       } catch (err) {
         console.error("Failed to load resumes", err);
         setError("Failed to load your resumes. Please try again.");

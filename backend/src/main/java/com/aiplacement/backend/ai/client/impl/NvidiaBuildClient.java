@@ -455,7 +455,7 @@ public class NvidiaBuildClient implements AIClient {
             if (name.contains("SkillGapServiceImpl"))      return "SKILL_GAP";
             if (name.contains("RoadmapServiceImpl"))       return "ROADMAP";
             if (name.contains("ChatbotServiceImpl"))       return "CHATBOT";
-            if (name.contains("GeminiServiceImpl") || name.contains("AtsAnalysisServiceImpl")) return "ATS_ANALYSIS";
+            if (name.contains("AiSemanticServiceImpl") || name.contains("AtsAnalysisServiceImpl")) return "ATS_ANALYSIS";
             if (name.contains("AIHealthService"))          return "HEALTH_CHECK";
         }
         return "GENERAL_AI";

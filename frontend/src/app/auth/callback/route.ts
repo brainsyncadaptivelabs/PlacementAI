@@ -108,6 +108,7 @@ export async function GET(request: Request) {
     let placementToken: string | null = null;
     let backendErrorType: string | null = null;
     let profileCompleted = false;
+    let planSelected = true;
 
     try {
       const backendResponse = await fetch(`${API_URL}/auth/google`, {
@@ -125,7 +126,7 @@ export async function GET(request: Request) {
         
         placementToken = backendData.accessToken;
         profileCompleted = backendData.profileCompleted ?? false;
-        const planSelected = backendData.planSelected ?? true;
+        planSelected = backendData.planSelected ?? true;
         
         console.log("[PlacementAI OAuth] PlacementAI token exists:", Boolean(placementToken));
         console.log("[PlacementAI OAuth] backend role:", backendData.role);

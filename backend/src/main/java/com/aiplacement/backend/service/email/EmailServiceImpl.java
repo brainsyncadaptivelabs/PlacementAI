@@ -18,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -36,8 +37,19 @@ public class EmailServiceImpl
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
+    @Value("${spring.mail.username:}")
+    private String mailUsername;
+
+    @Value("${spring.mail.password:}")
+    private String mailPassword;
+
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
+
+    public boolean isMailConfigured() {
+        return (mailUsername != null && !mailUsername.trim().isEmpty() &&
+                mailPassword != null && !mailPassword.trim().isEmpty());
+    }
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     private final Set<String> queuedEmails = ConcurrentHashMap.newKeySet();
@@ -232,6 +244,13 @@ public class EmailServiceImpl
                 return;
             }
 
+            if (!isMailConfigured()) {
+                log.warn("[DEV_MODE] MAIL_USERNAME or MAIL_PASSWORD not configured. Gracefully skipping welcome email to {}", user.getEmail());
+                transactionHelper.markWelcomeEmailSent(user.getId());
+                queuedEmails.remove(user.getEmail());
+                return;
+            }
+
             try {
                 log.info("Rendering template");
                 String template = loadTemplate("templates/welcome-premium.html");
@@ -336,6 +355,10 @@ public class EmailServiceImpl
 
     @Override
     public void sendPasswordResetEmail(String toEmail, String resetUrl) {
+        if (!isMailConfigured()) {
+            log.warn("[DEV_MODE] MAIL_USERNAME or MAIL_PASSWORD not configured. Gracefully skipping password reset email to {}. Reset URL: {}", toEmail, resetUrl);
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(getFromEmail());
@@ -349,12 +372,16 @@ public class EmailServiceImpl
             );
             mailSender.send(message);
         } catch (Exception e) {
-            System.err.println("Failed to send password reset email: " + e.getMessage());
+            log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
         }
     }
 
     @Override
     public void sendOtpEmail(String toEmail, String otp) {
+        if (!isMailConfigured()) {
+            log.warn("[DEV_MODE] MAIL_USERNAME or MAIL_PASSWORD not configured. Gracefully skipping OTP email to {}. OTP is: {}", toEmail, otp);
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(getFromEmail());
@@ -371,12 +398,16 @@ public class EmailServiceImpl
             );
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send OTP email: " + e.getMessage());
+            log.warn("Failed to send OTP email to {}: {}. Proceeding without failing flow.", toEmail, e.getMessage());
         }
     }
 
     @Override
     public void sendVerificationOtpEmail(String toEmail, String otp) {
+        if (!isMailConfigured()) {
+            log.warn("[DEV_MODE] MAIL_USERNAME or MAIL_PASSWORD not configured. Gracefully skipping verification email to {}. Verification code is: {}", toEmail, otp);
+            return;
+        }
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(getFromEmail());
@@ -391,11 +422,16 @@ public class EmailServiceImpl
             );
             mailSender.send(message);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send verification email: " + e.getMessage());
+            log.warn("Failed to send verification email to {}: {}. Proceeding without failing flow.", toEmail, e.getMessage());
         }
     }
+
     @Override
     public void sendDeleteAccountOtpEmail(String toEmail, String userName, String otp) {
+        if (!isMailConfigured()) {
+            log.warn("[DEV_MODE] MAIL_USERNAME or MAIL_PASSWORD not configured. Gracefully skipping delete account OTP email to {}. OTP is: {}", toEmail, otp);
+            return;
+        }
         try {
             String htmlContent = "<!DOCTYPE html>\n" +
                     "<html>\n" +
@@ -435,8 +471,100 @@ public class EmailServiceImpl
 
             sendHtmlEmail(toEmail, "PlacementAI Account Deletion Verification", htmlContent);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to send deletion verification email: " + e.getMessage());
+            log.warn("Failed to send deletion verification email to {}: {}. Proceeding without failing flow.", toEmail, e.getMessage());
         }
+    }
+
+    @Override
+    public void sendInterviewScheduleEmail(
+            String toEmail,
+            String studentName,
+            String interviewerName,
+            String jobTitle,
+            String round,
+            LocalDateTime scheduledDate,
+            Integer durationMinutes,
+            String meetingLink,
+            String mode
+    ) {
+        if (!isMailConfigured()) {
+            log.warn("[DEV_MODE] MAIL_USERNAME or MAIL_PASSWORD not configured. Gracefully skipping interview invite email to {}. Scheduled for {}", toEmail, scheduledDate);
+            return;
+        }
+
+        scheduler.submit(() -> {
+            try {
+                int duration = durationMinutes != null ? durationMinutes : 60;
+                LocalDateTime startTime = scheduledDate != null ? scheduledDate : LocalDateTime.now();
+                LocalDateTime endTime = startTime.plusMinutes(duration);
+
+                DateTimeFormatter icsFormatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");
+                String startStr = startTime.format(icsFormatter);
+                String endStr = endTime.format(icsFormatter);
+                String nowStr = LocalDateTime.now().format(icsFormatter);
+                String uid = UUID.randomUUID() + "@placementai.com";
+
+                String safeJobTitle = jobTitle != null ? jobTitle : "Placement Interview";
+                String safeRound = round != null ? round : "Technical Round";
+                String safeInterviewer = interviewerName != null ? interviewerName : "Placement Officer";
+                String safeLink = meetingLink != null ? meetingLink : "Link will be provided before interview";
+                String safeMode = mode != null ? mode : "ONLINE";
+
+                String summary = "Interview: " + safeJobTitle + " (" + safeRound + ")";
+                String description = "Interview scheduled with " + safeInterviewer + " for " + safeJobTitle + " (" + safeRound + ").\\nMeeting Link: " + safeLink;
+                String location = meetingLink != null ? meetingLink : safeMode;
+
+                StringBuilder ics = new StringBuilder();
+                ics.append("BEGIN:VCALENDAR\r\n")
+                   .append("VERSION:2.0\r\n")
+                   .append("PRODID:-//PlacementAI//Interview Scheduler//EN\r\n")
+                   .append("CALSCALE:GREGORIAN\r\n")
+                   .append("METHOD:REQUEST\r\n")
+                   .append("BEGIN:VEVENT\r\n")
+                   .append("UID:").append(uid).append("\r\n")
+                   .append("DTSTAMP:").append(nowStr).append("\r\n")
+                   .append("DTSTART:").append(startStr).append("\r\n")
+                   .append("DTEND:").append(endStr).append("\r\n")
+                   .append("SUMMARY:").append(summary).append("\r\n")
+                   .append("DESCRIPTION:").append(description).append("\r\n")
+                   .append("LOCATION:").append(location).append("\r\n")
+                   .append("STATUS:CONFIRMED\r\n")
+                   .append("ORGANIZER;CN=").append(safeInterviewer).append(":mailto:").append(getFromEmail()).append("\r\n")
+                   .append("ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=").append(studentName != null ? studentName : "Candidate").append(":mailto:").append(toEmail).append("\r\n")
+                   .append("END:VEVENT\r\n")
+                   .append("END:VCALENDAR\r\n");
+
+                String htmlContent = "<!DOCTYPE html><html><body style=\"font-family: Arial, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 30px;\">" +
+                        "<div style=\"max-width: 600px; margin: 0 auto; background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155;\">" +
+                        "<h2 style=\"color: #6366f1; margin-top: 0;\">🗓️ Interview Confirmed: " + safeJobTitle + "</h2>" +
+                        "<p>Hi " + (studentName != null ? studentName : "Candidate") + ",</p>" +
+                        "<p>Your interview has been scheduled with <strong>" + safeInterviewer + "</strong>.</p>" +
+                        "<ul style=\"line-height: 1.8;\">" +
+                        "<li><strong>Round:</strong> " + safeRound + "</li>" +
+                        "<li><strong>Date & Time:</strong> " + startTime.toString().replace("T", " ") + "</li>" +
+                        "<li><strong>Duration:</strong> " + duration + " minutes</li>" +
+                        "<li><strong>Mode:</strong> " + safeMode + "</li>" +
+                        (meetingLink != null && !meetingLink.isEmpty() ? "<li><strong>Meeting Link:</strong> <a href=\"" + meetingLink + "\" style=\"color: #38bdf8;\">" + meetingLink + "</a></li>" : "") +
+                        "</ul>" +
+                        "<p style=\"color: #94a3b8; font-size: 13px;\">A calendar invite (.ics) is attached to this email. You can add it directly to your calendar.</p>" +
+                        "</div></body></html>";
+
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(getFromEmail());
+                helper.setTo(toEmail);
+                helper.setSubject("🗓️ Interview Scheduled: " + safeJobTitle + " - " + safeRound);
+                helper.setText(htmlContent, true);
+                helper.addAttachment("interview-invite.ics",
+                        new org.springframework.core.io.ByteArrayResource(ics.toString().getBytes(StandardCharsets.UTF_8)),
+                        "text/calendar; charset=UTF-8; method=REQUEST");
+
+                mailSender.send(message);
+                log.info("Interview scheduling email with .ics invite sent to {}", toEmail);
+            } catch (Exception e) {
+                log.warn("Failed to dispatch interview schedule email with invite to {}: {}", toEmail, e.getMessage());
+            }
+        });
     }
 
     @Override

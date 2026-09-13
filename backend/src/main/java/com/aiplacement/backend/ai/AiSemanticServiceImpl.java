@@ -13,10 +13,14 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Service implementation providing semantic AI resume analysis, entity extraction,
+ * and deterministic scoring integration via configured AIClient implementations (e.g. LLaMA/NVIDIA).
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class GeminiServiceImpl implements GeminiService {
+public class AiSemanticServiceImpl implements AiSemanticService {
 
     private final AIClient aiClient;
     private final ObjectMapper objectMapper = new ObjectMapper();

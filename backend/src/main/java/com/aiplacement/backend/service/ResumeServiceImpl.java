@@ -1,6 +1,6 @@
 package com.aiplacement.backend.service;
 
-import com.aiplacement.backend.ai.GeminiService;
+import com.aiplacement.backend.ai.AiSemanticService;
 import com.aiplacement.backend.dto.AtsResponseDto;
 import com.aiplacement.backend.entity.AtsAnalysis;
 import com.aiplacement.backend.entity.Resume;
@@ -31,12 +31,14 @@ public class ResumeServiceImpl implements ResumeService {
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final PdfService pdfService;
-    private final GeminiService geminiService;
+    private final AiSemanticService aiSemanticService;
     private final AtsAnalysisRepository atsAnalysisRepository;
     private final StorageService storageService;
     private final com.aiplacement.backend.monitoring.PlacementMetrics placementMetrics;
     private final org.springframework.cache.CacheManager cacheManager;
     private final ObjectMapper objectMapper;
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private org.springframework.data.redis.core.StringRedisTemplate redisTemplate;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -76,7 +78,7 @@ public class ResumeServiceImpl implements ResumeService {
 
             String storageUrl = storageService.uploadFile(file);
 
-            file.transferTo(tempFile);
+            java.nio.file.Files.copy(file.getInputStream(), tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             String extractedText = pdfService.extractText(tempFile, originalFilename);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -94,6 +96,8 @@ public class ResumeServiceImpl implements ResumeService {
 
             Resume saved = resumeRepository.save(resume);
             log.info("Resume saved to database with ID: {}", saved.getId());
+
+            evictUserCaches(email);
 
             if (tempFile.exists()) {
                 tempFile.delete();
@@ -202,7 +206,7 @@ public class ResumeServiceImpl implements ResumeService {
             placementMetrics.incrementAtsScans();
             
             // Execute semantic parsing and calculation pipeline
-            AtsResponseDto atsResponse = geminiService.analyzeResume(extractedText, jobDescription);
+            AtsResponseDto atsResponse = aiSemanticService.analyzeResume(extractedText, jobDescription);
             atsResponse.setExtractedText(extractedText);
             log.info("ATS analysis completed successfully");
 
@@ -268,23 +272,8 @@ public class ResumeServiceImpl implements ResumeService {
             atsResponse.setId(atsAnalysis.getId());
             log.info("ATS analysis saved to database with ID: {}", atsAnalysis.getId());
 
-            // Evict user intelligence cache on resume upload
-            try {
-                String[] cachesToEvict = {
-                    "placement_context", "placement_readiness", "placement_profile",
-                    "placement_score", "company_readiness", "placement_recommendations",
-                    "placement_dashboard", "mentor_data", "timeline_data", "dashboard_stats"
-                };
-                for (String cacheName : cachesToEvict) {
-                    org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
-                    if (cache != null) {
-                        cache.evict(email);
-                    }
-                }
-                log.info("Evicted placement caches for: {}", email);
-            } catch (Exception ex) {
-                log.warn("Failed to evict placement caches: {}", ex.getMessage());
-            }
+            // Evict user intelligence, jd_analysis, and roadmaps caches on resume upload
+            evictUserCaches(email);
 
             return atsResponse;
 
@@ -337,6 +326,78 @@ public class ResumeServiceImpl implements ResumeService {
                         .analyzedRole(resume.getAnalyzedRole())
                         .build())
                 .collect(java.util.stream.Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<com.aiplacement.backend.dto.ResumeDto> getMyResumes(int page, int size) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                page, size, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+        org.springframework.data.domain.Page<Resume> resumePage = resumeRepository.findByUserOrderByCreatedAtDesc(user, pageable);
+
+        java.util.List<com.aiplacement.backend.dto.ResumeDto> dtos = resumePage.getContent().stream()
+                .map(resume -> com.aiplacement.backend.dto.ResumeDto.builder()
+                        .id(resume.getId())
+                        .fileName(resume.getFileName())
+                        .filePath(resume.getFilePath())
+                        .createdAt(resume.getCreatedAt())
+                        .atsScore(resume.getAtsScore())
+                        .analyzedRole(resume.getAnalyzedRole())
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
+
+        return new org.springframework.data.domain.PageImpl<>(dtos, pageable, resumePage.getTotalElements());
+    }
+
+    private void evictUserCaches(String email) {
+        try {
+            String[] userCaches = {
+                "placement_context", "placement_readiness", "placement_profile",
+                "placement_score", "company_readiness", "placement_recommendations",
+                "placement_dashboard", "mentor_data", "timeline_data", "dashboard_stats"
+            };
+            for (String cacheName : userCaches) {
+                org.springframework.cache.Cache cache = cacheManager.getCache(cacheName);
+                if (cache != null) {
+                    cache.evict(email);
+                }
+            }
+
+            // Evict jd_analysis and roadmaps caches
+            org.springframework.cache.Cache jdCache = cacheManager.getCache("jd_analysis");
+            if (jdCache != null) {
+                jdCache.clear();
+            }
+            org.springframework.cache.Cache roadmapCache = cacheManager.getCache("roadmaps");
+            if (roadmapCache != null) {
+                roadmapCache.clear();
+            }
+
+            // Sweep Redis keys directly if RedisTemplate is available
+            if (redisTemplate != null) {
+                try {
+                    java.util.Set<String> jdKeys = redisTemplate.keys("jd_analysis*");
+                    if (jdKeys != null && !jdKeys.isEmpty()) {
+                        redisTemplate.delete(jdKeys);
+                    }
+                    java.util.Set<String> roadmapKeys = redisTemplate.keys("roadmaps*");
+                    if (roadmapKeys != null && !roadmapKeys.isEmpty()) {
+                        redisTemplate.delete(roadmapKeys);
+                    }
+                } catch (Exception redisEx) {
+                    log.debug("Redis sweep skipped: {}", redisEx.getMessage());
+                }
+            }
+            log.info("Evicted user intelligence, jd_analysis, and roadmaps caches for: {}", email);
+        } catch (Exception ex) {
+            log.warn("Failed to evict user caches: {}", ex.getMessage());
+        }
     }
 
     @Override

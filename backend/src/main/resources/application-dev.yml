@@ -20,6 +20,3 @@ ratelimit:
   ats:
     capacity: 100
     duration-seconds: 3600
-  mock-interview:
-    capacity: 100
-    duration-seconds: 3600

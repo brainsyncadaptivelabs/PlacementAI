@@ -16,7 +16,6 @@ public class RateLimitProperties {
     private LimitConfig chat = new LimitConfig(100, 60);            // 100 per minute
     private LimitConfig resumeUpload = new LimitConfig(120, 60);    // 120 per minute
     private LimitConfig ats = new LimitConfig(120, 60);             // 120 per minute
-    private LimitConfig mockInterview = new LimitConfig(30, 3600);  // 30 per hour
     private LimitConfig coding = new LimitConfig(60, 60);           // 60 per minute
     private LimitConfig jdMatch = new LimitConfig(60, 3600);        // 60 per hour
 

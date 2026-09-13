@@ -10,5 +10,6 @@ public interface ResumeService {
     com.aiplacement.backend.dto.ResumeDto uploadResumeOnly(MultipartFile file);
     String getLatestResumeText();
     java.util.List<com.aiplacement.backend.dto.ResumeDto> getAllResumes();
+    org.springframework.data.domain.Page<com.aiplacement.backend.dto.ResumeDto> getMyResumes(int page, int size);
     AtsResponseDto getResumeAnalysis(Long resumeId);
 }

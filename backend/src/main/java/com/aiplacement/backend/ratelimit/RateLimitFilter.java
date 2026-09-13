@@ -56,9 +56,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         } else if ((uri.contains("/ats/scan/") || uri.contains("/ats/")) && "POST".equalsIgnoreCase(request.getMethod())) {
             limitConfig = properties.getAts();
             limitType = "ats";
-        } else if (uri.startsWith("/api/v1/mock-interview/") || uri.startsWith("/api/mock-interview/")) {
-            limitConfig = properties.getMockInterview();
-            limitType = "mock-interview";
         } else if (uri.equals("/api/v1/coding/execute") || uri.equals("/api/coding/execute")) {
             limitConfig = properties.getCoding();
             limitType = "coding";

@@ -23,6 +23,7 @@ public class PaymentController {
     private final UserRepository userRepository;
     private final com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository;
     private final com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService;
+    private final com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService;
 
     @Value("${razorpay.key.id:rzp_test_dummy_id}")
     private String keyId;
@@ -30,14 +31,25 @@ public class PaymentController {
     @Value("${razorpay.key.secret:dummy_secret}")
     private String keySecret;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    public PaymentController(
+            UserRepository userRepository,
+            com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository,
+            com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService,
+            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService
+    ) {
+        this.userRepository = userRepository;
+        this.paymentTransactionRepository = paymentTransactionRepository;
+        this.paymentManagementService = paymentManagementService;
+        this.featureEntitlementService = featureEntitlementService;
+    }
+
     public PaymentController(
             UserRepository userRepository,
             com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository,
             com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService
     ) {
-        this.userRepository = userRepository;
-        this.paymentTransactionRepository = paymentTransactionRepository;
-        this.paymentManagementService = paymentManagementService;
+        this(userRepository, paymentTransactionRepository, paymentManagementService, null);
     }
 
     @PostMapping("/create-order")
@@ -98,16 +110,33 @@ public class PaymentController {
                 requestedPlan = "STUDENT_BASIC_MONTHLY";
         }
 
-        try {
-            if (keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy") || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret)) {
-                throw new IllegalStateException("Using dummy configuration keys. Falling back to sandbox.");
-            }
+        boolean isSandbox = isSandboxMode();
 
-            RazorpayClient client = new RazorpayClient(keyId, keySecret);
+        if (isSandbox) {
+            log.info("[PaymentController] Generating Sandbox Mock Order for plan: {}", requestedPlan);
+            String mockOrderId = "order_mock_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14);
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", mockOrderId);
+            response.put("amount", amountInPaise);
+            response.put("currency", "INR");
+            response.put("keyId", (keyId != null && !keyId.startsWith("rzp_test_dummy")) ? keyId : "rzp_test_mockkey");
+            response.put("plan", requestedPlan);
+            response.put("mock", true);
+            return ResponseEntity.ok(response);
+        }
+
+        try {
+            RazorpayClient client = createRazorpayClient(keyId, keySecret);
             JSONObject orderRequest = new JSONObject();
             orderRequest.put("amount", amountInPaise);
             orderRequest.put("currency", "INR");
             orderRequest.put("receipt", "receipt_user_" + user.getId() + "_" + System.currentTimeMillis());
+
+            JSONObject notes = new JSONObject();
+            notes.put("plan", requestedPlan);
+            notes.put("userId", String.valueOf(user.getId()));
+            notes.put("expectedAmount", String.valueOf(amountInPaise));
+            orderRequest.put("notes", notes);
             
             Order order = client.orders.create(orderRequest);
 
@@ -121,17 +150,10 @@ public class PaymentController {
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            log.warn("[PaymentController] Razorpay order creation failed: {}. Defaulting to Mock Order Sandbox Mode.", e.getMessage());
-            
-            String mockOrderId = "order_mock_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14);
-            Map<String, Object> response = new HashMap<>();
-            response.put("orderId", mockOrderId);
-            response.put("amount", amountInPaise);
-            response.put("currency", "INR");
-            response.put("keyId", (keyId != null && !keyId.startsWith("rzp_test_dummy")) ? keyId : "rzp_test_mockkey");
-            response.put("plan", requestedPlan);
-            response.put("mock", true);
-            return ResponseEntity.ok(response);
+            log.error("[PaymentController] Razorpay live order creation failed: {}", e.getMessage(), e);
+            return ResponseEntity.status(org.springframework.http.HttpStatus.BAD_GATEWAY).body(Map.of(
+                    "error", "Payment provider error: unable to create order. Please try again later."
+            ));
         }
     }
 
@@ -150,74 +172,156 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing order ID or payment ID"));
         }
 
+        boolean isSandbox = isSandboxMode();
+
+        // Security Check 1: Enforce strict environment isolation (Reject mock orders in production)
+        if (orderId.startsWith("order_mock_")) {
+            if (!isSandbox) {
+                log.warn("[SECURITY] Attempted mock order verification with active Razorpay credentials by user {}", email);
+                return ResponseEntity.badRequest().body(Map.of("error", "Mock order verification is prohibited in production mode."));
+            }
+        }
+
+        // Security Check 2: Global Replay Prevention across all accounts
+        Optional<com.aiplacement.backend.entity.PaymentTransaction> existingTx =
+                paymentTransactionRepository.findByRazorpayPaymentId(paymentId);
+        if (existingTx.isPresent()) {
+            com.aiplacement.backend.entity.PaymentTransaction tx = existingTx.get();
+            if (tx.getUserId().equals(user.getId()) && "SUCCESS".equalsIgnoreCase(tx.getStatus())) {
+                log.info("[PaymentController] Payment {} already processed for user {}. Returning idempotent success.", paymentId, email);
+                return ResponseEntity.ok(Map.of(
+                        "status", "success",
+                        "message", "Payment already verified previously.",
+                        "idempotent", true
+                ));
+            } else {
+                log.warn("[SECURITY] Replay attack detected: paymentId {} already redeemed by user {}", paymentId, tx.getUserId());
+                return ResponseEntity.badRequest().body(Map.of("error", "Payment ID has already been redeemed."));
+            }
+        }
+
         String basePlan = "FREE";
-        if (planParam.contains("PREMIUM")) {
-            basePlan = "PREMIUM";
-        } else if (planParam.contains("STARTER")) {
-            basePlan = "STARTER";
-        } else if (planParam.contains("PROFESSIONAL")) {
-            basePlan = "PROFESSIONAL";
-        } else if (planParam.contains("UNIVERSITY")) {
-            basePlan = "UNIVERSITY";
-        } else if (planParam.contains("ENTERPRISE")) {
-            basePlan = "ENTERPRISE";
-        } else if (planParam.contains("BASIC")) {
-            basePlan = "BASIC";
-        } else if (planParam.contains("PRO")) {
-            basePlan = "PRO";
-        }
+        double paidAmountInr = 199.0;
 
-        boolean isVerified = false;
+        if (isSandbox) {
+            // In sandbox mode with mock order, determine requested plan safely
+            if (planParam.contains("PREMIUM")) {
+                basePlan = "PREMIUM";
+                paidAmountInr = 249.0;
+            } else if (planParam.contains("STARTER")) {
+                basePlan = "STARTER";
+                paidAmountInr = 999.0;
+            } else if (planParam.contains("PROFESSIONAL")) {
+                basePlan = "PROFESSIONAL";
+                paidAmountInr = 2999.0;
+            } else if (planParam.contains("UNIVERSITY")) {
+                basePlan = "UNIVERSITY";
+                paidAmountInr = 4999.0;
+            } else if (planParam.contains("ENTERPRISE")) {
+                basePlan = "ENTERPRISE";
+                paidAmountInr = 9999.0;
+            } else if (planParam.contains("BASIC")) {
+                basePlan = "BASIC";
+                paidAmountInr = 149.0;
+            } else if (planParam.contains("PRO")) {
+                basePlan = "PRO";
+                paidAmountInr = 249.0;
+            }
+            log.info("[PaymentController] Sandbox mock verification success for order ID: {}", orderId);
 
-        // Mock verification validation
-        if (orderId.startsWith("order_mock_") || keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy") || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret)) {
-            isVerified = true;
-            log.info("[PaymentController] Mock verification success for order ID: {}", orderId);
         } else {
+            // Production Mode: Strict Cryptographic Signature Validation
+            if (signature == null || signature.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Missing payment signature"));
+            }
+
+            boolean isSignatureValid = false;
             try {
-                String data = orderId + "|" + paymentId;
-                String calculatedSignature = calculateHmacSha256(data, keySecret);
-                if (calculatedSignature != null && signature != null && java.security.MessageDigest.isEqual(
-                        calculatedSignature.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                        signature.getBytes(java.nio.charset.StandardCharsets.UTF_8))) {
-                    isVerified = true;
-                }
+                JSONObject attributes = new JSONObject();
+                attributes.put("razorpay_order_id", orderId);
+                attributes.put("razorpay_payment_id", paymentId);
+                attributes.put("razorpay_signature", signature);
+                isSignatureValid = com.razorpay.Utils.verifyPaymentSignature(attributes, keySecret);
             } catch (Exception e) {
-                log.error("[PaymentController] Signature verification failed", e);
+                // Fallback to constant-time HMAC check
+                try {
+                    String data = orderId + "|" + paymentId;
+                    String calculatedSignature = calculateHmacSha256(data, keySecret);
+                    if (calculatedSignature != null && java.security.MessageDigest.isEqual(
+                            calculatedSignature.getBytes(StandardCharsets.UTF_8),
+                            signature.getBytes(StandardCharsets.UTF_8))) {
+                        isSignatureValid = true;
+                    }
+                } catch (Exception ex) {
+                    log.error("[PaymentController] Signature verification failed", ex);
+                }
             }
-        }
 
-        if (isVerified) {
-            user.setPlan(basePlan);
-            user.setPaymentStatus("COMPLETED");
-            user.setPlanSelected(true);
-            user.setPaymentCompleted(true);
-            userRepository.save(user);
+            if (!isSignatureValid) {
+                log.warn("[SECURITY] Payment signature mismatch for user {} order {}", email, orderId);
+                return ResponseEntity.badRequest().body(Map.of("error", "Payment signature verification failed."));
+            }
 
-            // Record transaction record
+            // Server-side Order & Amount Validation via Razorpay API
             try {
-                paymentTransactionRepository.save(com.aiplacement.backend.entity.PaymentTransaction.builder()
-                        .userId(user.getId())
-                        .userEmail(user.getEmail())
-                        .razorpayOrderId(orderId)
-                        .razorpayPaymentId(paymentId)
-                        .amount(199.0) // Nominal base plan pricing in INR
-                        .currency("INR")
-                        .plan(basePlan)
-                        .status("SUCCESS")
-                        .createdAt(java.time.LocalDateTime.now())
-                        .build());
-            } catch (Exception ex) {
-                log.warn("[PaymentController] Failed to record payment transaction record", ex);
-            }
+                RazorpayClient client = createRazorpayClient(keyId, keySecret);
+                Order rzpOrder = client.orders.fetch(orderId);
+                int orderAmountInPaise = rzpOrder.get("amount");
+                paidAmountInr = orderAmountInPaise / 100.0;
 
-            return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "Payment verified. User upgraded to " + basePlan + " plan."
-            ));
+                // Validate order notes if present
+                if (rzpOrder.has("notes")) {
+                    JSONObject notes = rzpOrder.get("notes");
+                    if (notes.has("userId") && !String.valueOf(user.getId()).equals(notes.getString("userId"))) {
+                        log.warn("[SECURITY] Order userId mismatch: expected {}, order has {}", user.getId(), notes.getString("userId"));
+                        return ResponseEntity.badRequest().body(Map.of("error", "Order does not belong to the authenticated user."));
+                    }
+                }
+
+                // Determine plan strictly from verified order amount to prevent client-side plan tampering
+                String verifiedPlan = determinePlanFromAmount(orderAmountInPaise);
+                if (verifiedPlan == null) {
+                    log.warn("[SECURITY] Unrecognized order amount: {} paise for order {}", orderAmountInPaise, orderId);
+                    return ResponseEntity.badRequest().body(Map.of("error", "Payment order amount does not match any recognized plan."));
+                }
+                basePlan = verifiedPlan;
+                log.info("[PaymentController] Razorpay live payment verified for user {}. Plan: {}, Amount: ₹{}", email, basePlan, paidAmountInr);
+
+            } catch (Exception e) {
+                log.error("[PaymentController] Failed to verify order details with Razorpay API: {}", e.getMessage(), e);
+                return ResponseEntity.status(org.springframework.http.HttpStatus.BAD_GATEWAY)
+                        .body(Map.of("error", "Failed to verify order details with payment provider. Please contact support."));
+            }
         }
 
-        return ResponseEntity.badRequest().body(Map.of("error", "Payment signature verification failed."));
+        user.setPlan(basePlan);
+        user.setPaymentStatus("COMPLETED");
+        user.setPlanSelected(true);
+        user.setPaymentCompleted(true);
+        userRepository.save(user);
+
+        // Record transaction record
+        try {
+            paymentTransactionRepository.save(com.aiplacement.backend.entity.PaymentTransaction.builder()
+                    .userId(user.getId())
+                    .userEmail(user.getEmail())
+                    .razorpayOrderId(orderId)
+                    .razorpayPaymentId(paymentId)
+                    .amount(paidAmountInr)
+                    .currency("INR")
+                    .plan(basePlan)
+                    .status("SUCCESS")
+                    .createdAt(java.time.LocalDateTime.now())
+                    .build());
+        } catch (Exception ex) {
+            log.warn("[PaymentController] Failed to record payment transaction record", ex);
+        }
+
+        return ResponseEntity.ok(Map.of(
+            "status", "success",
+            "message", "Payment verified. User upgraded to " + basePlan + " plan.",
+            "plan", basePlan
+        ));
     }
 
     @PostMapping("/validate-coupon")
@@ -277,16 +381,31 @@ public class PaymentController {
         int codingLimit = "PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 20 : 0);
         int tailoringLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
 
+        // Query tracked usage from FeatureEntitlementService
+        Map<String, Double> usages = (featureEntitlementService != null && user.getId() != null)
+                ? featureEntitlementService.getAllFeatureUsages(user.getId())
+                : Collections.emptyMap();
+
+        int atsUsed = usages.getOrDefault("ATS_ANALYSIS", 0.0).intValue();
+        int jdMatchUsed = usages.getOrDefault("JD_MATCH", 0.0).intValue();
+        int skillGapUsed = usages.getOrDefault("SKILL_GAP", 0.0).intValue();
+        int resumeCompareUsed = usages.getOrDefault("RESUME_COMPARE", 0.0).intValue();
+        int chatUsed = usages.getOrDefault("AI_CHAT", 0.0).intValue();
+        int englishUsed = usages.getOrDefault("ENGLISH_PRACTICE", 0.0).intValue();
+        int interviewUsed = usages.getOrDefault("MOCK_INTERVIEW", 0.0).intValue();
+        int codingUsed = usages.getOrDefault("CODING_AI_REVIEW", 0.0).intValue();
+        int tailoringUsed = usages.getOrDefault("RESUME_TAILORING", 0.0).intValue();
+
         Map<String, Object> features = new HashMap<>();
-        features.put("ATS_ANALYSIS", createFeatureMeta(atsLimit, 0, "analyses", true));
-        features.put("JD_MATCH", createFeatureMeta(jdMatchLimit, 0, "matches", jdMatchLimit > 0));
-        features.put("SKILL_GAP", createFeatureMeta(skillGapLimit, 0, "analyses", skillGapLimit > 0));
-        features.put("RESUME_COMPARE", createFeatureMeta(resumeCompareLimit, 0, "comparisons", resumeCompareLimit > 0));
-        features.put("AI_CHAT", createFeatureMeta(chatLimit, 0, "messages", chatLimit > 0));
-        features.put("ENGLISH_PRACTICE", createFeatureMeta(englishLimit, 0, "minutes", englishLimit > 0));
-        features.put("MOCK_INTERVIEW", createFeatureMeta(interviewLimit, 0, "minutes", interviewLimit > 0));
-        features.put("CODING_AI_REVIEW", createFeatureMeta(codingLimit, 0, "reviews", codingLimit > 0));
-        features.put("RESUME_TAILORING", createFeatureMeta(tailoringLimit, 0, "tailorings", tailoringLimit > 0));
+        features.put("ATS_ANALYSIS", createFeatureMeta(atsLimit, atsUsed, "analyses", true));
+        features.put("JD_MATCH", createFeatureMeta(jdMatchLimit, jdMatchUsed, "matches", jdMatchLimit > 0));
+        features.put("SKILL_GAP", createFeatureMeta(skillGapLimit, skillGapUsed, "analyses", skillGapLimit > 0));
+        features.put("RESUME_COMPARE", createFeatureMeta(resumeCompareLimit, resumeCompareUsed, "comparisons", resumeCompareLimit > 0));
+        features.put("AI_CHAT", createFeatureMeta(chatLimit, chatUsed, "messages", chatLimit > 0));
+        features.put("ENGLISH_PRACTICE", createFeatureMeta(englishLimit, englishUsed, "minutes", englishLimit > 0));
+        features.put("MOCK_INTERVIEW", createFeatureMeta(interviewLimit, interviewUsed, "minutes", interviewLimit > 0));
+        features.put("CODING_AI_REVIEW", createFeatureMeta(codingLimit, codingUsed, "reviews", codingLimit > 0));
+        features.put("RESUME_TAILORING", createFeatureMeta(tailoringLimit, tailoringUsed, "tailorings", tailoringLimit > 0));
 
         Map<String, Object> response = new HashMap<>();
         response.put("plan", plan);
@@ -308,6 +427,48 @@ public class PaymentController {
         meta.put("unit", unit);
         meta.put("included", included);
         return meta;
+    }
+
+    public boolean isSandboxMode() {
+        return (keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy")
+                || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret));
+    }
+
+    public void setKeyId(String keyId) {
+        this.keyId = keyId;
+    }
+
+    public void setKeySecret(String keySecret) {
+        this.keySecret = keySecret;
+    }
+
+    protected RazorpayClient createRazorpayClient(String keyId, String keySecret) throws Exception {
+        return new RazorpayClient(keyId, keySecret);
+    }
+
+    private String determinePlanFromAmount(int amountInPaise) {
+        switch (amountInPaise) {
+            case 14900:
+                return "BASIC";
+            case 24900:
+                return "PREMIUM";
+            case 239000:
+                return "PREMIUM";
+            case 99900:
+                return "STARTER";
+            case 959000:
+                return "STARTER";
+            case 299900:
+                return "PROFESSIONAL";
+            case 2879000:
+                return "PROFESSIONAL";
+            case 699900:
+                return "OFFICER_PROFESSIONAL";
+            case 6719000:
+                return "OFFICER_PROFESSIONAL";
+            default:
+                return null;
+        }
     }
 
     private String calculateHmacSha256(String data, String secret) throws Exception {

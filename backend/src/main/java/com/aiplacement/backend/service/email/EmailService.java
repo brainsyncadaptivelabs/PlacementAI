@@ -22,4 +22,16 @@ public interface EmailService {
     void sendDeleteAccountOtpEmail(String toEmail, String userName, String otp);
 
     void sendAccountDeletedEmail(String toEmail, String userName, String deletionDate);
+
+    void sendInterviewScheduleEmail(
+            String toEmail,
+            String studentName,
+            String interviewerName,
+            String jobTitle,
+            String round,
+            java.time.LocalDateTime scheduledDate,
+            Integer durationMinutes,
+            String meetingLink,
+            String mode
+    );
 }

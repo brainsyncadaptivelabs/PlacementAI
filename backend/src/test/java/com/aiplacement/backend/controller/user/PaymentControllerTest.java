@@ -54,7 +54,7 @@ public class PaymentControllerTest {
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
         assertTrue((Boolean) body.get("mock"));
-        assertEquals(19900, body.get("amount"));
+        assertEquals(24900, body.get("amount"));
         assertEquals("STUDENT_PRO_MONTHLY", body.get("plan"));
     }
 
@@ -67,7 +67,7 @@ public class PaymentControllerTest {
         
         Map<String, Object> body = response.getBody();
         assertNotNull(body);
-        assertEquals(479000, body.get("amount"));
+        assertEquals(239000, body.get("amount"));
         assertEquals("STUDENT_PREMIUM_YEARLY", body.get("plan"));
     }
 
@@ -128,5 +128,40 @@ public class PaymentControllerTest {
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
         ResponseEntity<Map<String, Object>> response = controller.verifyPayment(Map.of());
         assertEquals(400, response.getStatusCode().value());
+    }
+
+    @Test
+    void testGetSubscriptionStatusWithEntitlementService() {
+        com.aiplacement.backend.service.payment.FeatureEntitlementService entitlementService = 
+                mock(com.aiplacement.backend.service.payment.FeatureEntitlementService.class);
+        PaymentController testController = new PaymentController(
+                userRepository,
+                paymentTransactionRepository,
+                paymentManagementService,
+                entitlementService
+        );
+
+        when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
+        when(entitlementService.getAllFeatureUsages(1L)).thenReturn(Map.of(
+                "ATS_ANALYSIS", 2.0,
+                "JD_MATCH", 1.0
+        ));
+
+        ResponseEntity<Map<String, Object>> response = testController.getSubscriptionStatus();
+        assertEquals(200, response.getStatusCode().value());
+
+        Map<String, Object> body = response.getBody();
+        assertNotNull(body);
+        assertEquals("FREE", body.get("plan"));
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> features = (Map<String, Object>) body.get("features");
+        assertNotNull(features);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> atsMeta = (Map<String, Object>) features.get("ATS_ANALYSIS");
+        assertEquals(2, atsMeta.get("used"));
+        assertEquals(4, atsMeta.get("limit"));
+        assertEquals(2, atsMeta.get("remaining"));
     }
 }

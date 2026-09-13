@@ -10,7 +10,7 @@ PlacementAI is built as a monorepo consisting of a high-performance Spring Boot 
 
 ### Backend (Spring Boot)
 * **Runtime**: Java 21, Spring Boot 3.3.5, Maven
-* **Database**: PostgreSQL 15 (primary database + sandbox environment for secure code execution)
+* **Database**: PostgreSQL 15 (primary database) & In-Memory H2 (secure isolated sandbox for SQL code execution)
 * **Security**: Spring Security, JWT (AccessToken / RefreshToken rotation)
 * **Storage**: Supabase Storage (handles file uploads, resumes, and profile assets)
 * **AI & NLP**: NVIDIA Build API / Gemini (LLM integrations), ElevenLabs (Text-to-Speech)
@@ -38,8 +38,8 @@ docker compose up --build
 * **Frontend**: `http://localhost:3000`
 * **Backend API**: `http://localhost:8080`
 * **PostgreSQL (Primary)**: Port `5432`
-* **PostgreSQL (Sandbox)**: Port `5433`
 * **Redis**: Port `6379`
+* **SQL Execution Sandbox**: Embedded in-memory H2 (`SqlExecutionStrategy`, isolated per execution)
 
 ### ⚙️ Environment Configuration
 Configure credentials in your root `.env` file (copied from `.env.example`).

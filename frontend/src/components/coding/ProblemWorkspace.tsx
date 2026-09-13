@@ -149,7 +149,7 @@ export default function ProblemWorkspace({ problem, onBack }: ProblemWorkspacePr
 
       {/* Main Workspace Split Panels */}
       <div className="flex-1 min-h-0 w-full overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
+        <ResizablePanelGroup orientation="horizontal">
           {/* LEFT PANEL: Problem Description / Submissions */}
           <ResizablePanel defaultSize={40} minSize={25}>
             <div className="flex flex-col h-full border-r border-border/50 bg-background/50">
@@ -248,7 +248,7 @@ export default function ProblemWorkspace({ problem, onBack }: ProblemWorkspacePr
 
           {/* CENTER PANEL: Code Editor & Bottom Test Runner */}
           <ResizablePanel defaultSize={showCopilot ? 40 : 60} minSize={30}>
-            <ResizablePanelGroup direction="vertical">
+            <ResizablePanelGroup orientation="vertical">
               {/* Code Editor */}
               <ResizablePanel defaultSize={60} minSize={30}>
                 <div className="flex flex-col h-full bg-[#0d1117] text-foreground">

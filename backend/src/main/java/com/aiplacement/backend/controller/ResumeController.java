@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 
-@RequestMapping("/api/v1/resume")
+@RequestMapping({"/api/v1/resume", "/api/v1/resumes"})
 
 @RequiredArgsConstructor
 @Slf4j
@@ -31,7 +31,7 @@ public class ResumeController {
         log.info("Generic text extraction requested for file: {}", file.getOriginalFilename());
         try {
             java.io.File tempFile = java.io.File.createTempFile("extract-", "_" + file.getOriginalFilename());
-            file.transferTo(tempFile);
+            java.nio.file.Files.copy(file.getInputStream(), tempFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
             String text = pdfService.extractText(tempFile, file.getOriginalFilename());
             if (!tempFile.delete()) {
                 log.warn("Failed to delete temp file: {}", tempFile.getAbsolutePath());
@@ -100,6 +100,15 @@ public class ResumeController {
     public ResponseEntity<java.util.List<com.aiplacement.backend.dto.ResumeDto>> getAllResumes() {
         log.info("Request to fetch all resumes for authenticated user");
         return ResponseEntity.ok(resumeService.getAllResumes());
+    }
+
+    @GetMapping("/my-resumes")
+    public ResponseEntity<org.springframework.data.domain.Page<com.aiplacement.backend.dto.ResumeDto>> getMyResumes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        log.info("Request to fetch paginated resumes: page={}, size={}", page, size);
+        return ResponseEntity.ok(resumeService.getMyResumes(page, size));
     }
 
     @GetMapping("/{id}/analysis")

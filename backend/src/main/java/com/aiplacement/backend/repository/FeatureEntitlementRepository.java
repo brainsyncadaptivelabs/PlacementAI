@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FeatureEntitlementRepository extends JpaRepository<FeatureEntitlement, Long> {
@@ -23,4 +24,16 @@ public interface FeatureEntitlementRepository extends JpaRepository<FeatureEntit
             @Param("featureKey") String featureKey,
             @Param("now") LocalDateTime now
     );
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT f FROM FeatureEntitlement f WHERE f.userId = :userId AND f.featureKey = :featureKey AND f.status = 'ACTIVE' AND f.expiryDate > :now AND f.remainingCredits > 0 ORDER BY f.expiryDate ASC")
+    List<FeatureEntitlement> findUsableEntitlementsForUpdate(
+            @Param("userId") Long userId,
+            @Param("featureKey") String featureKey,
+            @Param("now") LocalDateTime now
+    );
+
+    List<FeatureEntitlement> findByRazorpayPaymentId(String razorpayPaymentId);
+    boolean existsByRazorpayPaymentId(String razorpayPaymentId);
+    Optional<FeatureEntitlement> findFirstByRazorpayPaymentId(String razorpayPaymentId);
 }

@@ -262,9 +262,6 @@ ratelimit:
   ats:
     capacity: ${RATE_LIMIT_ATS_CAPACITY:20}
     duration-seconds: ${RATE_LIMIT_ATS_DURATION:3600}
-  mock-interview:
-    capacity: ${RATE_LIMIT_INTERVIEW_CAPACITY:15}
-    duration-seconds: ${RATE_LIMIT_INTERVIEW_DURATION:3600}
 
 # ── Storage Configuration ──────────────────────────────────────
 storage:

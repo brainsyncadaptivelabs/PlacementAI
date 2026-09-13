@@ -34,9 +34,6 @@ ratelimit:
   ats:
     capacity: 1000
     duration-seconds: 1
-  mock-interview:
-    capacity: 1000
-    duration-seconds: 1
 
 nvidia:
   api:

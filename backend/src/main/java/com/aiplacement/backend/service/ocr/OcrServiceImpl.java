@@ -8,6 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 @Service
 @Slf4j
@@ -18,7 +20,7 @@ public class OcrServiceImpl implements OcrService {
         File tempFile = null;
         try {
             tempFile = File.createTempFile("resume-image", ".png");
-            file.transferTo(tempFile);
+            Files.copy(file.getInputStream(), tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
             Tesseract tesseract = new Tesseract();
             String datapath = resolveTessdataPath();

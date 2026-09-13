@@ -21,6 +21,7 @@ public class JdMatchServiceImpl implements JdMatchService {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
+    @org.springframework.cache.annotation.Cacheable(value = "jd_analysis", key = "(#request.jobDescription != null ? #request.jobDescription.hashCode() : 0) + '-' + (#request.resumeText != null ? #request.resumeText.hashCode() : 0)")
     public JdMatchResponseDto matchJobDescription(JdMatchRequestDto request) {
         log.info("Received JdMatchRequestDto for analysis.");
         

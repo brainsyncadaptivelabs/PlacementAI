@@ -197,7 +197,7 @@ function CodingPageContent() {
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
-      <FeatureUsageBar featureKey="coding" featureName="Coding Engine" />
+      <FeatureUsageBar featureKey="coding" featureTitle="Coding Engine" />
 
       {/* Top Header Nav Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-4">
