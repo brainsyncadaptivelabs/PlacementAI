@@ -108,6 +108,7 @@ public class ResumeServiceImpl implements ResumeService {
                     .fileName(saved.getFileName())
                     .filePath(saved.getFilePath())
                     .createdAt(saved.getCreatedAt())
+                    .extractedText(extractedText)
                     .build();
         } catch (Exception e) {
             log.error("Error during resume upload-only process", e);
@@ -192,7 +193,7 @@ public class ResumeServiceImpl implements ResumeService {
 
 
             Resume resume = Resume.builder()
-                    .fileName(fileName)
+                    .fileName(cleanFilename)
                     .filePath(storageUrl)
                     .extractedText(extractedText)
                     .user(user)

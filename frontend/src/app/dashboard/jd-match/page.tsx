@@ -216,7 +216,7 @@ function JDMatchPageContent() {
     formData.append("file", file);
 
     try {
-      const response = await api.post("/resume/upload", formData);
+      const response = await api.post("/resume/upload-only", formData);
       const text = response.data.extractedText;
       if (!text) {
         throw new Error("Extracted resume text is empty.");

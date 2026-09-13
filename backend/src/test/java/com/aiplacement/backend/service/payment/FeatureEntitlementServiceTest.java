@@ -25,7 +25,6 @@ public class FeatureEntitlementServiceTest {
     private UserFeatureUsageRepository userFeatureUsageRepository;
     private FeatureEntitlementService service;
     private User freeUser;
-    private User proUser;
 
     @BeforeEach
     void setUp() {
@@ -40,12 +39,6 @@ public class FeatureEntitlementServiceTest {
                 .plan("FREE")
                 .build();
 
-        proUser = User.builder()
-                .id(2L)
-                .email("pro@placementai.com")
-                .fullName("Pro Student")
-                .plan("PREMIUM")
-                .build();
     }
 
     @Test

@@ -15,4 +15,5 @@ public class ResumeDto {
     private LocalDateTime createdAt;
     private Integer atsScore;
     private String analyzedRole;
+    private String extractedText;
 }

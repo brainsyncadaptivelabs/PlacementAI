@@ -1,6 +1,5 @@
 package com.aiplacement.backend.controller.user;
 
-import com.aiplacement.backend.entity.FeatureEntitlement;
 import com.aiplacement.backend.entity.PaymentTransaction;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.FeatureEntitlementRepository;

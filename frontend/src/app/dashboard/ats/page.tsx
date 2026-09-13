@@ -134,19 +134,9 @@ export default function ResumeATSPage() {
 
     try {
       toast.loading("Uploading and extracting resume text...", { id: "resume-upload" });
-      const response = await api.post("/resume/upload", formData);
+      const response = await api.post("/resume/upload-only", formData);
 
-      // Save for full analysis dashboard fallback
-      if (response.data) {
-        try {
-          sessionStorage.setItem("ats-analysis", JSON.stringify(response.data));
-          localStorage.setItem("latest_ats_analysis", JSON.stringify(response.data));
-        } catch {
-          // ignore storage quota errors
-        }
-      }
-
-      toast.success("Resume uploaded successfully! Generating ATS analysis...", { id: "resume-upload" });
+      toast.success("Resume uploaded successfully!", { id: "resume-upload" });
 
       // Re-fetch all resumes and automatically select the newly uploaded resume
       const allResumesRes = await api.get("/resume/all");
@@ -154,8 +144,6 @@ export default function ResumeATSPage() {
         setResumes(allResumesRes.data);
         const newResumeId = allResumesRes.data[0].id;
         setSelectedResumeId(newResumeId);
-        // Automatically trigger general scan on the uploaded resume
-        runGeneralScan(newResumeId);
       }
     } catch (err: any) {
       console.error("Failed to upload resume:", err);

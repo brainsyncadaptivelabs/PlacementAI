@@ -35,7 +35,7 @@ public class UserController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
 
         return ResponseEntity.ok(UserProfileDto.builder()
                 .id(user.getId())

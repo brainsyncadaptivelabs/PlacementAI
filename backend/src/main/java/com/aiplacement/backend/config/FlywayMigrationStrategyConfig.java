@@ -6,9 +6,6 @@ import org.springframework.context.annotation.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-
 /**
  * Custom Flyway migration strategy that programmatically baselines clean databases
  * using Flyway's standard API.

@@ -168,7 +168,7 @@ export default function ProfileDashboard() {
     formData.append("file", file);
 
     try {
-      await api.post("/resume/upload", formData);
+      await api.post("/resume/upload-only", formData);
       toast.success("Resume uploaded successfully!");
       // Optionally mutate user or fetch latest resume
     } catch (error) {

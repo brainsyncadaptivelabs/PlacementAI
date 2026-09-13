@@ -84,7 +84,7 @@ public class AiSemanticServiceImpl implements AiSemanticService {
                 log.info("Sending resume to AI provider for detailed semantic analysis, attempt: {}", attempt);
                 aiJson = aiClient.generateJson(
                         "You are PlacementAI, an expert ATS resume analyser. Respond ONLY with valid JSON.",
-                        prompt, 0.2, 4096, e -> {
+                        prompt, 0.2, 1024, e -> {
                             throw new RuntimeException("AI request failed", e);
                         });
                 if (aiJson != null && aiJson.has("careerDomain")) {

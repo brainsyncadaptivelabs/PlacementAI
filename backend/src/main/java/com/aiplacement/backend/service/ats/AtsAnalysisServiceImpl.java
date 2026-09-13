@@ -9,6 +9,7 @@ import com.aiplacement.backend.repository.AtsAnalysisRepository;
 import com.aiplacement.backend.repository.ResumeRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.service.PdfService;
+import com.aiplacement.backend.service.payment.FeatureEntitlementService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
     private final UserRepository userRepository;
     private final PdfService pdfService;
     private final AIClient aiClient;
+    private final FeatureEntitlementService featureEntitlementService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Regex patterns for explicit experience detection
@@ -45,6 +47,9 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
     @Transactional
     public AtsGeneralScanResponseDto analyzeGeneral(Long resumeId) {
         Resume resume = getAuthenticatedUserResume(resumeId);
+        
+        featureEntitlementService.checkAndDeductUsage(resume.getUser(), "ATS_ANALYSIS", 1.0);
+        
         String resumeText = resume.getExtractedText();
         if (resumeText == null || resumeText.trim().isEmpty()) {
             throw new IllegalArgumentException("Resume extracted text is empty.");
@@ -127,6 +132,8 @@ public class AtsAnalysisServiceImpl implements AtsAnalysisService {
         if (jdText == null || jdText.trim().isEmpty()) {
             throw new IllegalArgumentException("Target Job Description text could not be resolved.");
         }
+        
+        featureEntitlementService.checkAndDeductUsage(resume.getUser(), "JD_MATCH", 1.0);
 
         SeniorityTier regexDetectedTier = detectSeniorityTierFromJdRegex(jdText);
 
