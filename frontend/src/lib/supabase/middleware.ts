@@ -64,7 +64,9 @@ export async function updateSession(request: NextRequest) {
   const isAuthPath = pathname.startsWith("/auth");
 
   // Read cookies for role, profile completion, and plan selection
-  const role = request.cookies.get('placementai_role')?.value || "STUDENT";
+  // Authoritative fallback: if cookie is absent, consult authenticated Supabase user metadata
+  const cookieRole = request.cookies.get('placementai_role')?.value;
+  const role = cookieRole || (user?.user_metadata?.role as string) || "STUDENT";
   const profileCompleted = request.cookies.get('placementai_profile_completed')?.value !== 'false';
   const planSelected = request.cookies.get('placementai_plan_selected')?.value !== 'false';
 
@@ -80,14 +82,22 @@ export async function updateSession(request: NextRequest) {
 
       const redirectUrl = new URL(loginPath, request.url);
       redirectUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(redirectUrl);
+      const redirectResponse = NextResponse.redirect(redirectUrl);
+      
+      // Clear orphaned routing cookies on unauthenticated redirect
+      redirectResponse.cookies.set('placementai_role', '', { path: '/', maxAge: 0 });
+      redirectResponse.cookies.set('placementai_profile_completed', '', { path: '/', maxAge: 0 });
+      redirectResponse.cookies.set('placementai_plan_selected', '', { path: '/', maxAge: 0 });
+      redirectResponse.cookies.set('placementai_payment_completed', '', { path: '/', maxAge: 0 });
+      return redirectResponse;
     }
     return supabaseResponse;
   }
 
   // 2. Authenticated users handling
-  // Redirect away from login pages if already authenticated
-  if (isAuthPath) {
+  // Redirect away from login pages if already authenticated (unless an explicit error query param is present)
+  const hasAuthError = request.nextUrl.searchParams.has("error");
+  if (isAuthPath && !hasAuthError) {
     let dashboardPath = "/dashboard";
     if (role === "RECRUITER") dashboardPath = "/recruiter";
     else if (role === "PLACEMENT_OFFICER") dashboardPath = "/placement-officer";

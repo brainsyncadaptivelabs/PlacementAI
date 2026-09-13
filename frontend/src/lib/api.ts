@@ -19,9 +19,22 @@ const handleResponseError = async (response: Response, url?: string) => {
       if (isAdmin) {
         localStorage.removeItem("admin_token");
         localStorage.removeItem("admin_csrf");
+        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
         window.location.href = "/admin";
       } else {
         localStorage.removeItem("token");
+        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax';
+
+        // Trigger Supabase sign out in background so middleware doesn't bounce back to dashboard
+        try {
+          const { createClient } = await import('@/lib/supabase/client');
+          const supabase = createClient();
+          await supabase.auth.signOut();
+        } catch (_) {}
+
         const currentPath = window.location.pathname;
         if (currentPath.startsWith("/recruiter")) {
           window.location.href = "/auth/recruiter";

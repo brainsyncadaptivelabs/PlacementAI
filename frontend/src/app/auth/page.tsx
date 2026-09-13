@@ -276,6 +276,11 @@ export default function AuthPage() {
       }
 
       localStorage.setItem("token", backendData.accessToken);
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const cookieSuffix = `; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+      document.cookie = `placementai_role=${backendData.role || selectedRole}${cookieSuffix}`;
+      document.cookie = `placementai_profile_completed=${Boolean(backendData.profileCompleted)}${cookieSuffix}`;
+      document.cookie = `placementai_plan_selected=${Boolean(backendData.planSelected)}${cookieSuffix}`;
 
       setSuccess("Account created successfully! Redirecting...");
       
@@ -348,6 +353,11 @@ export default function AuthPage() {
       }
       
       localStorage.setItem("token", backendData.accessToken);
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const cookieSuffix = `; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+      document.cookie = `placementai_role=${backendData.role}${cookieSuffix}`;
+      document.cookie = `placementai_profile_completed=${Boolean(backendData.profileCompleted)}${cookieSuffix}`;
+      document.cookie = `placementai_plan_selected=${Boolean(backendData.planSelected)}${cookieSuffix}`;
 
       router.push(getDashboardRouteForRole(backendData.role));
     } catch (err: any) {

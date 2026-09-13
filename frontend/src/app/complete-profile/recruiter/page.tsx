@@ -31,6 +31,8 @@ export default function CompleteRecruiterProfile() {
 
     try {
       await api.post("/profile/recruiter", formData);
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      document.cookie = `placementai_profile_completed=true; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
       await mutate();
       router.push("/success/recruiter");
     } catch (err: unknown) {

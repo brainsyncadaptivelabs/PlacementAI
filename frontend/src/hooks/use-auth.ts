@@ -23,9 +23,18 @@ export const useAuth = () => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    clearAuth();
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax';
+        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax';
+      }
+      clearAuth();
+    }
   };
 
   return {

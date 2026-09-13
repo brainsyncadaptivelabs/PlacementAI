@@ -31,6 +31,8 @@ export default function CompletePlacementOfficerProfile() {
 
     try {
       await api.post("/profile/placement-officer", formData);
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      document.cookie = `placementai_profile_completed=true; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
       await mutate();
       router.push("/placement-officer");
     } catch (err: unknown) {

@@ -96,11 +96,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const exp = payload.exp;
             // Valid if matches user email and has >60s until expiry
             if (email === session.user.email && exp && exp * 1000 > Date.now() + 60_000) {
+              if (payload.role) {
+                const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+                document.cookie = `placementai_role=${payload.role}; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+              }
               return; // Already synced — no need to re-exchange
+            }
+            // If token belongs to a different email, evict it immediately to avoid cross-user state
+            if (email !== session.user.email) {
+              localStorage.removeItem('token');
             }
           }
         } catch {
           // Corrupt token — fall through and re-sync
+          localStorage.removeItem('token');
         }
       }
 
@@ -144,6 +153,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           const errText = await response.text();
           console.error(`[AUTH_PROVIDER] Backend sync failed (${response.status}): ${errText}`);
+          if (response.status === 401 || response.status === 403) {
+            console.warn('[AUTH_PROVIDER] Backend rejected user session — signing out');
+            await supabase.auth.signOut();
+            clearAuth();
+            localStorage.removeItem('token');
+            document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
+            document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+            document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
+            document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+            window.location.href = '/auth?error=account_suspended';
+          }
         }
       } catch (err) {
         console.error('[AUTH_PROVIDER] Backend sync error:', err);
@@ -164,6 +184,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session) {
         await syncBackend(session);
         setupSessionTimer(session);
+      } else {
+        // Clear any orphaned tokens or cookies left from expired session
+        localStorage.removeItem('token');
+        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
+        document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
+        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
       }
     };
 
@@ -179,6 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
         document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
         document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
+        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
         window.dispatchEvent(new Event('storage'));
         window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
         setShowTimeoutWarning(false);

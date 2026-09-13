@@ -205,7 +205,8 @@ export default function SuperAdminPortal() {
       if (csrfToken) {
         localStorage.setItem("admin_csrf", csrfToken);
       }
-      document.cookie = "placementai_role=SUPER_ADMIN; path=/; max-age=2592000; SameSite=Lax";
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      document.cookie = `placementai_role=SUPER_ADMIN; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
 
       setIsAuthenticated(true);
       setAdminEmail(email);
@@ -223,7 +224,10 @@ export default function SuperAdminPortal() {
     } catch (_) {}
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_csrf");
-    document.cookie = "placementai_role=; path=/; max-age=0";
+    document.cookie = "placementai_role=; path=/; max-age=0; SameSite=Lax";
+    document.cookie = "placementai_profile_completed=; path=/; max-age=0; SameSite=Lax";
+    document.cookie = "placementai_plan_selected=; path=/; max-age=0; SameSite=Lax";
+    document.cookie = "placementai_payment_completed=; path=/; max-age=0; SameSite=Lax";
     setIsAuthenticated(false);
     setAdminEmail("");
   };
