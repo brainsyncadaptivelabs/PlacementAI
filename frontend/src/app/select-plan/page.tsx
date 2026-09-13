@@ -173,17 +173,8 @@ export default function SelectPlanPage() {
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        await api.post("/payment/verify-payment", {
-          razorpay_order_id: orderId,
-          razorpay_payment_id: "pay_mock_" + Math.random().toString(36).substring(7),
-          razorpay_signature: "mock_signature",
-          plan: planParam,
-        });
-        document.cookie = "placementai_plan_selected=true; path=/; max-age=2592000; SameSite=Lax; Secure";
-        document.cookie = "placementai_payment_completed=true; path=/; max-age=2592000; SameSite=Lax; Secure";
-        await mutate();
-        toast.success(`${plan.name} plan activated successfully!`);
-        router.push("/dashboard");
+        toast.error("Failed to load Razorpay payment gateway. Please check your internet connection or ad blocker.");
+        setLoadingPlan(null);
         return;
       }
 
@@ -274,17 +265,8 @@ export default function SelectPlanPage() {
 
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        await api.post("/custom-plans/verify-payment", {
-          razorpay_order_id: orderId,
-          razorpay_payment_id: "pay_mock_custom_" + Math.random().toString(36).substring(7),
-          razorpay_signature: "mock_signature",
-          featureKeys: selectedCustomKeys,
-        });
-        document.cookie = "placementai_plan_selected=true; path=/; max-age=2592000; SameSite=Lax; Secure";
-        document.cookie = "placementai_payment_completed=true; path=/; max-age=2592000; SameSite=Lax; Secure";
-        await mutate();
-        toast.success("Custom Feature Pack credits activated!");
-        router.push("/dashboard/wallet");
+        toast.error("Failed to load Razorpay payment gateway. Please check your internet connection or ad blocker.");
+        setLoadingPlan(null);
         return;
       }
 
