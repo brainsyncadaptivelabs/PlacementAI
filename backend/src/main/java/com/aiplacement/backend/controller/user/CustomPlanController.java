@@ -28,6 +28,7 @@ public class CustomPlanController {
     private final UserRepository userRepository;
     private final FeatureEntitlementRepository featureEntitlementRepository;
     private final com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService;
+    private com.aiplacement.backend.service.payment.PaymentModeService paymentModeService;
 
     @Value("${razorpay.key.id:rzp_test_dummy_id}")
     private String keyId;
@@ -39,18 +40,28 @@ public class CustomPlanController {
     public CustomPlanController(
             UserRepository userRepository,
             FeatureEntitlementRepository featureEntitlementRepository,
-            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService
+            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService,
+            com.aiplacement.backend.service.payment.PaymentModeService paymentModeService
     ) {
         this.userRepository = userRepository;
         this.featureEntitlementRepository = featureEntitlementRepository;
         this.featureEntitlementService = featureEntitlementService;
+        this.paymentModeService = paymentModeService != null ? paymentModeService : new com.aiplacement.backend.service.payment.PaymentModeService();
+    }
+
+    public CustomPlanController(
+            UserRepository userRepository,
+            FeatureEntitlementRepository featureEntitlementRepository,
+            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService
+    ) {
+        this(userRepository, featureEntitlementRepository, featureEntitlementService, null);
     }
 
     public CustomPlanController(
             UserRepository userRepository,
             FeatureEntitlementRepository featureEntitlementRepository
     ) {
-        this(userRepository, featureEntitlementRepository, null);
+        this(userRepository, featureEntitlementRepository, null, null);
     }
 
     @GetMapping("/features")
@@ -84,9 +95,9 @@ public class CustomPlanController {
         }
 
         int amountInPaise = totalInr * 100;
-        boolean isSandbox = isSandboxMode();
+        boolean isMockAllowed = paymentModeService != null && paymentModeService.isMockPaymentAllowed();
 
-        if (isSandbox) {
+        if (isMockAllowed) {
             log.info("[CustomPlanController] Generating Sandbox Mock Order for custom features: {}", featureKeys);
             String mockOrderId = "order_mock_custom_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
             Map<String, Object> response = new HashMap<>();
@@ -99,6 +110,13 @@ public class CustomPlanController {
             response.put("items", selectedDetails);
             response.put("mock", true);
             return ResponseEntity.ok(response);
+        }
+
+        if (paymentModeService != null && !paymentModeService.hasValidCredentials()) {
+            log.error("[CustomPlanController] Live custom order requested but Razorpay credentials are not configured and mock mode is disabled.");
+            return ResponseEntity.status(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                    "error", "Payment processing is currently unavailable. Please contact support."
+            ));
         }
 
         try {
@@ -153,13 +171,14 @@ public class CustomPlanController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing feature selection list"));
         }
 
-        boolean isSandbox = isSandboxMode();
+        boolean isMockAllowed = paymentModeService != null && paymentModeService.isMockPaymentAllowed();
+        boolean isMockOrder = orderId.startsWith("order_mock_") || paymentId.startsWith("pay_mock_");
 
-        // Security Check 1: Enforce strict environment isolation (Reject mock orders in production)
-        if (orderId.startsWith("order_mock_")) {
-            if (!isSandbox) {
-                log.warn("[SECURITY] Attempted mock custom order verification with active Razorpay credentials by user {}", email);
-                return ResponseEntity.badRequest().body(Map.of("error", "Mock order verification is prohibited in production mode."));
+        // Security Check 1: Enforce strict environment isolation (Reject mock orders when mock mode is disabled)
+        if (isMockOrder) {
+            if (!isMockAllowed) {
+                log.warn("[SECURITY] Attempted mock custom order verification when mock payments are disabled for user {}", email);
+                return ResponseEntity.badRequest().body(Map.of("error", "Mock order verification is prohibited in this environment."));
             }
         }
 
@@ -192,7 +211,17 @@ public class CustomPlanController {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid features selected for custom plan."));
         }
 
-        if (!isSandbox) {
+        if (isMockOrder) {
+            log.info("[CustomPlanController] Sandbox mock verification success for custom order ID: {}", orderId);
+        } else {
+            // Live Mode: Fail safely if credentials are missing
+            if (paymentModeService != null && !paymentModeService.hasValidCredentials()) {
+                log.error("[SECURITY] Live custom payment verification attempted but Razorpay credentials are not configured.");
+                return ResponseEntity.status(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                        "error", "Payment verification service is unavailable."
+                ));
+            }
+
             // Production Mode: Strict Cryptographic Signature Validation
             if (signature == null || signature.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Missing custom payment signature"));
@@ -496,16 +525,29 @@ public class CustomPlanController {
     }
 
     public boolean isSandboxMode() {
-        return (keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy")
-                || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret));
+        return paymentModeService != null && paymentModeService.isMockPaymentAllowed();
+    }
+
+    public com.aiplacement.backend.service.payment.PaymentModeService getPaymentModeService() {
+        return paymentModeService;
+    }
+
+    public void setPaymentModeService(com.aiplacement.backend.service.payment.PaymentModeService paymentModeService) {
+        this.paymentModeService = paymentModeService;
     }
 
     public void setKeyId(String keyId) {
         this.keyId = keyId;
+        if (this.paymentModeService != null) {
+            this.paymentModeService.setKeyId(keyId);
+        }
     }
 
     public void setKeySecret(String keySecret) {
         this.keySecret = keySecret;
+        if (this.paymentModeService != null) {
+            this.paymentModeService.setKeySecret(keySecret);
+        }
     }
 
     protected RazorpayClient createRazorpayClient(String keyId, String keySecret) throws Exception {

@@ -20,3 +20,7 @@ ratelimit:
   ats:
     capacity: 100
     duration-seconds: 3600
+
+payment:
+  mock:
+    enabled: ${PAYMENT_MOCK_ENABLED:true}

@@ -24,6 +24,7 @@ public class PaymentController {
     private final com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository;
     private final com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService;
     private final com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService;
+    private com.aiplacement.backend.service.payment.PaymentModeService paymentModeService;
 
     @Value("${razorpay.key.id:rzp_test_dummy_id}")
     private String keyId;
@@ -36,12 +37,23 @@ public class PaymentController {
             UserRepository userRepository,
             com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository,
             com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService,
-            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService
+            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService,
+            com.aiplacement.backend.service.payment.PaymentModeService paymentModeService
     ) {
         this.userRepository = userRepository;
         this.paymentTransactionRepository = paymentTransactionRepository;
         this.paymentManagementService = paymentManagementService;
         this.featureEntitlementService = featureEntitlementService;
+        this.paymentModeService = paymentModeService != null ? paymentModeService : new com.aiplacement.backend.service.payment.PaymentModeService();
+    }
+
+    public PaymentController(
+            UserRepository userRepository,
+            com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository,
+            com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService,
+            com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService
+    ) {
+        this(userRepository, paymentTransactionRepository, paymentManagementService, featureEntitlementService, null);
     }
 
     public PaymentController(
@@ -49,7 +61,7 @@ public class PaymentController {
             com.aiplacement.backend.repository.PaymentTransactionRepository paymentTransactionRepository,
             com.aiplacement.backend.service.admin.PaymentManagementService paymentManagementService
     ) {
-        this(userRepository, paymentTransactionRepository, paymentManagementService, null);
+        this(userRepository, paymentTransactionRepository, paymentManagementService, null, null);
     }
 
     @PostMapping("/create-order")
@@ -110,9 +122,9 @@ public class PaymentController {
                 requestedPlan = "STUDENT_BASIC_MONTHLY";
         }
 
-        boolean isSandbox = isSandboxMode();
+        boolean isMockAllowed = paymentModeService != null && paymentModeService.isMockPaymentAllowed();
 
-        if (isSandbox) {
+        if (isMockAllowed) {
             log.info("[PaymentController] Generating Sandbox Mock Order for plan: {}", requestedPlan);
             String mockOrderId = "order_mock_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14);
             Map<String, Object> response = new HashMap<>();
@@ -123,6 +135,13 @@ public class PaymentController {
             response.put("plan", requestedPlan);
             response.put("mock", true);
             return ResponseEntity.ok(response);
+        }
+
+        if (paymentModeService != null && !paymentModeService.hasValidCredentials()) {
+            log.error("[PaymentController] Live order requested but Razorpay credentials are not configured and mock mode is disabled.");
+            return ResponseEntity.status(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                    "error", "Payment processing is currently unavailable. Please contact support."
+            ));
         }
 
         try {
@@ -172,13 +191,14 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(Map.of("error", "Missing order ID or payment ID"));
         }
 
-        boolean isSandbox = isSandboxMode();
+        boolean isMockAllowed = paymentModeService != null && paymentModeService.isMockPaymentAllowed();
+        boolean isMockOrder = orderId.startsWith("order_mock_") || paymentId.startsWith("pay_mock_");
 
-        // Security Check 1: Enforce strict environment isolation (Reject mock orders in production)
-        if (orderId.startsWith("order_mock_")) {
-            if (!isSandbox) {
-                log.warn("[SECURITY] Attempted mock order verification with active Razorpay credentials by user {}", email);
-                return ResponseEntity.badRequest().body(Map.of("error", "Mock order verification is prohibited in production mode."));
+        // Security Check 1: Enforce strict environment isolation (Reject mock orders when mock mode is disabled)
+        if (isMockOrder) {
+            if (!isMockAllowed) {
+                log.warn("[SECURITY] Attempted mock order verification when mock payments are disabled for user {}", email);
+                return ResponseEntity.badRequest().body(Map.of("error", "Mock order verification is prohibited in this environment."));
             }
         }
 
@@ -203,8 +223,8 @@ public class PaymentController {
         String basePlan = "FREE";
         double paidAmountInr = 199.0;
 
-        if (isSandbox) {
-            // In sandbox mode with mock order, determine requested plan safely
+        if (isMockOrder) {
+            // In sandbox mock mode with explicit opt-in, determine requested plan safely
             if (planParam.contains("PREMIUM")) {
                 basePlan = "PREMIUM";
                 paidAmountInr = 249.0;
@@ -230,6 +250,14 @@ public class PaymentController {
             log.info("[PaymentController] Sandbox mock verification success for order ID: {}", orderId);
 
         } else {
+            // Live Mode: Fail safely if credentials are missing
+            if (paymentModeService != null && !paymentModeService.hasValidCredentials()) {
+                log.error("[SECURITY] Live payment verification attempted but Razorpay credentials are not configured.");
+                return ResponseEntity.status(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE).body(Map.of(
+                        "error", "Payment verification service is unavailable."
+                ));
+            }
+
             // Production Mode: Strict Cryptographic Signature Validation
             if (signature == null || signature.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Missing payment signature"));
@@ -430,16 +458,29 @@ public class PaymentController {
     }
 
     public boolean isSandboxMode() {
-        return (keyId == null || keyId.isBlank() || keyId.startsWith("rzp_test_dummy")
-                || keySecret == null || keySecret.isBlank() || "dummy_secret".equals(keySecret));
+        return paymentModeService != null && paymentModeService.isMockPaymentAllowed();
+    }
+
+    public com.aiplacement.backend.service.payment.PaymentModeService getPaymentModeService() {
+        return paymentModeService;
+    }
+
+    public void setPaymentModeService(com.aiplacement.backend.service.payment.PaymentModeService paymentModeService) {
+        this.paymentModeService = paymentModeService;
     }
 
     public void setKeyId(String keyId) {
         this.keyId = keyId;
+        if (this.paymentModeService != null) {
+            this.paymentModeService.setKeyId(keyId);
+        }
     }
 
     public void setKeySecret(String keySecret) {
         this.keySecret = keySecret;
+        if (this.paymentModeService != null) {
+            this.paymentModeService.setKeySecret(keySecret);
+        }
     }
 
     protected RazorpayClient createRazorpayClient(String keyId, String keySecret) throws Exception {

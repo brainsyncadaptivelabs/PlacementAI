@@ -28,7 +28,11 @@ public class PaymentControllerTest {
         userRepository = mock(UserRepository.class);
         paymentTransactionRepository = mock(com.aiplacement.backend.repository.PaymentTransactionRepository.class);
         paymentManagementService = mock(com.aiplacement.backend.service.admin.PaymentManagementService.class);
-        controller = new PaymentController(userRepository, paymentTransactionRepository, paymentManagementService);
+        org.springframework.mock.env.MockEnvironment devEnv = new org.springframework.mock.env.MockEnvironment();
+        devEnv.setActiveProfiles("dev");
+        com.aiplacement.backend.service.payment.PaymentModeService devPaymentModeService =
+                new com.aiplacement.backend.service.payment.PaymentModeService(devEnv, true, "rzp_test_dummy_id", "dummy_secret");
+        controller = new PaymentController(userRepository, paymentTransactionRepository, paymentManagementService, null, devPaymentModeService);
 
         user = new User();
         user.setId(1L);
@@ -163,5 +167,10 @@ public class PaymentControllerTest {
         assertEquals(2, atsMeta.get("used"));
         assertEquals(4, atsMeta.get("limit"));
         assertEquals(2, atsMeta.get("remaining"));
+
+        // Verify batch query pattern: exactly 1 call to fetch all feature usages, 0 per-feature queries
+        verify(userRepository, times(1)).findByEmailIgnoreCase("student@company.com");
+        verify(entitlementService, times(1)).getAllFeatureUsages(1L);
+        verify(entitlementService, never()).getUsedFeatureCount(any(), any());
     }
 }

@@ -35,6 +35,10 @@ ratelimit:
     capacity: 1000
     duration-seconds: 1
 
+payment:
+  mock:
+    enabled: ${PAYMENT_MOCK_ENABLED:true}
+
 nvidia:
   api:
     key: "nvapi-dummy-api-key"

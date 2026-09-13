@@ -275,10 +275,12 @@ supabase:
   key: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:sb_publishable_1_N-QV-c57Lsca-hGpJxTg_QubCK2Kt}
   bucket: ${SUPABASE_STORAGE_BUCKET:placementai-files}
 
-# ── Razorpay Integration ──────────────────────────────────────
+# ── Payment & Razorpay Integration ─────────────────────────────
+payment:
+  mock:
+    enabled: ${PAYMENT_MOCK_ENABLED:false}
+
 razorpay:
   key:
     id: ${RAZORPAY_KEY_ID:rzp_test_dummy_id}
     secret: ${RAZORPAY_KEY_SECRET:dummy_secret}
-
-#
