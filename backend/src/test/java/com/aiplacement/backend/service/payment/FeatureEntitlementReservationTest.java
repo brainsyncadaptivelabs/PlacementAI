@@ -262,4 +262,127 @@ public class FeatureEntitlementReservationTest {
                 .orElseThrow();
         assertEquals(0.0, usageAfter.getUsedCount());
     }
+
+    @Test
+    @DisplayName("5. Double commit is idempotent and does not increment usage again")
+    void testDoubleCommitIsIdempotent() {
+        FeatureReservation res = featureEntitlementService.reserveUsage(testUser, "ATS_ANALYSIS", 1.0);
+        assertEquals("RESERVED", res.getStatus());
+
+        // First commit
+        Map<String, Object> firstCommit = featureEntitlementService.finalizeConsumption(res.getId());
+        assertEquals("SUCCESS", firstCommit.get("status"));
+
+        // Second commit
+        Map<String, Object> secondCommit = featureEntitlementService.finalizeConsumption(res.getId());
+        assertEquals("SUCCESS", secondCommit.get("status"));
+        assertEquals("Already committed", secondCommit.get("message"));
+
+        // Quota usage must still be exactly 1.0
+        UserFeatureUsage usage = userFeatureUsageRepository.findCurrentUsage(testUser.getId(), "ATS_ANALYSIS", LocalDate.now())
+                .orElseThrow();
+        assertEquals(1.0, usage.getUsedCount());
+    }
+
+    @Test
+    @DisplayName("6. Double release is idempotent and does not double refund")
+    void testDoubleReleaseIsIdempotent() {
+        FeatureReservation res = featureEntitlementService.reserveUsage(testUser, "ATS_ANALYSIS", 1.0);
+        assertEquals("RESERVED", res.getStatus());
+
+        // First release
+        Map<String, Object> firstRelease = featureEntitlementService.releaseReservation(res.getId());
+        assertEquals("RELEASED", firstRelease.get("status"));
+        assertEquals(1.0, firstRelease.get("refunded"));
+
+        // Second release
+        Map<String, Object> secondRelease = featureEntitlementService.releaseReservation(res.getId());
+        assertEquals("RELEASED", secondRelease.get("status"));
+        assertNull(secondRelease.get("refunded"), "Second release should not issue a second refund");
+
+        // Quota usage must be 0.0, never negative
+        UserFeatureUsage usage = userFeatureUsageRepository.findCurrentUsage(testUser.getId(), "ATS_ANALYSIS", LocalDate.now())
+                .orElseThrow();
+        assertEquals(0.0, usage.getUsedCount());
+    }
+
+    @Test
+    @DisplayName("7. Commit after release fails with IllegalStateException and does not deduct quota")
+    void testCommitAfterReleaseFailsSafely() {
+        FeatureReservation res = featureEntitlementService.reserveUsage(testUser, "ATS_ANALYSIS", 1.0);
+        featureEntitlementService.releaseReservation(res.getId());
+
+        // Commit on released reservation must throw IllegalStateException
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+                featureEntitlementService.finalizeConsumption(res.getId()));
+        assertTrue(ex.getMessage().contains("Cannot finalize reservation in status: RELEASED"));
+
+        // Quota remains 0.0
+        UserFeatureUsage usage = userFeatureUsageRepository.findCurrentUsage(testUser.getId(), "ATS_ANALYSIS", LocalDate.now())
+                .orElseThrow();
+        assertEquals(0.0, usage.getUsedCount());
+    }
+
+    @Test
+    @DisplayName("8. Release after commit is a no-op and does not refund committed usage")
+    void testReleaseAfterCommitIsNoOp() {
+        FeatureReservation res = featureEntitlementService.reserveUsage(testUser, "ATS_ANALYSIS", 1.0);
+        featureEntitlementService.finalizeConsumption(res.getId());
+
+        // Release on committed reservation
+        Map<String, Object> result = featureEntitlementService.releaseReservation(res.getId());
+        assertEquals("COMMITTED", result.get("status"));
+        assertNull(result.get("refunded"));
+
+        // Quota remains 1.0
+        UserFeatureUsage usage = userFeatureUsageRepository.findCurrentUsage(testUser.getId(), "ATS_ANALYSIS", LocalDate.now())
+                .orElseThrow();
+        assertEquals(1.0, usage.getUsedCount());
+    }
+
+    @Test
+    @DisplayName("9. Late commit on already expired reservation fails safely without corrupting restored quota")
+    void testLateCommitOnExpiredReservationFailsSafely() {
+        FeatureReservation res = featureEntitlementService.reserveUsage(
+                testUser, "ATS_ANALYSIS", 1.0, Duration.ofMillis(1));
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException ignored) {}
+
+        // Cleanup marks it EXPIRED and restores quota to 0.0
+        featureEntitlementService.cleanupExpiredReservations();
+
+        // Late commit attempt
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+                featureEntitlementService.finalizeConsumption(res.getId()));
+        assertTrue(ex.getMessage().contains("Cannot finalize reservation in status: EXPIRED"));
+
+        // Quota remains restored at 0.0
+        UserFeatureUsage usage = userFeatureUsageRepository.findCurrentUsage(testUser.getId(), "ATS_ANALYSIS", LocalDate.now())
+                .orElseThrow();
+        assertEquals(0.0, usage.getUsedCount());
+    }
+
+    @Test
+    @DisplayName("10. Release on already expired reservation is safe no-op")
+    void testReleaseOnExpiredReservationIsNoOp() {
+        FeatureReservation res = featureEntitlementService.reserveUsage(
+                testUser, "ATS_ANALYSIS", 1.0, Duration.ofMillis(1));
+
+        try {
+            Thread.sleep(50);
+        } catch (InterruptedException ignored) {}
+
+        featureEntitlementService.cleanupExpiredReservations();
+
+        // Release attempt
+        Map<String, Object> result = featureEntitlementService.releaseReservation(res.getId());
+        assertEquals("EXPIRED", result.get("status"));
+        assertNull(result.get("refunded"));
+
+        UserFeatureUsage usage = userFeatureUsageRepository.findCurrentUsage(testUser.getId(), "ATS_ANALYSIS", LocalDate.now())
+                .orElseThrow();
+        assertEquals(0.0, usage.getUsedCount());
+    }
 }

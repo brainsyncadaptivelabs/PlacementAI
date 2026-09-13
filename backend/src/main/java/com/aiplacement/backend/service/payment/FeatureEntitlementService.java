@@ -482,7 +482,7 @@ public class FeatureEntitlementService {
         Map<String, Double> map = new HashMap<>();
         for (UserFeatureUsage u : list) {
             if (u.getFeatureKey() != null) {
-                map.put(u.getFeatureKey().toUpperCase(), u.getUsedCount());
+                map.putIfAbsent(u.getFeatureKey().toUpperCase(), u.getUsedCount());
             }
         }
         return map;

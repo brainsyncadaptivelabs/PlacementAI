@@ -15,7 +15,7 @@ public interface UserFeatureUsageRepository extends JpaRepository<UserFeatureUsa
 
     List<UserFeatureUsage> findByUserId(Long userId);
 
-    @Query("SELECT u FROM UserFeatureUsage u WHERE u.userId = :userId AND u.periodEnd >= :today")
+    @Query("SELECT u FROM UserFeatureUsage u WHERE u.userId = :userId AND u.periodStart <= :today AND u.periodEnd >= :today ORDER BY u.periodEnd DESC")
     List<UserFeatureUsage> findByUserIdAndPeriodEndAfter(@Param("userId") Long userId, @Param("today") LocalDate today);
 
     @Query("SELECT u FROM UserFeatureUsage u WHERE u.userId = :userId AND UPPER(u.featureKey) = UPPER(:featureKey) AND u.periodEnd >= :today ORDER BY u.periodEnd DESC")

@@ -14,7 +14,9 @@ import java.time.LocalDateTime;
         indexes = {
                 @Index(name = "idx_user_feature_usage_user", columnList = "user_id"),
                 @Index(name = "idx_user_feature_usage_feature", columnList = "user_id, feature_key"),
-                @Index(name = "idx_user_feature_usage_period", columnList = "period_end")
+                @Index(name = "idx_user_feature_usage_period", columnList = "period_end"),
+                @Index(name = "idx_user_feature_usage_user_period", columnList = "user_id, period_end"),
+                @Index(name = "idx_user_feature_usage_composite", columnList = "user_id, feature_key, period_end")
         })
 @Getter
 @Setter

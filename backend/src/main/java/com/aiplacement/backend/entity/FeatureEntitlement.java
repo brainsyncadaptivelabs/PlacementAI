@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Table(name = "feature_entitlements", indexes = {
         @Index(name = "idx_entitlement_user", columnList = "user_id"),
         @Index(name = "idx_entitlement_feature", columnList = "user_id, feature_key"),
+        @Index(name = "idx_entitlement_user_status", columnList = "user_id, status, expiry_date"),
         @Index(name = "idx_entitlement_expiry", columnList = "expiry_date")
 })
 @Getter
