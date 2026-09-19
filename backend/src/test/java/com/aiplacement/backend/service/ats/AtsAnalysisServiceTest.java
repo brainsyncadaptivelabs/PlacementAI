@@ -48,6 +48,9 @@ class AtsAnalysisServiceTest {
     private AIClient aiClient;
 
     @Mock
+    private com.aiplacement.backend.service.payment.FeatureEntitlementService featureEntitlementService;
+
+    @Mock
     private SecurityContext securityContext;
 
     @Mock

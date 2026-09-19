@@ -117,7 +117,9 @@ const defaultSeedProblems: ProblemDto[] = [
   }
 ];
 
-import { FeatureGuard } from "@/components/auth/FeatureGuard";
+import ProgramOfDayModal from "@/components/coding/ProgramOfDayModal";
+import { ProgramOfDayData } from "@/components/coding/ProgramOfDayCard";
+import { CodingStreakData, RewardItem } from "@/components/coding/CodingStreakWidget";
 
 export default function CodingPage() {
   return (
@@ -135,10 +137,108 @@ function CodingPageContent() {
   const [isLoadingProblems, setIsLoadingProblems] = useState(false);
   const [selectedTopicFilter, setSelectedTopicFilter] = useState<string>("");
 
+  // Program of the Day & Streak state
+  const [programOfDay, setProgramOfDay] = useState<ProgramOfDayData | null>(null);
+  const [streakData, setStreakData] = useState<CodingStreakData | null>(null);
+  const [rewards, setRewards] = useState<RewardItem[]>([]);
+  const [isLoadingPod, setIsLoadingPod] = useState<boolean>(true);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+
   useEffect(() => {
     fetchDashboard();
     fetchProblems();
+    fetchProgramOfDayAndStreak();
   }, []);
+
+  const fetchProgramOfDayAndStreak = async () => {
+    setIsLoadingPod(true);
+    try {
+      const userTz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata";
+      const config = { headers: { "X-Timezone": userTz } };
+
+      const [podRes, streakRes, rewardRes] = await Promise.all([
+        api.get("/coding/program-of-day", config),
+        api.get("/coding/streak", config),
+        api.get("/coding/rewards")
+      ]);
+
+      if (podRes.data) {
+        setProgramOfDay(podRes.data);
+
+        // Popup Modal dismissal check
+        const dismissalKey = `pod_dismissed_${podRes.data.assignedDate}_${podRes.data.problemId}`;
+        const isDismissed = localStorage.getItem(dismissalKey);
+
+        if (podRes.data.status !== "COMPLETED" && !isDismissed) {
+          setIsModalOpen(true);
+        }
+      }
+
+      if (streakRes.data) {
+        setStreakData(streakRes.data);
+      }
+
+      if (rewardRes.data) {
+        setRewards(rewardRes.data);
+      }
+    } catch (e) {
+      console.warn("Using fallback Program of the Day data:", e);
+      setProgramOfDay({
+        id: 1,
+        problemId: 1,
+        title: "Two Sum",
+        difficulty: "Easy",
+        tags: ["Arrays", "Hash Tables"],
+        assignedDate: new Date().toISOString().split("T")[0],
+        timezone: "Asia/Kolkata",
+        status: "PENDING",
+        secondsUntilReset: 43200,
+        currentStreak: 6,
+        longestStreak: 12,
+        isRewardAvailable: true
+      });
+      setStreakData({
+        currentStreak: 6,
+        longestStreak: 12,
+        completedToday: false,
+        weeklyCalendar: [
+          { dayName: "Mon", date: "", completed: true, isToday: false },
+          { dayName: "Tue", date: "", completed: true, isToday: false },
+          { dayName: "Wed", date: "", completed: true, isToday: false },
+          { dayName: "Thu", date: "", completed: true, isToday: false },
+          { dayName: "Fri", date: "", completed: true, isToday: false },
+          { dayName: "Sat", date: "", completed: true, isToday: true },
+          { dayName: "Sun", date: "", completed: false, isToday: false }
+        ],
+        daysToNextReward: 1,
+        rewardAvailable: true
+      });
+    } finally {
+      setIsLoadingPod(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    if (programOfDay) {
+      const dismissalKey = `pod_dismissed_${programOfDay.assignedDate}_${programOfDay.problemId}`;
+      localStorage.setItem(dismissalKey, "true");
+    }
+    setIsModalOpen(false);
+  };
+
+  const handleClaimReward = async (rewardId: number) => {
+    try {
+      const res = await api.post(`/coding/rewards/${rewardId}/claim`);
+      if (res.data) {
+        setRewards((prev) =>
+          prev.map((r) => (r.id === rewardId ? { ...r, status: "CLAIMED" } : r))
+        );
+        fetchProgramOfDayAndStreak();
+      }
+    } catch (e) {
+      console.error("Failed to claim reward:", e);
+    }
+  };
 
   const fetchDashboard = async () => {
     try {
@@ -190,7 +290,11 @@ function CodingPageContent() {
     return (
       <ProblemWorkspace
         problem={selectedProblem}
-        onBack={() => setActiveTab("problems")}
+        onAcceptedSubmission={() => fetchProgramOfDayAndStreak()}
+        onBack={() => {
+          setActiveTab("problems");
+          fetchProgramOfDayAndStreak();
+        }}
       />
     );
   }
@@ -198,6 +302,14 @@ function CodingPageContent() {
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
       <FeatureUsageBar featureKey="coding" featureTitle="Coding Engine" />
+
+      {/* Program of the Day Popup Modal */}
+      <ProgramOfDayModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        onStart={handleSelectProblem}
+        data={programOfDay}
+      />
 
       {/* Top Header Nav Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-4">
@@ -240,7 +352,13 @@ function CodingPageContent() {
       {activeTab === "dashboard" && (
         <CodingDashboard
           stats={dashboardStats}
+          programOfDay={programOfDay}
+          streakData={streakData}
+          rewards={rewards}
+          onSolveProgramOfDay={handleSelectProblem}
+          onClaimReward={handleClaimReward}
           onNavigateToProblems={handleNavigateToProblemsWithTopic}
+          isLoadingPod={isLoadingPod}
         />
       )}
 

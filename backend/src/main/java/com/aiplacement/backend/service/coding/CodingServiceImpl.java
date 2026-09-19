@@ -34,6 +34,7 @@ public class CodingServiceImpl implements CodingService {
     private final TestCaseExecutionEngine testCaseExecutionEngine;
     private final AiCodeReviewEngine aiCodeReviewEngine;
     private final AIClient aiClient;
+    private final ProgramOfDayService programOfDayService;
 
 
     @Override
@@ -304,7 +305,7 @@ public class CodingServiceImpl implements CodingService {
         submission = submissionRepository.save(submission);
         CodingSubmission executed = testCaseExecutionEngine.runTestCases(submission, problem);
 
-        // Update user stats if accepted
+        // Update user stats and trigger Program of the Day completion if accepted
         if ("ACCEPTED".equalsIgnoreCase(executed.getStatus()) && user != null) {
             UserStats stats = userRepository.findUserStatsByUserId(user.getId()).orElseGet(() ->
                     UserStats.builder().user(user).activityStreakDays(1).build());
@@ -314,6 +315,13 @@ public class CodingServiceImpl implements CodingService {
             else stats.setQuestionsMedium(stats.getQuestionsMedium() + 1);
             user.setUserStats(stats);
             userRepository.save(user);
+
+            // Program of the Day completion & streak update
+            try {
+                programOfDayService.onProblemSubmissionAccepted(user, problem);
+            } catch (Exception ex) {
+                log.error("[CODING] Error processing Program of the Day submission for user {}: {}", user.getId(), ex.getMessage(), ex);
+            }
         }
 
         // Generate AI Code Review asynchronously/on demand

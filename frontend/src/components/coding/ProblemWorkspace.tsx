@@ -13,6 +13,7 @@ import api from "@/lib/api";
 interface ProblemWorkspaceProps {
   problem: ProblemDto;
   onBack: () => void;
+  onAcceptedSubmission?: () => void;
 }
 
 const languageSnippets: Record<string, string> = {
@@ -23,7 +24,7 @@ const languageSnippets: Record<string, string> = {
   c: `#include <stdlib.h>\n\nint* twoSum(int* nums, int numsSize, int target, int* returnSize) {\n    *returnSize = 2;\n    int* res = (int*)malloc(2 * sizeof(int));\n    for(int i=0; i<numsSize; i++) {\n        for(int j=i+1; j<numsSize; j++) {\n            if(nums[i] + nums[j] == target) {\n                res[0] = i; res[1] = j;\n                return res;\n            }\n        }\n    }\n    return res;\n}`
 };
 
-export default function ProblemWorkspace({ problem, onBack }: ProblemWorkspaceProps) {
+export default function ProblemWorkspace({ problem, onBack, onAcceptedSubmission }: ProblemWorkspaceProps) {
   const [selectedLanguage, setSelectedLanguage] = useState<string>("javascript");
   const [code, setCode] = useState<string>(languageSnippets["javascript"]);
   const [isExecuting, setIsExecuting] = useState(false);
@@ -86,6 +87,9 @@ export default function ProblemWorkspace({ problem, onBack }: ProblemWorkspacePr
       });
       setExecutionResults(res.data);
       fetchSubmissions();
+      if (res.data && (res.data.status === "ACCEPTED" || res.data.status === "Accepted")) {
+        onAcceptedSubmission?.();
+      }
     } catch (e: any) {
       setExecutionResults({
         status: "RUNTIME_ERROR",

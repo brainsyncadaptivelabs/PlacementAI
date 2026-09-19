@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Flame, Target, CheckCircle, Code2, Zap, ArrowRight, BookOpen, BrainCircuit } from "lucide-react";
 
+import ProgramOfDayCard, { ProgramOfDayData } from "./ProgramOfDayCard";
+import CodingStreakWidget, { CodingStreakData, RewardItem } from "./CodingStreakWidget";
+
 interface CodingDashboardProps {
   stats: {
     totalSolved: number;
@@ -20,12 +23,45 @@ interface CodingDashboardProps {
     placementReadinessContribution: number;
     topicProgress: Record<string, number>;
   };
+  programOfDay: ProgramOfDayData | null;
+  streakData: CodingStreakData | null;
+  rewards: RewardItem[];
+  onSolveProgramOfDay: (problemId: number) => void;
+  onClaimReward: (rewardId: number) => Promise<void>;
   onNavigateToProblems: (topic?: string) => void;
+  isLoadingPod?: boolean;
 }
 
-export default function CodingDashboard({ stats, onNavigateToProblems }: CodingDashboardProps) {
+export default function CodingDashboard({
+  stats,
+  programOfDay,
+  streakData,
+  rewards,
+  onSolveProgramOfDay,
+  onClaimReward,
+  onNavigateToProblems,
+  isLoadingPod
+}: CodingDashboardProps) {
   return (
     <div className="space-[#111827] text-foreground space-y-6">
+      {/* Program of the Day + Streak Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ProgramOfDayCard
+            data={programOfDay}
+            onSolve={onSolveProgramOfDay}
+            isLoading={isLoadingPod}
+          />
+        </div>
+        <div className="lg:col-span-1">
+          <CodingStreakWidget
+            streakData={streakData}
+            rewards={rewards}
+            onClaimReward={onClaimReward}
+            isLoading={isLoadingPod}
+          />
+        </div>
+      </div>
       {/* Top Banner Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-purple-900/40 via-background to-background border-purple-800/40">
