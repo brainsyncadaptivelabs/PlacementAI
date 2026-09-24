@@ -79,8 +79,8 @@ export function FeatureGuard({ featureKey, featureTitle, children }: FeatureGuar
           </Link>
 
           <Link href="/select-plan?tab=custom">
-            <Button variant="outline" className="w-full sm:w-auto px-6 h-11 border-slate-700 hover:bg-slate-800 text-slate-200 font-bold rounded-xl flex items-center justify-center gap-2">
-              <ShoppingBag className="w-4 h-4 text-purple-400" /> Build Your Own
+            <Button variant="outline" className="w-full sm:w-auto px-6 h-11 bg-white hover:bg-slate-100 text-slate-900 border-none font-bold rounded-xl flex items-center justify-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-purple-600" /> Build Your Own
             </Button>
           </Link>
         </div>

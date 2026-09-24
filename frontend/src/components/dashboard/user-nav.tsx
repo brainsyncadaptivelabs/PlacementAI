@@ -15,12 +15,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/hooks/use-user";
 import api from "@/lib/api";
-import { EditProfileDialog } from "@/app/dashboard/profile/edit-profile-dialog";
+
 
 export function UserNav() {
   const { user, loading, mutate } = useUser();
   const [isOpen, setIsOpen] = useState(false);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
   const [isUploading, setIsUploading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,19 +136,17 @@ export function UserNav() {
             className="absolute right-0 mt-3 w-auto min-w-[160px] bg-card border border-border rounded-xl shadow-md z-50 overflow-hidden"
           >
             <div className="p-1.5 flex flex-col gap-0.5">
-              <button 
-                onClick={() => {
-                  setIsOpen(false);
-                  setIsEditProfileOpen(true);
-                }}
-                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
+              <Link 
+                href="/dashboard/profile"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
               >
                 <div className="flex items-center gap-3 text-foreground">
                   <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
                   <span className="text-sm font-semibold">My Profile</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-              </button>
+              </Link>
 
               <Link 
                 href="/dashboard/billing"
@@ -174,29 +172,11 @@ export function UserNav() {
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
               </Link>
 
-              <button 
-                onClick={() => {
-                  fileInputRef.current?.click();
-                  setIsOpen(false);
-                }}
-                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max"
-              >
-                <div className="flex items-center gap-3 text-foreground">
-                  <Camera className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
-                  <span className="text-sm font-semibold">Change Photo</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      <EditProfileDialog 
-        open={isEditProfileOpen} 
-        onOpenChange={setIsEditProfileOpen} 
-        user={user} 
-        mutate={mutate} 
-      />
+
     </div>
   );
 }

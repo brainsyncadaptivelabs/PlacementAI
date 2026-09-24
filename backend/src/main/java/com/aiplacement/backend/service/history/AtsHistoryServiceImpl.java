@@ -22,6 +22,7 @@ public class AtsHistoryServiceImpl
 
     private final UserRepository userRepository;
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     @Override
     public List<AtsHistoryDto> getHistory() {
 

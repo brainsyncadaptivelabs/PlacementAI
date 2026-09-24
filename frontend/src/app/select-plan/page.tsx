@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Loader2, Sparkles, Star, Crown, ShieldCheck, Zap, ArrowRight, ShoppingCart, Plus, Minus, Layers, Wallet } from "lucide-react";
@@ -122,6 +122,15 @@ export default function SelectPlanPage() {
   const [selectedCustomKeys, setSelectedCustomKeys] = useState<string[]>([]);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [error, setError] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get("tab") === "custom") {
+        setActiveTab("CUSTOM");
+      }
+    }
+  }, []);
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -313,7 +322,8 @@ export default function SelectPlanPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 relative overflow-x-hidden select-none">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8 relative overflow-x-hidden select-none">
+      <style dangerouslySetInnerHTML={{ __html: "body, html { background-color: #0f172a !important; }" }} />
       {/* Ambient background glowing gradients */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-tr from-indigo-600/20 via-purple-600/10 to-transparent blur-[120px] -z-10 pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-[500px] h-[300px] bg-emerald-600/10 blur-[100px] -z-10 pointer-events-none" />
@@ -545,21 +555,21 @@ export default function SelectPlanPage() {
 
             {/* Custom Order Summary / Cart */}
             <div className="lg:col-span-1">
-              <Card className="bg-slate-900/80 border-slate-800 backdrop-blur-xl sticky top-8 shadow-2xl rounded-2xl">
+              <Card className="bg-white border-slate-200 sticky top-8 shadow-2xl rounded-2xl">
                 <CardHeader className="pb-4">
                   <CardTitle className="text-lg font-extrabold font-heading text-slate-900 flex items-center gap-2">
                     <ShoppingCart className="w-5 h-5 text-emerald-600" /> Build Your Plan
                   </CardTitle>
-                  <CardDescription className="text-xs font-bold text-slate-900">
+                  <CardDescription className="text-xs font-bold text-slate-500">
                     Selected feature credits summary
                   </CardDescription>
                 </CardHeader>
 
                 <CardContent className="space-y-4">
                   {selectedCustomKeys.length === 0 ? (
-                    <div className="text-center py-8 text-slate-900 text-xs font-extrabold space-y-2 border border-dashed border-slate-400 rounded-xl">
+                    <div className="text-center py-8 text-slate-900 text-xs font-extrabold space-y-2 border border-dashed border-slate-300 rounded-xl bg-slate-50">
                       <p>No features selected yet.</p>
-                      <p className="text-[11px] font-bold text-slate-700">Click on feature cards to add them to your custom pack.</p>
+                      <p className="text-[11px] font-bold text-slate-500">Click on feature cards to add them to your custom pack.</p>
                     </div>
                   ) : (
                     <ul className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
@@ -567,10 +577,10 @@ export default function SelectPlanPage() {
                         const item = CUSTOM_FEATURES.find((f) => f.key === key);
                         if (!item) return null;
                         return (
-                          <li key={key} className="flex items-center justify-between text-xs bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
+                          <li key={key} className="flex items-center justify-between text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 shadow-sm">
                             <div>
                               <p className="font-extrabold text-slate-900">{item.name}</p>
-                              <p className="text-[10px] text-emerald-700 font-bold">{item.credits} {item.unit}</p>
+                              <p className="text-[10px] text-emerald-600 font-bold">{item.credits} {item.unit}</p>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="font-extrabold text-slate-900">₹{item.priceInInr}</span>

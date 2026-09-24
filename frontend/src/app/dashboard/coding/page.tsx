@@ -6,6 +6,7 @@ import CodingDashboard from "@/components/coding/CodingDashboard";
 import ProblemExplorer, { ProblemItem } from "@/components/coding/ProblemExplorer";
 import ProblemWorkspace from "@/components/coding/ProblemWorkspace";
 import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
 import api from "@/lib/api";
 
 export interface ProblemDto {

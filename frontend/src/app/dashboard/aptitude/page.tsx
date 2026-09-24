@@ -42,6 +42,7 @@ import {
   generateLocalMockAssessment
 } from "@/lib/aptitude/QuestionEngine";
 import { exportToCsv, exportToExcel } from "@/lib/chat/ExportUtils";
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
 
 interface TestAttempt {
   id: string;
@@ -952,7 +953,8 @@ export default function AptitudePage() {
   };
 
   return (
-    <div className="flex-1 h-screen overflow-y-auto bg-background p-8 text-foreground relative select-text">
+    <FeatureGuard featureKey="APTITUDE" featureTitle="Aptitude Practice">
+      <div className="flex-1 h-screen overflow-y-auto bg-background p-8 text-foreground relative select-text">
 
       {/* Top Banner Navigation */}
       <div className="flex justify-between items-center mb-8 border-b border-border/40 pb-5 select-none">
@@ -1822,8 +1824,8 @@ export default function AptitudePage() {
           </Card>
         </div>
       )}
-
     </div>
+    </FeatureGuard>
   );
 
   function handlePracticeRepetition(item: SpacedRepetitionItem) {

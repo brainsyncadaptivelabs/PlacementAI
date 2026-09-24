@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RefreshCw, ChevronRight, Loader2, FileText } from "lucide-react";
 import api from "@/lib/api";
+import { FeatureGuard } from "@/components/auth/FeatureGuard";
 
 type RoadmapItem = {
   careerGoal: string;
@@ -93,8 +94,29 @@ export default function RoadmapPage() {
     );
   }
 
+  const getNormalizedPath = (path: string[]) => {
+    if (!path || path.length === 0) return [];
+    if (path.length === 1) {
+      const item = path[0].trim();
+      if (item.startsWith('{') || item.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(item);
+          if (Array.isArray(parsed)) {
+            return parsed.map(String);
+          } else if (typeof parsed === 'object' && parsed !== null) {
+            return Object.values(parsed).map(String);
+          }
+        } catch (e) {}
+      }
+    }
+    return path;
+  };
+
+  const normalizedLearningPath = getNormalizedPath(roadmap?.learningPath || []);
+
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-8">
+    <FeatureGuard featureKey="SKILL_GAP" featureTitle="Career Roadmap">
+      <div className="p-8 max-w-5xl mx-auto space-y-8">
       {/* Title Header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold font-heading text-foreground">Your Personalized Roadmap</h1>
@@ -154,7 +176,7 @@ export default function RoadmapPage() {
            <div className="absolute left-10 top-8 bottom-8 w-0.5 bg-muted" />
 
            <div className="space-y-12 relative">
-              {roadmap?.learningPath.map((item, index) => (
+              {normalizedLearningPath.map((item, index) => (
                 <div key={index} className="flex items-start gap-8 group">
                    <div className="relative z-10">
                       <div className="w-12 h-12 rounded-full bg-muted text-muted-foreground/70 flex items-center justify-center font-bold text-lg border-4 border-white shadow-sm transition-all group-hover:scale-110">
@@ -177,6 +199,7 @@ export default function RoadmapPage() {
            </div>
         </div>
       </div>
-    </div>
+      </div>
+    </FeatureGuard>
   );
 }

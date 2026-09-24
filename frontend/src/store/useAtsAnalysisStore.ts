@@ -5,6 +5,7 @@ import {
   AtsJdScanResponseDto,
   AtsJdScanRequestDto,
 } from "@/lib/ats/atsApi";
+import { useDashboardStore } from "./dashboard-store";
 
 interface AtsAnalysisState {
   currentScan: AtsGeneralScanResponseDto | AtsJdScanResponseDto | null;
@@ -42,6 +43,8 @@ export const useAtsAnalysisStore = create<AtsAnalysisState>((set, get) => ({
         scanHistory: [data, ...state.scanHistory.filter((s) => s.analysisId !== data.analysisId)],
         isLoading: false,
       }));
+      useDashboardStore.getState().fetchDashboard(true);
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("placementai:usage-updated"));
     } catch (err: any) {
       const status = err.response?.status;
       const errorMsg =
@@ -61,6 +64,8 @@ export const useAtsAnalysisStore = create<AtsAnalysisState>((set, get) => ({
         scanHistory: [res, ...state.scanHistory.filter((s) => s.analysisId !== res.analysisId)],
         isLoading: false,
       }));
+      useDashboardStore.getState().fetchDashboard(true);
+      if (typeof window !== "undefined") window.dispatchEvent(new Event("placementai:usage-updated"));
     } catch (err: any) {
       const status = err.response?.status;
       const errorMsg =

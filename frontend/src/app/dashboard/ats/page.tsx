@@ -237,12 +237,13 @@ export default function ResumeATSPage() {
 
           {/* History Selector Dropdown */}
           {scanHistory.length > 0 && (
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
-              <History className="w-4 h-4 text-indigo-500 shrink-0" />
+            <div className="relative flex items-center">
+              <History className="w-4 h-4 text-indigo-500 absolute left-3 pointer-events-none" />
               <select
                 value={currentScan?.analysisId || ""}
                 onChange={(e) => selectHistoricalScan(Number(e.target.value))}
-                className="bg-transparent text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[220px] truncate"
+                className="appearance-none pl-9 pr-8 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer max-w-[250px] truncate shadow-sm"
+                style={{ WebkitAppearance: 'none', MozAppearance: 'none' }}
               >
                 {scanHistory.map((item) => (
                   <option key={item.analysisId} value={item.analysisId}>
@@ -250,6 +251,7 @@ export default function ResumeATSPage() {
                   </option>
                 ))}
               </select>
+              <svg className="w-4 h-4 text-slate-400 absolute right-3 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
             </div>
           )}
         </div>

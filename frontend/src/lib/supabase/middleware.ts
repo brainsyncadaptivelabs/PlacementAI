@@ -120,7 +120,7 @@ export async function updateSession(request: NextRequest) {
     if (!planSelected && !pathname.startsWith("/select-plan") && !pathname.startsWith("/complete-profile")) {
       return NextResponse.redirect(new URL("/select-plan", request.url));
     }
-    if (planSelected && (pathname.startsWith("/select-plan") || pathname.startsWith("/complete-profile"))) {
+    if (planSelected && pathname.startsWith("/complete-profile")) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }

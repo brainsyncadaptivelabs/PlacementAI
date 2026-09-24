@@ -94,7 +94,7 @@ public class Judge0Properties {
         }
         for (String profile : activeProfiles) {
             String p = profile.toLowerCase();
-            if ("dev".equals(p) || "local".equals(p) || "test".equals(p) || "default".equals(p) || "standard".equals(p)) {
+            if ("dev".equals(p) || "local".equals(p) || "test".equals(p) || "default".equals(p) || "standard".equals(p) || "low".equals(p)) {
                 return false;
             }
         }

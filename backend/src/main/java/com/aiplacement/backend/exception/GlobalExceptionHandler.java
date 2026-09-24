@@ -124,6 +124,17 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.SERVICE_UNAVAILABLE);
     }
 
+    @ExceptionHandler(com.aiplacement.backend.service.payment.FeatureEntitlementService.FeatureLimitExhaustedException.class)
+    public ResponseEntity<ApiErrorResponse> handleFeatureLimitExhaustedException(com.aiplacement.backend.service.payment.FeatureEntitlementService.FeatureLimitExhaustedException ex) {
+        log.warn("[ENTITLEMENT] Feature limit exhausted: {}", ex.getMessage());
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(ex.getMessage())
+                .status(HttpStatus.PAYMENT_REQUIRED.value())
+                .timestamp(LocalDateTime.now())
+                .build();
+        return new ResponseEntity<>(error, HttpStatus.PAYMENT_REQUIRED);
+    }
+
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiErrorResponse> handleRuntimeException(RuntimeException ex) {
         log.error("[SYSTEM_ERROR] Unhandled runtime exception: ", ex);
