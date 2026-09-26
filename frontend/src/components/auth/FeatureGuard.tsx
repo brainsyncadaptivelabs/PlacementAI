@@ -59,10 +59,12 @@ export function FeatureGuard({ featureKey, featureTitle, children }: FeatureGuar
           <Lock className="w-8 h-8" />
         </div>
 
-        <div className="space-y-2">
-          <span className="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-bold uppercase tracking-wider">
-            Feature Unavailable on Free Plan
-          </span>
+        <div className="space-y-4">
+          <div className="pb-2">
+            <span className="inline-block px-3 py-1.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
+              Feature Unavailable on Free Plan
+            </span>
+          </div>
           <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
             {featureTitle} is Locked
           </h2>

@@ -17,6 +17,7 @@ export default function CompletePlacementOfficerProfile() {
   const { mutate } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
     collegeName: "",
@@ -26,6 +27,17 @@ export default function CompletePlacementOfficerProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors: Record<string, string> = {};
+    if (!formData.collegeName.trim()) errors.collegeName = "You have to fill this field";
+    if (!formData.designation.trim()) errors.designation = "You have to fill this field";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+
     setLoading(true);
     setError("");
 
@@ -76,18 +88,18 @@ export default function CompletePlacementOfficerProfile() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10 relative">
         <Card className="border-none shadow-2xl shadow-primary/5 bg-background/80 backdrop-blur-xl">
           <CardContent className="py-8 px-4 sm:px-10">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+            <form className="space-y-6" onSubmit={handleSubmit} noValidate>
               <div>
-                <Label htmlFor="collegeName">College Name</Label>
+                <Label htmlFor="collegeName">College Name <span className="text-red-500">*</span></Label>
                 <div className="mt-2">
                   <Input
                     id="collegeName"
-                    required
                     value={formData.collegeName}
-                    onChange={(e) => setFormData({ ...formData, collegeName: e.target.value })}
-                    className="h-12 bg-background border-border"
+                    onChange={(e) => { setFormData({ ...formData, collegeName: e.target.value }); if (formErrors.collegeName) setFormErrors({...formErrors, collegeName: ''}) }}
+                    className={`h-12 bg-background border-border ${formErrors.collegeName ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                     placeholder="E.g., Stanford University"
                   />
+                  {formErrors.collegeName && <p className="text-xs text-red-500 font-bold mt-1">{formErrors.collegeName}</p>}
                 </div>
               </div>
 
@@ -105,16 +117,16 @@ export default function CompletePlacementOfficerProfile() {
               </div>
 
               <div>
-                <Label htmlFor="designation">Designation</Label>
+                <Label htmlFor="designation">Designation <span className="text-red-500">*</span></Label>
                 <div className="mt-2">
                   <Input
                     id="designation"
-                    required
                     value={formData.designation}
-                    onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
-                    className="h-12 bg-background border-border"
+                    onChange={(e) => { setFormData({ ...formData, designation: e.target.value }); if (formErrors.designation) setFormErrors({...formErrors, designation: ''}) }}
+                    className={`h-12 bg-background border-border ${formErrors.designation ? 'border-red-500 ring-1 ring-red-500' : ''}`}
                     placeholder="E.g., Head of Placements"
                   />
+                  {formErrors.designation && <p className="text-xs text-red-500 font-bold mt-1">{formErrors.designation}</p>}
                 </div>
               </div>
 

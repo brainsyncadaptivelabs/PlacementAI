@@ -17,6 +17,7 @@ export default function CompleteRecruiterProfile() {
   const { mutate } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   
   const [formData, setFormData] = useState({
     companyName: "",
@@ -26,6 +27,16 @@ export default function CompleteRecruiterProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors: Record<string, string> = {};
+    if (!formData.companyName.trim()) errors.companyName = "You have to fill this field";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+
     setLoading(true);
     setError("");
 
@@ -76,10 +87,11 @@ export default function CompleteRecruiterProfile() {
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="sm:mx-auto sm:w-full sm:max-w-md">
         <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm">
           <CardContent className="pt-8 px-8 pb-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               <div className="space-y-1">
-                <Label htmlFor="companyName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Company Name *</Label>
-                <Input id="companyName" required className="h-12 bg-muted" value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} />
+                <Label htmlFor="companyName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Company Name <span className="text-red-500">*</span></Label>
+                <Input id="companyName" className={`h-12 bg-muted ${formErrors.companyName ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={formData.companyName} onChange={(e) => { setFormData({...formData, companyName: e.target.value}); if (formErrors.companyName) setFormErrors({...formErrors, companyName: ''}) }} />
+                {formErrors.companyName && <p className="text-xs text-red-500 font-bold mt-1">{formErrors.companyName}</p>}
               </div>
               <div className="space-y-1">
                 <Label htmlFor="companyWebsite" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Company Website (Optional)</Label>

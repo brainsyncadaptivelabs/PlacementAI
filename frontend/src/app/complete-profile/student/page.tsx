@@ -90,13 +90,14 @@ export default function CompleteStudentProfile() {
   const { mutate } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [step, setStep] = useState(1);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     collegeName: "",
     branch: "",
-    graduationYear: new Date().getFullYear(),
+    graduationYear: "" as number | "",
     linkedinUrl: "",
     githubUrl: "",
     skills: ""
@@ -104,6 +105,18 @@ export default function CompleteStudentProfile() {
 
   const handleSubmitProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const errors: Record<string, string> = {};
+    if (!formData.collegeName.trim()) errors.collegeName = "You have to fill this field";
+    if (!formData.branch.trim()) errors.branch = "You have to fill this field";
+    if (!formData.graduationYear) errors.graduationYear = "You have to fill this field";
+    if (!formData.skills.trim()) errors.skills = "You have to fill this field";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
     
     const gradYearStr = String(formData.graduationYear || "").trim();
     if (!/^\d{4}$/.test(gradYearStr)) {
@@ -209,21 +222,24 @@ export default function CompleteStudentProfile() {
           <motion.div key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="sm:mx-auto sm:w-full sm:max-w-md">
             <Card className="border-none shadow-2xl bg-card/80 backdrop-blur-sm">
               <CardContent className="pt-8 px-8 pb-8">
-                <form onSubmit={handleSubmitProfile} className="space-y-6">
+                <form onSubmit={handleSubmitProfile} className="space-y-6" noValidate>
                   <div className="space-y-1">
-                    <Label htmlFor="collegeName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">College Name *</Label>
-                    <Input id="collegeName" required className="h-12 bg-muted" value={formData.collegeName} onChange={(e) => setFormData({...formData, collegeName: e.target.value})} />
+                    <Label htmlFor="collegeName" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">College Name <span className="text-red-500">*</span></Label>
+                    <Input id="collegeName" className={`h-12 bg-muted ${formErrors.collegeName ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={formData.collegeName} onChange={(e) => { setFormData({...formData, collegeName: e.target.value}); if (formErrors.collegeName) setFormErrors({...formErrors, collegeName: ''}) }} />
+                    {formErrors.collegeName && <p className="text-xs text-red-500 font-bold mt-1">{formErrors.collegeName}</p>}
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <Label htmlFor="branch" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Branch *</Label>
-                      <Input id="branch" required className="h-12 bg-muted" value={formData.branch} onChange={(e) => setFormData({...formData, branch: e.target.value})} />
+                      <Label htmlFor="branch" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Branch <span className="text-red-500">*</span></Label>
+                      <Input id="branch" className={`h-12 bg-muted ${formErrors.branch ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={formData.branch} onChange={(e) => { setFormData({...formData, branch: e.target.value}); if (formErrors.branch) setFormErrors({...formErrors, branch: ''}) }} />
+                      {formErrors.branch && <p className="text-xs text-red-500 font-bold mt-1">{formErrors.branch}</p>}
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="graduationYear" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Grad. Year *</Label>
+                      <Label htmlFor="graduationYear" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Grad. Year <span className="text-red-500">*</span></Label>
                       <YearDropdown 
                         value={formData.graduationYear} 
-                        onChange={(year) => setFormData({...formData, graduationYear: year as any})}
+                        onChange={(year) => { setFormData({...formData, graduationYear: year as any}); if (formErrors.graduationYear) setFormErrors({...formErrors, graduationYear: ''}) }}
+                        error={formErrors.graduationYear}
                       />
                     </div>
                   </div>
@@ -232,8 +248,9 @@ export default function CompleteStudentProfile() {
                     <Input id="linkedinUrl" type="url" className="h-12 bg-muted" value={formData.linkedinUrl} onChange={(e) => setFormData({...formData, linkedinUrl: e.target.value})} />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="skills" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Skills (Comma separated) *</Label>
-                    <Input id="skills" required className="h-12 bg-muted" value={formData.skills} onChange={(e) => setFormData({...formData, skills: e.target.value})} placeholder="e.g. React, Java, Spring Boot" />
+                    <Label htmlFor="skills" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Skills (Comma separated) <span className="text-red-500">*</span></Label>
+                    <Input id="skills" className={`h-12 bg-muted ${formErrors.skills ? 'border-red-500 ring-1 ring-red-500' : ''}`} value={formData.skills} onChange={(e) => { setFormData({...formData, skills: e.target.value}); if (formErrors.skills) setFormErrors({...formErrors, skills: ''}) }} placeholder="e.g. React, Java, Spring Boot" />
+                    {formErrors.skills && <p className="text-xs text-red-500 font-bold mt-1">{formErrors.skills}</p>}
                   </div>
                   <div className="space-y-1">
                     <Label htmlFor="githubUrl" className="text-xs font-bold text-muted-foreground uppercase tracking-wider">GitHub URL (Optional)</Label>

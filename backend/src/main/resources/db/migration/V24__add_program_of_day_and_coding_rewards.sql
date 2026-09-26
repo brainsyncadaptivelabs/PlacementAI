@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS program_of_day (
     CONSTRAINT uk_pod_user_assigned_date UNIQUE (user_id, assigned_date)
 );
 
-CREATE INDEX idx_pod_user_status ON program_of_day (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_pod_user_status ON program_of_day (user_id, status);
 
 CREATE TABLE IF NOT EXISTS coding_streaks (
     id BIGSERIAL PRIMARY KEY,
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS coding_streaks (
     CONSTRAINT fk_streak_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_streak_user_last_date ON coding_streaks (user_id, last_completed_date);
+CREATE INDEX IF NOT EXISTS idx_streak_user_last_date ON coding_streaks (user_id, last_completed_date);
 
 CREATE TABLE IF NOT EXISTS coding_rewards (
     id BIGSERIAL PRIMARY KEY,
@@ -46,4 +46,4 @@ CREATE TABLE IF NOT EXISTS coding_rewards (
     CONSTRAINT uk_reward_user_type_streak UNIQUE (user_id, reward_type, streak_length)
 );
 
-CREATE INDEX idx_reward_user_status ON coding_rewards (user_id, status);
+CREATE INDEX IF NOT EXISTS idx_reward_user_status ON coding_rewards (user_id, status);

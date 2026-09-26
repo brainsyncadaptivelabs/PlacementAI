@@ -1,7 +1,6 @@
 package com.aiplacement.backend.service.coding;
 
 import com.aiplacement.backend.dto.coding.CodingRewardDto;
-import com.aiplacement.backend.dto.coding.CodingStreakDto;
 import com.aiplacement.backend.dto.coding.ProgramOfDayDto;
 import com.aiplacement.backend.entity.FeatureEntitlement;
 import com.aiplacement.backend.entity.User;

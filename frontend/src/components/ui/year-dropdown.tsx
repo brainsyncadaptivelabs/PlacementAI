@@ -130,15 +130,15 @@ export function YearDropdown({ value, onChange, error }: YearDropdownProps) {
           background: '#121827', 
           borderStyle: 'solid', 
           borderWidth: '1px',
-          borderColor: (isFocused || isOpen) ? '#6D5CFF' : 'rgba(255,255,255,0.08)',
-          boxShadow: (isFocused || isOpen) ? '0 0 0 4px rgba(109,92,255,0.18)' : 'none'
+          borderColor: error ? '#ef4444' : ((isFocused || isOpen) ? '#6D5CFF' : 'rgba(255,255,255,0.08)'),
+          boxShadow: error ? '0 0 0 1px #ef4444' : ((isFocused || isOpen) ? '0 0 0 4px rgba(109,92,255,0.18)' : 'none')
         }}
         onClick={() => setIsOpen(!isOpen)}
         tabIndex={0}
         onKeyDown={handleKeyDown}
       >
         <span className={`text-[15px] font-medium ${value ? 'text-[#F8FAFC]' : 'text-[#94A3B8]'}`}>
-          {value || "Select graduation year..."}
+          {value || ""}
         </span>
         <div className="flex items-center gap-[12px] text-[#94A3B8]">
           <Calendar className="w-[18px] h-[18px] text-[#94A3B8]" />
