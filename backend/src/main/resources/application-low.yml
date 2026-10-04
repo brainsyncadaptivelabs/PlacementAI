@@ -1,8 +1,13 @@
 spring:
   datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/placementai
+    username: postgres
+    password: postgres
     hikari:
       maximum-pool-size: 5
       minimum-idle: 1
+  flyway:
+    enabled: false
   cache:
     redis:
       time-to-live: 1800000

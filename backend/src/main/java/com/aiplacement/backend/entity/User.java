@@ -181,7 +181,75 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.chat.ChatConversation> chatConversations = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.chat.ChatMemory> chatMemories = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
     private java.util.List<InterviewRecord> interviewRecords = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.KnowledgeGraphEdge> knowledgeGraphEdges = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateLearningProgress> candidateLearningProgresses = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateConcept> candidateConcepts = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.coding.CodingLanguageProfile> codingLanguageProfiles = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.coding.CodingStreak> codingStreaks = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.coding.ProgramOfDay> programsOfDay = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.coding.CodingReward> codingRewards = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateContradiction> candidateContradictions = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.MemoryEvent> memoryEvents = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateFollowup> candidateFollowups = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateSkillConfidence> candidateSkillConfidences = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateClaim> candidateClaims = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.KnowledgeGraphNode> knowledgeGraphNodes = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateVerifiedResume> candidateVerifiedResumes = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private java.util.List<com.aiplacement.backend.entity.CandidateProjectKnowledge> candidateProjectKnowledges = new java.util.ArrayList<>();
 
     @Column(name = "delete_lock_expires_at")
     private LocalDateTime deleteLockExpiresAt;

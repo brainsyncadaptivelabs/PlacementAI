@@ -81,7 +81,9 @@ public class AccountController {
         // Generate new 4-digit OTP
         SecureRandom secureRandom = new SecureRandom();
         String otp = String.format("%04d", secureRandom.nextInt(10000));
-        log.info("Generated OTP {}", otp);
+        log.info("=================================================");
+        log.info("[DEV MODE] DELETION OTP FOR {}: {}", user.getEmail(), otp);
+        log.info("=================================================");
 
         DeleteAccountVerification verification = DeleteAccountVerification.builder()
                 .user(user)

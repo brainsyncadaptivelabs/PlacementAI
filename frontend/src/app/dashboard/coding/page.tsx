@@ -315,10 +315,10 @@ function CodingPageContent() {
       {/* Top Header Nav Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/50 pb-4">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-2">
-            <Code2 className="w-6 h-6 text-purple-400" /> PlacementAI Coding
+          <h1 className="text-2xl font-black text-foreground flex items-center gap-2">
+            <Code2 className="w-6 h-6 text-purple-600 dark:text-purple-400" /> PlacementAI Coding
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="text-sm font-semibold text-muted-foreground mt-1">
             Competitive programming platform powered by Placement AI Intelligence.
           </p>
         </div>

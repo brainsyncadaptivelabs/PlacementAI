@@ -398,16 +398,16 @@ public class PaymentController {
 
         java.time.LocalDate resetDate = java.time.LocalDate.now().plusDays(30);
 
-        // Configure limits based on plan
-        int atsLimit = "PREMIUM".equals(plan) ? 150 : ("BASIC".equals(plan) ? 50 : 4);
-        int jdMatchLimit = "PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 15 : 0);
-        int skillGapLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
-        int resumeCompareLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
-        int chatLimit = "PREMIUM".equals(plan) ? 1000 : ("BASIC".equals(plan) ? 300 : 0);
-        int englishLimit = "PREMIUM".equals(plan) ? 120 : ("BASIC".equals(plan) ? 30 : 0);
-        int interviewLimit = "PREMIUM".equals(plan) ? 90 : ("BASIC".equals(plan) ? 20 : 0);
-        int codingLimit = "PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 20 : 0);
-        int tailoringLimit = "PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0);
+        // Configure limits based on plan using FeatureEntitlementService to respect local overrides
+        int atsLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "ATS_ANALYSIS") : ("PREMIUM".equals(plan) ? 150 : ("BASIC".equals(plan) ? 50 : 4));
+        int jdMatchLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "JD_MATCH") : ("PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 15 : 0));
+        int skillGapLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "SKILL_GAP") : ("PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0));
+        int resumeCompareLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "RESUME_COMPARE") : ("PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0));
+        int chatLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "AI_CHAT") : ("PREMIUM".equals(plan) ? 1000 : ("BASIC".equals(plan) ? 300 : 0));
+        int englishLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "ENGLISH_PRACTICE") : ("PREMIUM".equals(plan) ? 120 : ("BASIC".equals(plan) ? 30 : 0));
+        int interviewLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "MOCK_INTERVIEW") : ("PREMIUM".equals(plan) ? 90 : ("BASIC".equals(plan) ? 20 : 0));
+        int codingLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "CODING_AI_REVIEW") : ("PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 20 : 0));
+        int tailoringLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "RESUME_TAILORING") : ("PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0));
 
         // Query tracked usage from FeatureEntitlementService
         Map<String, Double> usages = (featureEntitlementService != null && user.getId() != null)

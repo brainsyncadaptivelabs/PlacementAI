@@ -54,6 +54,17 @@ public class EmailServiceImpl
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
     private final Set<String> queuedEmails = ConcurrentHashMap.newKeySet();
 
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        if (mailSender instanceof org.springframework.mail.javamail.JavaMailSenderImpl) {
+            org.springframework.mail.javamail.JavaMailSenderImpl impl = (org.springframework.mail.javamail.JavaMailSenderImpl) mailSender;
+            if (impl.getPassword() != null && impl.getPassword().contains(" ")) {
+                impl.setPassword(impl.getPassword().replace(" ", ""));
+                log.info("[MAIL_FIX] Automatically stripped spaces from SMTP password.");
+            }
+        }
+    }
+
     @jakarta.annotation.PreDestroy
     public void shutdown() {
         scheduler.shutdown();
