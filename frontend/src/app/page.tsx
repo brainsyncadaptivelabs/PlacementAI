@@ -234,7 +234,7 @@ export default function LandingPage() {
         <section id="how-it-works" className="w-full py-16 md:py-24 border-t border-b border-border bg-muted/10">
           <div className="container mx-auto px-4 md:px-8">
             <div className="text-center max-w-3xl mx-auto mb-14 md:mb-20 space-y-4">
-              <h2 className="text-xs font-black text-secondary uppercase tracking-[0.3em]">The Workflow</h2>
+              <h2 className="text-xs font-black text-foreground uppercase tracking-[0.3em]">The Workflow</h2>
               <h3 className="text-[38px] md:text-4xl font-black font-heading text-foreground leading-tight">Exactly 3 Steps to Success</h3>
             </div>
 
@@ -414,7 +414,7 @@ function StepItem({ number, title, desc, icon }: { number: string, title: string
         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-card border-2 border-border shadow-sm flex items-center justify-center font-black text-foreground group-hover:border-primary group-hover:text-primary transition-all relative z-10">
           {icon}
         </div>
-        <span className="text-3xl font-black text-muted-foreground/30 font-heading tracking-tighter group-hover:text-primary/20 transition-colors">{number}</span>
+        <span className="text-3xl font-black text-foreground font-heading tracking-tighter group-hover:text-primary transition-colors">{number}</span>
       </div>
       <div className="space-y-2">
         <h4 className="font-black text-lg text-foreground">{title}</h4>

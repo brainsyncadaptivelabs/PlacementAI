@@ -252,7 +252,14 @@ export default function PerfectStudentPortal() {
                      <CardContent className="p-8">
                         <div className="relative space-y-12">
                            <div className="absolute left-4 top-2 bottom-2 w-0.5 bg-transparent" />
-                           {activeRoadmap.learningPath?.slice(0, 4).map((step: string, i: number) => {
+                           {(() => {
+                              let steps = activeRoadmap.learningPath || [];
+                              if (steps.length > 0 && typeof steps[0] === 'string' && steps[0].trim().startsWith('{')) {
+                                 try {
+                                    steps = Object.values(JSON.parse(steps[0]));
+                                 } catch (e) {}
+                              }
+                              return steps.slice(0, 4).map((step: string, i: number) => {
                               const stepSkills = activeRoadmap.recommendedSkills?.slice(i * 2, i * 2 + 2) || [];
                               const status = (i === 0 ? "In Progress" : "Upcoming") as "Completed" | "In Progress" | "Upcoming";
                               const Icon = i === 0 ? Brain : i === 1 ? Code2 : i === 2 ? BookOpen : Star;
@@ -263,7 +270,7 @@ export default function PerfectStudentPortal() {
                                     </div>
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                        <div>
-                                          <h4 className="font-black text-foreground">{step}</h4>
+                                          <h4 className="font-medium text-foreground/90">{step}</h4>
                                           <div className="flex flex-wrap gap-2 mt-2">
                                              {stepSkills.map((item: string) => (
                                                 <span key={item} className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-widest bg-muted border border-transparent px-2 py-0.5 rounded">{item}</span>
@@ -274,7 +281,7 @@ export default function PerfectStudentPortal() {
                                     </div>
                                  </div>
                               );
-                           })}
+                           })})()}
                         </div>
                      </CardContent>
                   </Card>
