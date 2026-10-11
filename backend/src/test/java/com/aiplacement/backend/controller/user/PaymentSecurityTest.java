@@ -13,6 +13,7 @@ import com.razorpay.OrderClient;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -340,5 +341,10 @@ public class PaymentSecurityTest {
 
         assertEquals(400, response.getStatusCode().value());
         verify(featureEntitlementRepository, never()).save(any());
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 }

@@ -16,6 +16,10 @@ public interface CodingStreakRepository extends JpaRepository<CodingStreak, Long
 
     Optional<CodingStreak> findByUserId(Long userId);
 
+    void deleteByUserId(Long userId);
+
+    void deleteByUser(User user);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM CodingStreak s WHERE s.user.id = :userId")
     Optional<CodingStreak> findByUserIdForUpdate(@Param("userId") Long userId);

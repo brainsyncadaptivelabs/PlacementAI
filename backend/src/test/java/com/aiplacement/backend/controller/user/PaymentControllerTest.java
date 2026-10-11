@@ -2,6 +2,7 @@ package com.aiplacement.backend.controller.user;
 
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
@@ -146,6 +147,7 @@ public class PaymentControllerTest {
         );
 
         when(userRepository.findByEmailIgnoreCase("student@company.com")).thenReturn(Optional.of(user));
+        when(entitlementService.getBasePlanLimit(any(), any())).thenCallRealMethod();
         when(entitlementService.getAllFeatureUsages(1L)).thenReturn(Map.of(
                 "ATS_ANALYSIS", 2.0,
                 "JD_MATCH", 1.0
@@ -172,5 +174,10 @@ public class PaymentControllerTest {
         verify(userRepository, times(1)).findByEmailIgnoreCase("student@company.com");
         verify(entitlementService, times(1)).getAllFeatureUsages(1L);
         verify(entitlementService, never()).getUsedFeatureCount(any(), any());
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 }

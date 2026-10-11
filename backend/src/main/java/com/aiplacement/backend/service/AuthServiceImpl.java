@@ -384,7 +384,7 @@ public class AuthServiceImpl implements AuthService {
 
         // 3. Validate passwords match
         if (request.getPassword() == null || !request.getPassword().equals(request.getConfirmPassword())) {
-            throw new RuntimeException("Passwords do not match");
+            throw new IllegalArgumentException("Passwords do not match");
         }
 
         // 4. Validate password strength
@@ -395,7 +395,7 @@ public class AuthServiceImpl implements AuthService {
             if (Character.isDigit(c)) hasDigit = true;
         }
         if (!hasLetter || !hasDigit) {
-            throw new RuntimeException("Password must contain both letters and numbers");
+            throw new IllegalArgumentException("Password must contain both letters and numbers");
         }
 
         Role assignedRole = Role.STUDENT;
@@ -538,7 +538,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if (Boolean.FALSE.equals(user.getEmailVerified())) {
-            throw new RuntimeException("Please verify your email first.");
+            throw new IllegalArgumentException("Please verify your email first.");
         }
 
         if (user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.BLOCKED ||
@@ -574,7 +574,7 @@ public class AuthServiceImpl implements AuthService {
 
         if (!valid) {
             log.error("Refresh token validation failed");
-            throw new RuntimeException("Invalid refresh token");
+            throw new org.springframework.security.authentication.BadCredentialsException("Invalid refresh token");
         }
 
         String email = jwtService.extractEmail(refreshToken);

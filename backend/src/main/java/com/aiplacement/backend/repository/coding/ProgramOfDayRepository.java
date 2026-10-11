@@ -20,4 +20,6 @@ public interface ProgramOfDayRepository extends JpaRepository<ProgramOfDay, Long
 
     @Query("SELECT p.codingProblem.id FROM ProgramOfDay p WHERE p.user.id = :userId")
     List<Long> findAssignedProblemIdsByUserId(@Param("userId") Long userId);
+
+    void deleteByUserId(Long userId);
 }

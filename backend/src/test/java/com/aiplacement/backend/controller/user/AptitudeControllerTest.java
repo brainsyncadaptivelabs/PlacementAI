@@ -3,6 +3,7 @@ package com.aiplacement.backend.controller.user;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.placementintelligence.aptitude.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -164,5 +165,10 @@ public class AptitudeControllerTest {
         System.out.println("Stress Test Stats: Total Generated: " + totalQuestions + ", Duplicates: " + sameSessionDuplicates);
         System.out.println("Option Distributions: " + optionCounts);
         System.out.println("Average Generation Latency: " + (durationMs / 100.0) + " ms per session");
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 }

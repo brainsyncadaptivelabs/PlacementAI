@@ -4,6 +4,9 @@ import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.DeleteAccountVerification;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.DeleteAccountVerificationRepository;
+import com.aiplacement.backend.repository.coding.CodingStreakRepository;
+import com.aiplacement.backend.repository.coding.ProgramOfDayRepository;
+import com.aiplacement.backend.repository.coding.CodingRewardRepository;
 import com.aiplacement.backend.service.email.EmailService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -33,6 +36,9 @@ public class AccountController {
 
     private final UserRepository userRepository;
     private final DeleteAccountVerificationRepository deleteAccountVerificationRepository;
+    private final CodingStreakRepository codingStreakRepository;
+    private final ProgramOfDayRepository programOfDayRepository;
+    private final CodingRewardRepository codingRewardRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
 
@@ -166,6 +172,14 @@ public class AccountController {
         
         String userEmail = user.getEmail();
         String userFullName = user.getFullName();
+
+        deleteAccountVerificationRepository.delete(verification);
+        deleteAccountVerificationRepository.flush();
+
+        codingStreakRepository.deleteByUserId(user.getId());
+        programOfDayRepository.deleteByUserId(user.getId());
+        codingRewardRepository.deleteByUserId(user.getId());
+
         userRepository.delete(user);
         log.info("Account deleted successfully");
         

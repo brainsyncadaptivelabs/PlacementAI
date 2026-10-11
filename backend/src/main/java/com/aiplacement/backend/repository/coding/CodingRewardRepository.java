@@ -24,4 +24,6 @@ public interface CodingRewardRepository extends JpaRepository<CodingReward, Long
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM CodingReward r WHERE r.id = :id AND r.user.id = :userId")
     Optional<CodingReward> findByIdAndUserIdForUpdate(@Param("id") Long id, @Param("userId") Long userId);
+
+    void deleteByUserId(Long userId);
 }

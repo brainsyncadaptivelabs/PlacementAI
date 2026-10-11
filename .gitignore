@@ -94,3 +94,8 @@ uploads/
 .cache/
 data/
 backend/data/
+
+# Script token / output caches
+scripts/*.txt
+scripts/*.json
+
