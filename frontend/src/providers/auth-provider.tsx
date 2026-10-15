@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/store/auth-store';
 
@@ -24,7 +23,6 @@ import { useAuthStore } from '@/store/auth-store';
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setAuth, clearAuth } = useAuthStore();
   const supabase = createClient();
-  const router = useRouter();
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -172,57 +170,109 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // ── Step 3: Initialize session state ────────────────────────────────────
     const initializeAuth = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-      if (error) {
-        console.error('[AUTH_PROVIDER] getSession error:', error);
-        clearAuth();
-        return;
-      }
+        if (error) {
+          console.warn('[AUTH_PROVIDER] Supabase getSession error (offline/unavailable):', error.message || error);
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const parts = token.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                if (payload.exp && payload.exp * 1000 > Date.now()) {
+                  return;
+                }
+              }
+            } catch {}
+          }
+          clearAuth();
+          return;
+        }
 
-      setAuth(session?.user ?? null, session);
-      if (session) {
-        await syncBackend(session);
-        setupSessionTimer(session);
-      } else {
-        // Clear any orphaned tokens or cookies left from expired session
-        localStorage.removeItem('token');
-        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
-        document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
-        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
-        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+        setAuth(session?.user ?? null, session);
+        if (session) {
+          await syncBackend(session);
+          setupSessionTimer(session);
+        } else {
+          // If no Supabase session, verify if a valid PlacementAI backend JWT exists in localStorage
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const parts = token.split('.');
+              if (parts.length === 3) {
+                const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+                if (payload.exp && payload.exp * 1000 > Date.now()) {
+                  // Valid PlacementAI backend token present; keep existing auth state
+                  return;
+                }
+              }
+            } catch {}
+          }
+          // Clear any orphaned tokens or cookies left from expired session
+          localStorage.removeItem('token');
+          document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
+          document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+          document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
+          document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+        }
+      } catch (err) {
+        console.warn('[AUTH_PROVIDER] Supabase session check unavailable (offline/disconnected):', err);
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+        if (token) {
+          try {
+            const parts = token.split('.');
+            if (parts.length === 3) {
+              const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+              if (payload.exp && payload.exp * 1000 > Date.now()) {
+                return;
+              }
+            }
+          } catch {}
+        }
       }
     };
 
     initializeAuth();
 
     // ── Step 4: React to auth state changes (login, logout, token refresh) ──
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log(`[AUTH_PROVIDER] onAuthStateChange: ${event}`);
+    let subscription: any = null;
+    try {
+      const authChangeRes = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log(`[AUTH_PROVIDER] onAuthStateChange: ${event}`);
 
-      if (event === 'SIGNED_OUT') {
-        clearAuth();
-        localStorage.removeItem('token');
-        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
-        document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
-        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
-        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
-        window.dispatchEvent(new Event('storage'));
-        window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
-        setShowTimeoutWarning(false);
-        if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
-        if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current);
-      } else {
-        setAuth(session?.user ?? null, session);
-        if (session) {
-          await syncBackend(session);
-          setupSessionTimer(session);
+        if (event === 'SIGNED_OUT') {
+          clearAuth();
+          localStorage.removeItem('token');
+          document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
+          document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+          document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
+          document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+          window.dispatchEvent(new Event('storage'));
+          window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
+          setShowTimeoutWarning(false);
+          if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
+          if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current);
+        } else {
+          setAuth(session?.user ?? null, session);
+          if (session) {
+            await syncBackend(session);
+            setupSessionTimer(session);
+          }
         }
-      }
-    });
+      });
+      subscription = authChangeRes?.data?.subscription;
+    } catch (err) {
+      console.warn('[AUTH_PROVIDER] onAuthStateChange setup unavailable:', err);
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        try {
+          subscription.unsubscribe();
+        } catch {}
+      }
       if (warningTimeoutRef.current) clearTimeout(warningTimeoutRef.current);
       if (logoutTimeoutRef.current) clearTimeout(logoutTimeoutRef.current);
     };

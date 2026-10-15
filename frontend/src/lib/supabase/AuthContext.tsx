@@ -31,19 +31,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setSession(session)
       setUser(session?.user ?? null)
       setIsLoading(false)
-    })
+    }).catch((err) => {
+      console.warn('[AUTH_CONTEXT] getSession error:', err);
+      setIsLoading(false);
+    });
 
     // Listen for auth state changes (login, logout, token refresh)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setIsLoading(false)
-    })
+    let subscription: any = null;
+    try {
+      const res = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+        setSession(session)
+        setUser(session?.user ?? null)
+        setIsLoading(false)
+      });
+      subscription = res?.data?.subscription;
+    } catch (err) {
+      console.warn('[AUTH_CONTEXT] onAuthStateChange setup error:', err);
+      setIsLoading(false);
+    }
 
     return () => {
-      subscription.unsubscribe()
+      if (subscription) {
+        try {
+          subscription.unsubscribe();
+        } catch {}
+      }
     }
   }, [])
 

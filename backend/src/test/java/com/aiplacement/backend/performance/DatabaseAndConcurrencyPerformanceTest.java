@@ -2,16 +2,12 @@ package com.aiplacement.backend.performance;
 
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
-import com.aiplacement.backend.entity.UserFeatureUsage;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.repository.UserFeatureUsageRepository;
-import com.aiplacement.backend.repository.AtsAnalysisRepository;
-import com.aiplacement.backend.repository.coding.CodingProblemRepository;
 import com.aiplacement.backend.repository.coding.ProgramOfDayRepository;
 import com.aiplacement.backend.repository.coding.CodingStreakRepository;
 import com.aiplacement.backend.service.payment.FeatureEntitlementService;
 import com.aiplacement.backend.security.JwtService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,10 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -57,12 +51,6 @@ public class DatabaseAndConcurrencyPerformanceTest {
     private FeatureEntitlementService featureEntitlementService;
 
     @Autowired
-    private AtsAnalysisRepository atsAnalysisRepository;
-
-    @Autowired
-    private CodingProblemRepository codingProblemRepository;
-
-    @Autowired
     private ProgramOfDayRepository programOfDayRepository;
 
     @Autowired
@@ -73,9 +61,6 @@ public class DatabaseAndConcurrencyPerformanceTest {
 
     @Autowired
     private JwtService jwtService;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @TestConfiguration
     static class TestMailConfig {
@@ -203,6 +188,7 @@ public class DatabaseAndConcurrencyPerformanceTest {
         long p99 = latencies.get(iterations - 1);
 
         assertTrue(p50 < 200, "p50 latency should be under 200ms, actual: " + p50 + "ms");
+        assertTrue(p95 < 600, "p95 latency should be under 600ms, actual: " + p95 + "ms");
         assertTrue(p99 < 1000, "p99 latency should be under 1000ms, actual: " + p99 + "ms");
     }
 

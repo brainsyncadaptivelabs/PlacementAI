@@ -10,9 +10,48 @@ export function createClient() {
     throw new Error("Configuration Error: NEXT_PUBLIC_SUPABASE_ANON_KEY is missing.");
   }
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("Supabase URL (Client):", url);
-  }
+  const isDeadProject = url.includes("glyvbdltoxjpwlzsbcyx");
 
-  return createBrowserClient(url, anonKey);
+  return createBrowserClient(url, anonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+    global: {
+      fetch: async (input, init) => {
+        const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
+        
+        // If the Supabase project is known to be offline (NXDOMAIN), short-circuit immediately
+        // without calling native fetch to avoid ERR_NAME_NOT_RESOLVED in browser console
+        if (isDeadProject || reqUrl.includes("glyvbdltoxjpwlzsbcyx")) {
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Supabase project is offline",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+
+        try {
+          return await fetch(input, init);
+        } catch {
+          return new Response(
+            JSON.stringify({
+              error: "invalid_grant",
+              error_description: "Supabase service unavailable",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      },
+    },
+  });
 }

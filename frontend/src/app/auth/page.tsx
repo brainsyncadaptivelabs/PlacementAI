@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Script from "next/script";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,153 @@ export default function AuthPage() {
     password: ""
   });
 
+  const handleGoogleCredentialResponse = async (credential: string) => {
+    setLoading(true);
+    setError("");
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+      const res = await fetch(`${API_URL}/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          idToken: credential,
+          provider: "google",
+          role: selectedRole
+        })
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        let errMsg = "Google login failed";
+        try {
+          const parsed = JSON.parse(errText);
+          errMsg = parsed.message || errMsg;
+        } catch {}
+        throw new Error(errMsg);
+      }
+
+      const backendData = await res.json();
+      localStorage.setItem("token", backendData.accessToken);
+      const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+      const cookieSuffix = `; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+      document.cookie = `placementai_role=${backendData.role}${cookieSuffix}`;
+      document.cookie = `placementai_profile_completed=${Boolean(backendData.profileCompleted)}${cookieSuffix}`;
+      document.cookie = `placementai_plan_selected=${Boolean(backendData.planSelected)}${cookieSuffix}`;
+
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
+
+      router.push(getDashboardRouteForRole(backendData.role));
+    } catch (err: any) {
+      setError(err.message || "Google authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const initGoogleGsi = () => {
+      if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "223273833006-vc4d7uacqpi8u2jtnkhtm83eto58b7i3.apps.googleusercontent.com";
+        try {
+          (window as any).google.accounts.id.initialize({
+            client_id: clientId,
+            callback: (response: any) => {
+              if (response?.credential) {
+                handleGoogleCredentialResponse(response.credential);
+              }
+            },
+            auto_select: false,
+            cancel_on_tap_outside: true,
+          });
+        } catch (e) {
+          console.warn("[GSI] Init error:", e);
+        }
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      if ((window as any).google?.accounts?.id) {
+        initGoogleGsi();
+      } else {
+        const timer = setInterval(() => {
+          if ((window as any).google?.accounts?.id) {
+            initGoogleGsi();
+            clearInterval(timer);
+          }
+        }, 300);
+        return () => clearInterval(timer);
+      }
+    }
+  }, [selectedRole]);
+
   const handleOAuth = async (provider: 'google' | 'github') => {
+    if (provider === 'google') {
+      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "223273833006-vc4d7uacqpi8u2jtnkhtm83eto58b7i3.apps.googleusercontent.com";
+
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.oauth2) {
+        try {
+          const client = (window as any).google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: "openid email profile",
+            callback: async (tokenResponse: any) => {
+              if (tokenResponse?.error) {
+                if (tokenResponse.error !== "popup_closed_by_user") {
+                  setError(`Google login error: ${tokenResponse.error}`);
+                }
+                return;
+              }
+              if (tokenResponse?.access_token) {
+                setLoading(true);
+                setError("");
+                try {
+                  const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+                  });
+                  if (!userInfoRes.ok) {
+                    throw new Error("Failed to fetch Google profile details");
+                  }
+                  const profile = await userInfoRes.json();
+
+                  const toBase64Url = (obj: any) => {
+                    return btoa(unescape(encodeURIComponent(JSON.stringify(obj))))
+                      .replace(/\+/g, '-')
+                      .replace(/\//g, '_')
+                      .replace(/=+$/, '');
+                  };
+                  const header = toBase64Url({ alg: "HS256", typ: "JWT" });
+                  const payload = toBase64Url({
+                    sub: profile.sub,
+                    email: profile.email,
+                    name: profile.name,
+                    picture: profile.picture,
+                  });
+                  const syntheticToken = `${header}.${payload}.sig`;
+
+                  await handleGoogleCredentialResponse(syntheticToken);
+                } catch (userErr: any) {
+                  setError(userErr.message || "Failed to complete Google authentication");
+                  setLoading(false);
+                }
+              }
+            },
+          });
+          client.requestAccessToken();
+          return;
+        } catch (e: any) {
+          console.warn("[GSI] OAuth2 initTokenClient error:", e);
+        }
+      }
+
+      if (typeof window !== 'undefined' && (window as any).google?.accounts?.id) {
+        (window as any).google.accounts.id.prompt();
+        return;
+      }
+
+      setError("Google Sign-In is initializing. Please wait a moment and try again.");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
@@ -259,20 +406,24 @@ export default function AuthPage() {
 
       const backendData = await response.json();
 
-      // Now create Supabase user
-      const { data: sbData, error: sbError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-        options: {
-          data: {
-            full_name: backendData.fullName || signupData.fullName,
-            role: backendData.role || selectedRole
+      // Now create Supabase user (optional sync)
+      try {
+        const { error: sbError } = await supabase.auth.signUp({
+          email: signupData.email,
+          password: signupData.password,
+          options: {
+            data: {
+              full_name: backendData.fullName || signupData.fullName,
+              role: backendData.role || selectedRole
+            }
           }
-        }
-      });
+        });
 
-      if (sbError) {
-        console.warn("Supabase signup failed:", sbError.message);
+        if (sbError) {
+          console.warn("Supabase signup sync failed:", sbError.message);
+        }
+      } catch (sbErr) {
+        console.warn("Supabase auth service unreachable for signup sync:", sbErr);
       }
 
       localStorage.setItem("token", backendData.accessToken);
@@ -329,27 +480,31 @@ export default function AuthPage() {
         throw new Error(`This email belongs to a ${roleName} account. Please login through the correct portal.`);
       }
 
-      // Now login to Supabase to keep client session in sync
-      const { data: sbData, error: sbError } = await supabase.auth.signInWithPassword({
-        email: loginData.email,
-        password: loginData.password,
-      });
-
-      if (sbError) {
-        console.warn("Supabase login failed, attempting auto-registration:", sbError.message);
-        const { error: signUpError } = await supabase.auth.signUp({
+      // Now login to Supabase to keep client session in sync (optional sync)
+      try {
+        const { error: sbError } = await supabase.auth.signInWithPassword({
           email: loginData.email,
           password: loginData.password,
-          options: {
-            data: {
-              full_name: backendData.fullName || "User",
-              role: backendData.role
-            }
-          }
         });
-        if (signUpError) {
-          console.error("Supabase auto-registration failed:", signUpError.message);
+
+        if (sbError) {
+          console.warn("Supabase login sync failed, attempting auto-registration:", sbError.message);
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: loginData.email,
+            password: loginData.password,
+            options: {
+              data: {
+                full_name: backendData.fullName || "User",
+                role: backendData.role
+              }
+            }
+          });
+          if (signUpError) {
+            console.warn("Supabase auto-registration sync failed:", signUpError.message);
+          }
         }
+      } catch (sbErr) {
+        console.warn("Supabase auth service unreachable for login sync:", sbErr);
       }
       
       localStorage.setItem("token", backendData.accessToken);
@@ -358,6 +513,9 @@ export default function AuthPage() {
       document.cookie = `placementai_role=${backendData.role}${cookieSuffix}`;
       document.cookie = `placementai_profile_completed=${Boolean(backendData.profileCompleted)}${cookieSuffix}`;
       document.cookie = `placementai_plan_selected=${Boolean(backendData.planSelected)}${cookieSuffix}`;
+
+      window.dispatchEvent(new Event('storage'));
+      window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
 
       router.push(getDashboardRouteForRole(backendData.role));
     } catch (err: any) {
@@ -1682,6 +1840,7 @@ export default function AuthPage() {
 
         </div>
       </div>
+      <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
     </div>
   );
 }

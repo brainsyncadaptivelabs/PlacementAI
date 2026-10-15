@@ -27,7 +27,7 @@ export function generateFingerprint(q: any): string {
   const itemsPattern = new RegExp(ITEMS.join("|"), "gi");
   const companiesPattern = new RegExp(COMPANIES.join("|"), "gi");
   
-  let textSig = (q.text || "")
+  const textSig = (q.text || "")
     .replace(namesPattern, "[NAME]")
     .replace(itemsPattern, "[ITEM]")
     .replace(companiesPattern, "[COMPANY]")

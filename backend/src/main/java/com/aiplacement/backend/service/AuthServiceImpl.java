@@ -528,13 +528,13 @@ public class AuthServiceImpl implements AuthService {
         log.info("Login request received for email: {}", request.getEmail());
         
         User user = userRepository.findByEmailIgnoreCase(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> new com.aiplacement.backend.exception.UnauthorizedException("Invalid email or password"));
 
         boolean isPasswordValid = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
         if (!isPasswordValid) {
             log.warn("Login failed: password mismatch for email {}", request.getEmail());
-            throw new RuntimeException("Invalid email or password");
+            throw new com.aiplacement.backend.exception.UnauthorizedException("Invalid email or password");
         }
 
         if (Boolean.FALSE.equals(user.getEmailVerified())) {

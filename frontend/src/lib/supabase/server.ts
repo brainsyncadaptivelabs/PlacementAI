@@ -38,6 +38,38 @@ export async function createClient() {
           }
         },
       },
+      global: {
+        fetch: async (input, init) => {
+          const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
+          if (url.includes("glyvbdltoxjpwlzsbcyx") || reqUrl.includes("glyvbdltoxjpwlzsbcyx")) {
+            return new Response(
+              JSON.stringify({
+                error: "invalid_grant",
+                error_description: "Supabase project is offline",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+
+          try {
+            return await fetch(input, init);
+          } catch {
+            return new Response(
+              JSON.stringify({
+                error: "invalid_grant",
+                error_description: "Supabase service unavailable",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+        },
+      },
     }
   );
 }

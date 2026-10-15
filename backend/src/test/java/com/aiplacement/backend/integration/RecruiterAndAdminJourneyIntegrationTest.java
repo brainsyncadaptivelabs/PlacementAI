@@ -5,7 +5,6 @@ import com.aiplacement.backend.dto.recruiter.JobDto;
 import com.aiplacement.backend.entity.AdminUser;
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
-import com.aiplacement.backend.repository.AdminSessionRepository;
 import com.aiplacement.backend.repository.AdminUserRepository;
 import com.aiplacement.backend.repository.UserRepository;
 import com.aiplacement.backend.security.JwtService;
@@ -32,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -50,9 +48,6 @@ public class RecruiterAndAdminJourneyIntegrationTest {
 
     @Autowired
     private AdminUserRepository adminUserRepository;
-
-    @Autowired
-    private AdminSessionRepository adminSessionRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;

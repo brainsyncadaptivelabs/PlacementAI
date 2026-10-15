@@ -22,7 +22,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
             request,
           });
@@ -31,16 +31,40 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
+      global: {
+        fetch: async (input, init) => {
+          const reqUrl = typeof input === 'string' ? input : (input instanceof Request ? input.url : String(input));
+          if (url.includes("glyvbdltoxjpwlzsbcyx") || reqUrl.includes("glyvbdltoxjpwlzsbcyx")) {
+            return new Response(
+              JSON.stringify({
+                error: "invalid_grant",
+                error_description: "Supabase project is offline",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+
+          try {
+            return await fetch(input, init);
+          } catch {
+            return new Response(
+              JSON.stringify({
+                error: "invalid_grant",
+                error_description: "Supabase service unavailable",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+        },
+      },
     }
   );
-
-  let user = null;
-  try {
-    const { data } = await supabase.auth.getUser();
-    user = data?.user;
-  } catch (err) {
-    console.error("[SUPABASE_MIDDLEWARE] Error fetching user session:", err);
-  }
 
   const pathname = request.nextUrl.pathname;
 
@@ -63,15 +87,33 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPath = pathname.startsWith("/auth");
 
+  if (isPublicPath) {
+    return supabaseResponse;
+  }
+
   // Read cookies for role, profile completion, and plan selection
-  // Authoritative fallback: if cookie is absent, consult authenticated Supabase user metadata
   const cookieRole = request.cookies.get('placementai_role')?.value;
+  let user = null;
+
+  // Only query Supabase if cookieRole is absent, a Supabase cookie exists, and project is reachable
+  const isDeadProject = url.includes("glyvbdltoxjpwlzsbcyx");
+  const hasSupabaseCookie = request.cookies.getAll().some(c => c.name.startsWith('sb-') && c.name.endsWith('-auth-token'));
+  if (!cookieRole && hasSupabaseCookie && !isDeadProject) {
+    try {
+      const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+      user = data?.user;
+    } catch {
+      // Supabase auth service unreachable
+    }
+  }
+
+  // Authoritative fallback: if cookie is absent, consult authenticated Supabase user metadata
   const role = cookieRole || (user?.user_metadata?.role as string) || "STUDENT";
   const profileCompleted = request.cookies.get('placementai_profile_completed')?.value !== 'false';
   const planSelected = request.cookies.get('placementai_plan_selected')?.value !== 'false';
 
   // 1. Unauthenticated users handling
-  if (!user) {
+  if (!user && !cookieRole) {
     if (!isPublicPath && !isAuthPath) {
       let loginPath = "/auth";
       if (pathname.startsWith("/recruiter")) {
