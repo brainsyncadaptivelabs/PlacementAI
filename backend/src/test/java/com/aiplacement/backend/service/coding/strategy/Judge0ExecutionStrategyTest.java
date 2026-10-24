@@ -46,7 +46,6 @@ class Judge0ExecutionStrategyTest {
         strategy = new Judge0ExecutionStrategy(
                 properties,
                 WebClient.builder(),
-                null, null, null,
                 rateLimiter
         );
 

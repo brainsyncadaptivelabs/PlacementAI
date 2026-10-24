@@ -16,6 +16,10 @@ import io.github.resilience4j.retry.RetryConfig;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
+import com.aiplacement.backend.service.coding.cache.Judge0CacheService;
+import com.aiplacement.backend.service.coding.cache.Judge0RateLimiter;
+import com.aiplacement.backend.service.coding.observability.Judge0ExecutionAuditLogger;
+import com.aiplacement.backend.service.coding.observability.Judge0MetricsService;
 import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -41,10 +45,10 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
 
     private final Judge0Properties properties;
     private final WebClient webClient;
-    private final com.aiplacement.backend.service.coding.observability.Judge0MetricsService metricsService;
-    private final com.aiplacement.backend.service.coding.observability.Judge0ExecutionAuditLogger auditLogger;
-    private final com.aiplacement.backend.service.coding.cache.Judge0CacheService cacheService;
-    private final com.aiplacement.backend.service.coding.cache.Judge0RateLimiter rateLimiter;
+    private final Judge0MetricsService metricsService;
+    private final Judge0ExecutionAuditLogger auditLogger;
+    private final Judge0CacheService cacheService;
+    private final Judge0RateLimiter rateLimiter;
 
     private final CircuitBreaker circuitBreaker;
     private final Retry retry;
@@ -63,14 +67,18 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
         this(properties, webClientBuilder, null, null, null, null);
     }
 
+    public Judge0ExecutionStrategy(Judge0Properties properties, WebClient.Builder webClientBuilder, Judge0RateLimiter rateLimiter) {
+        this(properties, webClientBuilder, null, null, null, rateLimiter);
+    }
+
     @org.springframework.beans.factory.annotation.Autowired
     public Judge0ExecutionStrategy(
             Judge0Properties properties,
             @org.springframework.beans.factory.annotation.Autowired(required = false) WebClient.Builder webClientBuilder,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.observability.Judge0MetricsService metricsService,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.observability.Judge0ExecutionAuditLogger auditLogger,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.cache.Judge0CacheService cacheService,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.cache.Judge0RateLimiter rateLimiter) {
+            @org.springframework.beans.factory.annotation.Autowired(required = false) Judge0MetricsService metricsService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) Judge0ExecutionAuditLogger auditLogger,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) Judge0CacheService cacheService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) Judge0RateLimiter rateLimiter) {
         this.properties = properties != null ? properties : new Judge0Properties();
         this.metricsService = metricsService;
         this.auditLogger = auditLogger;
