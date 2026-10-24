@@ -67,11 +67,11 @@ export default function CodingDashboard({
         <Card className="bg-gradient-to-br from-purple-900/40 via-background to-background border-purple-800/40">
           <CardContent className="p-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold text-purple-400 uppercase tracking-wider">Placement Readiness</p>
-              <h3 className="text-2xl font-bold mt-1 text-white">{stats.placementReadinessContribution}%</h3>
+              <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Placement Readiness</p>
+              <h3 className="text-2xl font-black mt-1 text-foreground">{stats.placementReadinessContribution}%</h3>
               <p className="text-xs text-muted-foreground mt-0.5">+14% from DSA mastery</p>
             </div>
-            <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20 text-purple-400">
+            <div className="p-3 bg-purple-500/10 rounded-xl border border-purple-500/20 text-purple-600 dark:text-purple-400">
               <BrainCircuit className="w-6 h-6" />
             </div>
           </CardContent>
@@ -81,7 +81,7 @@ export default function CodingDashboard({
           <CardContent className="p-5 flex items-center justify-between">
             <div>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Problems Solved</p>
-              <h3 className="text-2xl font-bold mt-1 text-white">{stats.totalSolved}</h3>
+              <h3 className="text-2xl font-black mt-1 text-foreground">{stats.totalSolved}</h3>
               <p className="text-xs text-muted-foreground mt-0.5">{stats.acceptanceRate}% Acceptance</p>
             </div>
             <div className="p-3 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-emerald-400">

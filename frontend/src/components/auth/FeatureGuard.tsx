@@ -13,35 +13,13 @@ interface FeatureGuardProps {
 }
 
 export function FeatureGuard({ featureKey, featureTitle, children }: FeatureGuardProps) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
-    let isMounted = true;
-    const checkEntitlement = async () => {
-      try {
-        const res = await api.get("/payment/subscription-status");
-        if (!isMounted) return;
-        const plan = res.data?.plan || "FREE";
-        const features = res.data?.features || {};
-        const feat = features[featureKey];
-
-        if (plan === "FREE" && (!feat || !feat.included)) {
-          setIsLocked(true);
-        } else {
-          setIsLocked(false);
-        }
-      } catch (err) {
-        console.warn("Failed to check subscription status for feature guard", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    checkEntitlement();
-    return () => {
-      isMounted = false;
-    };
+    // All modules unlocked on localhost
+    setIsLocked(false);
+    setLoading(false);
   }, [featureKey]);
 
   if (loading) {

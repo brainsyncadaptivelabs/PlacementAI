@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, Filter, CheckCircle2, Circle, Sparkles, Building2, Clock, Zap } from "lucide-react";
+import { Search, Filter, CheckCircle2, Circle, Sparkles, Building2, Clock, Zap, ChevronDown } from "lucide-react";
 
 export interface ProblemItem {
   id: number;
@@ -88,18 +88,21 @@ export default function ProblemExplorer({
           </div>
 
           {/* Company Filter */}
-          <select
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            className="h-9 px-3 text-xs bg-background/60 border border-border/60 rounded-lg text-foreground font-medium focus:outline-none"
-          >
-            <option value="ALL">All Companies</option>
-            <option value="Amazon">Amazon</option>
-            <option value="Google">Google</option>
-            <option value="Microsoft">Microsoft</option>
-            <option value="TCS">TCS</option>
-            <option value="Infosys">Infosys</option>
-          </select>
+          <div className="relative inline-flex items-center">
+            <select
+              value={selectedCompany}
+              onChange={(e) => setSelectedCompany(e.target.value)}
+              className="h-9 pl-3 pr-8 text-xs bg-background/60 border border-border/60 rounded-lg text-foreground font-medium focus:outline-none focus:border-primary appearance-none cursor-pointer hover:bg-muted/40 transition-colors shadow-sm"
+            >
+              <option value="ALL">All Companies</option>
+              <option value="Amazon">Amazon</option>
+              <option value="Google">Google</option>
+              <option value="Microsoft">Microsoft</option>
+              <option value="TCS">TCS</option>
+              <option value="Infosys">Infosys</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2.5 pointer-events-none text-muted-foreground" />
+          </div>
         </div>
       </div>
 

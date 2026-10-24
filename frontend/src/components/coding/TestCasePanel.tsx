@@ -41,6 +41,23 @@ interface TestCasePanelProps {
   } | null;
 }
 
+function formatOutput(text?: string): string {
+  if (!text) return "N/A";
+  const trimmed = text.trim();
+  // Check if text is base64 encoded and decode if printable
+  if (/^[A-Za-z0-9+/=\s]{16,}$/.test(trimmed) && trimmed.includes("=")) {
+    try {
+      const decoded = atob(trimmed.replace(/\s+/g, ""));
+      if (decoded && /^[\x20-\x7E\r\n\t]+$/.test(decoded)) {
+        return decoded;
+      }
+    } catch {
+      // not base64
+    }
+  }
+  return text;
+}
+
 export default function TestCasePanel({
   publicTestCases,
   onRunCode,
@@ -153,7 +170,7 @@ export default function TestCasePanel({
                   <label className="text-[11px] font-sans font-medium text-muted-foreground uppercase tracking-wider block mb-1">
                     Input:
                   </label>
-                  <pre className="p-3 bg-muted/30 border border-border/40 rounded-lg whitespace-pre-wrap font-mono text-foreground">
+                  <pre className="p-3 bg-muted/30 border border-border/40 rounded-lg whitespace-pre-wrap break-all break-words font-mono text-foreground overflow-hidden max-w-full">
                     {publicTestCases[selectedCaseIdx].input}
                   </pre>
                 </div>
@@ -162,7 +179,7 @@ export default function TestCasePanel({
                   <label className="text-[11px] font-sans font-medium text-muted-foreground uppercase tracking-wider block mb-1">
                     Expected Output:
                   </label>
-                  <pre className="p-3 bg-muted/30 border border-border/40 rounded-lg whitespace-pre-wrap font-mono text-emerald-400">
+                  <pre className="p-3 bg-muted/30 border border-border/40 rounded-lg whitespace-pre-wrap break-all break-words font-mono text-emerald-700 dark:text-emerald-400 font-semibold overflow-hidden max-w-full">
                     {publicTestCases[selectedCaseIdx].expectedOutput}
                   </pre>
                 </div>
@@ -208,20 +225,21 @@ export default function TestCasePanel({
             ) : (
               <div className="space-y-4">
                 {/* Status Bar */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-card border border-border/50">
+                {/* Status Bar */}
+                <div className="flex items-center justify-between p-3.5 rounded-xl bg-card border border-border shadow-sm">
                   <div className="flex items-center gap-2">
                     {executionResults.status === "ACCEPTED" ? (
-                      <span className="text-base font-bold text-emerald-400 flex items-center gap-1.5 font-sans">
-                        <CheckCircle className="w-5 h-5" /> Accepted
+                      <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-sans">
+                        <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> Accepted
                       </span>
                     ) : (
-                      <span className="text-base font-bold text-rose-400 flex items-center gap-1.5 font-sans">
-                        <XCircle className="w-5 h-5" /> {executionResults.status}
+                      <span className="text-base font-bold text-rose-600 dark:text-rose-400 flex items-center gap-1.5 font-sans">
+                        <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" /> {executionResults.status}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground">
+                  <div className="flex items-center gap-4 text-xs font-mono text-muted-foreground font-medium">
                     {executionResults.passedCount !== undefined && (
                       <span>Tests: {executionResults.passedCount}/{executionResults.totalCount} passed</span>
                     )}
@@ -235,12 +253,12 @@ export default function TestCasePanel({
 
                 {/* Compiler output if error */}
                 {executionResults.compileOutput && (
-                  <div>
-                    <label className="text-[11px] font-sans font-medium text-rose-400 uppercase tracking-wider block mb-1">
+                  <div className="space-y-1.5 min-w-0 max-w-full">
+                    <label className="text-[11px] font-sans font-bold text-rose-600 dark:text-rose-400 uppercase tracking-wider block">
                       Compiler / Execution Output:
                     </label>
-                    <pre className="p-3 bg-rose-950/20 border border-rose-900/40 text-rose-300 rounded-lg font-mono text-xs whitespace-pre-wrap overflow-x-auto">
-                      {executionResults.compileOutput}
+                    <pre className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800/60 text-rose-950 dark:text-rose-100 rounded-xl font-mono text-xs font-semibold whitespace-pre-wrap break-all break-words overflow-x-auto max-w-full shadow-sm">
+                      {formatOutput(executionResults.compileOutput)}
                     </pre>
                   </div>
                 )}
@@ -251,24 +269,34 @@ export default function TestCasePanel({
                     {executionResults.testResults.map((tr, idx) => (
                       <div
                         key={idx}
-                        className={`p-3 rounded-lg border text-xs ${
+                        className={`p-3.5 rounded-xl border text-xs shadow-sm overflow-hidden ${
                           tr.passed
-                            ? "bg-emerald-950/10 border-emerald-900/30 text-emerald-300"
-                            : "bg-rose-950/10 border-rose-900/30 text-rose-300"
+                            ? "bg-emerald-50/80 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-800/50 text-emerald-950 dark:text-emerald-100"
+                            : "bg-rose-50/80 dark:bg-rose-950/20 border-rose-300 dark:border-rose-800/50 text-rose-950 dark:text-rose-100"
                         }`}
                       >
-                        <div className="flex justify-between font-sans font-medium mb-1.5">
-                          <span>Test Case #{tr.ordinal}</span>
-                          <span>{tr.passed ? "✓ Passed" : `✗ ${tr.verdict}`}</span>
+                        <div className="flex justify-between font-sans font-bold mb-2">
+                          <span className="text-foreground">Test Case #{tr.ordinal}</span>
+                          <span className={tr.passed ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}>
+                            {tr.passed ? "✓ Passed" : `✗ ${tr.verdict}`}
+                          </span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-[11px]">
-                          <div>
-                            <span className="text-muted-foreground">Input:</span>
-                            <div className="bg-background/60 p-1.5 rounded border border-border/40 mt-0.5">{tr.input}</div>
+                        <div className="grid grid-cols-2 gap-2.5 text-[11px] min-w-0">
+                          <div className="min-w-0 max-w-full">
+                            <span className="text-muted-foreground font-semibold">Input:</span>
+                            <div className="bg-background p-2 rounded-lg border border-border mt-1 font-mono text-foreground font-medium break-all break-words whitespace-pre-wrap overflow-hidden max-w-full">
+                              {tr.input}
+                            </div>
                           </div>
-                          <div>
-                            <span className="text-muted-foreground">Actual Output:</span>
-                            <div className="bg-background/60 p-1.5 rounded border border-border/40 mt-0.5">{tr.actualOutput || tr.errorMessage || "N/A"}</div>
+                          <div className="min-w-0 max-w-full">
+                            <span className="text-muted-foreground font-semibold">Actual Output:</span>
+                            <div className={`p-2 rounded-lg border mt-1 font-mono font-medium break-all break-words whitespace-pre-wrap overflow-hidden max-w-full ${
+                              tr.passed
+                                ? "bg-background border-border text-foreground"
+                                : "bg-rose-100/70 dark:bg-rose-900/40 border-rose-300 dark:border-rose-700 text-rose-950 dark:text-rose-100 font-semibold"
+                            }`}>
+                              {formatOutput(tr.actualOutput || tr.errorMessage)}
+                            </div>
                           </div>
                         </div>
                       </div>

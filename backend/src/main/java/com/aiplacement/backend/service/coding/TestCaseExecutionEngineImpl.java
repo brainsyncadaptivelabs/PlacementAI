@@ -10,6 +10,8 @@ import com.aiplacement.backend.service.coding.strategy.ExecutionStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -136,12 +138,20 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             final ExecutionStrategy currentStrategy = strategy;
             final CodingSubmission currentSubmission = submission;
+            final SecurityContext securityContext = SecurityContextHolder.getContext();
             for (int i = 1; i < allTests.size(); i++) {
                 final int index = i;
                 final CodingTestCase currentTc = allTests.get(i);
                 CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                    CodingExecution res = executeSingleTestCase(currentSubmission, currentTc, currentStrategy);
-                    resultsArray[index] = res;
+                    if (securityContext != null) {
+                        SecurityContextHolder.setContext(securityContext);
+                    }
+                    try {
+                        CodingExecution res = executeSingleTestCase(currentSubmission, currentTc, currentStrategy);
+                        resultsArray[index] = res;
+                    } finally {
+                        SecurityContextHolder.clearContext();
+                    }
                 }, testExecutionExecutor);
                 futures.add(future);
             }
@@ -184,7 +194,7 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
         String overallStatus = determineStatus(resultsList, passed, total);
 
         long avgRuntime = (long) resultsList.stream()
-                .mapToLong(CodingExecution::getRuntimeMs)
+                .mapToLong(r -> r.getRuntimeMs() != null ? r.getRuntimeMs() : 0L)
                 .average()
                 .orElse(0.0);
 
@@ -193,6 +203,14 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
         submission.setPassRate(passRate);
         submission.setStatus(overallStatus);
         submission.setExecutionTimeMs(avgRuntime);
+
+        // Populate compileOutput if there are any error messages
+        Optional<CodingExecution> firstError = resultsList.stream()
+                .filter(r -> r.getErrorMessage() != null && !r.getErrorMessage().isBlank())
+                .findFirst();
+        if (firstError.isPresent()) {
+            submission.setCompileOutput(firstError.get().getErrorMessage());
+        }
 
         submission = submissionRepository.save(submission);
 
@@ -261,13 +279,15 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
 
         } catch (Exception e) {
             log.warn("[CODING] [TEST_RUNNER] Test case {} execution failed: {}", tc.getOrdinal(), e.getMessage());
+            long runtimeMs = System.currentTimeMillis() - start;
             return CodingExecution.builder()
                     .codingSubmission(submission)
                     .codingTestCase(tc)
                     .testCaseOrdinal(tc.getOrdinal())
                     .passed(false)
+                    .runtimeMs(runtimeMs)
                     .verdict("ERROR")
-                    .errorMessage(e.getMessage())
+                    .errorMessage(e.getMessage() != null ? e.getMessage() : "Unknown execution error")
                     .executionType(tc.isPerformance() ? "PERFORMANCE" : tc.isBoundary() ? "BOUNDARY" : tc.isHidden() ? "HIDDEN" : "PUBLIC")
                     .build();
         }
@@ -276,7 +296,7 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
     private String determineStatus(List<CodingExecution> results, int passed, int total) {
         if (results.stream().anyMatch(r -> "CE".equals(r.getVerdict()))) return "COMPILE_ERROR";
         if (results.stream().anyMatch(r -> "TLE".equals(r.getVerdict()))) return "TIME_LIMIT_EXCEEDED";
-        if (results.stream().anyMatch(r -> "RE".equals(r.getVerdict()))) return "RUNTIME_ERROR";
+        if (results.stream().anyMatch(r -> "RE".equals(r.getVerdict()) || "ERROR".equals(r.getVerdict()))) return "RUNTIME_ERROR";
         if (passed == total) return "ACCEPTED";
         return "WRONG_ANSWER";
     }

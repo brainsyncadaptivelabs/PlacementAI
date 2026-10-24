@@ -28,6 +28,7 @@
     </scm>
     <properties>
         <java.version>17</java.version>
+        <lombok.version>1.18.38</lombok.version>
     </properties>
     <dependencies>
         <dependency>
@@ -335,4 +336,4 @@
     </build>
 
 </project>
-<!-- Force IDE project reload: v1.0.3 -->
+<!-- Force IDE project reload: v1.0.4 -->

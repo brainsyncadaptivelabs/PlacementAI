@@ -218,7 +218,6 @@ public class CodingServiceImpl implements CodingService {
     }
 
     @Override
-    @Transactional
     public ProblemRunResponse runProblemCode(Long problemId, ProblemRunRequest request, User user) {
         CodingProblem problem = problemRepository.findById(problemId)
                 .orElseThrow(() -> new ResourceNotFoundException("Problem not found: " + problemId));
@@ -282,7 +281,7 @@ public class CodingServiceImpl implements CodingService {
                     .status("RUNTIME_ERROR")
                     .passedCount(0)
                     .totalCount(publicCases.size())
-                    .compileOutput(e.getMessage())
+                    .compileOutput(e.getMessage() != null ? e.getMessage() : "Execution failed: " + e.getClass().getSimpleName())
                     .testResults(List.of())
                     .build();
         }

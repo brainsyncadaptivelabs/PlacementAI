@@ -55,18 +55,23 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
             "kotlin", "php", "ruby", "swift", "scala", "bash", "shell", "c#", "csharp", "json"
     );
 
+    public Judge0ExecutionStrategy() {
+        this(new Judge0Properties(), WebClient.builder());
+    }
+
     public Judge0ExecutionStrategy(Judge0Properties properties, WebClient.Builder webClientBuilder) {
         this(properties, webClientBuilder, null, null, null, null);
     }
 
+    @org.springframework.beans.factory.annotation.Autowired
     public Judge0ExecutionStrategy(
             Judge0Properties properties,
-            WebClient.Builder webClientBuilder,
-            com.aiplacement.backend.service.coding.observability.Judge0MetricsService metricsService,
-            com.aiplacement.backend.service.coding.observability.Judge0ExecutionAuditLogger auditLogger,
-            com.aiplacement.backend.service.coding.cache.Judge0CacheService cacheService,
-            com.aiplacement.backend.service.coding.cache.Judge0RateLimiter rateLimiter) {
-        this.properties = properties;
+            @org.springframework.beans.factory.annotation.Autowired(required = false) WebClient.Builder webClientBuilder,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.observability.Judge0MetricsService metricsService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.observability.Judge0ExecutionAuditLogger auditLogger,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.cache.Judge0CacheService cacheService,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) com.aiplacement.backend.service.coding.cache.Judge0RateLimiter rateLimiter) {
+        this.properties = properties != null ? properties : new Judge0Properties();
         this.metricsService = metricsService;
         this.auditLogger = auditLogger;
         this.cacheService = cacheService;
@@ -74,15 +79,16 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
 
         // Configure Reactor Netty HTTP Client with explicit timeouts
         HttpClient httpClient = HttpClient.create()
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getTimeout().getConnectMs())
-                .responseTimeout(Duration.ofMillis(properties.getTimeout().getResponseMs()))
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, this.properties.getTimeout().getConnectMs())
+                .responseTimeout(Duration.ofMillis(this.properties.getTimeout().getResponseMs()))
                 .doOnConnected(conn -> conn
-                        .addHandlerLast(new ReadTimeoutHandler(properties.getTimeout().getReadMs(), TimeUnit.MILLISECONDS))
-                        .addHandlerLast(new WriteTimeoutHandler(properties.getTimeout().getWriteMs(), TimeUnit.MILLISECONDS))
+                        .addHandlerLast(new ReadTimeoutHandler(this.properties.getTimeout().getReadMs(), TimeUnit.MILLISECONDS))
+                        .addHandlerLast(new WriteTimeoutHandler(this.properties.getTimeout().getWriteMs(), TimeUnit.MILLISECONDS))
                 );
 
-        String baseUrl = resolveBaseUrl(properties);
-        this.webClient = webClientBuilder
+        String baseUrl = resolveBaseUrl(this.properties);
+        WebClient.Builder builder = webClientBuilder != null ? webClientBuilder : WebClient.builder();
+        this.webClient = builder
                 .clientConnector(new ReactorClientHttpConnector(httpClient))
                 .baseUrl(baseUrl)
                 .build();
@@ -350,11 +356,17 @@ public class Judge0ExecutionStrategy implements ExecutionStrategy {
             return input;
         }
         try {
-            byte[] decoded = Base64.getDecoder().decode(input.trim().getBytes(StandardCharsets.UTF_8));
+            String cleaned = input.replaceAll("\\s+", "");
+            byte[] decoded = Base64.getDecoder().decode(cleaned.getBytes(StandardCharsets.UTF_8));
             return new String(decoded, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            // Fallback if raw string was returned by Judge0
-            return input;
+            try {
+                byte[] decoded = Base64.getMimeDecoder().decode(input.getBytes(StandardCharsets.UTF_8));
+                return new String(decoded, StandardCharsets.UTF_8);
+            } catch (Exception ex) {
+                // Fallback if raw string was returned by Judge0
+                return input;
+            }
         }
     }
 

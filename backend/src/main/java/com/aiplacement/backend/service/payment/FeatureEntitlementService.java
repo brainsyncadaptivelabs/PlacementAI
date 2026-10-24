@@ -65,31 +65,8 @@ public class FeatureEntitlementService {
      * Get limit for feature based on base plan (FREE, BASIC, PREMIUM)
      */
     public int getBasePlanLimit(String plan, String featureKey) {
-        String p = plan != null ? plan.toUpperCase() : "FREE";
-        String f = featureKey != null ? featureKey.toUpperCase() : "";
-
-        switch (f) {
-            case "ATS_ANALYSIS":
-                return "PREMIUM".equals(p) ? 150 : ("BASIC".equals(p) ? 50 : 4);
-            case "JD_MATCH":
-                return "PREMIUM".equals(p) ? 50 : ("BASIC".equals(p) ? 15 : 0);
-            case "SKILL_GAP":
-                return "PREMIUM".equals(p) ? 20 : ("BASIC".equals(p) ? 5 : 0);
-            case "RESUME_COMPARE":
-                return "PREMIUM".equals(p) ? 20 : ("BASIC".equals(p) ? 5 : 0);
-            case "AI_CHAT":
-                return "PREMIUM".equals(p) ? 1000 : ("BASIC".equals(p) ? 300 : 0);
-            case "ENGLISH_PRACTICE":
-                return "PREMIUM".equals(p) ? 120 : ("BASIC".equals(p) ? 30 : 0);
-            case "MOCK_INTERVIEW":
-                return "PREMIUM".equals(p) ? 90 : ("BASIC".equals(p) ? 20 : 0);
-            case "CODING_AI_REVIEW":
-                return "PREMIUM".equals(p) ? 50 : ("BASIC".equals(p) ? 20 : 0);
-            case "RESUME_TAILORING":
-                return "PREMIUM".equals(p) ? 20 : ("BASIC".equals(p) ? 5 : 0);
-            default:
-                return 0;
-        }
+        // All modules and features unlocked with unlimited usage for localhost
+        return 9999;
     }
 
     /**
