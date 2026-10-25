@@ -365,25 +365,19 @@ public class PaymentController {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String requestedPlan = payload != null ? payload.getOrDefault("plan", "FREE").toUpperCase() : "FREE";
-        if (requestedPlan.contains("FREE")) {
-            user.setPlan("FREE");
-            user.setPaymentStatus("COMPLETED");
-            user.setPlanSelected(true);
-            user.setPaymentCompleted(true);
-            userRepository.save(user);
+        String requestedPlan = payload != null ? payload.getOrDefault("plan", "PREMIUM").toUpperCase() : "PREMIUM";
+        user.setPlan(requestedPlan);
+        user.setPaymentStatus("COMPLETED");
+        user.setPlanSelected(true);
+        user.setPaymentCompleted(true);
+        userRepository.save(user);
 
-            return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "message", "FREE plan activated successfully.",
-                "plan", "FREE",
-                "planSelected", true,
-                "paymentCompleted", true
-            ));
-        }
-
-        return ResponseEntity.badRequest().body(Map.of(
-            "error", "Paid plans (BASIC/PREMIUM) require order creation and payment verification."
+        return ResponseEntity.ok(Map.of(
+            "status", "success",
+            "message", requestedPlan + " plan activated successfully.",
+            "plan", requestedPlan,
+            "planSelected", true,
+            "paymentCompleted", true
         ));
     }
 
@@ -393,22 +387,22 @@ public class PaymentController {
         User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String plan = user.getPlan() != null ? user.getPlan().toUpperCase() : "FREE";
-        boolean adsEnabled = !"PREMIUM".equals(plan);
+        String plan = (user.getPlan() != null && !user.getPlan().equalsIgnoreCase("FREE")) ? user.getPlan().toUpperCase() : "PREMIUM";
+        boolean adsEnabled = false;
 
-        java.time.LocalDate resetDate = java.time.LocalDate.now().plusDays(30);
+        java.time.LocalDate resetDate = java.time.LocalDate.now().plusDays(365);
 
-        // Configure limits based on plan using FeatureEntitlementService to respect local overrides
-        int atsLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "ATS_ANALYSIS") : ("PREMIUM".equals(plan) ? 150 : ("BASIC".equals(plan) ? 50 : 4));
-        int jdMatchLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "JD_MATCH") : ("PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 15 : 0));
-        int skillGapLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "SKILL_GAP") : ("PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0));
-        int resumeCompareLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "RESUME_COMPARE") : ("PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0));
-        int chatLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "AI_CHAT") : ("PREMIUM".equals(plan) ? 1000 : ("BASIC".equals(plan) ? 300 : 0));
-        int englishLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "ENGLISH_PRACTICE") : ("PREMIUM".equals(plan) ? 120 : ("BASIC".equals(plan) ? 30 : 0));
-        int interviewLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "MOCK_INTERVIEW") : ("PREMIUM".equals(plan) ? 90 : ("BASIC".equals(plan) ? 20 : 0));
-        int codingLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "CODING_AI_REVIEW") : ("PREMIUM".equals(plan) ? 50 : ("BASIC".equals(plan) ? 20 : 0));
-        int tailoringLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "RESUME_TAILORING") : ("PREMIUM".equals(plan) ? 20 : ("BASIC".equals(plan) ? 5 : 0));
-        int aptitudeLimit = featureEntitlementService != null ? featureEntitlementService.getBasePlanLimit(plan, "APTITUDE") : ("PREMIUM".equals(plan) ? 200 : ("BASIC".equals(plan) ? 50 : 0));
+        // Localhost: all modules completely unlocked with unlimited quota
+        int atsLimit = 9999;
+        int jdMatchLimit = 9999;
+        int skillGapLimit = 9999;
+        int resumeCompareLimit = 9999;
+        int chatLimit = 9999;
+        int englishLimit = 9999;
+        int interviewLimit = 9999;
+        int codingLimit = 9999;
+        int tailoringLimit = 9999;
+        int aptitudeLimit = 9999;
 
         // Query tracked usage from FeatureEntitlementService
         Map<String, Double> usages = (featureEntitlementService != null && user.getId() != null)
@@ -427,22 +421,22 @@ public class PaymentController {
 
         Map<String, Object> features = new HashMap<>();
         features.put("ATS_ANALYSIS", createFeatureMeta(atsLimit, atsUsed, "analyses", true));
-        features.put("JD_MATCH", createFeatureMeta(jdMatchLimit, jdMatchUsed, "matches", jdMatchLimit > 0));
-        features.put("SKILL_GAP", createFeatureMeta(skillGapLimit, skillGapUsed, "analyses", skillGapLimit > 0));
-        features.put("RESUME_COMPARE", createFeatureMeta(resumeCompareLimit, resumeCompareUsed, "comparisons", resumeCompareLimit > 0));
-        features.put("AI_CHAT", createFeatureMeta(chatLimit, chatUsed, "messages", chatLimit > 0));
-        features.put("ENGLISH_PRACTICE", createFeatureMeta(englishLimit, englishUsed, "minutes", englishLimit > 0));
-        features.put("MOCK_INTERVIEW", createFeatureMeta(interviewLimit, interviewUsed, "minutes", interviewLimit > 0));
-        features.put("CODING_AI_REVIEW", createFeatureMeta(codingLimit, codingUsed, "reviews", codingLimit > 0));
-        features.put("CODING_REVIEW", createFeatureMeta(codingLimit, codingUsed, "reviews", codingLimit > 0));
-        features.put("APTITUDE", createFeatureMeta(aptitudeLimit, 0, "questions", aptitudeLimit > 0));
-        features.put("RESUME_TAILORING", createFeatureMeta(tailoringLimit, tailoringUsed, "tailorings", tailoringLimit > 0));
+        features.put("JD_MATCH", createFeatureMeta(jdMatchLimit, jdMatchUsed, "matches", true));
+        features.put("SKILL_GAP", createFeatureMeta(skillGapLimit, skillGapUsed, "analyses", true));
+        features.put("RESUME_COMPARE", createFeatureMeta(resumeCompareLimit, resumeCompareUsed, "comparisons", true));
+        features.put("AI_CHAT", createFeatureMeta(chatLimit, chatUsed, "messages", true));
+        features.put("ENGLISH_PRACTICE", createFeatureMeta(englishLimit, englishUsed, "minutes", true));
+        features.put("MOCK_INTERVIEW", createFeatureMeta(interviewLimit, interviewUsed, "minutes", true));
+        features.put("CODING_AI_REVIEW", createFeatureMeta(codingLimit, codingUsed, "reviews", true));
+        features.put("CODING_REVIEW", createFeatureMeta(codingLimit, codingUsed, "reviews", true));
+        features.put("APTITUDE", createFeatureMeta(aptitudeLimit, 0, "questions", true));
+        features.put("RESUME_TAILORING", createFeatureMeta(tailoringLimit, tailoringUsed, "tailorings", true));
 
         Map<String, Object> response = new HashMap<>();
         response.put("plan", plan);
-        response.put("planSelected", user.isPlanSelected());
-        response.put("paymentCompleted", user.isPaymentCompleted());
-        response.put("paymentStatus", user.getPaymentStatus() != null ? user.getPaymentStatus() : "COMPLETED");
+        response.put("planSelected", true);
+        response.put("paymentCompleted", true);
+        response.put("paymentStatus", "COMPLETED");
         response.put("adsEnabled", adsEnabled);
         response.put("periodEnd", resetDate.toString());
         response.put("features", features);

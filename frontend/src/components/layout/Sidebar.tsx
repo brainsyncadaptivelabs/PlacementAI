@@ -30,7 +30,7 @@ export function Sidebar({ role }: SidebarProps) {
   const router = useRouter();
   const { signOut } = useAuth();
   const { isMobile, setOpenMobile } = useSidebar();
-  const [userPlan, setUserPlan] = React.useState<string>("FREE");
+  const [userPlan, setUserPlan] = React.useState<string>("PREMIUM");
   const menuItems = (roleMenus[role] || []);
 
   React.useEffect(() => {
@@ -112,8 +112,8 @@ export function Sidebar({ role }: SidebarProps) {
                     ? pathname === item.url 
                     : (pathname === item.url || pathname.startsWith(item.url + '/'));
 
-                  const isAllowedOnFree = item.url === "/dashboard" || item.url === "/dashboard/ats" || item.url === "/dashboard/history" || item.url === "/dashboard/settings";
-                  const isLockedForFree = userPlan === "FREE" && !isAllowedOnFree && !item.comingSoon;
+                  const isAllowedOnFree = true;
+                  const isLockedForFree = false;
 
                   return (
                     <SidebarMenuItem key={item.title}>

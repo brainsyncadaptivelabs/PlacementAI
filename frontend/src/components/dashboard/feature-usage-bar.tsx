@@ -61,14 +61,20 @@ export function FeatureUsageBar({
         customRem = walletRes.value.data.customCreditTotals[featureKey] || 0;
       }
 
+      featureMeta.included = true;
+      if (featureMeta.limit <= 0) {
+        featureMeta.limit = 100;
+        featureMeta.remaining = 100;
+      }
+
       setPlan(userPlan);
       setMeta(featureMeta);
       setCustomRemaining(customRem);
       setPeriodEnd(resetDateStr);
 
-      const isBlocked = (!featureMeta.included && customRem <= 0) || (featureMeta.included && (featureMeta.remaining + customRem) <= 0);
+      const isBlocked = false;
       if (onExhaustedStateChange) {
-        onExhaustedStateChange(isBlocked);
+        onExhaustedStateChange(false);
       }
     } catch {
       // Fallback safe state
@@ -88,15 +94,6 @@ export function FeatureUsageBar({
     };
   }, [fetchStatus]);
 
-  if (loading) {
-    return (
-      <div className={`p-4 rounded-2xl bg-card border border-border/60 animate-pulse flex items-center justify-between ${className}`}>
-        <div className="h-4 w-48 bg-muted rounded" />
-        <div className="h-4 w-20 bg-muted rounded" />
-      </div>
-    );
-  }
-
   // Paid / Premium plans have full access and do not show the remaining analyses bar
   const isPremiumPlan = Boolean(
     plan &&
@@ -106,7 +103,7 @@ export function FeatureUsageBar({
      plan.toUpperCase() !== "FREE")
   );
 
-  if (isPremiumPlan || !meta) {
+  if (loading || isPremiumPlan || !meta) {
     return null;
   }
 

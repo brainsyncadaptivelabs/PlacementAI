@@ -294,19 +294,19 @@ public class User {
 
     @Column(name = "plan", length = 20)
     @Builder.Default
-    private String plan = "FREE";
+    private String plan = "PREMIUM";
 
     @Column(name = "payment_status", length = 20)
     @Builder.Default
-    private String paymentStatus = "PENDING";
+    private String paymentStatus = "COMPLETED";
 
     @Column(name = "plan_selected")
     @Builder.Default
-    private Boolean planSelected = false;
+    private Boolean planSelected = true;
 
     @Column(name = "payment_completed")
     @Builder.Default
-    private Boolean paymentCompleted = false;
+    private Boolean paymentCompleted = true;
 
     public boolean isPlanSelected() {
         if (role != null && role != Role.STUDENT) {
