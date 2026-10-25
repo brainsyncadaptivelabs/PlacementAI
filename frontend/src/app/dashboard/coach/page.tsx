@@ -61,22 +61,21 @@ export default function CoachPage() {
         onDuplicate={duplicateChat}
       />
 
-      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#0d1117] text-slate-100">
-        <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-border/40 bg-card/85 backdrop-blur-md sticky top-0 z-30 select-none">
+      <div className="flex-1 flex flex-col h-screen overflow-hidden bg-slate-50 text-slate-900">
+        <header className="h-16 shrink-0 flex items-center justify-between px-8 border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-30 select-none shadow-xs">
           <div className="flex items-center gap-3">
-            <SidebarTrigger className="md:hidden mr-1 text-muted-foreground hover:text-foreground" />
-            <h1 className="text-[16px] font-bold text-foreground tracking-tight">Placement Coach</h1>
+            <SidebarTrigger className="md:hidden mr-1 text-slate-500 hover:text-slate-900" />
+            <h1 className="text-[16px] font-bold text-slate-900 tracking-tight">Placement Coach</h1>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setNotificationsOpen(prev => !prev)}
-              className="p-2 rounded-xl text-muted-foreground/70 hover:text-indigo-400 hover:bg-slate-900 transition-colors relative cursor-pointer"
+              className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-slate-100 transition-colors relative cursor-pointer"
             >
               <Bell className="w-5 h-5" />
-              {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500" />}
+              {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-600" />}
             </button>
-
           </div>
         </header>
 

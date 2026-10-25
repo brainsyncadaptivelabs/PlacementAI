@@ -87,9 +87,7 @@ public class BackendApplication {
                             } else if (value.startsWith("'") && value.endsWith("'")) {
                                 value = value.substring(1, value.length() - 1);
                             }
-                            if (System.getProperty(key) == null && System.getenv(key) == null) {
-                                System.setProperty(key, value);
-                            }
+                            System.setProperty(key, value);
                         }
                     }
                 } catch (IOException e) {

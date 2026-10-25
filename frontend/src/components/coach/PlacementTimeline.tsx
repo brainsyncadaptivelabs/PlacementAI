@@ -10,23 +10,23 @@ export function PlacementTimeline() {
   ];
 
   return (
-    <div className="p-5 bg-slate-900 border border-border/80 rounded-2xl text-left select-none">
-      <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-4">Placement Path Milestones</h2>
-      <div className="flex flex-col gap-4 relative pl-4 border-l-2 border-indigo-500/20">
+    <div className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-xs text-left select-none">
+      <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800 mb-4">Placement Path Milestones</h2>
+      <div className="flex flex-col gap-4 relative ml-3 pl-6 border-l-2 border-indigo-200">
         {steps.map((s, idx) => (
-          <div key={idx} className="flex items-start gap-3 relative">
-            <div className="absolute -left-[25px] mt-0.5">
+          <div key={idx} className="flex items-start gap-3 relative min-w-0">
+            <div className="absolute -left-[33px] mt-0.5">
               {s.status === "complete" ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500 bg-slate-900 rounded-full" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 bg-white rounded-full shrink-0" />
               ) : s.status === "active" ? (
-                <Circle className="w-4 h-4 text-indigo-500 bg-slate-900 rounded-full animate-pulse" />
+                <Circle className="w-4 h-4 text-indigo-600 bg-white rounded-full animate-pulse shrink-0" />
               ) : (
-                <Circle className="w-4 h-4 text-slate-700 bg-slate-900 rounded-full" />
+                <Circle className="w-4 h-4 text-slate-300 bg-white rounded-full shrink-0" />
               )}
             </div>
-            <div>
-              <h3 className={`text-xs font-bold ${s.status === 'complete' ? 'text-slate-400' : 'text-slate-100'}`}>{s.label}</h3>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{s.desc}</p>
+            <div className="min-w-0 flex-1">
+              <h3 className={`text-xs font-bold break-words leading-tight ${s.status === 'complete' ? 'text-slate-500' : s.status === 'active' ? 'text-slate-900 font-extrabold' : 'text-slate-700'}`}>{s.label}</h3>
+              <p className="text-[11px] text-slate-500 mt-0.5 break-words leading-tight">{s.desc}</p>
             </div>
           </div>
         ))}

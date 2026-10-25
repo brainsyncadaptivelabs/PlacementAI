@@ -301,8 +301,9 @@ html {
 }
 
 .message-content {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 @keyframes slideIn {

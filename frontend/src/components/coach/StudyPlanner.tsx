@@ -20,16 +20,16 @@ export function StudyPlanner() {
   };
 
   return (
-    <div className="p-5 bg-slate-900 border border-border/80 rounded-2xl text-left select-none space-y-4">
-      <div className="flex justify-between items-center border-b border-border/20 pb-3">
-        <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Study Plan Dashboard</h2>
-        <div className="flex gap-1 bg-slate-950 p-1 rounded-xl">
+    <div className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-xs text-left select-none space-y-4">
+      <div className="flex justify-between items-center border-b border-slate-200/80 pb-3">
+        <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">Study Plan Dashboard</h2>
+        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200/60">
           {["daily", "weekly", "monthly"].map((p) => (
             <button
               key={p}
               onClick={() => setActivePlan(p as any)}
               className={`px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider cursor-pointer transition-all ${
-                activePlan === p ? "bg-slate-900 text-white" : "text-muted-foreground hover:text-white"
+                activePlan === p ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
               }`}
             >
               {p}
@@ -42,14 +42,14 @@ export function StudyPlanner() {
         {plans[activePlan].map((item, idx) => {
           const Icon = item.icon;
           return (
-            <div key={idx} className="flex justify-between items-center p-3 bg-slate-950/40 border border-border/10 rounded-xl hover:border-indigo-500/20 transition-all">
-              <div className="flex items-center gap-3">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+            <div key={idx} className="flex justify-between items-center p-3 bg-slate-50/80 border border-slate-200/80 rounded-xl hover:border-indigo-300 transition-all shadow-2xs min-w-0 overflow-hidden">
+              <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="text-xs font-semibold text-slate-200">{item.task}</span>
+                <span className="text-xs font-semibold text-slate-800 break-words leading-tight">{item.task}</span>
               </div>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase">{item.duration}</span>
+              <span className="text-[10px] font-bold text-slate-600 bg-white px-2 py-0.5 rounded border border-slate-200 uppercase shrink-0">{item.duration}</span>
             </div>
           );
         })}

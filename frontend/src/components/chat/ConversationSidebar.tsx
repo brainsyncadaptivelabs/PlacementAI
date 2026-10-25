@@ -87,20 +87,20 @@ export function ConversationSidebar({
   };
 
   return (
-    <div className="w-[260px] shrink-0 border-r border-border bg-card flex flex-col h-screen overflow-hidden text-card-foreground select-none">
+    <div className="w-[260px] shrink-0 border-r border-slate-200 bg-white flex flex-col h-screen overflow-hidden text-slate-900 select-none">
       {/* Header with New Chat */}
-      <div className="p-4 flex flex-col gap-3 border-b border-border/40">
+      <div className="p-4 flex flex-col gap-3 border-b border-slate-200/60">
         <button
           onClick={onCreate}
-          className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-full bg-secondary border border-border hover:bg-secondary/80 text-sm font-bold tracking-tight text-foreground transition-all cursor-pointer shadow-sm active:scale-95 h-11"
+          className="flex items-center justify-center gap-2 w-full py-2 px-4 rounded-full bg-slate-100 border border-slate-200 hover:bg-slate-200/80 text-sm font-bold tracking-tight text-slate-800 transition-all cursor-pointer shadow-xs active:scale-95 h-11"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-slate-700" />
           <span>New Chat</span>
         </button>
 
         {/* Search Input */}
         <div 
-          className="relative transition-all duration-200 border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/10" 
+          className="relative transition-all duration-200 border border-slate-200 bg-slate-100 focus-within:border-indigo-500/50 focus-within:ring-2 focus-within:ring-indigo-500/10 focus-within:bg-white" 
           style={{ width: "calc(100% - 32px)", marginLeft: "16px", marginRight: "16px", height: "44px", borderRadius: "12px" }}
         >
           <Search 
@@ -150,7 +150,7 @@ export function ConversationSidebar({
                     key={c.id}
                     onClick={() => onSelect(c.id)}
                     className={`group relative flex items-center justify-between px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
-                      isActive ? "bg-secondary border border-border/40 text-foreground" : "hover:bg-secondary/40 text-slate-350"
+                      isActive ? "bg-indigo-50 border border-indigo-200 text-indigo-950 font-bold shadow-xs" : "hover:bg-slate-100 text-slate-700 font-medium"
                     }`}
                   >
                     <div className="flex-1 min-w-0 mr-2">

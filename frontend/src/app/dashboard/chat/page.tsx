@@ -452,10 +452,12 @@ class SafeMarkdownBoundary extends React.Component<
         .replace(/\n\s*\n/g, "\n\n");
       return (
         <div 
-          className="font-sans text-foreground leading-[1.9] text-[16px]"
-          style={{ whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}
+          className="font-sans text-foreground leading-[1.8] text-[15px] space-y-3"
+          style={{ whiteSpace: "normal", overflowWrap: "break-word" }}
         >
-          {cleanText}
+          {cleanText.split(/\n\s*\n/).map((para, i) => (
+            <p key={i} className="mb-3">{para}</p>
+          ))}
         </div>
       );
     }
@@ -466,7 +468,8 @@ class SafeMarkdownBoundary extends React.Component<
 // Markdown Normalizer Helper
 const normalizeMarkdown = (text: string): string => {
   if (!text) return "";
-  let result = text.replace(/\r\n/g, "\n");
+  let result = text.replace(/\[CONVERSATION_ID:\s*\d+\]/gi, "");
+  result = result.replace(/\r\n/g, "\n");
   result = result.replace(/\\n/g, "\n");
 
   // 1. Remove redundant labels & internal artifacts
@@ -484,14 +487,17 @@ const normalizeMarkdown = (text: string): string => {
   // 3. Automatically format resources section prefix
   result = result.replace(/^(###?\s*)?(Additional\s+Resources|Resources)\s*$/gim, "📚 Additional Resources");
 
-  // 4. Normalize bullet styles
-  result = result.replace(/^[ \t]*•[ \t]*/gm, "- ");
-  result = result.replace(/^[ \t]*-[ \t]*/gm, "• ");
+  // 4. Normalize bullet styles to standard Markdown
+  result = result.replace(/^[ \t]*[•*][ \t]+/gm, "- ");
 
   // 5. Spacing fixes for headings and blocks
   result = result.replace(/\*{4,}/g, "**");
   result = result.replace(/\*\*\*\*\*/g, "** **");
-  result = result.replace(/^(#{1,3})([A-Za-z0-9])/gm, "$1 $2");
+  result = result.replace(/^(#{1,4})([A-Za-z0-9])/gm, "$1 $2");
+  result = result.replace(/^(\d+\.)([A-Za-z0-9])/gm, "$1 $2");
+  result = result.replace(/^([-*])([A-Za-z0-9])/gm, "$1 $2");
+  result = result.replace(/([^\n])\n(#{1,4}\s)/g, "$1\n\n$2");
+  result = result.replace(/([^\n])\n([-*]\s|\d+\.\s)/g, "$1\n\n$2");
   result = result.replace(/\n{3,}/g, "\n\n");
 
   return result.trim();
@@ -500,23 +506,24 @@ const normalizeMarkdown = (text: string): string => {
 // JSON parsing and text content extractor helper (ChatGPT style: hides JSON completely)
 const parseMessageContent = (content: string): { text: string; rawJson: string | null } => {
   if (!content) return { text: "", rawJson: null };
-  let finalResult: { text: string; rawJson: string | null } = { text: content, rawJson: null };
+  const cleanedContent = content.replace(/\[CONVERSATION_ID:\s*\d+\]/gi, "").trim();
+  let finalResult: { text: string; rawJson: string | null } = { text: cleanedContent, rawJson: null };
 
   const jsonBlockRegex = /```(?:json|placementai)\s*([\s\S]*?)(?:```|$)/;
-  const match = content.match(jsonBlockRegex);
+  const match = cleanedContent.match(jsonBlockRegex);
   if (match) {
     const rawJson = match[1].trim();
-    const text = content.replace(/```(?:json|placementai)\s*[\s\S]*?(?:```|$)/g, "").trim();
+    const text = cleanedContent.replace(/```(?:json|placementai)\s*[\s\S]*?(?:```|$)/g, "").trim();
     finalResult = { text, rawJson };
   } else {
-    const start = content.indexOf("{");
-    const end = content.lastIndexOf("}");
+    const start = cleanedContent.indexOf("{");
+    const end = cleanedContent.lastIndexOf("}");
     if (start !== -1 && end !== -1 && end > start) {
-      const rawJsonCandidate = content.substring(start, end + 1).trim();
+      const rawJsonCandidate = cleanedContent.substring(start, end + 1).trim();
       try {
         const parsed = JSON.parse(rawJsonCandidate);
         if (parsed && (parsed.widgets || parsed.widget || parsed.schema)) {
-          const text = (content.substring(0, start) + content.substring(end + 1)).trim();
+          const text = (cleanedContent.substring(0, start) + cleanedContent.substring(end + 1)).trim();
           finalResult = { text, rawJson: rawJsonCandidate };
         }
       } catch (e) {
@@ -532,6 +539,7 @@ const parseMessageContent = (content: string): { text: string; rawJson: string |
       .replace(/###?\s*JSON Block Explanation[\s\S]*?$/i, "")
       .replace(/The JSON block provided earlier is a widget[\s\S]*?$/i, "")
       .replace(/This JSON block defines[\s\S]*?$/i, "")
+      .replace(/\[CONVERSATION_ID:\s*\d+\]/gi, "")
       .trim();
   }
 
@@ -589,6 +597,7 @@ const MessageItem = memo(({
   msg, 
   onCopy, 
   onRegenerate,
+  onSuggestionClick,
   onEdit,
   isGenerating = false,
   isLoading = false,
@@ -598,6 +607,7 @@ const MessageItem = memo(({
   msg: Message; 
   onCopy: (content: string) => void;
   onRegenerate?: (content: string) => void;
+  onSuggestionClick?: (suggestion: string) => void;
   onEdit?: (id: number, content: string) => void;
   isGenerating?: boolean;
   isLoading?: boolean;
@@ -730,12 +740,12 @@ const MessageItem = memo(({
                 cleanText.includes("resume") ? (
                   <SmartSuggestions 
                     suggestions={["Improve Resume", "Generate Cover Letter", "Run ATS Scan"]} 
-                    onClick={onRegenerate || (() => {})} 
+                    onClick={(suggestion) => onSuggestionClick ? onSuggestionClick(suggestion) : onRegenerate ? onRegenerate(suggestion) : undefined} 
                   />
                 ) : cleanText.includes("interview") ? (
                   <SmartSuggestions 
                     suggestions={["Start Mock Interview", "Prepare HR Questions", "Generate Learning Plan"]} 
-                    onClick={onRegenerate || (() => {})} 
+                    onClick={(suggestion) => onSuggestionClick ? onSuggestionClick(suggestion) : onRegenerate ? onRegenerate(suggestion) : undefined} 
                   />
                 ) : null
               )}
@@ -774,27 +784,35 @@ const MessageItem = memo(({
             </div>
           ) : (
             /* User Bubble Card */
-            <div className="bg-indigo-50/95 dark:bg-indigo-950/20 border border-indigo-150/50 dark:border-indigo-900/30 rounded-3xl px-5 py-4 w-full text-left relative flex flex-col gap-1.5 shadow-sm min-w-[220px]">
+            <div className={`bg-indigo-50/90 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 rounded-2xl rounded-tr-md px-4 py-2.5 text-left relative flex flex-col gap-1 shadow-sm transition-all ${isEditing ? 'w-full min-w-[280px]' : 'w-fit max-w-full'}`}>
               {isEditing ? (
-                <div className="w-full flex flex-col gap-2 bg-secondary border border-border p-3 rounded-2xl">
+                <div className="w-full flex flex-col gap-2 bg-secondary border border-border p-2.5 rounded-xl">
                   <textarea
                     value={editText}
                     onChange={(e) => setEditText(e.target.value)}
-                    className="w-full bg-transparent outline-none border-0 text-foreground text-sm resize-none min-h-[60px]"
+                    className="w-full bg-transparent outline-none border-0 text-foreground text-sm resize-none min-h-[50px]"
                   />
                   <div className="flex justify-end gap-2 text-xs font-bold">
-                    <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 rounded-lg border border-border hover:bg-secondary cursor-pointer">Cancel</button>
-                    <button onClick={() => { if (onEdit) onEdit(msg.id, editText); setIsEditing(false); }} className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer">Save & Resend</button>
+                    <button onClick={() => setIsEditing(false)} className="px-2.5 py-1 rounded-lg border border-border hover:bg-secondary cursor-pointer">Cancel</button>
+                    <button onClick={() => { if (onEdit) onEdit(msg.id, editText); setIsEditing(false); }} className="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer">Save & Resend</button>
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start justify-between w-full gap-4">
-                  <div className="text-[15px] font-medium text-indigo-950 dark:text-indigo-200 leading-relaxed select-text">{msg.content}</div>
-                  <button onClick={() => setIsEditing(true)} className="p-1 text-indigo-600 hover:text-indigo-800 text-[10px] font-bold uppercase shrink-0 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer select-none">Edit</button>
+                <div className="flex items-start gap-2.5">
+                  <div className="text-[14px] font-medium text-indigo-950 dark:text-indigo-100 leading-snug select-text break-words">
+                    {msg.content}
+                  </div>
+                  <button 
+                    onClick={() => setIsEditing(true)} 
+                    className="p-0.5 text-indigo-500 hover:text-indigo-700 text-[10px] font-bold uppercase shrink-0 opacity-0 group-hover/msg:opacity-100 transition-opacity cursor-pointer select-none"
+                    title="Edit message"
+                  >
+                    Edit
+                  </button>
                 </div>
               )}
               {/* User Timestamp bottom-right */}
-              <div className="text-[10px] font-bold text-indigo-600/40 dark:text-indigo-400/40 text-right mt-1 select-none">
+              <div className="text-[9px] font-medium text-indigo-500/60 dark:text-indigo-400/50 text-right leading-none select-none">
                 {msg.time}
               </div>
             </div>
@@ -847,15 +865,13 @@ function ChatPageContent() {
     toggleArchive,
     renameChat,
     duplicateChat,
-    updateMessages
+    updateMessages,
+    setActiveMessages,
+    fetchConversations
   } = useConversationManager();
 
   const messages = activeMessages;
-  const setMessages = (setter: Message[] | ((prev: Message[]) => Message[])) => {
-    if (activeConversationId) {
-      updateMessages(activeConversationId, setter);
-    }
-  };
+  const setMessages = setActiveMessages;
 
   const [input, setInput] = useState("");
   const [uploadedAttachments, setUploadedAttachments] = useState<any[]>([]);
@@ -1105,10 +1121,6 @@ function ChatPageContent() {
       attachments: currentAttachments,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    setMessages([...messages, userMsg]);
-    setInput("");
-    setIsLoading(true);
-    isAutoScrollEnabled.current = true;
 
     const aiMsgId = Date.now() + 1;
     const aiMsg: Message = {
@@ -1117,7 +1129,12 @@ function ChatPageContent() {
       content: "",
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
-    setMessages(prev => [...prev, aiMsg]);
+
+    // Atomically append both user message and initial AI message
+    setMessages(prev => [...prev, userMsg, aiMsg]);
+    setInput("");
+    setIsLoading(true);
+    isAutoScrollEnabled.current = true;
 
     if (messages.length === 0 && activeConversationId) {
       const cleanTitle = finalInput.split("\n")[0].slice(0, 30) + (finalInput.length > 30 ? "..." : "");
@@ -1134,8 +1151,8 @@ function ChatPageContent() {
     limitTimerRef.current = setTimeout(() => {
       console.warn("Time limit exceeded, aborting stream.");
       controller.abort();
-      toast.error("Request timed out after 60 seconds");
-    }, 60000);
+      toast.error("Request timed out after 120 seconds");
+    }, 120000);
 
     try {
       const token = localStorage.getItem("token");
@@ -1173,8 +1190,8 @@ function ChatPageContent() {
           limitTimerRef.current = setTimeout(() => {
             console.warn("Time limit exceeded during stream, aborting.");
             controller.abort();
-            toast.error("Stream timed out after 60 seconds");
-          }, 60000);
+            toast.error("Stream timed out after 120 seconds");
+          }, 120000);
 
           if (done) {
             break;
@@ -1184,7 +1201,7 @@ function ChatPageContent() {
             const rawChunk = decoder.decode(value, { stream: true });
             streamBuffer += rawChunk;
 
-            const parts = streamBuffer.split(/\n\s*\n/);
+            const parts = streamBuffer.split(/\r?\n\r?\n/);
             streamBuffer = parts.pop() || "";
             
             let contentUpdated = false;
@@ -1192,36 +1209,53 @@ function ChatPageContent() {
             for (const part of parts) {
               if (!part.trim()) continue;
               const lines = part.split(/\r?\n/);
-              let dataFound = false;
-              let partContent = "";
-              for (const line of lines) {
-                if (line.startsWith('data:')) {
-                  const dataValue = line.substring(5);
-                  console.log("[AI Log] Chunk received by frontend: '" + dataValue + "'");
+              let eventText = "";
 
-                  if (dataValue.startsWith('[CONVERSATION_ID:')) {
-                    const newId = dataValue.replace('[CONVERSATION_ID:', '').replace(']', '').trim();
-                    setActiveConversationId(newId);
-                    continue;
+              for (const line of lines) {
+                const cleanLine = line.trimStart();
+                if (cleanLine.startsWith("data:")) {
+                  let dataValue = cleanLine.substring(5);
+
+                  // Handle accidental doubled data: prefixes
+                  while (dataValue.startsWith("data:")) {
+                    dataValue = dataValue.substring(5);
                   }
-                  
-                  if (dataFound) {
-                      partContent += "\n";
+
+                  // Intercept conversation ID metadata
+                  if (dataValue.includes("[CONVERSATION_ID:")) {
+                    const match = dataValue.match(/\[CONVERSATION_ID:\s*(\d+)\]/);
+                    if (match) {
+                      const newId = match[1];
+                      if (newId !== activeConversationId) {
+                        setActiveConversationId(newId, { skipHistoryFetch: true });
+                        fetchConversations();
+                      }
+                    }
+                    dataValue = dataValue.replace(/\[CONVERSATION_ID:\s*\d+\]/g, "");
                   }
-                  partContent += dataValue;
-                  dataFound = true;
+
+                  if (!dataValue && lines.length === 1) {
+                    continue; // Skip empty heartbeat line
+                  }
+
+                  if (eventText) {
+                    eventText += "\n";
+                  }
+                  eventText += dataValue;
                 }
               }
-              if (dataFound) {
-                 currentAssembled += partContent;
-                 contentUpdated = true;
+
+              if (eventText) {
+                currentAssembled += eventText;
+                contentUpdated = true;
               }
             }
 
             if (contentUpdated) {
               fullContent += currentAssembled;
+              const displayContent = fullContent.replace(/\[CONVERSATION_ID:\s*\d+\]/gi, "").trimStart();
               setMessages(prev => prev.map(m => 
-                m.id === aiMsgId ? { ...m, content: fullContent } : m
+                m.id === aiMsgId ? { ...m, content: displayContent } : m
               ));
             }
           }
@@ -1400,10 +1434,15 @@ function ChatPageContent() {
                         feedbackState={feedback[msg.id]}
                         onFeedback={(type) => handleFeedback(msg.id, type)}
                         onEdit={handleEditMessage}
-                        onRegenerate={msg.role === 'ai' && index === messages.length - 1 ? () => {
-                          const lastUserMsg = messages[index-1];
-                          if (lastUserMsg) {
-                            handleSend(lastUserMsg.content);
+                        onSuggestionClick={(suggestion) => handleSend(suggestion)}
+                        onRegenerate={msg.role === 'ai' && index === messages.length - 1 ? (promptText?: string) => {
+                          if (typeof promptText === "string" && promptText.trim() && promptText !== msg.content) {
+                            handleSend(promptText);
+                          } else {
+                            const lastUserMsg = messages[index-1];
+                            if (lastUserMsg) {
+                              handleSend(lastUserMsg.content);
+                            }
                           }
                         } : undefined}
                       />

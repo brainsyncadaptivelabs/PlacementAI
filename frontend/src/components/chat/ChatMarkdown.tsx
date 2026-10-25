@@ -85,11 +85,32 @@ CodeBlock.displayName = "CodeBlock";
 
 export const ChatMarkdown = memo(({ content }: ChatMarkdownProps) => {
   return (
-    <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed space-y-2 select-text">
+    <div className="prose dark:prose-invert max-w-none w-full text-sm leading-relaxed space-y-2 select-text break-words">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         components={{
+          p({ children }) {
+            return <p className="leading-relaxed text-[15px] mb-3.5 text-slate-800 dark:text-slate-200 font-normal">{children}</p>;
+          },
+          h1({ children }) {
+            return <h1 className="text-xl font-extrabold mt-5 mb-2.5 text-foreground tracking-tight">{children}</h1>;
+          },
+          h2({ children }) {
+            return <h2 className="text-lg font-bold mt-4 mb-2 text-foreground tracking-tight">{children}</h2>;
+          },
+          h3({ children }) {
+            return <h3 className="text-base font-bold mt-3.5 mb-1.5 text-foreground">{children}</h3>;
+          },
+          ul({ children }) {
+            return <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-800 dark:text-slate-200 text-[14.5px]">{children}</ul>;
+          },
+          ol({ children }) {
+            return <ol className="list-decimal pl-5 my-3 space-y-1.5 text-slate-800 dark:text-slate-200 text-[14.5px]">{children}</ol>;
+          },
+          li({ children }) {
+            return <li className="leading-relaxed">{children}</li>;
+          },
           pre({ children }) {
             return <div className="my-3 overflow-hidden rounded-xl border border-border/80 shadow-sm">{children}</div>;
           },

@@ -11,24 +11,25 @@ export function InterviewJourney() {
   ];
 
   return (
-    <div className="p-5 bg-slate-900 border border-border/80 rounded-2xl text-left select-none space-y-4">
-      <h2 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">My Interview Journey Tracker</h2>
-      <div className="flex flex-wrap items-center gap-3">
+    <div className="p-5 bg-white border border-slate-200/90 rounded-2xl shadow-xs text-left select-none space-y-4 overflow-hidden">
+      <h2 className="text-xs font-bold uppercase tracking-wider text-slate-800">My Interview Journey Tracker</h2>
+      <div className="flex flex-wrap items-center gap-2.5">
         {steps.map((s, idx) => (
           <React.Fragment key={idx}>
-            <div className={`p-3 rounded-xl border flex items-center gap-2 ${
-              s.active ? "bg-indigo-600/10 border-indigo-500/30 text-white" :
-              s.done ? "bg-slate-950/40 border-border/10 text-slate-400" : "bg-slate-950/10 border-border/5 text-slate-600"
+            <div className={`p-2.5 sm:p-3 rounded-xl border flex items-center gap-2 transition-all min-w-0 shrink-0 ${
+              s.active ? "bg-indigo-50 border-indigo-200 text-indigo-900 font-bold shadow-xs" :
+              s.done ? "bg-emerald-50/70 border-emerald-200 text-slate-800 font-semibold" : 
+              "bg-slate-50 border-slate-200 text-slate-500 font-medium"
             }`}>
               {s.done ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               ) : (
-                <Circle className={`w-4 h-4 ${s.active ? 'text-indigo-400 animate-pulse' : 'text-slate-600'}`} />
+                <Circle className={`w-4 h-4 shrink-0 ${s.active ? 'text-indigo-600 animate-pulse' : 'text-slate-400'}`} />
               )}
-              <span className="text-xs font-bold">{s.label}</span>
+              <span className="text-xs truncate">{s.label}</span>
             </div>
             {idx < steps.length - 1 && (
-              <ArrowRight className="w-3.5 h-3.5 text-muted-foreground/30 shrink-0" />
+              <ArrowRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             )}
           </React.Fragment>
         ))}

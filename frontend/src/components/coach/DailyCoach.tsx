@@ -26,45 +26,45 @@ export function DailyCoach() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-white">Daily Coaching Missions</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Complete today's tasks to level up your placement readiness.</p>
+          <h2 className="text-xl font-bold text-slate-900">Daily Coaching Missions</h2>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Complete today's tasks to level up your placement readiness.</p>
         </div>
-        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-amber-500 text-xs font-bold">
-          <Flame className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-xs font-bold shadow-xs">
+          <Flame className="w-3.5 h-3.5 text-amber-600" />
           <span>Active Streak: 4 Days</span>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {missions.map((m) => (
-          <div key={m.id} className={`p-4 rounded-2xl border transition-all flex flex-col justify-between ${
+          <div key={m.id} className={`p-4 rounded-2xl border transition-all flex flex-col justify-between min-w-0 overflow-hidden ${
             m.completed 
-              ? "bg-slate-900/40 border-emerald-500/30 text-slate-400" 
-              : "bg-slate-900 border-border/80 text-slate-200 hover:border-indigo-500/40"
+              ? "bg-slate-50/80 border-emerald-200 text-slate-400 shadow-xs" 
+              : "bg-white border-slate-200/90 text-slate-900 shadow-xs hover:shadow-md hover:border-indigo-300"
           }`}>
-            <div>
-              <div className="flex justify-between items-start mb-2">
-                <span className={`text-[9px] uppercase font-bold px-1.5 py-0.5 rounded ${
-                  m.difficulty === "Easy" ? "bg-emerald-500/10 text-emerald-500" :
-                  m.difficulty === "Medium" ? "bg-amber-500/10 text-amber-500" : "bg-rose-500/10 text-rose-500"
+            <div className="min-w-0">
+              <div className="flex justify-between items-start mb-2 gap-2">
+                <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border shrink-0 ${
+                  m.difficulty === "Easy" ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
+                  m.difficulty === "Medium" ? "bg-amber-50 text-amber-700 border-amber-200" : "bg-rose-50 text-rose-700 border-rose-200"
                 }`}>{m.difficulty}</span>
-                <span className="text-[10px] text-muted-foreground font-semibold">{m.duration}</span>
+                <span className="text-[10px] text-slate-500 font-semibold shrink-0">{m.duration}</span>
               </div>
-              <h3 className={`text-xs font-bold leading-snug mt-1.5 ${m.completed ? "line-through" : "text-slate-100"}`}>{m.title}</h3>
-              <p className="text-[9px] text-indigo-400 font-bold uppercase tracking-wider mt-2">Impact: {m.impact}</p>
+              <h3 className={`text-xs font-bold leading-snug mt-1.5 break-words ${m.completed ? "line-through text-slate-400" : "text-slate-900"}`}>{m.title}</h3>
+              <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider mt-2 truncate">Impact: {m.impact}</p>
             </div>
 
-            <div className="flex items-center justify-between border-t border-border/20 pt-3 mt-4">
-              <div className="flex items-center gap-1 text-[10px] font-bold text-slate-100">
-                <Zap className="w-3.5 h-3.5 text-indigo-500" />
+            <div className="flex items-center justify-between border-t border-slate-100 pt-3 mt-4 gap-2">
+              <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 shrink-0">
+                <Zap className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                 <span>+{m.xp} XP</span>
               </div>
               <button 
                 onClick={() => toggleComplete(m.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                className={`flex items-center gap-1 px-3 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all border shrink-0 ${
                   m.completed 
-                    ? "bg-emerald-500/10 text-emerald-500" 
-                    : "bg-slate-800 hover:bg-slate-700 text-slate-300"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                    : "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 shadow-xs"
                 }`}
               >
                 <CheckCircle className="w-3.5 h-3.5" />

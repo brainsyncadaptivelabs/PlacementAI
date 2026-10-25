@@ -1,13 +1,21 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Conversation, Message } from "./ConversationStorage";
 import api from "@/lib/api";
 
 export function useConversationManager() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
+  const [activeConversationId, setActiveConversationIdState] = useState<string | null>(null);
   const [activeMessages, setActiveMessages] = useState<Message[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const skipHistoryFetchRef = useRef(false);
+
+  const setActiveConversationId = useCallback((id: string | null, opts?: { skipHistoryFetch?: boolean }) => {
+    if (opts?.skipHistoryFetch) {
+      skipHistoryFetchRef.current = true;
+    }
+    setActiveConversationIdState(id);
+  }, []);
 
   // 1. Fetch conversations from backend
   const fetchConversations = useCallback(async () => {
@@ -37,6 +45,11 @@ export function useConversationManager() {
   useEffect(() => {
     if (!activeConversationId) {
       setActiveMessages([]);
+      return;
+    }
+
+    if (skipHistoryFetchRef.current) {
+      skipHistoryFetchRef.current = false;
       return;
     }
 
@@ -73,7 +86,7 @@ export function useConversationManager() {
       }
     };
     init();
-  }, [fetchConversations]);
+  }, [fetchConversations, setActiveConversationId]);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId) || null;
 
@@ -93,13 +106,15 @@ export function useConversationManager() {
         lastMessageAt: new Date(res.data.updatedAt).getTime()
       };
       setConversations(prev => [newC, ...prev]);
+      skipHistoryFetchRef.current = true;
       setActiveConversationId(newC.id);
+      setActiveMessages([]);
       return newC;
     } catch (err) {
       console.error("Failed to create conversation", err);
       return null;
     }
-  }, []);
+  }, [setActiveConversationId]);
 
   // 4. Delete conversation
   const deleteChat = useCallback(async (id: string) => {
@@ -227,6 +242,7 @@ export function useConversationManager() {
     activeConversationId,
     activeConversation,
     activeMessages,
+    setActiveMessages,
     loadingHistory,
     searchQuery,
     setSearchQuery,
@@ -238,6 +254,7 @@ export function useConversationManager() {
     toggleArchive,
     renameChat,
     duplicateChat,
-    updateMessages
+    updateMessages,
+    fetchConversations
   };
 }

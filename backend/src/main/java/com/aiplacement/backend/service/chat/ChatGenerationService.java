@@ -21,7 +21,7 @@ public class ChatGenerationService {
         int maxTokens = sessionContext.getModelConfig().getMaxTokens();
 
         return aiGateway.stream(systemPrompt, userPrompt, temp, maxTokens)
-                .timeout(Duration.ofSeconds(60))
+                .timeout(Duration.ofSeconds(120))
                 .retry(1)
                 .onErrorResume(err -> {
                     log.error("Generation stream failed for request: {}", sessionContext.getRequestId(), err);

@@ -133,15 +133,14 @@ public class ChatbotController {
         Flux<String> responseStream = chatbotService.streamQuestion(request)
                 .doOnSubscribe(s -> log.info("[ChatbotController] Subscribed to AI stream for user: {}", username))
                 .doOnNext(chunk -> log.info("[AI Log] Chunk written to SSE: '{}'", chunk))
-                .map(chunk -> "data: " + chunk + "\n\n")
                 .share();
 
         Flux<String> heartbeat = Flux.interval(Duration.ofSeconds(15))
-                .map(tick -> "data: \n\n")
+                .map(tick -> "")
                 .takeUntilOther(responseStream.ignoreElements());
 
         return Flux.merge(responseStream, heartbeat)
-                .timeout(Duration.ofSeconds(60))
+                .timeout(Duration.ofSeconds(120))
                 .doOnCancel(() -> log.info("Client cancelled/stopped chat stream for user: {}", username))
                 .doOnComplete(() -> log.info("Stream completed successfully for user: {}", username))
                 .onErrorResume(err -> {
