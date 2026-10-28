@@ -244,6 +244,7 @@ export default function ErrorState({
             {/* Unauthorized primary sign in */}
             {type === "unauthorized" && !onRetry && (
               <Button
+                nativeButton={false}
                 render={<Link href={primaryActionHref || "/auth"} />}
                 className="w-full sm:w-auto h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
               >
@@ -255,6 +256,7 @@ export default function ErrorState({
             {/* Custom Primary Action if not covered */}
             {primaryActionHref && type !== "unauthorized" && !onRetry && (
               <Button
+                nativeButton={false}
                 render={<Link href={primaryActionHref} />}
                 className="w-full sm:w-auto h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
               >
@@ -265,6 +267,7 @@ export default function ErrorState({
             {/* Dashboard Button */}
             {showDashboardButton && type !== "unauthorized" && !onRetry && !primaryActionHref && (
               <Button
+                nativeButton={false}
                 render={<Link href={isAuth ? dashboardPath : "/auth"} />}
                 className="w-full sm:w-auto h-11 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2"
               >
@@ -276,6 +279,7 @@ export default function ErrorState({
             {/* Secondary Action / Home Button / Back Button */}
             {secondaryActionHref ? (
               <Button
+                nativeButton={false}
                 render={<Link href={secondaryActionHref} />}
                 variant="outline"
                 className="w-full sm:w-auto h-11 px-6 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 font-medium transition-all flex items-center justify-center gap-2"
@@ -284,6 +288,7 @@ export default function ErrorState({
               </Button>
             ) : showHomeButton ? (
               <Button
+                nativeButton={false}
                 render={<Link href={isAuth ? dashboardPath : "/"} />}
                 variant="outline"
                 className="w-full sm:w-auto h-11 px-6 rounded-xl border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 font-medium transition-all flex items-center justify-center gap-2"
