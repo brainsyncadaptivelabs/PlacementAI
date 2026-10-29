@@ -38,11 +38,15 @@ export function EditProfileDialog({
     githubUrl: "",
     leetcodeUrl: "",
     phone: "",
-    designation: ""
+    designation: "",
+    companyName: ""
   });
 
+  const prevOpenRef = useRef(false);
+
   useEffect(() => {
-    if (user && open) {
+    // Only initialize form fields when the dialog transitions from closed -> open
+    if (open && !prevOpenRef.current && user) {
       setFormData({
         fullName: user.fullName || "",
         email: user.email || "",
@@ -55,11 +59,13 @@ export function EditProfileDialog({
         githubUrl: user.githubUrl || "",
         leetcodeUrl: user.leetcodeUrl || "",
         phone: user.phone || "",
-        designation: user.designation || ""
+        designation: user.designation || "",
+        companyName: user.companyName || ""
       });
       setPreviewImage(null);
     }
-  }, [user, open]);
+    prevOpenRef.current = open;
+  }, [open, user]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -89,7 +95,8 @@ export function EditProfileDialog({
         githubUrl: formData.githubUrl,
         leetcodeUrl: formData.leetcodeUrl,
         phone: formData.phone,
-        designation: formData.designation
+        designation: formData.designation,
+        companyName: formData.companyName
       });
 
       await mutate();
@@ -150,6 +157,16 @@ export function EditProfileDialog({
         user.linkedinUrl,
         user.githubUrl,
         user.leetcodeUrl,
+        user.profileImage
+      ];
+    } else if (user.role === "RECRUITER") {
+      fields = [
+        user.fullName,
+        user.email,
+        user.companyName,
+        user.phone,
+        user.designation,
+        user.linkedinUrl,
         user.profileImage
       ];
     } else {
@@ -296,12 +313,16 @@ export function EditProfileDialog({
                  {user?.role === "RECRUITER" && (
                    <>
                      <div className="space-y-2">
-                        <Label htmlFor="phone" className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium text-xs"><Phone className="w-3.5 h-3.5 text-[var(--theme-color)]" /> Phone Number</Label>
-                        <Input id="phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+1 234 567 890" className="bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 dark:text-slate-200 h-11 focus-visible:ring-[var(--theme-color-20)] rounded-xl" />
+                        <Label htmlFor="companyName" className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium text-xs"><Building className="w-3.5 h-3.5 text-[var(--theme-color)]" /> Company Name</Label>
+                        <Input id="companyName" value={formData.companyName} onChange={(e) => setFormData({...formData, companyName: e.target.value})} placeholder="e.g. Google, Microsoft, TechCorp" className="bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 dark:text-slate-200 h-11 focus-visible:ring-[var(--theme-color-20)] rounded-xl" />
                      </div>
                      <div className="space-y-2">
                         <Label htmlFor="designation" className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium text-xs"><Briefcase className="w-3.5 h-3.5 text-[var(--theme-color)]" /> Job Title / Designation</Label>
                         <Input id="designation" value={formData.designation} onChange={(e) => setFormData({...formData, designation: e.target.value})} placeholder="e.g. Senior Technical Recruiter" className="bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 dark:text-slate-200 h-11 focus-visible:ring-[var(--theme-color-20)] rounded-xl" />
+                     </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="phone" className="flex items-center gap-2 text-slate-600 dark:text-slate-300 font-medium text-xs"><Phone className="w-3.5 h-3.5 text-[var(--theme-color)]" /> Phone Number</Label>
+                        <Input id="phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="+1 234 567 890" className="bg-slate-50/50 dark:bg-slate-950/50 border-slate-200 dark:border-slate-800 dark:text-slate-200 h-11 focus-visible:ring-[var(--theme-color-20)] rounded-xl" />
                      </div>
                    </>
                  )}

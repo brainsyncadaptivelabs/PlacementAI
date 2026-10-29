@@ -144,7 +144,7 @@ export default function LandingPage() {
                       <span className="text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md text-[8px] md:text-[9px]">CRITICAL</span>
                     </div>
                     <p className="text-[11px] md:text-xs text-slate-700 leading-relaxed font-semibold">
-                      "Improve Spring Boot projects and DSA to increase interview probability."
+                      &ldquo;Improve Spring Boot projects and DSA to increase interview probability.&rdquo;
                     </p>
                   </div>
                 </div>

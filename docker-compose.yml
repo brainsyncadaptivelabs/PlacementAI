@@ -40,7 +40,7 @@ services:
       - .env
     environment:
       SPRING_PROFILES_ACTIVE: ${PERF_PROFILE:-standard}
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/postgres}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/${DB_NAME:-placementai}}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-${DB_USERNAME:-postgres}}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${DB_PASSWORD:-postgres}}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
@@ -137,6 +137,7 @@ services:
   frontend:
     build:
       context: ./frontend
+      target: runner
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}

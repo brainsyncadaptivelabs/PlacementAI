@@ -420,7 +420,7 @@ export default function RecruiterSettingsPage() {
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {[
-              { label: "My Profile", icon: User },
+              { label: "My Profile", icon: User, url: "/recruiter/profile" },
               { label: "Company Profile", icon: Building, url: "/recruiter/company" },
               { label: "Change Password", icon: Key },
               { label: "Download My Data", icon: Download },

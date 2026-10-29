@@ -4,7 +4,9 @@ import com.aiplacement.backend.dto.user.CompleteProfileRequest;
 import com.aiplacement.backend.dto.user.UserProfileDto;
 import com.aiplacement.backend.entity.Role;
 import com.aiplacement.backend.entity.User;
+import com.aiplacement.backend.entity.CompanyProfile;
 import com.aiplacement.backend.repository.UserRepository;
+import com.aiplacement.backend.repository.CompanyProfileRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProfileServiceImpl implements ProfileService {
 
     private final UserRepository userRepository;
+    private final CompanyProfileRepository companyProfileRepository;
     private final org.springframework.cache.CacheManager cacheManager;
 
     private User getCurrentUser() {
@@ -58,6 +61,25 @@ public class ProfileServiceImpl implements ProfileService {
         
         user.setProfileCompleted(true);
         userRepository.save(user);
+
+        companyProfileRepository.findByRecruiterId(user.getId()).ifPresentOrElse(
+            cp -> {
+                cp.setCompanyName(request.getCompanyName());
+                if (request.getCompanyWebsite() != null) cp.setCareersWebsite(request.getCompanyWebsite());
+                if (request.getCompanySize() != null) cp.setCompanySize(request.getCompanySize());
+                companyProfileRepository.save(cp);
+            },
+            () -> {
+                CompanyProfile cp = CompanyProfile.builder()
+                        .recruiter(user)
+                        .companyName(request.getCompanyName())
+                        .careersWebsite(request.getCompanyWebsite())
+                        .companySize(request.getCompanySize())
+                        .build();
+                companyProfileRepository.save(cp);
+            }
+        );
+
         evictPlacementCaches(user.getEmail());
     }
 
@@ -152,6 +174,27 @@ public class ProfileServiceImpl implements ProfileService {
         if (request.getPhone() != null) user.setPhone(request.getPhone());
         if (request.getDesignation() != null) user.setDesignation(request.getDesignation());
         userRepository.save(user);
+
+        if (user.getRole() == Role.RECRUITER && (request.getCompanyName() != null || request.getCompanyWebsite() != null || request.getCompanySize() != null)) {
+            companyProfileRepository.findByRecruiterId(user.getId()).ifPresentOrElse(
+                cp -> {
+                    if (request.getCompanyName() != null) cp.setCompanyName(request.getCompanyName());
+                    if (request.getCompanyWebsite() != null) cp.setCareersWebsite(request.getCompanyWebsite());
+                    if (request.getCompanySize() != null) cp.setCompanySize(request.getCompanySize());
+                    companyProfileRepository.save(cp);
+                },
+                () -> {
+                    CompanyProfile cp = CompanyProfile.builder()
+                            .recruiter(user)
+                            .companyName(request.getCompanyName() != null ? request.getCompanyName() : user.getCompanyName())
+                            .careersWebsite(request.getCompanyWebsite() != null ? request.getCompanyWebsite() : user.getCompanyWebsite())
+                            .companySize(request.getCompanySize() != null ? request.getCompanySize() : user.getCompanySize())
+                            .build();
+                    companyProfileRepository.save(cp);
+                }
+            );
+        }
+
         evictPlacementCaches(user.getEmail());
     }
 

@@ -124,13 +124,17 @@ export default function SelectPlanPage() {
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
+    if (user?.role === "RECRUITER") {
+      router.replace("/recruiter");
+      return;
+    }
     if (typeof window !== "undefined") {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("tab") === "custom") {
         setActiveTab("CUSTOM");
       }
     }
-  }, []);
+  }, [user, router]);
 
   const loadRazorpayScript = (): Promise<boolean> => {
     return new Promise((resolve) => {

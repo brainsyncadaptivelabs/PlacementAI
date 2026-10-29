@@ -27,7 +27,7 @@ export function DailyCoach() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold text-slate-900">Daily Coaching Missions</h2>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">Complete today's tasks to level up your placement readiness.</p>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">Complete today&apos;s tasks to level up your placement readiness.</p>
         </div>
         <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full text-amber-700 text-xs font-bold shadow-xs">
           <Flame className="w-3.5 h-3.5 text-amber-600" />

@@ -343,7 +343,7 @@ export default function ResumeWizardPage() {
               <span className="text-xs text-muted-foreground font-semibold">Blueprint Ready</span>
             </div>
             <h2 className="text-2xl font-black tracking-tight text-slate-900 mt-4 leading-tight">
-              We've created a personalized optimization strategy for your resume.
+              We&apos;ve created a personalized optimization strategy for your resume.
             </h2>
           </div>
 

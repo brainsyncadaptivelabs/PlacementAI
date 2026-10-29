@@ -79,7 +79,7 @@ export default function ProgramOfDayModal({
           </div>
 
           <p className="text-xs text-muted-foreground pt-1">
-            Complete today's problem to maintain your <strong className="text-amber-400 font-bold">{data.currentStreak} day streak</strong> and keep progressing towards your 7-day reward!
+            Complete today&apos;s problem to maintain your <strong className="text-amber-400 font-bold">{data.currentStreak} day streak</strong> and keep progressing towards your 7-day reward!
           </p>
         </div>
 

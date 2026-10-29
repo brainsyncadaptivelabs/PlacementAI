@@ -12,18 +12,20 @@ import {
   Mic2, 
   FileText, 
   TrendingUp, 
-  ChevronRight,
-  Sparkles,
-  BookOpen,
-  Code2,
-  Brain,
-  Loader2,
-  Map as MapIcon,
-  Trophy,
-  Star,
-  X,
-  AlertCircle
+  ChevronRight, 
+  Sparkles, 
+  BookOpen, 
+  Code2, 
+  Brain, 
+  Loader2, 
+  Map as MapIcon, 
+  Trophy, 
+  Star, 
+  X, 
+  AlertCircle,
+  Lock
 } from "lucide-react";
+import Link from "next/link";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { usePerformanceProfile } from "@/hooks/usePerformanceProfile";
@@ -83,8 +85,15 @@ export default function PerfectStudentPortal() {
   const { stats, placementIntel, mentorData, timelineData, error: storeError, fetchDashboard } = useDashboardStore();
   const [statsError, setStatsError] = useState<string | null>(null);
   const [activeRoadmap, setActiveRoadmap] = useState<any | null>(null);
+  const [subData, setSubData] = useState<any>(null);
   const router = useRouter();
   const perfProfile = usePerformanceProfile();
+
+  useEffect(() => {
+    api.get("/payment/subscription-status")
+      .then(res => setSubData(res.data))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem("user_roadmap");
@@ -315,41 +324,49 @@ export default function PerfectStudentPortal() {
               </CardHeader>
 
               <CardContent className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs font-medium">
-                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
-                  <div className="flex justify-between text-foreground font-bold">
-                    <span>ATS Analysis</span>
-                    <span className="text-emerald-500">Active</span>
-                  </div>
-                  <Progress value={76} className="h-1.5 bg-secondary" />
-                  <p className="text-[10px] text-muted-foreground">38 / 50 analyses remaining</p>
-                </div>
+                {(() => {
+                  const feats = subData?.features || {};
+                  const items = [
+                    { key: "ATS_ANALYSIS", label: "ATS Analysis", defaultLimit: 4, unit: "analyses" },
+                    { key: "JD_MATCH", label: "JD Match", defaultLimit: 0, unit: "matches" },
+                    { key: "SKILL_GAP", label: "Skill Gap", defaultLimit: 0, unit: "analyses" },
+                    { key: "AI_CHAT", label: "AI Career Chat", defaultLimit: 0, unit: "messages" }
+                  ];
 
-                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
-                  <div className="flex justify-between text-foreground font-bold">
-                    <span>JD Match</span>
-                    <span className="text-emerald-500">Active</span>
-                  </div>
-                  <Progress value={73} className="h-1.5 bg-secondary" />
-                  <p className="text-[10px] text-muted-foreground">11 / 15 matches remaining</p>
-                </div>
+                  return items.map((item) => {
+                    const feat = feats[item.key];
+                    const isIncluded = feat ? Boolean(feat.included) : item.defaultLimit > 0;
+                    const limit = feat ? feat.limit : item.defaultLimit;
+                    const remaining = feat ? feat.remaining : item.defaultLimit;
+                    const pct = limit > 0 ? Math.min(100, Math.round((remaining / limit) * 100)) : 0;
 
-                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
-                  <div className="flex justify-between text-foreground font-bold">
-                    <span>Skill Gap</span>
-                    <span className="text-emerald-500">Active</span>
-                  </div>
-                  <Progress value={60} className="h-1.5 bg-secondary" />
-                  <p className="text-[10px] text-muted-foreground">3 / 5 analyses remaining</p>
-                </div>
-
-                <div className="p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1">
-                  <div className="flex justify-between text-foreground font-bold">
-                    <span>AI Career Chat</span>
-                    <span className="text-emerald-500">Active</span>
-                  </div>
-                  <Progress value={82} className="h-1.5 bg-secondary" />
-                  <p className="text-[10px] text-muted-foreground">248 / 300 messages remaining</p>
-                </div>
+                    return (
+                      <div key={item.key} className={`p-3.5 bg-muted/40 rounded-xl border border-border/60 space-y-1.5 ${!isIncluded ? 'opacity-80' : ''}`}>
+                        <div className="flex justify-between items-center text-foreground font-bold">
+                          <span>{item.label}</span>
+                          {isIncluded ? (
+                            <span className="text-emerald-500 text-[10px] font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">Active</span>
+                          ) : (
+                            <span className="text-amber-500 text-[10px] font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                              <Lock className="w-2.5 h-2.5" /> Locked
+                            </span>
+                          )}
+                        </div>
+                        <Progress value={isIncluded ? pct : 0} className="h-1.5 bg-secondary" />
+                        <div className="flex justify-between items-center text-[10px]">
+                          <span className="text-muted-foreground">
+                            {isIncluded ? `${remaining} / ${limit} ${item.unit} remaining` : `Not included in Free plan`}
+                          </span>
+                          {!isIncluded && (
+                            <Link href="/select-plan" className="text-primary hover:underline font-bold">
+                              Upgrade
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </CardContent>
             </Card>
 
@@ -490,7 +507,7 @@ export default function PerfectStudentPortal() {
                    <CardContent className="p-5 space-y-4">
                       {mentorData.dailyMission && (
                          <div className="space-y-2">
-                            <div className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">Today's Placement Mission</div>
+                            <div className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-wider">Today&apos;s Placement Mission</div>
                             <div className="p-3 bg-muted/40 rounded-xl border border-border/60 space-y-2">
                                <div className="text-xs font-black text-foreground">{mentorData.dailyMission.missionTitle}</div>
                                <div className="space-y-1.5 text-xs text-muted-foreground">

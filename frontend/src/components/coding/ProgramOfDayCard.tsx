@@ -142,7 +142,7 @@ export default function ProgramOfDayCard({ data, onSolve, isLoading }: ProgramOf
             {isCompleted ? (
               <span className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Solved Today</span>
             ) : (
-              <span className="flex items-center gap-2">Solve Today's Problem <ArrowRight className="w-4 h-4" /></span>
+              <span className="flex items-center gap-2">Solve Today&apos;s Problem <ArrowRight className="w-4 h-4" /></span>
             )}
           </Button>
         </div>

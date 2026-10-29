@@ -75,21 +75,6 @@ export function useConversationManager() {
     loadHistory();
   }, [activeConversationId]);
 
-  // Initial load
-  useEffect(() => {
-    const init = async () => {
-      const list = await fetchConversations();
-      if (list.length > 0) {
-        setActiveConversationId(list[0].id);
-      } else {
-        await createNewChat("New Conversation");
-      }
-    };
-    init();
-  }, [fetchConversations, setActiveConversationId]);
-
-  const activeConversation = conversations.find(c => c.id === activeConversationId) || null;
-
   // 3. Create a new conversation on backend
   const createNewChat = useCallback(async (title: string = "New Conversation") => {
     try {
@@ -115,6 +100,21 @@ export function useConversationManager() {
       return null;
     }
   }, [setActiveConversationId]);
+
+  // Initial load
+  useEffect(() => {
+    const init = async () => {
+      const list = await fetchConversations();
+      if (list.length > 0) {
+        setActiveConversationId(list[0].id);
+      } else {
+        await createNewChat("New Conversation");
+      }
+    };
+    init();
+  }, [fetchConversations, setActiveConversationId, createNewChat]);
+
+  const activeConversation = conversations.find(c => c.id === activeConversationId) || null;
 
   // 4. Delete conversation
   const deleteChat = useCallback(async (id: string) => {

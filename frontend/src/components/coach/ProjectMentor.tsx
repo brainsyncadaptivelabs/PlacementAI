@@ -32,7 +32,7 @@ export function ProjectMentor() {
           <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-xl space-y-2 shadow-2xs min-w-0 overflow-hidden">
             <span className="text-[10px] uppercase font-bold text-slate-700 tracking-wider">Resume Bullet Suggestion</span>
             <p className="text-xs text-slate-800 font-medium italic bg-white p-3 rounded-lg border border-slate-200/70 leading-relaxed break-words">
-              "Designed a thread-safe ConcurrentHashMap analysis caching system in Java Spring Boot, reducing redundant LLM parsing calls by 45% and ensuring O(1) response retrievals."
+              &ldquo;Designed a thread-safe ConcurrentHashMap analysis caching system in Java Spring Boot, reducing redundant LLM parsing calls by 45% and ensuring O(1) response retrievals.&rdquo;
             </p>
           </div>
         </div>

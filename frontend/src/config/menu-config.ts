@@ -82,7 +82,7 @@ export const studentMenuGroups: MenuGroup[] = [
     title: "AI",
     items: [
       { title: "AI Chatbot", icon: MessageSquare, url: "/dashboard/chat" },
-      { title: "AI Coach", icon: Sparkles, url: "/dashboard/coach" }
+      { title: "AI Coach", icon: Sparkles, url: "/dashboard/coach", comingSoon: true }
     ]
   },
   {

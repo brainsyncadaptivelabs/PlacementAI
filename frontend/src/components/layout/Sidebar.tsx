@@ -30,14 +30,14 @@ export function Sidebar({ role }: SidebarProps) {
   const router = useRouter();
   const { signOut } = useAuth();
   const { isMobile, setOpenMobile } = useSidebar();
-  const [userPlan, setUserPlan] = React.useState<string>("PREMIUM");
+  const [userPlan, setUserPlan] = React.useState<string>("FREE");
   const menuItems = (roleMenus[role] || []);
 
   React.useEffect(() => {
     if (role === "STUDENT") {
       api.get("/payment/subscription-status")
         .then((res) => {
-          if (res.data?.plan) setUserPlan(res.data.plan);
+          if (res.data?.plan) setUserPlan(res.data.plan.toUpperCase());
         })
         .catch(() => {});
     }
@@ -112,8 +112,8 @@ export function Sidebar({ role }: SidebarProps) {
                     ? pathname === item.url 
                     : (pathname === item.url || pathname.startsWith(item.url + '/'));
 
-                  const isAllowedOnFree = true;
-                  const isLockedForFree = false;
+                  const isAllowedOnFree = item.url === "/dashboard" || item.url === "/dashboard/ats" || item.url === "/dashboard/history" || item.url === "/dashboard/settings";
+                  const isLockedForFree = userPlan === "FREE" && !isAllowedOnFree && !item.comingSoon;
 
                   return (
                     <SidebarMenuItem key={item.title}>

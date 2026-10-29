@@ -220,7 +220,7 @@ export default function TestCasePanel({
           <div>
             {!executionResults ? (
               <div className="py-8 text-center text-muted-foreground font-sans text-xs">
-                Click "Run" or "Submit" to see execution telemetry.
+                Click &ldquo;Run&rdquo; or &ldquo;Submit&rdquo; to see execution telemetry.
               </div>
             ) : (
               <div className="space-y-4">

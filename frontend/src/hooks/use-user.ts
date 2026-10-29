@@ -31,6 +31,9 @@ export type UserProfile = {
   skills?: string;
   phone?: string;
   designation?: string;
+  companyName?: string;
+  companyWebsite?: string;
+  companySize?: string;
   createdAt?: string;
   authProvider?: 'LOCAL' | 'GOOGLE' | 'GITHUB';
 };

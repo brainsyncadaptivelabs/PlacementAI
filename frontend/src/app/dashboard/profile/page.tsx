@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Share2, Code2, Activity, FileText, CheckCircle, Award, LayoutGrid, Check, X, Edit2, Plus } from "lucide-react";
@@ -15,8 +16,15 @@ import api from "@/lib/api";
 import { toast } from "@/store/toast-store";
 
 export default function ProfileDashboard() {
+  const router = useRouter();
   const { user, loading, mutate } = useUser();
   const [isEditOpen, setIsEditOpen] = useState(false);
+
+  useEffect(() => {
+    if (user && user.role === "RECRUITER") {
+      router.replace("/recruiter/profile");
+    }
+  }, [user, router]);
   const [isSharing, setIsSharing] = useState(false);
   const [reportData, setReportData] = useState<ReportCardData | null>(null);
   const [cachedBlob, setCachedBlob] = useState<{ blob: Blob; timestamp: number } | null>(null);

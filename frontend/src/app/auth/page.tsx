@@ -590,20 +590,20 @@ export default function AuthPage() {
         '--auth-active-tab-bg': '#FDF2F8',
         '--auth-active-tab-text': '#832838',
         '--auth-active-tab-border': '#832838',
-        '--auth-headline-size': '32px',
-        '--auth-headline-mb': '8px',
-        '--auth-desc-size': '13px',
-        '--auth-desc-mb': '12px',
-        '--auth-features-gap': '6px',
-        '--auth-feature-item-gap': '12px',
-        '--auth-feature-item-padding': '8px 12px',
-        '--auth-icon-size': '32px',
-        '--auth-icon-radius': '8px',
-        '--auth-svg-size': '16px',
-        '--auth-h3-size': '13px',
-        '--auth-h3-mb': '2px',
-        '--auth-p-size': '11px',
-        '--auth-p-lh': '1.3',
+        '--auth-headline-size': '38px',
+        '--auth-headline-mb': '12px',
+        '--auth-desc-size': '15px',
+        '--auth-desc-mb': '16px',
+        '--auth-features-gap': '12px',
+        '--auth-feature-item-gap': '16px',
+        '--auth-feature-item-padding': '16px',
+        '--auth-icon-size': '40px',
+        '--auth-icon-radius': '12px',
+        '--auth-svg-size': '20px',
+        '--auth-h3-size': '15px',
+        '--auth-h3-mb': '4px',
+        '--auth-p-size': '13px',
+        '--auth-p-lh': '1.4',
       };
     } else if (selectedRole === 'PLACEMENT_OFFICER') {
       return {
@@ -719,7 +719,8 @@ export default function AuthPage() {
         /* Left Branding Panel */
         .auth-left-panel {
           width: 38%;
-          padding: 40px;
+          height: 100vh;
+          padding: 36px 40px;
           display: flex;
           flex-direction: column;
           color: white;
@@ -727,6 +728,13 @@ export default function AuthPage() {
           box-sizing: border-box;
           z-index: 10;
           justify-content: flex-start;
+          overflow-y: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+
+        .auth-left-panel::-webkit-scrollbar {
+          display: none;
         }
 
         .left-panel-logo-container {
@@ -1322,13 +1330,13 @@ export default function AuthPage() {
             </div>
           </div>
 
-          <h1 className="left-panel-headline pr-24 lg:pr-32">
+          <h1 className="left-panel-headline pr-16 md:pr-20">
             Your AI-Powered<br />
             {selectedRole === "RECRUITER" ? <span>Recruitment</span> : selectedRole === "PLACEMENT_OFFICER" ? <span>Placement Office</span> : <span>Placement</span>} 
             {selectedRole === "RECRUITER" ? " Partner" : selectedRole === "PLACEMENT_OFFICER" ? " Partner" : " Partner"}
           </h1>
 
-          <p className="left-panel-description pr-24 lg:pr-32">
+          <p className="left-panel-description">
             {selectedRole === "RECRUITER" 
               ? "Streamline hiring, find the right talent faster, and build high-performing teams with AI." 
               : selectedRole === "PLACEMENT_OFFICER" 
@@ -1632,7 +1640,9 @@ export default function AuthPage() {
                   </svg>
                 </div>
                 <h2 className="auth-card-title">Create Your Account</h2>
-                <p className="auth-card-subtitle">Join PlacementAI today and take the first step towards your dream career! 🚀</p>
+                {selectedRole === "STUDENT" && (
+                  <p className="auth-card-subtitle">Join PlacementAI today and take the first step towards your dream career! 🚀</p>
+                )}
               </div>
               
               <form onSubmit={handleSignup} className="flex flex-col">

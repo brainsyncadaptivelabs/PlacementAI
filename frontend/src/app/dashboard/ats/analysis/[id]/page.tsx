@@ -667,7 +667,7 @@ export default function AtsAnalysisFromHistoryPage() {
                           {sectionBullets.map((wb, idx) => (
                             <div key={idx} className="p-3 rounded-lg border border-border bg-slate-50 dark:bg-slate-900/60 space-y-2">
                               <div className="text-[10px] text-muted-foreground font-bold uppercase">Original Bullet:</div>
-                              <p className="text-xs text-foreground font-semibold">"{wb.originalBullet}"</p>
+                              <p className="text-xs text-foreground font-semibold">&ldquo;{wb.originalBullet}&rdquo;</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {wb.problems.map((prob, pIdx) => (
                                   <Badge key={pIdx} variant="destructive" className="text-[9px] px-1.5 py-0.5 border-none">{prob}</Badge>
@@ -675,7 +675,7 @@ export default function AtsAnalysisFromHistoryPage() {
                               </div>
                               <div className="text-xs pt-1 leading-relaxed">
                                 <span className="font-bold text-emerald-600 dark:text-emerald-400 block mb-0.5">Suggested Safe Rewrite:</span>
-                                <p className="text-foreground font-medium italic">"{wb.rewriteSuggestion}"</p>
+                                <p className="text-foreground font-medium italic">&ldquo;{wb.rewriteSuggestion}&rdquo;</p>
                               </div>
                             </div>
                           ))}

@@ -572,16 +572,27 @@ function ResumeEditor() {
     }, 800);
   };
 
+  // Helper to dynamically load template recommendations
+  const loadTemplateRecommendations = (id: string): any => {
+    try {
+      const folderName = id.replace("-style", "");
+      if (["professional", "classic", "experienced", "modern", "ats", "executive"].includes(folderName)) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        return require(`../../../../resume-templates/ats/${folderName}/recommendations.json`);
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        return require(`../../../../resume-templates/company-based/${folderName}/recommendations.json`);
+      }
+    } catch (e) {
+      console.warn("Could not load template recommendations:", e);
+      return null;
+    }
+  };
+
   // Helper to get template-specific tips
   const getTemplateTips = (id: string): string => {
     try {
-      const folderName = id.replace("-style", "");
-      let recData;
-      if (["professional", "classic", "experienced", "modern", "ats", "executive"].includes(folderName)) {
-        recData = require(`../../../../resume-templates/ats/${folderName}/recommendations.json`);
-      } else {
-        recData = require(`../../../../resume-templates/company-based/${folderName}/recommendations.json`);
-      }
+      const recData = loadTemplateRecommendations(id);
       if (recData && recData.aiPriorities) {
         return `Template Tone: ${recData.resumeTone}. Bullet Style: ${recData.recommendedBulletStyle}. Coach Priorities: ${recData.aiPriorities.join(", ")}.`;
       }
@@ -603,13 +614,7 @@ function ResumeEditor() {
     let aiPriorities: string[] = [];
 
     try {
-      const folderName = currentTemplateId.replace("-style", "");
-      let recData;
-      if (["professional", "classic", "experienced", "modern", "ats", "executive"].includes(folderName)) {
-        recData = require(`../../../../resume-templates/ats/${folderName}/recommendations.json`);
-      } else {
-        recData = require(`../../../../resume-templates/company-based/${folderName}/recommendations.json`);
-      }
+      const recData = loadTemplateRecommendations(currentTemplateId);
       if (recData) {
         preferredSkills = recData.preferredSkills || [];
         avoidKeywords = recData.avoidKeywords || [];
@@ -812,13 +817,7 @@ function ResumeEditor() {
     let preferredSkills: string[] = [];
     let avoidKeywords: string[] = [];
     try {
-      const folderName = templateId.replace("-style", "");
-      let recData;
-      if (["professional", "classic", "experienced", "modern", "ats", "executive"].includes(folderName)) {
-        recData = require(`../../../../resume-templates/ats/${folderName}/recommendations.json`);
-      } else {
-        recData = require(`../../../../resume-templates/company-based/${folderName}/recommendations.json`);
-      }
+      const recData = loadTemplateRecommendations(templateId);
       if (recData && recData.atsWeightages) {
         // Compute custom ATS score based on template specific criteria and keyword lists
         let matches = 0;
@@ -1331,13 +1330,7 @@ function ResumeEditor() {
     // Read template specific recommendations to supply context to AI prompt
     let templateInstructions = "";
     try {
-      const folderName = templateId.replace("-style", "");
-      let recData;
-      if (["professional", "classic", "experienced", "modern", "ats", "executive"].includes(folderName)) {
-        recData = require(`../../../../resume-templates/ats/${folderName}/recommendations.json`);
-      } else {
-        recData = require(`../../../../resume-templates/company-based/${folderName}/recommendations.json`);
-      }
+      const recData = loadTemplateRecommendations(templateId);
       if (recData) {
         templateInstructions = `Template Recommendations Context:
 - Tone: ${recData.resumeTone}

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Loader2, Sparkles, CreditCard, ShieldCheck, HelpCircle, Star, User, Building, Landmark, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -222,6 +223,7 @@ const OFFICER_COMPARISON: ComparisonRow[] = [
 ];
 
 export default function SubscriptionBillingPage() {
+  const router = useRouter();
   const { user, mutate } = useUser();
   const [activeTab, setActiveTab] = useState<"student" | "recruiter" | "officer">("student");
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -229,6 +231,12 @@ export default function SubscriptionBillingPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [showMockModal, setShowMockModal] = useState(false);
   const [mockOrderId, setMockOrderId] = useState("");
+
+  useEffect(() => {
+    if (user?.role === "RECRUITER") {
+      router.replace("/recruiter");
+    }
+  }, [user, router]);
 
   const userPlan = user?.plan || "FREE";
 

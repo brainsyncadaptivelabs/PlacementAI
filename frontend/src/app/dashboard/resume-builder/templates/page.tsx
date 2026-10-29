@@ -134,7 +134,7 @@ export default function TemplateGalleryPage() {
           <div className="col-span-full py-16 text-center bg-card border border-border/60 rounded-3xl p-8 space-y-4 max-w-lg mx-auto shadow-sm">
             <h3 className="text-xl font-bold text-foreground">No Templates Found</h3>
             <p className="text-sm text-muted-foreground">
-              We couldn't load any templates matching this category. Please check your registry configuration or try switching filters.
+              We could not load any templates matching this category. Please check your registry configuration or try switching filters.
             </p>
           </div>
         ) : (

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   User, 
@@ -10,7 +11,8 @@ import {
   Loader2,
   ChevronRight,
   Building,
-  Sparkles
+  Sparkles,
+  Settings
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUser } from "@/hooks/use-user";
@@ -20,6 +22,10 @@ import api from "@/lib/api";
 export function UserNav() {
   const { user, loading, mutate } = useUser();
   const [isOpen, setIsOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isRecruiter = user?.role === "RECRUITER" || pathname?.startsWith("/recruiter");
+  const isPlacementOfficer = user?.role === "PLACEMENT_OFFICER" || pathname?.startsWith("/placement-officer");
 
   const [isUploading, setIsUploading] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -96,11 +102,21 @@ export function UserNav() {
       >
         <div className="text-right hidden sm:block">
           <p className="text-sm font-bold text-foreground leading-none group-hover:text-primary transition-colors">
-            {user?.fullName || "User"}
+            {user?.fullName || (isRecruiter ? "Recruiter" : isPlacementOfficer ? "Placement Officer" : "User")}
           </p>
-          <p className="text-[10px] font-bold text-muted-foreground/70 mt-1 uppercase tracking-widest">
-            {user?.plan || "Free"} Plan
-          </p>
+          {isRecruiter ? (
+            <p className="text-[10px] font-bold text-muted-foreground/70 mt-1 uppercase tracking-widest">
+              {user?.companyName || "Recruiter"}
+            </p>
+          ) : isPlacementOfficer ? (
+            <p className="text-[10px] font-bold text-muted-foreground/70 mt-1 uppercase tracking-widest">
+              {user?.collegeName || "Placement Officer"}
+            </p>
+          ) : (
+            <p className="text-[10px] font-bold text-muted-foreground/70 mt-1 uppercase tracking-widest">
+              {user?.plan || "Free"} Plan
+            </p>
+          )}
         </div>
 
         <div className="relative">
@@ -136,42 +152,97 @@ export function UserNav() {
             className="absolute right-0 mt-3 w-auto min-w-[160px] bg-card border border-border rounded-xl shadow-md z-50 overflow-hidden"
           >
             <div className="p-1.5 flex flex-col gap-0.5">
-              <Link 
-                href="/dashboard/profile"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
-              >
-                <div className="flex items-center gap-3 text-foreground">
-                  <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
-                  <span className="text-sm font-semibold">My Profile</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-              </Link>
+              {isRecruiter ? (
+                <>
+                  <Link 
+                    href="/recruiter/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
+                      <span className="text-sm font-semibold">My Profile</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
 
-              <Link 
-                href="/dashboard/billing"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
-              >
-                <div className="flex items-center gap-3 text-foreground">
-                  <CreditCard className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
-                  <span className="text-sm font-semibold">Plans & Billing</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-              </Link>
+                  <Link 
+                    href="/recruiter/company"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <Building className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
+                      <span className="text-sm font-semibold">Company Workspace</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
 
-              <Link 
-                href="/dashboard/wallet"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
-              >
-                <div className="flex items-center gap-3 text-foreground">
-                  <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
-                  <span className="text-sm font-semibold">Feature Wallet</span>
-                </div>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
-              </Link>
+                  <Link 
+                    href="/recruiter/settings"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <Settings className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
+                      <span className="text-sm font-semibold">Settings</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
+                </>
+              ) : isPlacementOfficer ? (
+                <>
+                  <Link 
+                    href="/placement-officer/settings"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <Settings className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
+                      <span className="text-sm font-semibold">Settings</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link 
+                    href="/dashboard/profile"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <User className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
+                      <span className="text-sm font-semibold">My Profile</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
 
+                  <Link 
+                    href="/dashboard/billing"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <CreditCard className="w-4 h-4 text-muted-foreground/70 group-hover:text-primary shrink-0" />
+                      <span className="text-sm font-semibold">Plans & Billing</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
+
+                  <Link 
+                    href="/dashboard/wallet"
+                    onClick={() => setIsOpen(false)}
+                    className="w-full flex items-center justify-between gap-4 p-2.5 rounded-lg hover:bg-muted transition-all group whitespace-nowrap min-w-max text-left"
+                  >
+                    <div className="flex items-center gap-3 text-foreground">
+                      <Sparkles className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <span className="text-sm font-semibold">Feature Wallet</span>
+                    </div>
+                    <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
+                  </Link>
+                </>
+              )}
             </div>
           </motion.div>
         )}

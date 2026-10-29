@@ -13,13 +13,53 @@ interface FeatureGuardProps {
 }
 
 export function FeatureGuard({ featureKey, featureTitle, children }: FeatureGuardProps) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [isLocked, setIsLocked] = useState(false);
 
   useEffect(() => {
-    // All modules unlocked on localhost
-    setIsLocked(false);
-    setLoading(false);
+    let isMounted = true;
+    const checkEntitlement = async () => {
+      try {
+        const [subRes, walletRes] = await Promise.allSettled([
+          api.get("/payment/subscription-status"),
+          api.get("/custom-plans/wallet")
+        ]);
+
+        if (!isMounted) return;
+
+        let plan = "FREE";
+        let isIncluded = false;
+        let customRemaining = 0;
+
+        if (subRes.status === "fulfilled" && subRes.value.data) {
+          plan = (subRes.value.data.plan || "FREE").toUpperCase();
+          const features = subRes.value.data.features || {};
+          const feat = features[featureKey];
+          if (feat && feat.included) {
+            isIncluded = true;
+          }
+        }
+
+        if (walletRes.status === "fulfilled" && walletRes.value.data?.customCreditTotals) {
+          customRemaining = walletRes.value.data.customCreditTotals[featureKey] || 0;
+        }
+
+        if (plan === "FREE" && !isIncluded && customRemaining <= 0) {
+          setIsLocked(true);
+        } else {
+          setIsLocked(false);
+        }
+      } catch (err) {
+        console.warn("Failed to check subscription status for feature guard", err);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    checkEntitlement();
+    return () => {
+      isMounted = false;
+    };
   }, [featureKey]);
 
   if (loading) {
@@ -47,7 +87,7 @@ export function FeatureGuard({ featureKey, featureTitle, children }: FeatureGuar
             {featureTitle} is Locked
           </h2>
           <p className="text-slate-400 max-w-md mx-auto text-sm leading-relaxed">
-            This feature isn't included in your current Free Plan. Upgrade your plan or buy a custom credit pack to unlock it.
+            This feature is not included in your current Free Plan. Upgrade your plan or buy a custom credit pack to unlock it.
           </p>
         </div>
 

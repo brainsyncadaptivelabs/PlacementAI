@@ -142,7 +142,7 @@ export default function FeatureWalletPage() {
                 <Wallet className="w-12 h-12 text-muted-foreground mx-auto" />
                 <h3 className="font-bold text-foreground text-base">No active custom credits</h3>
                 <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-                  You haven't purchased any custom feature packs yet. Buy only the features you need.
+                  You have not purchased any custom feature packs yet. Buy only the features you need.
                 </p>
                 <Link href="/dashboard/billing">
                   <Button className="mt-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
