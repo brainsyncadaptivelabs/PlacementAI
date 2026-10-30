@@ -72,6 +72,7 @@ services:
     platform: linux/amd64
     container_name: placement-judge0-server
     command: ["./scripts/server"]
+    privileged: true
     restart: unless-stopped
     deploy:
       resources:
@@ -91,6 +92,8 @@ services:
       POSTGRES_DB: ${DB_NAME:-placementai}
     ports:
       - "2358:2358"
+    volumes:
+      - ./scripts/bin/isolate-arm64:/usr/local/bin/isolate:ro
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:2358/about || exit 1"]
       interval: 10s
@@ -124,6 +127,8 @@ services:
       POSTGRES_USER: ${DB_USERNAME:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
       POSTGRES_DB: ${DB_NAME:-placementai}
+    volumes:
+      - ./scripts/bin/isolate-arm64:/usr/local/bin/isolate:ro
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f workers || exit 1"]
       interval: 10s

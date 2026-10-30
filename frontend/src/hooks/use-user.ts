@@ -74,6 +74,13 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     const promise = (async () => {
       try {
         const response = await api.get('/user/profile');
+        if (typeof document !== 'undefined' && response.data?.role) {
+          const isSecure = window.location.protocol === 'https:';
+          const cookieSuffix = `; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+          document.cookie = `placementai_role=${response.data.role}${cookieSuffix}`;
+          document.cookie = `placementai_profile_completed=${Boolean(response.data.profileCompleted)}${cookieSuffix}`;
+          document.cookie = `placementai_plan_selected=${Boolean(response.data.planSelected)}${cookieSuffix}`;
+        }
         set({ user: response.data, error: null, loading: false });
         return response.data;
       } catch (err: any) {

@@ -196,7 +196,7 @@ export default function SuperAdminPortal() {
 
     try {
       const res = await api.post("/admin/auth/login", {
-        email: loginEmail,
+        email: loginEmail.trim(),
         password: loginPassword
       });
 
@@ -463,7 +463,7 @@ export default function SuperAdminPortal() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-wider text-slate-400">Security Key</label>
+              <label className="text-xs font-black uppercase tracking-wider text-slate-400">Password / Security Key</label>
               <input
                 type="password"
                 required
@@ -1351,12 +1351,19 @@ export default function SuperAdminPortal() {
             </h1>
             <p className="text-xs text-slate-500 font-semibold mt-1">Super Administrative operations environment.</p>
           </div>
-          <div className="flex items-center gap-4">
-            <Badge className="bg-slate-900 border-slate-800 text-slate-500 font-bold text-[9px] py-1 px-2.5">
-              SECURE SESSION EXPIRES IN 24H
-            </Badge>
-            <Button size="sm" variant="outline" className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs" onClick={() => fetchTabData(activeTab)}>
-              <RefreshCw className="w-3.5 h-3.5 mr-1" /> Reload Page
+          <div className="flex items-center gap-3">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 shadow-sm text-white">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <Lock className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+              <span className="text-xs font-semibold text-slate-100 tracking-wide">
+                Secure Session <span className="text-emerald-400 font-bold ml-1">• Expires in 24h</span>
+              </span>
+            </div>
+            <Button size="sm" variant="outline" className="border-slate-200 bg-white text-slate-700 hover:bg-slate-50 font-bold text-xs h-9 px-3.5 rounded-xl shadow-sm" onClick={() => fetchTabData(activeTab)}>
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" /> Reload Page
             </Button>
           </div>
         </header>

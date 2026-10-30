@@ -21,10 +21,10 @@ public class AdminSeeder implements CommandLineRunner {
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${admin.email:admin@placementai.com}")
+    @Value("${admin.email:founders.brainsynclabs@gmail.com}")
     private String adminEmail;
 
-    @Value("${admin.password:admin123}")
+    @Value("${admin.password:BSAL@2025}")
     private String adminPassword;
 
     @Override
@@ -32,9 +32,9 @@ public class AdminSeeder implements CommandLineRunner {
         log.info("[ADMIN_SEEDER] Checking for super admin credentials...");
 
         String defaultEmail = (adminEmail != null && !adminEmail.isBlank() && !adminEmail.contains("PLACEHOLDER"))
-                ? adminEmail : "admin@placementai.com";
+                ? adminEmail : "founders.brainsynclabs@gmail.com";
         String defaultPassword = (adminPassword != null && !adminPassword.isBlank() && !adminPassword.contains("PLACEHOLDER"))
-                ? adminPassword : "admin123";
+                ? adminPassword : "BSAL@2025";
 
         seedAdmin(defaultEmail, defaultPassword);
         seedAdmin("admin@example.com", defaultPassword);
@@ -43,7 +43,10 @@ public class AdminSeeder implements CommandLineRunner {
     }
 
     private void seedAdmin(String email, String password) {
-        Optional<AdminUser> existingOpt = adminUserRepository.findByEmail(email);
+        Optional<AdminUser> existingOpt = adminUserRepository.findByEmailIgnoreCase(email);
+        if (existingOpt.isEmpty()) {
+            existingOpt = adminUserRepository.findByEmail(email);
+        }
         if (existingOpt.isEmpty()) {
             AdminUser superAdmin = AdminUser.builder()
                     .email(email)

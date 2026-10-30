@@ -474,7 +474,7 @@ export default function AuthPage() {
         let correctPortal = "/auth";
         if (backendData.role === "RECRUITER") correctPortal = "/auth/recruiter";
         else if (backendData.role === "PLACEMENT_OFFICER") correctPortal = "/auth/placement-officer";
-        else if (backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN") correctPortal = "/admin/login";
+        else if (backendData.role === "ADMIN" || backendData.role === "SUPER_ADMIN") correctPortal = "/admin";
         
         const roleName = backendData.role.replace('_', ' ').toLowerCase();
         throw new Error(`This email belongs to a ${roleName} account. Please login through the correct portal.`);

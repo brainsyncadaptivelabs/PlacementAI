@@ -142,9 +142,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           const data = await response.json();
           localStorage.setItem('token', data.accessToken);
-          document.cookie = `placementai_role=${data.role}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-          document.cookie = `placementai_profile_completed=${data.profileCompleted}; path=/; max-age=2592000; SameSite=Lax; Secure`;
-          document.cookie = `placementai_plan_selected=${data.planSelected}; path=/; max-age=2592000; SameSite=Lax; Secure`;
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          const cookieSuffix = `; path=/; max-age=2592000; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+          document.cookie = `placementai_role=${data.role}${cookieSuffix}`;
+          document.cookie = `placementai_profile_completed=${data.profileCompleted}${cookieSuffix}`;
+          document.cookie = `placementai_plan_selected=${data.planSelected}${cookieSuffix}`;
           console.log(`[AUTH_PROVIDER] Re-synced. role=${data.role}`);
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
@@ -156,10 +158,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await supabase.auth.signOut();
             clearAuth();
             localStorage.removeItem('token');
-            document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
-            document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
-            document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
-            document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+            const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+            const clearSuffix = `; path=/; max-age=0; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+            document.cookie = `placementai_role=${clearSuffix}`;
+            document.cookie = `placementai_profile_completed=${clearSuffix}`;
+            document.cookie = `placementai_plan_selected=${clearSuffix}`;
+            document.cookie = `placementai_payment_completed=${clearSuffix}`;
             window.location.href = '/auth?error=account_suspended';
           }
         }
@@ -212,10 +216,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
           // Clear any orphaned tokens or cookies left from expired session
           localStorage.removeItem('token');
-          document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
-          document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
-          document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
-          document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          const clearSuffix = `; path=/; max-age=0; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+          document.cookie = `placementai_role=${clearSuffix}`;
+          document.cookie = `placementai_profile_completed=${clearSuffix}`;
+          document.cookie = `placementai_plan_selected=${clearSuffix}`;
+          document.cookie = `placementai_payment_completed=${clearSuffix}`;
         }
       } catch (err) {
         console.warn('[AUTH_PROVIDER] Supabase session check unavailable (offline/disconnected):', err);
@@ -245,10 +251,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
           clearAuth();
           localStorage.removeItem('token');
-          document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax; Secure';
-          document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax; Secure';
-          document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax; Secure';
-          document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax; Secure';
+          const isSecure = typeof window !== 'undefined' && window.location.protocol === 'https:';
+          const clearSuffix = `; path=/; max-age=0; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+          document.cookie = `placementai_role=${clearSuffix}`;
+          document.cookie = `placementai_profile_completed=${clearSuffix}`;
+          document.cookie = `placementai_plan_selected=${clearSuffix}`;
+          document.cookie = `placementai_payment_completed=${clearSuffix}`;
           window.dispatchEvent(new Event('storage'));
           window.dispatchEvent(new CustomEvent('placementai:auth-token-updated'));
           setShowTimeoutWarning(false);

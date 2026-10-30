@@ -228,11 +228,12 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
         boolean testPassed = false;
 
         try {
+            String preparedCode = wrapCodeIfNeeded(submission.getCode(), submission.getLanguage());
             CodeExecutionRequest execReq = CodeExecutionRequest.builder()
                     .language(submission.getLanguage())
                     .files(List.of(CodeExecutionRequest.CodeFile.builder()
                             .name(resolveFileName(submission.getLanguage()))
-                            .content(submission.getCode())
+                            .content(preparedCode)
                             .build()))
                     .stdin(tc.getInput())
                     .build();
@@ -240,10 +241,11 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
             CodeExecutionResponse response = strategy.execute(execReq);
             long runtimeMs = System.currentTimeMillis() - start;
 
-            if (runtimeMs > tc.getTimeoutMs()) {
+            int effectiveTimeout = tc.getTimeoutMs() > 0 ? tc.getTimeoutMs() : 5000;
+            if (runtimeMs > effectiveTimeout) {
                 verdict = "TLE";
                 actualOutput = "";
-                errorMessage = "Time Limit Exceeded (" + runtimeMs + "ms > " + tc.getTimeoutMs() + "ms)";
+                errorMessage = "Time Limit Exceeded (" + runtimeMs + "ms > " + effectiveTimeout + "ms)";
             } else if (response.getRun() != null && response.getRun().getCode() != null && response.getRun().getCode() != 0) {
                 verdict = "RE";
                 actualOutput = response.getRun().getStdout() != null ? response.getRun().getStdout() : "";
@@ -315,5 +317,37 @@ public class TestCaseExecutionEngineImpl implements TestCaseExecutionEngine {
             case "sql" -> "main.sql";
             default -> "main.txt";
         };
+    }
+
+    private String wrapCodeIfNeeded(String code, String language) {
+        if (code == null) return "";
+        String lang = language != null ? language.toLowerCase() : "";
+        if (lang.equals("python") && code.contains("class Solution") && !code.contains("if __name__")) {
+            return code + "\n\n" +
+                    "import sys, json\n" +
+                    "if __name__ == '__main__':\n" +
+                    "    try:\n" +
+                    "        raw = [l.strip() for l in sys.stdin.read().splitlines() if l.strip()]\n" +
+                    "        if raw:\n" +
+                    "            args = []\n" +
+                    "            for l in raw:\n" +
+                    "                try:\n" +
+                    "                    args.append(json.loads(l))\n" +
+                    "                except Exception:\n" +
+                    "                    args.append(l)\n" +
+                    "            sol = Solution()\n" +
+                    "            methods = [m for m in dir(sol) if not m.startswith('_') and callable(getattr(sol, m))]\n" +
+                    "            if methods:\n" +
+                    "                method = getattr(sol, methods[0])\n" +
+                    "                res = method(*args)\n" +
+                    "                if res is not None:\n" +
+                    "                    if isinstance(res, (list, dict, int, float, bool)):\n" +
+                    "                        print(json.dumps(res, separators=(',', ':')))\n" +
+                    "                    else:\n" +
+                    "                        print(res)\n" +
+                    "    except Exception as e:\n" +
+                    "        pass\n";
+        }
+        return code;
     }
 }

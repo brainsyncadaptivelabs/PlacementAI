@@ -15,13 +15,15 @@ const getHeaders = (url?: string) => {
 const handleResponseError = async (response: Response, url?: string) => {
   if (response.status === 401 || response.status === 403) {
     if (typeof window !== "undefined") {
-      const isAdmin = url && url.startsWith("/admin");
-      if (isAdmin) {
-        localStorage.removeItem("admin_token");
-        localStorage.removeItem("admin_csrf");
-        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
-        window.location.href = "/admin";
-      } else {
+      const isLoginEndpoint = url && (url.includes("/admin/auth/login") || url.includes("/auth/login"));
+      if (!isLoginEndpoint) {
+        const isAdmin = url && url.startsWith("/admin");
+        if (isAdmin) {
+          localStorage.removeItem("admin_token");
+          localStorage.removeItem("admin_csrf");
+          document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
+          window.location.href = "/admin";
+        } else {
         localStorage.removeItem("token");
         document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
         document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax';
@@ -46,6 +48,7 @@ const handleResponseError = async (response: Response, url?: string) => {
       }
     }
   }
+}
   const errorText = await response.text();
   let errorData;
   try {

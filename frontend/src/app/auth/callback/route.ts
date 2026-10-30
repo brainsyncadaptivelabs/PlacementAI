@@ -142,7 +142,7 @@ export async function GET(request: Request) {
           let correctPortal = "/auth";
           if (backendRole === "RECRUITER") correctPortal = "/auth/recruiter";
           else if (backendRole === "PLACEMENT_OFFICER") correctPortal = "/auth/placement-officer";
-          else if (backendRole === "ADMIN" || backendRole === "SUPER_ADMIN") correctPortal = "/admin/login";
+          else if (backendRole === "ADMIN" || backendRole === "SUPER_ADMIN") correctPortal = "/admin";
 
           return NextResponse.redirect(`${origin}/auth?error=wrong_portal&correct=${encodeURIComponent(correctPortal)}&role=${backendRole}`);
         }

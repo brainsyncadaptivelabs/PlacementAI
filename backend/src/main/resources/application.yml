@@ -230,7 +230,8 @@ google:
 admin:
   registration:
     code: ${ADMIN_REGISTRATION_CODE:ADMIN123}
-  email: ${ADMIN_EMAIL:admin@example.com}
+  email: ${ADMIN_EMAIL:founders.brainsynclabs@gmail.com}
+  password: ${ADMIN_PASSWORD:BSAL@2025}
   password-hash: ${ADMIN_PASSWORD_HASH:YOUR_ADMIN_PASSWORD_HASH_PLACEHOLDER}
 
 # ── Frontend ─────────────────────────────────────────────────
