@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, memo } from "react";
+import React, { useState, memo, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeSanitize from "rehype-sanitize";
 import { Copy, Check, Download } from "lucide-react";
 import dynamic from "next/dynamic";
+import { normalizeMarkdown } from "@/lib/chat/markdown";
 
 const MermaidDiagram = dynamic(() => import("./widgets/mermaid/MermaidDiagram"), { ssr: false });
 
@@ -84,6 +85,8 @@ const CodeBlock = memo(({ code, language }: { code: string; language: string }) 
 CodeBlock.displayName = "CodeBlock";
 
 export const ChatMarkdown = memo(({ content }: ChatMarkdownProps) => {
+  const normalizedContent = useMemo(() => normalizeMarkdown(content), [content]);
+
   return (
     <div className="prose dark:prose-invert max-w-none w-full text-sm leading-relaxed space-y-2 select-text break-words">
       <ReactMarkdown
@@ -103,13 +106,13 @@ export const ChatMarkdown = memo(({ content }: ChatMarkdownProps) => {
             return <h3 className="text-base font-bold mt-3.5 mb-1.5 text-foreground">{children}</h3>;
           },
           ul({ children }) {
-            return <ul className="list-disc pl-5 my-3 space-y-1.5 text-slate-800 dark:text-slate-200 text-[14.5px]">{children}</ul>;
+            return <ul className="list-disc pl-5 my-3 space-y-2 text-slate-800 dark:text-slate-200 text-[14.5px]">{children}</ul>;
           },
           ol({ children }) {
-            return <ol className="list-decimal pl-5 my-3 space-y-1.5 text-slate-800 dark:text-slate-200 text-[14.5px]">{children}</ol>;
+            return <ol className="list-decimal pl-5 my-3 space-y-2 text-slate-800 dark:text-slate-200 text-[14.5px]">{children}</ol>;
           },
           li({ children }) {
-            return <li className="leading-relaxed">{children}</li>;
+            return <li className="leading-relaxed my-1.5">{children}</li>;
           },
           pre({ children }) {
             return <div className="my-3 overflow-hidden rounded-xl border border-border/80 shadow-sm">{children}</div>;
@@ -181,7 +184,7 @@ export const ChatMarkdown = memo(({ content }: ChatMarkdownProps) => {
           }
         }}
       >
-        {content}
+        {normalizedContent}
       </ReactMarkdown>
     </div>
   );

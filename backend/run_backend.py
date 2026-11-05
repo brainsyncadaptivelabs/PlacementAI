@@ -1,6 +1,8 @@
 import os
+import socket
 import subprocess
 import sys
+from urllib.parse import urlparse
 
 # Determine workspace paths
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,19 +36,38 @@ for env_file in [os.path.join(root_dir, ".env"), os.path.join(script_dir, ".env"
                 v = v.strip().strip("\"'")
                 env[k] = v
 
-# Ensure local dev overrides point to local Docker services
-if not env.get("SPRING_DATASOURCE_URL") or "supabase.co" in env.get("SPRING_DATASOURCE_URL", ""):
-    env["SPRING_DATASOURCE_URL"] = "jdbc:postgresql://localhost:5432/postgres"
+# Ensure datasource and dev defaults are configured
+ds_url = env.get("SPRING_DATASOURCE_URL") or env.get("DB_URL", "jdbc:postgresql://localhost:5432/postgres")
+
+# If pointing to a remote host (e.g. Supabase), verify DNS resolution; fallback to local if unreachable
+if "supabase.co" in ds_url or "://" in ds_url:
+    try:
+        # Extract host from jdbc:postgresql://<host>:<port>/<db>
+        host_part = ds_url.split("://")[-1].split("/")[0].split(":")[0]
+        if host_part and host_part not in ("localhost", "127.0.0.1"):
+            socket.gethostbyname(host_part)
+    except Exception:
+        print(f"[run_backend] Remote database host '{host_part}' could not be resolved. Falling back to local PostgreSQL (localhost:5432)...")
+        ds_url = "jdbc:postgresql://localhost:5432/placementai"
+
+env["SPRING_DATASOURCE_URL"] = ds_url
+
 if not env.get("SPRING_DATASOURCE_USERNAME"):
     env["SPRING_DATASOURCE_USERNAME"] = env.get("DB_USERNAME", "postgres")
 if not env.get("SPRING_DATASOURCE_PASSWORD"):
     env["SPRING_DATASOURCE_PASSWORD"] = env.get("DB_PASSWORD", "BrainSyncAdaptiveLabs")
 
-env["SPRING_DATA_REDIS_HOST"] = "localhost"
-env["SPRING_DATA_REDIS_PORT"] = "6379"
-env["JUDGE0_API_URL"] = "http://localhost:2358"
-env["STORAGE_PROVIDER"] = "local"
-env["LOCAL_STORAGE_DIR"] = os.path.join(root_dir, "storage", "uploads")
+if not env.get("SPRING_DATA_REDIS_HOST"):
+    env["SPRING_DATA_REDIS_HOST"] = env.get("REDIS_HOST", "localhost")
+if not env.get("SPRING_DATA_REDIS_PORT"):
+    env["SPRING_DATA_REDIS_PORT"] = env.get("REDIS_PORT", "6379")
+
+if not env.get("JUDGE0_API_URL"):
+    env["JUDGE0_API_URL"] = "http://localhost:2358"
+if not env.get("STORAGE_PROVIDER"):
+    env["STORAGE_PROVIDER"] = "local"
+if not env.get("LOCAL_STORAGE_DIR"):
+    env["LOCAL_STORAGE_DIR"] = os.path.join(root_dir, "storage", "uploads")
 
 # Launch Spring Boot with Maven Wrapper
 if os.name == "nt":

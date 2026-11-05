@@ -19,9 +19,14 @@ public class CareerRoadmapTool implements PlacementTool {
     public String execute(String context) {
         // Return structured roadmap nodes
         return "{\n" +
+               "  \"version\": 1,\n" +
+               "  \"schema\": \"placementai-widget-container\",\n" +
+               "  \"layout\": \"stack\",\n" +
                "  \"widgets\": [\n" +
                "    {\n" +
+               "      \"id\": \"career-roadmap-widget\",\n" +
                "      \"type\": \"roadmap\",\n" +
+               "      \"priority\": 1,\n" +
                "      \"title\": \"AI Recommended Preparation Blueprint\",\n" +
                "      \"data\": {\n" +
                "        \"nodes\": [\n" +

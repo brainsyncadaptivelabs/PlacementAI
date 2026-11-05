@@ -216,7 +216,7 @@ export default function TermsOfServicePage() {
           For any questions or legal inquiries regarding these Terms, please contact support at:
         </p>
         <p className="font-bold text-muted-foreground">
-          Email: support@brainsyncadaptivelabs.com
+          Email: <a href="mailto:founders.brainsynclabs@gmail.com" className="text-primary hover:underline">founders.brainsynclabs@gmail.com</a>
         </p>
       </section>
     </LegalLayout>

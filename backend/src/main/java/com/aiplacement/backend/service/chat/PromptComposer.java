@@ -36,9 +36,11 @@ public class PromptComposer {
         }
 
         if (!detectedToolOutput.isEmpty()) {
-            sb.append("\n\n[INSTRUCTION] You MUST output the following tool JSON block EXACTLY, and explain it to the candidate:\n")
+            sb.append("\n\n[INSTRUCTION] Output the following visual widget block enclosed in a ```placementai code fence, followed by your strategic analysis and advice for the candidate. Ensure every bullet point or action step strictly starts on its own brand-new line starting with '- ':\n")
+              .append("```placementai\n")
               .append(detectedToolOutput)
-              .append("\n=========================================\n");
+              .append("\n```\n")
+              .append("=========================================\n");
         }
         
         sb.append("\n\n=========================================\n");

@@ -13,7 +13,18 @@ const getHeaders = (url?: string) => {
 };
 
 const handleResponseError = async (response: Response, url?: string) => {
-  if (response.status === 401 || response.status === 403) {
+  const errorText = await response.text();
+  let errorData: any;
+  try {
+    errorData = errorText ? JSON.parse(errorText) : {};
+  } catch (e) {
+    errorData = errorText;
+  }
+
+  const isUserNotFound = typeof errorData === 'object' && typeof errorData?.message === 'string' && errorData.message.toLowerCase().includes("user not found");
+  const isUnauthorized = response.status === 401 || response.status === 403 || isUserNotFound;
+
+  if (isUnauthorized) {
     if (typeof window !== "undefined") {
       const isLoginEndpoint = url && (url.includes("/admin/auth/login") || url.includes("/auth/login"));
       if (!isLoginEndpoint) {
@@ -24,38 +35,32 @@ const handleResponseError = async (response: Response, url?: string) => {
           document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
           window.location.href = "/admin";
         } else {
-        localStorage.removeItem("token");
-        document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
-        document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax';
-        document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax';
-        document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax';
+          localStorage.removeItem("token");
+          document.cookie = 'placementai_role=; path=/; max-age=0; SameSite=Lax';
+          document.cookie = 'placementai_profile_completed=; path=/; max-age=0; SameSite=Lax';
+          document.cookie = 'placementai_plan_selected=; path=/; max-age=0; SameSite=Lax';
+          document.cookie = 'placementai_payment_completed=; path=/; max-age=0; SameSite=Lax';
 
-        // Trigger Supabase sign out in background so middleware doesn't bounce back to dashboard
-        try {
-          const { createClient } = await import('@/lib/supabase/client');
-          const supabase = createClient();
-          await supabase.auth.signOut();
-        } catch (_) {}
+          // Trigger Supabase sign out in background so middleware doesn't bounce back to dashboard
+          try {
+            const { createClient } = await import('@/lib/supabase/client');
+            const supabase = createClient();
+            await supabase.auth.signOut();
+          } catch (_) {}
 
-        const currentPath = window.location.pathname;
-        if (currentPath.startsWith("/recruiter")) {
-          window.location.href = "/auth/recruiter";
-        } else if (currentPath.startsWith("/placement-officer")) {
-          window.location.href = "/auth/placement-officer";
-        } else {
-          window.location.href = "/auth";
+          const currentPath = window.location.pathname;
+          if (currentPath.startsWith("/recruiter")) {
+            window.location.href = "/auth/recruiter";
+          } else if (currentPath.startsWith("/placement-officer")) {
+            window.location.href = "/auth/placement-officer";
+          } else {
+            window.location.href = "/auth";
+          }
         }
       }
     }
   }
-}
-  const errorText = await response.text();
-  let errorData;
-  try {
-    errorData = errorText ? JSON.parse(errorText) : {};
-  } catch (e) {
-    errorData = errorText;
-  }
+
   const error = new Error(`HTTP error! status: ${response.status}`);
   (error as any).response = {
     status: response.status,

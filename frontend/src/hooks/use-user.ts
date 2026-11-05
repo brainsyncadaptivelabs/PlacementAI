@@ -85,7 +85,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         return response.data;
       } catch (err: any) {
         set({ user: null, error: getErrorMessage(err, 'Failed to load profile'), loading: false });
-        throw err;
+        return null as any;
       } finally {
         set({ fetchPromise: null });
       }
@@ -109,7 +109,9 @@ export function useUser() {
   const fetchUser = useProfileStore((state) => state.fetchUser);
 
   const forceRefresh = useCallback(async () => {
-    await fetchUser(true);
+    try {
+      await fetchUser(true);
+    } catch (_) {}
   }, [fetchUser]);
 
   useEffect(() => {
@@ -127,14 +129,14 @@ export function useUser() {
       return;
     }
 
-    fetchUser();
+    fetchUser().catch(() => {});
   }, [session, isAuthLoading, fetchUser]);
 
   useEffect(() => {
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== 'token') return;
       if (event.newValue) {
-        fetchUser(true);
+        fetchUser(true).catch(() => {});
       } else {
         useProfileStore.setState({ user: null, loading: false });
       }
@@ -143,7 +145,7 @@ export function useUser() {
     const handleCustomUpdate = () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       if (token) {
-        fetchUser(true);
+        fetchUser(true).catch(() => {});
       } else {
         useProfileStore.setState({ user: null, loading: false });
       }

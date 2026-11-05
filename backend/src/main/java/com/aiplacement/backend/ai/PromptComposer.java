@@ -39,7 +39,8 @@ public class PromptComposer {
         return "CRITICAL RESPONSE FORMATTING RULES:\n" +
                "1. STRUCTURE: # Title, ## Section, ### Topic.\n" +
                "2. SPACING AND WORDS: Always insert spaces. Never output concatenated text.\n" +
-               "3. BLANK LINES: Separate paragraphs, headers, and bullet items with empty lines. Keep paragraphs <= 3 lines.\n\n";
+               "3. BLANK LINES: Separate paragraphs, headers, and bullet items with empty lines. Keep paragraphs <= 3 lines.\n" +
+               "4. BULLET POINTS: EVERY bullet point MUST strictly start on its own brand-new line starting with '- '. Never output bullet points inline on the same line.\n\n";
     }
 
     public String composeCareerIntelligence() {

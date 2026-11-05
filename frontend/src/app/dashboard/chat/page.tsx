@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback, memo } from "react";
 import ChatMarkdown from "@/components/chat/ChatMarkdown";
+import { normalizeMarkdown } from "@/lib/chat/markdown";
 import { FeatureUsageBar } from "@/components/dashboard/feature-usage-bar";
 import { Avatar } from "@/components/ui/avatar";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -465,43 +466,7 @@ class SafeMarkdownBoundary extends React.Component<
   }
 }
 
-// Markdown Normalizer Helper
-const normalizeMarkdown = (text: string): string => {
-  if (!text) return "";
-  let result = text.replace(/\[CONVERSATION_ID:\s*\d+\]/gi, "");
-  result = result.replace(/\r\n/g, "\n");
-  result = result.replace(/\\n/g, "\n");
-
-  // 1. Remove redundant labels & internal artifacts
-  const redundantPrefixes = [
-    /^(?:Answer|Data|Information|Explanation|Output|Reasoning|Assistant):\s*\n?/gim,
-    /^(?:Answer|Data|Information|Explanation|Output|Reasoning|Assistant):\s*/gim
-  ];
-  redundantPrefixes.forEach(regex => {
-    result = result.replace(regex, "");
-  });
-
-  // 2. Remove duplicate headings/title patterns
-  result = result.replace(/^(#+)\s*(?:Answer|Data|Information|Explanation|Output|Reasoning|Assistant)\s*$/gim, "");
-
-  // 3. Automatically format resources section prefix
-  result = result.replace(/^(###?\s*)?(Additional\s+Resources|Resources)\s*$/gim, "📚 Additional Resources");
-
-  // 4. Normalize bullet styles to standard Markdown
-  result = result.replace(/^[ \t]*[•*][ \t]+/gm, "- ");
-
-  // 5. Spacing fixes for headings and blocks
-  result = result.replace(/\*{4,}/g, "**");
-  result = result.replace(/\*\*\*\*\*/g, "** **");
-  result = result.replace(/^(#{1,4})([A-Za-z0-9])/gm, "$1 $2");
-  result = result.replace(/^(\d+\.)([A-Za-z0-9])/gm, "$1 $2");
-  result = result.replace(/^([-*])([A-Za-z0-9])/gm, "$1 $2");
-  result = result.replace(/([^\n])\n(#{1,4}\s)/g, "$1\n\n$2");
-  result = result.replace(/([^\n])\n([-*]\s|\d+\.\s)/g, "$1\n\n$2");
-  result = result.replace(/\n{3,}/g, "\n\n");
-
-  return result.trim();
-};
+// Markdown Normalizer Helper is imported from @/lib/chat/markdown
 
 // JSON parsing and text content extractor helper (ChatGPT style: hides JSON completely)
 const parseMessageContent = (content: string): { text: string; rawJson: string | null } => {
@@ -537,6 +502,7 @@ const parseMessageContent = (content: string): { text: string; rawJson: string |
     // Remove "JSON Block Explanation" headings and the standard widget paragraphs explaining the JSON
     finalResult.text = finalResult.text
       .replace(/###?\s*JSON Block Explanation[\s\S]*?$/i, "")
+      .replace(/###?\s*💡?\s*Contextual Tool Insight[\s\S]*?(?=###|$)/i, "")
       .replace(/The JSON block provided earlier is a widget[\s\S]*?$/i, "")
       .replace(/This JSON block defines[\s\S]*?$/i, "")
       .replace(/\[CONVERSATION_ID:\s*\d+\]/gi, "")

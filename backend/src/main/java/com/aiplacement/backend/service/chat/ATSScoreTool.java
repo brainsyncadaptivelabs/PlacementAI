@@ -44,14 +44,20 @@ public class ATSScoreTool implements PlacementTool {
         List<AtsAnalysis> analyses = atsAnalysisRepository.findByUserOrderByCreatedAtDesc(userOpt.get());
         if (analyses.isEmpty()) {
             return "{\n" +
+                   "  \"version\": 1,\n" +
+                   "  \"schema\": \"placementai-widget-container\",\n" +
+                   "  \"layout\": \"stack\",\n" +
                    "  \"widgets\": [\n" +
                    "    {\n" +
+                   "      \"id\": \"ats-score-widget\",\n" +
                    "      \"type\": \"progress\",\n" +
+                   "      \"priority\": 1,\n" +
                    "      \"title\": \"ATS Match Rating\",\n" +
                    "      \"data\": {\n" +
-                   "        \"score\": 0,\n" +
-                   "        \"label\": \"Insufficient information. Please upload a resume first.\",\n" +
-                   "        \"status\": \"warning\"\n" +
+                   "        \"overall\": 0,\n" +
+                   "        \"categories\": [\n" +
+                   "          { \"name\": \"ATS Readiness (Resume Pending)\", \"score\": 0 }\n" +
+                   "        ]\n" +
                    "      }\n" +
                    "    }\n" +
                    "  ]\n" +
@@ -61,17 +67,22 @@ public class ATSScoreTool implements PlacementTool {
         AtsAnalysis latest = analyses.get(0);
         int score = latest.getAtsScore() != null ? latest.getAtsScore() : 60;
         String role = latest.getBestRole() != null ? latest.getBestRole() : "Professional";
-        String status = score >= 80 ? "success" : "warning";
 
         return "{\n" +
+               "  \"version\": 1,\n" +
+               "  \"schema\": \"placementai-widget-container\",\n" +
+               "  \"layout\": \"stack\",\n" +
                "  \"widgets\": [\n" +
                "    {\n" +
+               "      \"id\": \"ats-score-widget\",\n" +
                "      \"type\": \"progress\",\n" +
+               "      \"priority\": 1,\n" +
                "      \"title\": \"ATS Match Rating\",\n" +
                "      \"data\": {\n" +
-               "        \"score\": " + score + ",\n" +
-               "        \"label\": \"Match Rating for " + role + "\",\n" +
-               "        \"status\": \"" + status + "\"\n" +
+               "        \"overall\": " + score + ",\n" +
+               "        \"categories\": [\n" +
+               "          { \"name\": \"Match Rating for " + role + "\", \"score\": " + score + " }\n" +
+               "        ]\n" +
                "      }\n" +
                "    }\n" +
                "  ]\n" +

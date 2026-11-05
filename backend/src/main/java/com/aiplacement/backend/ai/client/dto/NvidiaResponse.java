@@ -51,6 +51,9 @@ public class NvidiaResponse {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Delta {
         private String content;
+
+        @JsonProperty("reasoning_content")
+        private String reasoningContent;
     }
 
     @Data
@@ -77,8 +80,18 @@ public class NvidiaResponse {
     public String extractContent() {
         if (choices == null || choices.isEmpty()) return null;
         Choice first = choices.get(0);
-        if (first.getMessage() != null) return first.getMessage().getContent();
-        if (first.getDelta() != null) return first.getDelta().getContent();
+        if (first.getMessage() != null) {
+            String c = first.getMessage().getContent();
+            if (c != null && !c.isBlank()) return c;
+        }
+        if (first.getDelta() != null) {
+            if (first.getDelta().getContent() != null && !first.getDelta().getContent().isBlank()) {
+                return first.getDelta().getContent();
+            }
+            if (first.getDelta().getReasoningContent() != null && !first.getDelta().getReasoningContent().isBlank()) {
+                return first.getDelta().getReasoningContent();
+            }
+        }
         return null;
     }
 }

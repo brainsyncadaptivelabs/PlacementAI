@@ -58,7 +58,7 @@ spring:
   # ── Flyway ───────────────────────────────────────────────
   flyway:
     baseline-on-migrate: true
-    baseline-version: 9
+    baseline-version: ${FLYWAY_BASELINE_VERSION:26}
     enabled: true
     validate-on-migrate: false
 
@@ -140,7 +140,7 @@ nvidia:
     base-url: ${NVIDIA_API_URL:https://integrate.api.nvidia.com/v1/chat/completions}
 
     # Model — llama-3.3-70b matches your API usage
-    model: ${NVIDIA_MODEL:openai/gpt-oss-20b}
+    model: ${NVIDIA_MODEL:nvidia/nemotron-3.5-bolt-e4b}
 
     # Sampling parameters (matched from your API snippet)
     temperature: ${NVIDIA_TEMPERATURE:0.2}
@@ -244,7 +244,7 @@ vapid:
     key: ${VAPID_PUBLIC_KEY:dummy}
   private:
     key: ${VAPID_PRIVATE_KEY:dummy}
-  subject: ${VAPID_SUBJECT:mailto:support@aiplacement.com}
+  subject: ${VAPID_SUBJECT:mailto:founders.brainsynclabs@gmail.com}
 
 # ── Rate Limiting ─────────────────────────────────────────────
 ratelimit:

@@ -23,6 +23,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<ApiErrorResponse> handleResponseStatusException(org.springframework.web.server.ResponseStatusException ex) {
+        log.warn("[RESPONSE_STATUS] Status: {}, Reason: {}", ex.getStatusCode(), ex.getReason());
+        String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
+        ApiErrorResponse error = ApiErrorResponse.builder()
+                .message(message)
+                .status(ex.getStatusCode().value())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return new ResponseEntity<>(error, ex.getStatusCode());
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         ApiErrorResponse error = ApiErrorResponse.builder()

@@ -7,6 +7,7 @@ import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.entity.PendingSignup;
 import com.aiplacement.backend.entity.EmailVerificationOtp;
 import com.aiplacement.backend.exception.DatabaseConflictException;
+import com.aiplacement.backend.exception.UnauthorizedException;
 import com.aiplacement.backend.repository.EmailVerificationOtpRepository;
 import com.aiplacement.backend.repository.PendingSignupRepository;
 import com.aiplacement.backend.repository.UserRepository;
@@ -80,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
         log.info("Attempting password reset for email: {}", request.getEmail());
         if (!otpService.isOtpVerified(request.getEmail())) {
             log.error("Password reset blocked: OTP not verified for email {}", request.getEmail());
-            throw new RuntimeException("OTP not verified for email: " + request.getEmail());
+            throw new IllegalArgumentException("OTP not verified for email: " + request.getEmail());
         }
 
         User user = userRepository.findByEmailIgnoreCase(request.getEmail())
@@ -378,7 +379,7 @@ public class AuthServiceImpl implements AuthService {
                     .orElseThrow(() -> new RuntimeException("Email verification record not found. Please verify your email first."));
 
             if (!verification.isVerified()) {
-                throw new RuntimeException("Email is not verified. Please verify your email before signing up.");
+                throw new IllegalArgumentException("Email is not verified. Please verify your email before signing up.");
             }
         }
 
@@ -406,7 +407,7 @@ public class AuthServiceImpl implements AuthService {
             if (roleStr.equals("ADMIN")) {
                 if (!adminRegistrationCode.equals(request.getAdminCode())) {
                     log.error("Admin signup rejected: invalid registration code");
-                    throw new RuntimeException("Unauthorized: Invalid admin registration code");
+                    throw new UnauthorizedException("Invalid admin registration code");
                 }
                 assignedRole = Role.ADMIN;
             } else {
@@ -421,12 +422,12 @@ public class AuthServiceImpl implements AuthService {
 
         if (assignedRole == Role.STUDENT) {
             if (request.getCollegeName() == null || request.getCollegeName().isBlank())
-                throw new RuntimeException("College name is required for students");
+                throw new IllegalArgumentException("College name is required for students");
             if (request.getBranch() == null || request.getBranch().isBlank())
-                throw new RuntimeException("Branch is required for students");
+                throw new IllegalArgumentException("Branch is required for students");
         } else if (assignedRole == Role.RECRUITER) {
             if (request.getCompanyName() == null || request.getCompanyName().isBlank())
-                throw new RuntimeException("Company name is required for recruiters");
+                throw new IllegalArgumentException("Company name is required for recruiters");
         }
 
         // 5. Create the User directly
@@ -510,11 +511,11 @@ public class AuthServiceImpl implements AuthService {
 
         if (verification.getExpiresAt().isBefore(LocalDateTime.now())) {
             emailVerificationOtpRepository.delete(verification);
-            throw new RuntimeException("OTP has expired. Please request a new one.");
+            throw new IllegalArgumentException("OTP has expired. Please request a new one.");
         }
 
         if (!passwordEncoder.matches(request.getOtp(), verification.getOtp())) {
-            throw new RuntimeException("Invalid OTP.");
+            throw new IllegalArgumentException("Invalid OTP.");
         }
 
         verification.setVerified(true);
@@ -601,13 +602,13 @@ public class AuthServiceImpl implements AuthService {
 
         // Check if OTP has expired
         if (pendingSignup.getExpiresAt().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Verification code expired");
+            throw new IllegalArgumentException("Verification code expired");
         }
 
         // Check if maximum attempts have been exceeded
         if (pendingSignup.getAttempts() >= 5) {
             pendingSignupRepository.delete(pendingSignup);
-            throw new RuntimeException("Maximum verification attempts exceeded. Please sign up again.");
+            throw new IllegalArgumentException("Maximum verification attempts exceeded. Please sign up again.");
         }
 
         // Match OTP hash
@@ -618,10 +619,10 @@ public class AuthServiceImpl implements AuthService {
             
             if (attempts >= 5) {
                 pendingSignupRepository.delete(pendingSignup);
-                throw new RuntimeException("Maximum verification attempts exceeded. Please sign up again.");
+                throw new IllegalArgumentException("Maximum verification attempts exceeded. Please sign up again.");
             } else {
                 pendingSignupRepository.save(pendingSignup);
-                throw new RuntimeException("Invalid verification code.");
+                throw new IllegalArgumentException("Invalid verification code.");
             }
         }
 
@@ -685,7 +686,7 @@ public class AuthServiceImpl implements AuthService {
         // Enforce hourly limit of 5 resends
         if (pendingSignup.getLastResendAt() != null && pendingSignup.getLastResendAt().isAfter(now.minusHours(1))) {
             if (pendingSignup.getResendCount() >= 5) {
-                throw new RuntimeException("Maximum resend limit of 5 per hour reached. Please try again later.");
+                throw new IllegalArgumentException("Maximum resend limit of 5 per hour reached. Please try again later.");
             }
             pendingSignup.setResendCount(pendingSignup.getResendCount() + 1);
         } else {

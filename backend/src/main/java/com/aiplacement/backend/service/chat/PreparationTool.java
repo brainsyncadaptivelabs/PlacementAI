@@ -18,13 +18,22 @@ public class PreparationTool implements PlacementTool {
     @Override
     public String execute(String context) {
         return "{\n" +
+               "  \"version\": 1,\n" +
+               "  \"schema\": \"placementai-widget-container\",\n" +
+               "  \"layout\": \"stack\",\n" +
                "  \"widgets\": [\n" +
                "    {\n" +
-               "      \"type\": \"preparation\",\n" +
-               "      \"title\": \"Company Interview Preparation\",\n" +
+               "      \"id\": \"tcs-prep-widget\",\n" +
+               "      \"type\": \"pipeline\",\n" +
+               "      \"priority\": 1,\n" +
+               "      \"title\": \"TCS Interview Process Funnel\",\n" +
                "      \"data\": {\n" +
-               "        \"companyName\": \"TCS (Tata Consultancy Services)\",\n" +
-               "        \"rounds\": [\"Aptitude Test\", \"Technical Interview\", \"Managerial Round\"]\n" +
+               "        \"title\": \"TCS (Tata Consultancy Services) Hiring Stages\",\n" +
+               "        \"stages\": [\n" +
+               "          { \"name\": \"Aptitude Test\", \"status\": \"active\" },\n" +
+               "          { \"name\": \"Technical Interview\", \"status\": \"pending\" },\n" +
+               "          { \"name\": \"Managerial Round\", \"status\": \"pending\" }\n" +
+               "        ]\n" +
                "      }\n" +
                "    }\n" +
                "  ]\n" +

@@ -48,15 +48,20 @@ public class ResumeAnalysisTool implements PlacementTool {
         List<AtsAnalysis> analyses = atsAnalysisRepository.findByUserOrderByCreatedAtDesc(userOpt.get());
         if (analyses.isEmpty()) {
             return "{\n" +
+                   "  \"version\": 1,\n" +
+                   "  \"schema\": \"placementai-widget-container\",\n" +
+                   "  \"layout\": \"stack\",\n" +
                    "  \"widgets\": [\n" +
                    "    {\n" +
+                   "      \"id\": \"resume-improvements-widget\",\n" +
                    "      \"type\": \"comparison\",\n" +
+                   "      \"priority\": 1,\n" +
                    "      \"title\": \"ATS Resume Improvements\",\n" +
                    "      \"data\": {\n" +
                    "        \"score\": 0,\n" +
                    "        \"strengths\": [],\n" +
                    "        \"weaknesses\": [\"Insufficient information. Please upload a resume first.\"],\n" +
-                   "        \"recommendations\": []\n" +
+                   "        \"recommendations\": [\"Upload your resume to receive AI-powered ATS keyword and gap recommendations.\"]\n" +
                    "      }\n" +
                    "    }\n" +
                    "  ]\n" +
@@ -82,9 +87,14 @@ public class ResumeAnalysisTool implements PlacementTool {
         }
 
         return "{\n" +
+               "  \"version\": 1,\n" +
+               "  \"schema\": \"placementai-widget-container\",\n" +
+               "  \"layout\": \"stack\",\n" +
                "  \"widgets\": [\n" +
                "    {\n" +
+               "      \"id\": \"resume-improvements-widget\",\n" +
                "      \"type\": \"comparison\",\n" +
+               "      \"priority\": 1,\n" +
                "      \"title\": \"ATS Resume Improvements\",\n" +
                "      \"data\": {\n" +
                "        \"score\": " + score + ",\n" +

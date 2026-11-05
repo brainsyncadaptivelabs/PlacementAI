@@ -27,6 +27,9 @@ public class ChatbotServiceImpl implements ChatbotService {
     @Value("${chatbot.max-tokens:1000}")
     private int maxTokens;
 
+    @Value("${nvidia.ai.model:nvidia/nemotron-3.5-bolt-e4b}")
+    private String defaultModelName;
+
     @Override
     @Transactional(readOnly = false)
     public String askQuestion(ChatRequestDto request) {
@@ -34,7 +37,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         
         String email = getAuthenticatedEmail();
         ModelConfiguration modelConfig = ModelConfiguration.builder()
-                .modelName("meta/llama-3.1-70b-instruct")
+                .modelName(defaultModelName)
                 .temperature(0.7)
                 .topP(0.7)
                 .maxTokens(maxTokens)
@@ -80,7 +83,7 @@ public class ChatbotServiceImpl implements ChatbotService {
 
         String email = getAuthenticatedEmail();
         ModelConfiguration modelConfig = ModelConfiguration.builder()
-                .modelName("meta/llama-3.1-70b-instruct")
+                .modelName(defaultModelName)
                 .temperature(0.7)
                 .topP(0.7)
                 .maxTokens(maxTokens)

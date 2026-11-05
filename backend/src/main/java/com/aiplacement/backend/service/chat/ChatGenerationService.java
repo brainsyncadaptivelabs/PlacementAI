@@ -25,7 +25,8 @@ public class ChatGenerationService {
                 .retry(1)
                 .onErrorResume(err -> {
                     log.error("Generation stream failed for request: {}", sessionContext.getRequestId(), err);
-                    return Flux.just("\n[ERROR: Failed to retrieve AI completion. Connection timed out.]");
+                    String cause = err.getMessage() != null ? err.getMessage() : "Connection timed out.";
+                    return Flux.just("\n[ERROR: Failed to retrieve AI completion. " + cause + "]");
                 });
     }
 }

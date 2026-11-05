@@ -138,7 +138,7 @@ export default function CookiePolicyPage() {
           If you have questions about our use of cookies or other technologies, please contact:
         </p>
         <p className="font-bold text-muted-foreground">
-          Email: support@brainsyncadaptivelabs.com
+          Email: <a href="mailto:founders.brainsynclabs@gmail.com" className="text-primary hover:underline">founders.brainsynclabs@gmail.com</a>
         </p>
       </section>
     </LegalLayout>

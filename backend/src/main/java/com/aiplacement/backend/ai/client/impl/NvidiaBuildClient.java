@@ -336,7 +336,14 @@ public class NvidiaBuildClient implements AIClient {
             NvidiaResponse chunk = objectMapper.readValue(data, NvidiaResponse.class);
             if (chunk.getChoices() != null && !chunk.getChoices().isEmpty()) {
                 NvidiaResponse.Delta delta = chunk.getChoices().get(0).getDelta();
-                String content = delta != null && delta.getContent() != null ? delta.getContent() : "";
+                String content = "";
+                if (delta != null) {
+                    if (delta.getContent() != null && !delta.getContent().isEmpty()) {
+                        content = delta.getContent();
+                    } else if (delta.getReasoningContent() != null && !delta.getReasoningContent().isEmpty()) {
+                        content = delta.getReasoningContent();
+                    }
+                }
                 log.info("[AI Log] Chunk transformed: '{}'", content);
                 return content;
             }
@@ -364,8 +371,8 @@ public class NvidiaBuildClient implements AIClient {
                         log.warn("[AI] Rate limit hit (status=429). Will retry.");
                         return new AIRateLimitException("AI provider rate limit exceeded.");
                     }
-                    log.warn("[AI] Client error from NVIDIA API status={}", status);
-                    return new AIProviderException("AI request error (status=" + status + ")", status);
+                    log.warn("[AI] Client error from NVIDIA API status={}, body={}", status, body);
+                    return new AIProviderException("AI request error (status=" + status + "): " + body, status);
                 });
     }
 
@@ -400,6 +407,11 @@ public class NvidiaBuildClient implements AIClient {
 
     private boolean isRetryableException(Throwable e) {
         if (e instanceof AIAuthenticationException) return false; // never retry auth errors
+        if (e instanceof AIProviderException pe) {
+            if (pe.getStatusCode() == 400 || pe.getStatusCode() == 404) {
+                return false; // never retry 400 Bad Request or 404 Not Found
+            }
+        }
         return e instanceof AIRateLimitException
                 || e instanceof AIProviderException
                 || e instanceof AITimeoutException

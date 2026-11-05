@@ -78,7 +78,10 @@ public class JwtAuthenticationFilter
 
             String role = jwtService.extractRole(token);
             User user = userRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
-            
+            com.aiplacement.backend.entity.AdminUser admin = (user == null)
+                    ? adminUserRepository.findByEmail(email.trim().toLowerCase()).orElse(null)
+                    : null;
+
             if (user != null) {
                 if (user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.BLOCKED || 
                     user.getAccountStatus() == com.aiplacement.backend.entity.AccountStatus.DELETED ||
@@ -89,10 +92,19 @@ public class JwtAuthenticationFilter
                     response.getWriter().write("{\"message\":\"Your account has been suspended. Contact support for details.\"}");
                     return;
                 }
-            }
 
-            if (role != null) {
-                String authority = normalizeRoleAuthority(role);
+                String authRole = (role != null && !role.isBlank()) ? role : user.getRole().name();
+                String authority = normalizeRoleAuthority(authRole);
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        email,
+                        null,
+                        List.of(new SimpleGrantedAuthority(authority))
+                );
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else if (admin != null) {
+                String authRole = (role != null && !role.isBlank()) ? role : "ROLE_SUPER_ADMIN";
+                String authority = normalizeRoleAuthority(authRole);
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         email,
                         null,
@@ -101,26 +113,8 @@ public class JwtAuthenticationFilter
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
-                if (user != null) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            email,
-                            null,
-                            List.of(new SimpleGrantedAuthority(normalizeRoleAuthority(user.getRole().name())))
-                    );
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                } else {
-                    com.aiplacement.backend.entity.AdminUser admin = adminUserRepository.findByEmail(email.trim().toLowerCase()).orElse(null);
-                    if (admin != null) {
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                                email,
-                                null,
-                                List.of(new SimpleGrantedAuthority("ROLE_SUPER_ADMIN"))
-                        );
-                        authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    }
-                }
+                // User does not exist in local database (stale/invalid token)
+                // Do not populate SecurityContextHolder; let unauthenticated filter flow handle it
             }
 
         } catch (Exception e) {

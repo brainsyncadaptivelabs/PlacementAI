@@ -198,7 +198,7 @@ export default function PrivacyPolicyPage() {
           If you have questions, concerns, or requests regarding this Privacy Policy or your personal data rights, please contact the PlacementAI support team or reach out to us at:
         </p>
         <p className="font-bold text-muted-foreground">
-          Email: support@brainsyncadaptivelabs.com
+          Email: <a href="mailto:founders.brainsynclabs@gmail.com" className="text-primary hover:underline">founders.brainsynclabs@gmail.com</a>
         </p>
       </section>
     </LegalLayout>

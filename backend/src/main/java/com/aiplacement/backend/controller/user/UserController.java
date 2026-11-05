@@ -1,6 +1,7 @@
 package com.aiplacement.backend.controller.user;
 
 import com.aiplacement.backend.dto.user.UserProfileDto;
+import com.aiplacement.backend.exception.UnauthorizedException;
 import com.aiplacement.backend.entity.User;
 import com.aiplacement.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class UserController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         return ResponseEntity.ok(UserProfileDto.builder()
                 .id(user.getId())
@@ -79,7 +80,7 @@ public class UserController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         if (request.getEmailNotifications() != null) user.setEmailNotifications(request.getEmailNotifications());
         if (request.getPushNotifications() != null) user.setPushNotifications(request.getPushNotifications());
@@ -99,7 +100,7 @@ public class UserController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect current password.");
@@ -117,7 +118,7 @@ public class UserController {
         String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UnauthorizedException("User not found"));
 
         Integer highestAts = atsAnalysisRepository.findHighestAtsScoreByUser(user);
         Double averageAts = atsAnalysisRepository.findAverageAtsScoreByUser(user);
