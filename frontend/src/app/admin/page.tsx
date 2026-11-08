@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -140,6 +140,22 @@ export default function SuperAdminPortal() {
   // Global action error and success toast notification states
   const [actionError, setActionError] = useState<string>("");
   const [actionSuccess, setActionSuccess] = useState<string>("");
+
+  useEffect(() => {
+    if (!actionSuccess) return;
+    const timer = setTimeout(() => {
+      setActionSuccess("");
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [actionSuccess]);
+
+  useEffect(() => {
+    if (!actionError) return;
+    const timer = setTimeout(() => {
+      setActionError("");
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [actionError]);
   
   const [telemetryLogs, setTelemetryLogs] = useState({
     generationLatency: 82,
@@ -317,10 +333,11 @@ export default function SuperAdminPortal() {
     }
   };
 
-  const fetchUsersList = async (page: number) => {
+  const fetchUsersList = async (page: number = 0, searchOverride?: string) => {
     setLoadingData(true);
     try {
-      const url = `/admin/users?page=${page}&size=10&search=${searchTerm}&college=${selectedCollege === "ALL" ? "" : selectedCollege}&branch=${selectedBranch === "ALL" ? "" : selectedBranch}&plan=${selectedPlan === "ALL" ? "" : selectedPlan}&status=${selectedStatus === "ALL" ? "" : selectedStatus}`;
+      const activeSearch = searchOverride !== undefined ? searchOverride : searchTerm;
+      const url = `/admin/users?page=${page}&size=10&search=${encodeURIComponent(activeSearch.trim())}&college=${selectedCollege === "ALL" ? "" : encodeURIComponent(selectedCollege)}&branch=${selectedBranch === "ALL" ? "" : encodeURIComponent(selectedBranch)}&plan=${selectedPlan === "ALL" ? "" : encodeURIComponent(selectedPlan)}&status=${selectedStatus === "ALL" ? "" : encodeURIComponent(selectedStatus)}`;
       const res = await api.get(url);
       setUsersData(res.data);
       setCurrentPage(page);
@@ -330,6 +347,28 @@ export default function SuperAdminPortal() {
       setLoadingData(false);
     }
   };
+
+  // Debounced live search & auto-filter for users tab
+  const prevUsersFilterRef = useRef({ searchTerm, selectedCollege, selectedBranch, selectedPlan, selectedStatus });
+  useEffect(() => {
+    if (activeTab !== "users") return;
+    const prev = prevUsersFilterRef.current;
+    if (
+      prev.searchTerm === searchTerm &&
+      prev.selectedCollege === selectedCollege &&
+      prev.selectedBranch === selectedBranch &&
+      prev.selectedPlan === selectedPlan &&
+      prev.selectedStatus === selectedStatus
+    ) {
+      return;
+    }
+    prevUsersFilterRef.current = { searchTerm, selectedCollege, selectedBranch, selectedPlan, selectedStatus };
+
+    const timer = setTimeout(() => {
+      fetchUsersList(0, searchTerm);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchTerm, selectedCollege, selectedBranch, selectedPlan, selectedStatus, activeTab]);
 
   const handleUserClick = async (userId: number) => {
     setLoadingUserDetail(true);
@@ -414,6 +453,8 @@ export default function SuperAdminPortal() {
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    setActionError("");
+    setActionSuccess("");
     fetchTabData(tab);
   };
 
@@ -542,9 +583,7 @@ export default function SuperAdminPortal() {
           <AdminAnnouncementsTab
             announcements={announcements}
             fetchTabData={fetchTabData}
-            actionError={actionError}
             setActionError={setActionError}
-            actionSuccess={actionSuccess}
             setActionSuccess={setActionSuccess}
           />
         );
@@ -554,9 +593,7 @@ export default function SuperAdminPortal() {
           <AdminFeatureFlagsTab
             featureFlags={featureFlags}
             fetchTabData={fetchTabData}
-            actionError={actionError}
             setActionError={setActionError}
-            actionSuccess={actionSuccess}
             setActionSuccess={setActionSuccess}
           />
         );
@@ -564,25 +601,6 @@ export default function SuperAdminPortal() {
       case "payments":
         return (
           <div className="space-y-6">
-            {actionError && (
-              <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <AlertOctagon className="w-4 h-4 text-rose-600" />
-                  <span>{actionError}</span>
-                </div>
-                <button onClick={() => setActionError("")} className="text-rose-500 hover:text-rose-700">✕</button>
-              </div>
-            )}
-            {actionSuccess && (
-              <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-emerald-600" />
-                  <span>{actionSuccess}</span>
-                </div>
-                <button onClick={() => setActionSuccess("")} className="text-emerald-500 hover:text-emerald-700">✕</button>
-              </div>
-            )}
-
             <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">Payment Monitoring & Coupon Codes</h3>

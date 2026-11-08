@@ -98,7 +98,7 @@ export default function TemplateGalleryPage() {
         </div>
 
         {/* Filters and Search Bar - Sticky & Adobe Style */}
-        <div className="sticky top-4 z-40 flex flex-col md:flex-row gap-6 justify-between items-center bg-card/80 backdrop-blur-xl p-4 rounded-[32px] border border-border shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
+        <div className="sticky top-4 z-10 flex flex-col md:flex-row gap-6 justify-between items-center bg-card/80 backdrop-blur-xl p-4 rounded-[32px] border border-border shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
           <div className="flex-1 hidden md:block" />
           
           <div className="flex bg-muted p-1 rounded-full border border-border/30 h-12 items-center">

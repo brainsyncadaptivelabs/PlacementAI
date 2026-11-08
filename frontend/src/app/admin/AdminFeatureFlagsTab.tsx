@@ -4,24 +4,21 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertOctagon, CheckCircle } from "lucide-react";
 import api from "@/lib/api";
 
 export interface AdminFeatureFlagsTabProps {
   featureFlags: any[];
   fetchTabData: (tab: any) => Promise<void>;
-  actionError: string;
+  actionError?: string;
   setActionError: (msg: string) => void;
-  actionSuccess: string;
+  actionSuccess?: string;
   setActionSuccess: (msg: string) => void;
 }
 
 export default function AdminFeatureFlagsTab({
   featureFlags,
   fetchTabData,
-  actionError,
   setActionError,
-  actionSuccess,
   setActionSuccess
 }: AdminFeatureFlagsTabProps) {
   const [newFlagKey, setNewFlagKey] = useState<string>("" );
@@ -33,25 +30,6 @@ export default function AdminFeatureFlagsTab({
 
   return (
     <div className="space-y-6">
-      {actionError && (
-        <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertOctagon className="w-4 h-4 text-rose-600" />
-            <span>{actionError}</span>
-          </div>
-          <button onClick={() => setActionError("")} className="text-rose-500 hover:text-rose-700">✕</button>
-        </div>
-      )}
-      {actionSuccess && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-emerald-600" />
-            <span>{actionSuccess}</span>
-          </div>
-          <button onClick={() => setActionSuccess("")} className="text-emerald-500 hover:text-emerald-700">✕</button>
-        </div>
-      )}
-
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h3 className="text-xl font-bold text-slate-900">Feature Flags & Targeted Rollouts</h3>

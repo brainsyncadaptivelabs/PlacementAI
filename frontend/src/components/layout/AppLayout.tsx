@@ -150,7 +150,7 @@ export function AppLayout({ children, role }: AppLayoutProps) {
         <main className="flex-1 flex flex-col min-w-0 overflow-y-auto">
           {/* Topbar */}
           {!isChatMode && (
-            <header className="h-[clamp(56px,8vh,64px)] flex items-center justify-between px-[clamp(12px,2vw,32px)] bg-background border-b border-border/40 shrink-0 sticky top-0 z-30">
+            <header className="h-[clamp(56px,8vh,64px)] flex items-center justify-between px-[clamp(12px,2vw,32px)] bg-background border-b border-border/40 shrink-0 sticky top-0 z-50">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <SidebarTrigger />
                 <div className="flex-1 max-w-md hidden sm:block">

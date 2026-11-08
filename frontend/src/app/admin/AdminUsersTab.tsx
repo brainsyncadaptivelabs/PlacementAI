@@ -4,7 +4,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Eye, Trash2, Loader2 } from "lucide-react";
+import { Search, Eye, Trash2, Loader2, X } from "lucide-react";
 
 export interface AdminUsersTabProps {
   usersData: any;
@@ -17,7 +17,7 @@ export interface AdminUsersTabProps {
   selectedPlan: string;
   setSelectedPlan: (val: string) => void;
   currentPage: number;
-  fetchUsersList: (page: number) => Promise<void>;
+  fetchUsersList: (page: number, searchOverride?: string) => Promise<void>;
   handleUserClick: (userId: number) => Promise<void>;
   handleDeleteUser: (userId: number, email: string) => Promise<void>;
   userModalOpen: boolean;
@@ -57,14 +57,33 @@ export default function AdminUsersTab({
           <div className="space-y-2">
             <label className="text-xs font-black uppercase text-slate-500 tracking-wider">Search</label>
             <div className="relative">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    fetchUsersList(0, searchTerm);
+                  }
+                }}
                 placeholder="Name, email, college..."
-                className="w-full bg-white border border-slate-250 text-slate-900 rounded-xl pl-9 pr-4 py-2.5 text-xs text-slate-800 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold"
+                className="w-full bg-white border border-slate-250 text-slate-900 rounded-xl pl-9 pr-9 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 font-semibold"
               />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm("");
+                    fetchUsersList(0, "");
+                  }}
+                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
 
