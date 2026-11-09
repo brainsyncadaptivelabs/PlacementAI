@@ -241,20 +241,10 @@ const SEARCH_ITEMS: SearchItem[] = [
   },
 ];
 
-const CATEGORIES = [
-  { id: "ALL", label: "All" },
-  { id: "RESUMES", label: "Resumes" },
-  { id: "PREP", label: "Interview & Prep" },
-  { id: "SKILLS", label: "Roadmap & Skills" },
-  { id: "ACCOUNT", label: "Account" },
-  { id: "RECRUITER", label: "Recruiter" },
-];
-
 export function SearchBar() {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isMac, setIsMac] = useState(false);
 
@@ -295,16 +285,12 @@ export function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Filter items
+  // Filter items - only returns matches when a non-empty query is typed
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (!q) return [];
+
     return SEARCH_ITEMS.filter((item) => {
-      const matchesCategory =
-        selectedCategory === "ALL" || item.category === selectedCategory;
-      if (!matchesCategory) return false;
-
-      if (!q) return true;
-
       const titleMatch = item.title.toLowerCase().includes(q);
       const descMatch = item.description.toLowerCase().includes(q);
       const categoryMatch = item.categoryLabel.toLowerCase().includes(q);
@@ -312,7 +298,7 @@ export function SearchBar() {
 
       return titleMatch || descMatch || categoryMatch || keywordMatch;
     });
-  }, [query, selectedCategory]);
+  }, [query]);
 
   // Keep selected index within bounds
   useEffect(() => {
@@ -381,19 +367,21 @@ export function SearchBar() {
     }
   };
 
+  const hasSearchQuery = query.trim().length > 0;
+
   return (
-    <div ref={containerRef} className={`relative w-full max-w-[380px] lg:max-w-[480px] ${isOpen ? "z-[60]" : ""}`}>
+    <div ref={containerRef} className={`relative w-full max-w-[380px] lg:max-w-[480px] ${isOpen && hasSearchQuery ? "z-[60]" : ""}`}>
       {/* Designated In-Place Search Input */}
       <div
         className={`relative flex items-center bg-slate-100/70 dark:bg-slate-800/60 rounded-full px-4 h-11 border transition-all duration-200 ${
-          isOpen
+          isOpen && hasSearchQuery
             ? "bg-white dark:bg-slate-900 border-indigo-500 ring-2 ring-indigo-500/20 shadow-md"
             : "border-slate-200/60 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
         }`}
       >
         <Search
           className={`w-4 h-4 transition-colors shrink-0 ${
-            isOpen ? "text-indigo-500" : "text-slate-400"
+            isOpen && hasSearchQuery ? "text-indigo-500" : "text-slate-400"
           }`}
         />
         <input
@@ -403,7 +391,7 @@ export function SearchBar() {
           onFocus={() => setIsOpen(true)}
           onChange={(e) => {
             setQuery(e.target.value);
-            if (!isOpen) setIsOpen(true);
+            setIsOpen(true);
             setSelectedIndex(0);
           }}
           onKeyDown={handleKeyDown}
@@ -433,53 +421,24 @@ export function SearchBar() {
         </div>
       </div>
 
-      {/* In-Place Attached Dropdown Menu (Under the Search Bar Only) */}
-      {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-0 w-full min-w-[340px] sm:min-w-[440px] lg:min-w-[500px] max-w-[92vw] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-          {/* Category Filter Chips */}
-          <div className="flex items-center gap-1.5 px-3 py-2 border-b border-slate-100 dark:border-slate-800 overflow-x-auto no-scrollbar bg-slate-50/50 dark:bg-slate-950/40">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(cat.id);
-                  setSelectedIndex(0);
-                }}
-                className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg whitespace-nowrap transition-all ${
-                  selectedCategory === cat.id
-                    ? "bg-indigo-600 text-white shadow-xs"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
+      {/* In-Place Attached Dropdown: ONLY shown when user has typed a query */}
+      {isOpen && hasSearchQuery && (
+        <div className="absolute top-[calc(100%+8px)] left-0 w-full min-w-[320px] sm:min-w-[420px] lg:min-w-[480px] max-w-[92vw] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
           {/* Results List */}
-          <div ref={listRef} className="max-h-[380px] overflow-y-auto p-1.5 space-y-1">
+          <div ref={listRef} className="max-h-[340px] overflow-y-auto p-1.5 space-y-1">
             {filteredItems.length === 0 ? (
-              <div className="py-8 text-center px-4">
-                <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-500 mx-auto flex items-center justify-center mb-2">
-                  <Search className="w-5 h-5" />
-                </div>
+              <div className="py-6 text-center px-4">
                 <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  No matching tools found
+                  No matching tools found for &quot;{query}&quot;
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Try searching &quot;resume&quot;, &quot;interview&quot;, &quot;ats&quot;, or &quot;coding&quot;.
-                </p>
-                {query.trim() && (
-                  <button
-                    type="button"
-                    onClick={handleAskAI}
-                    className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Ask AI Copilot &quot;{query}&quot;
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleAskAI}
+                  className="mt-2.5 inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition-all shadow-xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  Ask AI Copilot &quot;{query}&quot;
+                </button>
               </div>
             ) : (
               filteredItems.map((item, idx) => {
@@ -550,32 +509,16 @@ export function SearchBar() {
           </div>
 
           {/* Footer Bar */}
-          <div className="px-3 py-2 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-0.5">
-                <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[9px] text-slate-600 dark:text-slate-300 font-semibold border border-slate-300/60 dark:border-slate-700">
-                  ↑
-                </kbd>
-                <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[9px] text-slate-600 dark:text-slate-300 font-semibold border border-slate-300/60 dark:border-slate-700">
-                  ↓
-                </kbd>
-                <span className="ml-0.5">navigate</span>
-              </span>
-              <span className="inline-flex items-center gap-0.5">
-                <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[9px] text-slate-600 dark:text-slate-300 font-semibold border border-slate-300/60 dark:border-slate-700">
-                  ↵
-                </kbd>
-                <span className="ml-0.5">select</span>
-              </span>
-              <span className="inline-flex items-center gap-0.5">
-                <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[9px] text-slate-600 dark:text-slate-300 font-semibold border border-slate-300/60 dark:border-slate-700">
-                  esc
-                </kbd>
-                <span className="ml-0.5">close</span>
-              </span>
-            </div>
+          <div className="px-3 py-1.5 bg-slate-50 dark:bg-slate-950/60 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[10px] text-slate-400">
+            <span className="inline-flex items-center gap-1">
+              <span>Press</span>
+              <kbd className="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-800 font-mono text-[9px] text-slate-600 dark:text-slate-300 font-semibold border border-slate-300/60 dark:border-slate-700">
+                ↵ Enter
+              </kbd>
+              <span>to open</span>
+            </span>
             <span className="font-semibold text-slate-400">
-              {filteredItems.length} result{filteredItems.length === 1 ? "" : "s"}
+              {filteredItems.length} match{filteredItems.length === 1 ? "" : "es"}
             </span>
           </div>
         </div>

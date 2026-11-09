@@ -1679,7 +1679,8 @@ Risk: <e.g., Low or None>
               type="text" 
               value={resumeTitle}
               onChange={(e) => setResumeTitle(e.target.value)}
-              className="text-xl font-black text-slate-900 leading-none bg-transparent border-none focus:outline-none focus:ring-0 p-1.5 hover:bg-slate-50 transition-colors rounded-lg -ml-1.5 w-[300px]"
+              className="text-xl font-black text-slate-900 leading-none !bg-transparent !border-0 !border-none focus:!outline-none focus:!ring-0 p-1.5 hover:bg-slate-50 transition-colors rounded-lg -ml-1.5 w-[300px]"
+              style={{ border: "none", outline: "none", background: "transparent", boxShadow: "none" }}
             />
             <div className="flex items-center gap-2 ml-2">
               <span className={`text-xs uppercase tracking-wider font-black px-3 py-1.5 rounded-lg ${saveStatus === "Saved" ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-600"}`}>
@@ -3417,7 +3418,10 @@ function SkillsEditorPanel({
           <span className="text-xs font-black uppercase tracking-wider text-indigo-650 block mb-1.5">{cat}</span>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {list.map((skill, idx) => (
-              <div key={idx} className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-full border border-slate-200 transition-colors">
+              <div 
+                key={idx} 
+                className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 hover:bg-slate-200/80 rounded-full border border-slate-200 focus-within:border-indigo-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all duration-150"
+              >
                 <input
                   value={skill}
                   onFocus={() => setActiveSection("skills")}
@@ -3427,15 +3431,24 @@ function SkillsEditorPanel({
                     const nextGroups = { ...classified, [cat]: nextList };
                     saveGroupedSkills(nextGroups);
                   }}
-                  className="bg-transparent border-none outline-none text-xs font-bold text-slate-800 w-16 focus:w-24 transition-all"
+                  className="!bg-transparent !border-0 !border-none !outline-none !ring-0 !shadow-none focus:!ring-0 focus:!outline-none focus:!border-none text-xs font-bold text-slate-800 p-0 m-0 transition-all"
+                  style={{
+                    border: "none",
+                    outline: "none",
+                    background: "transparent",
+                    boxShadow: "none",
+                    width: `${Math.max(skill.length, 2)}ch`,
+                  }}
                 />
                 <button
+                  type="button"
                   onClick={() => {
                     const nextList = list.filter((_, i) => i !== idx);
                     const nextGroups = { ...classified, [cat]: nextList };
                     saveGroupedSkills(nextGroups);
                   }}
-                  className="text-slate-400 hover:text-red-500 font-bold text-xs cursor-pointer"
+                  className="text-slate-400 hover:text-red-500 font-bold text-xs cursor-pointer ml-0.5 leading-none"
+                  title="Remove skill"
                 >
                   ×
                 </button>
